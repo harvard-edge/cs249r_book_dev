@@ -1,8 +1,8 @@
-# cs249r build (develop branch)
+# cs249r build (dev branch)
 
-This repository hosts the develop branch of the primary cs249r book repository.
+This repository hosts the `dev` branch of the primary cs249r book repository.
 
-- https://harvard-edge.github.io/cs249r_book_develop/  
+- https://harvard-edge.github.io/cs249r_book_dev/  
 
 Please visit the Machine Learning Systems primary GitHub repository for more details:
  
