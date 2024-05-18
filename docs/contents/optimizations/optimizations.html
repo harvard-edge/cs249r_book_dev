@@ -673,10 +673,14 @@ Learning Objectives
 <p>We have structured this chapter in three tiers. First, in <a href="#sec-model_ops_representation" class="quarto-xref"><span>Section 9.2</span></a> we examine the significance and methodologies of reducing the parameter complexity of models without compromising their inference capabilities. Techniques such as pruning and knowledge distillation are discussed, offering insights into how models can be compressed and simplified while maintaining, or even enhancing, their performance.</p>
 <p>Going one level lower, in <a href="#sec-model_ops_numerics" class="quarto-xref"><span>Section 9.3</span></a>, we study the role of numerical precision in model computations and how altering it impacts model size, speed, and accuracy. We will examine the various numerical formats and how reduced-precision arithmetic can be leveraged to optimize models for embedded deployment.</p>
 <p>Finally, as we go lower and closer to the hardware, in <a href="#sec-model_ops_hw" class="quarto-xref"><span>Section 9.4</span></a>, we will navigate through the landscape of hardware-software co-design, exploring how models can be optimized by tailoring them to the specific characteristics and capabilities of the target hardware. We will discuss how models can be adapted to exploit the available hardware resources effectively.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="images/png/modeloptimization_structure.png" class="img-fluid figure-img" style="width:50.0%"></p>
-<figcaption>A visualization showing each of the three sections to be covered on the hardware-software gradient.</figcaption>
+<div id="fig-3-sections" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-3-sections-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/modeloptimization_structure.png" class="img-fluid figure-img" style="width:50.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-3-sections-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.1: Three layers to be covered.
+</figcaption>
 </figure>
 </div>
 </section>
@@ -713,14 +717,14 @@ Learning Objectives
 <p>The primary structures targeted for pruning include <strong>neurons</strong>, channels, and sometimes, entire layers, each having its unique implications and methodologies. When neurons are pruned, we are removing entire neurons along with their associated weights and biases, thereby reducing the width of the layer. This type of pruning is often utilized in fully connected layers.</p>
 <p>With <strong>channel</strong> pruning, which is predominantly applied in convolutional neural networks (CNNs), it involves eliminating entire channels or filters, which in turn reduces the depth of the feature maps and impacts the network’s ability to extract certain features from the input data. This is particularly crucial in image processing tasks where computational efficiency is paramount.</p>
 <p>Finally, <strong>layer</strong> pruning takes a more aggressive approach by removing entire layers of the network. This significantly reduces the network’s depth and thereby its capacity to model complex patterns and hierarchies in the data. This approach necessitates a careful balance to ensure that the model’s predictive capability is not unduly compromised.</p>
-<p><a href="#fig-channel-layer-pruning" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> demonstrates the difference between channel/filter wise pruning and layer pruning. When we prune a channel, we have to reconfigure the model’s architecture in order to adapt to the structural changes. One adjustment is changing the number of input channels in the subsequent layer (here, the third and deepest layer): changing the depths of the filters that are applied to the layer with the pruned channel. On the other hand, pruning an entire layer (removing all the channels in the layer) requires more drastic adjustements. The main one involves modifying the connections between the remaining layers to replace or bypass the pruned layer. In our case, we reconfigured had to connect the first and last layers. In all pruning cases, we have to fine-tune the new structure to adjust the weights.</p>
+<p><a href="#fig-channel-layer-pruning" class="quarto-xref">Figure&nbsp;<span>9.2</span></a> demonstrates the difference between channel/filter wise pruning and layer pruning. When we prune a channel, we have to reconfigure the model’s architecture in order to adapt to the structural changes. One adjustment is changing the number of input channels in the subsequent layer (here, the third and deepest layer): changing the depths of the filters that are applied to the layer with the pruned channel. On the other hand, pruning an entire layer (removing all the channels in the layer) requires more drastic adjustements. The main one involves modifying the connections between the remaining layers to replace or bypass the pruned layer. In our case, we reconfigured had to connect the first and last layers. In all pruning cases, we have to fine-tune the new structure to adjust the weights.</p>
 <div id="fig-channel-layer-pruning" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-channel-layer-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/jpg/modeloptimization_channel_layer_pruning.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-channel-layer-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.1: On the left, we have an example of a channel-pruning process, in which we remove a specific channel (or filter which subsequently removes the corresponding channel). On the right, we show the process of layer pruning, which involves removing/bypassing an entire layer. Both processes require post-pruning reconfiguration and fine-tuning to adapt the model to the structural changes.
+Figure&nbsp;9.2: Channel vs layer pruning.
 </figcaption>
 </figure>
 </div>
@@ -742,27 +746,27 @@ Figure&nbsp;9.1: On the left, we have an example of a channel-pruning process, i
 <h5 class="anchored" data-anchor-id="selecting-a-pruning-strategy">Selecting a pruning strategy</h5>
 <p>The pruning strategy orchestrates how structures are removed and integrates with subsequent model fine-tuning to recover predictive performance. Two main structured pruning strategies exist: iterative pruning and one-shot pruning.</p>
 <p><strong>Iterative pruning</strong> gradually removes structures across multiple cycles of pruning followed by fine-tuning. In each cycle, a small set of structures are pruned based on importance criteria. The model is then fine-tuned, allowing it to adjust smoothly to the structural changes before the next pruning iteration. This gradual, cyclic approach prevents abrupt accuracy drops. It allows the model to slowly adapt as structures are reduced across iterations.</p>
-<p>Consider a situation where we wish to prune the 6 least effective channels (based on some specific critera) from a convolutional neural network. In <a href="#fig-iterative-pruning" class="quarto-xref">Figure&nbsp;<span>9.2</span></a>, we show a simplified pruning process carried over 3 iterations. In every iteration, we only prune 2 channels. Removing the channels results in accuracy degradation. In the first iteration, the accuracy drops from 0.995 to 0.971. However, after we fine-tune the model on the new structure, we are able to recover from the performance loss, bringing the accuracy up to 0.992. Since the structural changes are minor and gradual, the network can more easily adapt to them. Running the same process 2 more times, we end up with a final accuracy of 0.991 (a loss of only 0.4% from the original) and 27% decrease in the number of channels. Thus, iterative pruning enables us to maintain performance while benefiting from increased computational efficiency due to the decreased model size.</p>
+<p>Consider a situation where we wish to prune the 6 least effective channels (based on some specific critera) from a convolutional neural network. In <a href="#fig-iterative-pruning" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>, we show a simplified pruning process carried over 3 iterations. In every iteration, we only prune 2 channels. Removing the channels results in accuracy degradation. In the first iteration, the accuracy drops from 0.995 to 0.971. However, after we fine-tune the model on the new structure, we are able to recover from the performance loss, bringing the accuracy up to 0.992. Since the structural changes are minor and gradual, the network can more easily adapt to them. Running the same process 2 more times, we end up with a final accuracy of 0.991 (a loss of only 0.4% from the original) and 27% decrease in the number of channels. Thus, iterative pruning enables us to maintain performance while benefiting from increased computational efficiency due to the decreased model size.</p>
 <div id="fig-iterative-pruning" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-iterative-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/jpg/modeloptimization_iterative_pruning.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iterative-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.2: In structured iterative pruning, we gradually remove a small set of structures (channels, in this case). Running fine-tuning on the new structure on every iteration allows the model to quickly adapt to the changes. The gradual and controlled nature of iterative pruning ensures that the accuracy drop on each iteration is minimal. Subsequently, the network typically manages to restore its accuracy to levels comparable to its original, unpruned state.
+Figure&nbsp;9.3: Iterative pruning.
 </figcaption>
 </figure>
 </div>
 <p><strong>One-shot pruning</strong> takes a more aggressive approach by pruning a large portion of structures simultaneously in one shot based on predefined importance criteria. This is followed by extensive fine-tuning to recover model accuracy. While faster, this aggressive strategy can degrade accuracy if the model cannot recover during fine-tuning.</p>
 <p>The choice between these strategies involves weighing factors like model size, target sparsity level, available compute and acceptable accuracy losses. One-shot pruning can rapidly compress models, but iterative pruning may enable better accuracy retention for a target level of pruning. In practice, the strategy is tailored based on use case constraints. The overarching aim is to generate an optimal strategy that removes redundancy, achieves efficiency gains through pruning, and finely tunes the model to stabilize accuracy at an acceptable level for deployment.</p>
-<p>Now consider the same network we had in the iterative pruning example. Whereas in the iterative process we pruned 2 channels at a time, in the one-shot pruning we would prune the 6 channels at once (<a href="#fig-oneshot-pruning" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>). Removing 27% of the network’s channel simultaneously alters the structure significantly, causing the accuracy to drop from 0.995 to 0.914. Given the major changes, the network is not able to properly adapt during fine-tuning, and the accuracy went up to 0.943, a 5% degradation from the accuracy of the unpruned network. While the final structures in both iterative pruning and oneshot pruning processes are identical, the former is able to maintain high performance while the latter suffers significant degradations.</p>
+<p>Now consider the same network we had in the iterative pruning example. Whereas in the iterative process we pruned 2 channels at a time, in the one-shot pruning we would prune the 6 channels at once (<a href="#fig-oneshot-pruning" class="quarto-xref">Figure&nbsp;<span>9.4</span></a>). Removing 27% of the network’s channel simultaneously alters the structure significantly, causing the accuracy to drop from 0.995 to 0.914. Given the major changes, the network is not able to properly adapt during fine-tuning, and the accuracy went up to 0.943, a 5% degradation from the accuracy of the unpruned network. While the final structures in both iterative pruning and oneshot pruning processes are identical, the former is able to maintain high performance while the latter suffers significant degradations.</p>
 <div id="fig-oneshot-pruning" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-oneshot-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/jpg/modeloptimization_oneshot_pruning.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-oneshot-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.3: In one-shot pruning, we remove a certain number of structures (here channels) that have minimal contribution to the network. Since this is carried out in a single iteration, the network undergoes drastic changes to its structure. So the network might not be able to properly adapt to the sudden and major changes, resulting in significant accuracy degradation.
+Figure&nbsp;9.4: One-shot pruning.
 </figcaption>
 </figure>
 </div>
@@ -784,7 +788,7 @@ Figure&nbsp;9.3: In one-shot pruning, we remove a certain number of structures (
 <p>The pruned model, while smaller, retains its original architectural form, which can simplify the deployment pipeline and ensure compatibility with existing systems and frameworks. Also, with fewer parameters and simpler structures, the pruned model becomes easier to manage and monitor in production environments, potentially reducing the overhead associated with model maintenance and updates. Later on, when we dive into <a href="../../contents/ops/ops.html">MLOps</a>, this need will become apparent.</p>
 </section>
 </section>
-<section id="unstructured-pruning" class="level4 page-columns page-full">
+<section id="unstructured-pruning" class="level4">
 <h4 class="anchored" data-anchor-id="unstructured-pruning">Unstructured Pruning</h4>
 <p>Unstructured pruning is, as its name suggests, pruning the model without regard to model-specific substructure. As mentioned above, it offers a greater aggression in pruning and can achieve higher model sparsities while maintaining accuracy given less constraints on what can and can’t be pruned. Generally, post-training unstructured pruning consists of an importance criterion for individual model parameters/weights, pruning/removal of weights that fall below the criteria, and optional fine-tuning after to try and recover the accuracy lost during weight removal.</p>
 <p>Unstructured pruning has some advantages over structured pruning: removing individual weights instead of entire model substructures often leads in practice to lower model accuracy decreases. Furthermore, generally determining the criterion of importance for an individual weight is much simpler than for an entire substructure of parameters in structured pruning, making the former preferable for cases where that overhead is hard or unclear to compute. Similarly, the actual process of structured pruning is generally less flexible, as removing individual weights is generally simpler than removing entire substructures and ensuring the model still works.</p>
@@ -793,7 +797,7 @@ Figure&nbsp;9.3: In one-shot pruning, we remove a certain number of structures (
 <div id="tbl-pruning_methods" class="quarto-float anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pruning_methods-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;9.1: Comparing structured versus unstructured pruning strategies.
+Table&nbsp;9.1: Comparison of structured versus unstructured pruning.
 </figcaption>
 <div aria-describedby="tbl-pruning_methods-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table">
@@ -850,17 +854,16 @@ Table&nbsp;9.1: Comparing structured versus unstructured pruning strategies.
 </div>
 </figure>
 </div>
-<div id="fig-structured-unstructured" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<p>In <a href="#fig-structured-unstructured" class="quarto-xref">Figure&nbsp;<span>9.5</span></a> we have exapmles that illustrate the differences between unstructured and structured pruning. Observe that unstructured pruning can lead to models that no longer obey high-level structural guaruntees of their original unpruned counterparts: the left network is no longer a fully connected network after pruning. Structured pruning on the other hand maintains those invariants: in the middle, the fully connected network is pruned in a way that the pruned network is still fully connected; likewise, the CNN maintains its convolutional structure, albeit with fewer filters.</p>
+<div id="fig-structured-unstructured" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-structured-unstructured-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_pruning_comparison.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-structured-unstructured-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.4: A visualization showing the differences and examples between unstructured and structured pruning. Observe that unstructured pruning can lead to models that no longer obey high-level structural guaruntees of their original unpruned counterparts: the left network is no longer a fully connected network after pruning. Structured pruning on the other hand maintains those invariants: in the middle, the fully connected network is pruned in a way that the pruned network is still fully connected; likewise, the CNN maintains its convolutional structure, albeit with fewer filters (<span class="citation" data-cites="qi2021efficient">Qi et al. (<a href="../../references.html#ref-qi2021efficient" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.5: Unstructured vs structured pruning. Credit: <span class="citation" data-cites="qi_efficient_2021">(<a href="../../references.html#ref-qi_efficient_2021" role="doc-biblioref"><strong>qi_efficient_2021?</strong></a>)</span>.
 </figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-qi2021efficient" class="csl-entry" role="listitem">
-Qi, Chen, Shibo Shen, Rongpeng Li, Zhifeng Zhao, Qing Liu, Jing Liang, and Honggang Zhang. 2021. <span>“An Efficient Pruning Scheme of Deep Neural Networks for Internet of Things Applications.”</span> <em>EURASIP Journal on Advances in Signal Processing</em> 2021 (1). <a href="https://doi.org/10.1186/s13634-021-00744-4">https://doi.org/10.1186/s13634-021-00744-4</a>.
-</div></div></figure>
+</figure>
 </div>
 </section>
 <section id="lottery-ticket-hypothesis" class="level4 page-columns page-full">
@@ -870,30 +873,31 @@ Qi, Chen, Shibo Shen, Rongpeng Li, Zhifeng Zhao, Qing Liu, Jing Liang, and Hongg
 <div class="no-row-height column-margin column-container"><div id="ref-jonathan2019lottery" class="csl-entry" role="listitem">
 Frankle, Jonathan, and Michael Carbin. 2019. <span>“The Lottery Ticket Hypothesis: <span>Finding</span> Sparse, Trainable Neural Networks.”</span> In <em>7th International Conference on Learning Representations, ICLR 2019, New Orleans, LA, USA, May 6-9, 2019</em>. OpenReview.net. <a href="https://openreview.net/forum?id=rJl-b3RcF7">https://openreview.net/forum?id=rJl-b3RcF7</a>.
 </div></div><p>The intuition behind this hypothesis is that, during the training process of a neural network, many neurons and connections become redundant or unimportant, particularly with the inclusion of training techniques encouraging redundancy like dropout. Identifying, pruning out, and initializing these “winning tickets’’ allows for faster training and more efficient models, as they contain the essential model decision information for the task. Furthermore, as generally known with the bias-variance tradeoff theory, these tickets suffer less from overparameterization and thus generalize better rather than overfitting to the task.</p>
-<div id="fig-lotter-ticket-hypothesis" class="quarto-figure quarto-figure-center quarto-float anchored">
+<p>In <a href="#fig-lottery-ticket-hypothesis" class="quarto-xref">Figure&nbsp;<span>9.6</span></a> we have an example experiment showing pruning and training experiments on a fully connected LeNet over a variety of pruning ratios. In the left plot, notice how heavy pruning reveals a more efifcient subnetwork (in green) that is 21.1% the size of the original network (in blue), The subnetwork achieves higher accuracy and in a faster manner than the unpruned version (green line is above the blue line). However, pruning has a limit (sweet spot), and further pruning will produce performance degredations and eventually drop below the unpruned version’s performance (notice how the red, purple, and brown subnetworks gradually drop in accuracy performance) due to the significant loss in the number of parameters.</p>
+<div id="fig-lottery-ticket-hypothesis" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-lotter-ticket-hypothesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="fig-lottery-ticket-hypothesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_lottery_ticket_hypothesis.png" class="img-fluid figure-img">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lotter-ticket-hypothesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.5: An example experiment from the lottery ticket hypothesis showing pruning and training experiments on a fully connected LeNet over a variety of pruning ratios: note the first plot showing how pruning is able to reveal a subnetwork nearly one-fifth the size that trains to a higher test accuracy faster than the unpruned network. However, further note how in the second plot that further pruned models in models that both train slower and are not able to achieve that same maximal test accuracy due to the lower number of parameters.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lottery-ticket-hypothesis-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.6: Lottery ticket hypothesis experiments.
 </figcaption>
 </figure>
 </div>
-<p>The following is the process of finding the winning lottery ticket subnetwork, as also shown in <a href="#fig-winning-ticket" class="quarto-xref">Figure&nbsp;<span>9.6</span></a>:</p>
+<p>The following is the process of finding the winning lottery ticket subnetwork, as also shown in <a href="#fig-winning-ticket" class="quarto-xref">Figure&nbsp;<span>9.7</span></a> (left side):</p>
 <p>1- Initialize the network’s weights to random values.</p>
 <p>2- Train the network until it converges to the desired performance.</p>
 <p>3- Prune out some percentage of the edges with the lowest weight values.</p>
 <p>4- Reinitialize the network with the same random values from step 1.</p>
 <p>5- Repeat steps 2-4 for a number of times, or as long as the accuracy doesn’t significantly degrade.</p>
-<p>When we finish, we are left with a pruned network, which is a subnetwork of the one we start with. The subnetwork should have a significantly smaller structure, while maintaining a comparable level of accuracy.</p>
+<p>When we finish, we are left with a pruned network (<a href="#fig-winning-ticket" class="quarto-xref">Figure&nbsp;<span>9.7</span></a> right side), which is a subnetwork of the one we start with. The subnetwork should have a significantly smaller structure, while maintaining a comparable level of accuracy.</p>
 <div id="fig-winning-ticket" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-winning-ticket-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/jpg/modeloptimization_winning_ticket.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-winning-ticket-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.6: On the left, we have a simplified overview of the process of finding the winning ticket subnetwork. On the right, we have an example of a subnetwork (highlighted in bold black), as compared to the original network (in faded grey).
+Figure&nbsp;9.7: Finding the winning ticket subnetwork.
 </figcaption>
 </figure>
 </div>
@@ -919,7 +923,7 @@ Figure&nbsp;9.6: On the left, we have a simplified overview of the process of fi
 </section>
 <section id="hardware-compatibility-and-efficiency" class="level5">
 <h5 class="anchored" data-anchor-id="hardware-compatibility-and-efficiency">Hardware Compatibility and Efficiency</h5>
-<p>Especially pertinent to unstructured pruning, hardware compatibility and efficiency become critical. Unstructured pruning often results in sparse weight matrices, which may not be efficiently handled by certain hardware, potentially negating the computational benefits of pruning (see <a href="#fig-sparse-matrix" class="quarto-xref">Figure&nbsp;<span>9.7</span></a>). Ensuring that pruned models, particularly those resulting from unstructured pruning, are compatible and efficient on the target hardware is a significant consideration.</p>
+<p>Especially pertinent to unstructured pruning, hardware compatibility and efficiency become critical. Unstructured pruning often results in sparse weight matrices, which may not be efficiently handled by certain hardware, potentially negating the computational benefits of pruning (see <a href="#fig-sparse-matrix" class="quarto-xref">Figure&nbsp;<span>9.8</span></a>). Ensuring that pruned models, particularly those resulting from unstructured pruning, are compatible and efficient on the target hardware is a significant consideration.</p>
 </section>
 <section id="complexity-in-implementing-pruning-algorithms" class="level5">
 <h5 class="anchored" data-anchor-id="complexity-in-implementing-pruning-algorithms">Complexity in Implementing Pruning Algorithms</h5>
@@ -934,7 +938,7 @@ Figure&nbsp;9.6: On the left, we have a simplified overview of the process of fi
 <img src="images/jpg/modeloptimization_sprase_matrix.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sparse-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.7: Pruning can produce very sparse weight matrices, in which the vast majority of weights are set to zero. While the matrix is now mostly made up of zeros, it still maintains its original shape, which uses up precious memory and introduces calculation inefficiencies.
+Figure&nbsp;9.8: Sparse weight matrix.
 </figcaption>
 </figure>
 </div>
@@ -966,11 +970,15 @@ Hinton, Geoffrey. 2005. <span>“Van <span class="nocase">Nostrand’s</span> Sc
 <p>At its core, KD strategically leverages the refined outputs of a pre-trained teacher model to transfer knowledge to a smaller student model. The key technique is using “soft targets” derived from the teacher’s probabilistic predictions. Specifically, the teacher’s outputs are passed through a temperature-scaled softmax function, yielding softened probability distributions over classes. This softening provides richer supervision signals for the student model compared to hard target labels.</p>
 <p>The loss function is another critical component that typically amalgamates a distillation loss, which measures the divergence between the teacher and student outputs, and a classification loss, which ensures the student model adheres to the true data labels. The Kullback-Leibler (KL) divergence is commonly employed to quantify the distillation loss, providing a measure of the discrepancy between the probability distributions output by the teacher and student models.</p>
 <p>Another core concept is “temperature scaling” in the softmax function. It plays the role of controlling the granularity of the information distilled from the teacher model. A higher temperature parameter produces softer, more informative distributions, thereby facilitating the transfer of more nuanced knowledge to the student model. However, it also introduces the challenge of effectively balancing the trade-off between the informativeness of the soft targets and the stability of the training process.</p>
-<p>These components, when adeptly configured and harmonized, enable the student model to assimilate the teacher model’s knowledge, crafting a pathway towards efficient and robust smaller models that retain the predictive prowess of their larger counterparts.</p>
-<div class="quarto-figure quarto-figure-center page-columns page-full">
-<figure class="figure page-columns page-full">
-<p><img src="images/png/modeloptimization_knowledge_distillation.png" class="img-fluid figure-img"></p>
-<figcaption>A visualization of the training procedure of knowledge distillation. Note how the logits or soft labels of the teacher model are used to provide a distillation loss for the student model to learn from (<span class="citation" data-cites="intellabs2023knowledge">IntelLabs (<a href="../../references.html#ref-intellabs2023knowledge" role="doc-biblioref">2023</a>)</span>).</figcaption>
+<p>These components, when adeptly configured and harmonized, enable the student model to assimilate the teacher model’s knowledge, crafting a pathway towards efficient and robust smaller models that retain the predictive prowess of their larger counterparts. <a href="#fig-knowledge-distillation" class="quarto-xref">Figure&nbsp;<span>9.9</span></a> visualizes the training procedure of knowledge distillation. Note how the logits or soft labels of the teacher model are used to provide a distillation loss for the student model to learn from.</p>
+<div id="fig-knowledge-distillation" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-knowledge-distillation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/modeloptimization_knowledge_distillation.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-knowledge-distillation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.9: Knowledge distillation training process. Credit: <span class="citation" data-cites="intellabs2023knowledge">IntelLabs (<a href="../../references.html#ref-intellabs2023knowledge" role="doc-biblioref">2023</a>)</span>.
+</figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-intellabs2023knowledge" class="csl-entry" role="listitem">
 IntelLabs. 2023. <span>“Knowledge Distillation - Neural Network Distiller.”</span> <a href="https://intellabs.github.io/distiller/knowledge_distillation.html">https://intellabs.github.io/distiller/knowledge_distillation.html</a>.
 </div></div></figure>
@@ -991,18 +999,19 @@ IntelLabs. 2023. <span>“Knowledge Distillation - Neural Network Distiller.”<
 <p>One of the seminal works in the realm of matrix factorization, particularly in the context of recommendation systems, is the paper by <span class="citation" data-cites="koren2009matrix">Koren, Bell, and Volinsky (<a href="../../references.html#ref-koren2009matrix" role="doc-biblioref">2009</a>)</span>. The authors delve into various factorization models, providing insights into their efficacy in capturing the underlying patterns in the data and enhancing predictive accuracy in collaborative filtering. LRMF has been widely applied in recommendation systems (such as Netflix, Facebook, etc.), where the user-item interaction matrix is factorized to capture latent factors corresponding to user preferences and item attributes.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-koren2009matrix" class="csl-entry" role="listitem">
 Koren, Yehuda, Robert Bell, and Chris Volinsky. 2009. <span>“Matrix Factorization Techniques for Recommender Systems.”</span> <em>Computer</em> 42 (8): 30–37. <a href="https://doi.org/10.1109/mc.2009.263">https://doi.org/10.1109/mc.2009.263</a>.
-</div></div><p>The main advantage of low-rank matrix factorization lies in its ability to reduce data dimensionality as shown in <a href="#fig-matrix-factorization" class="quarto-xref">Figure&nbsp;<span>9.8</span></a>, where there are fewer parameters to store, making it computationally more efficient and reducing storage requirements at the cost of some additional compute. This can lead to faster computations and more compact data representations, which is especially valuable when dealing with large datasets. Additionally, it may aid in noise reduction and can reveal underlying patterns and relationships in the data.</p>
-<div id="fig-matrix-factorization" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+</div></div><p>The main advantage of low-rank matrix factorization lies in its ability to reduce data dimensionality as shown in <a href="#fig-matrix-factorization" class="quarto-xref">Figure&nbsp;<span>9.10</span></a>, where there are fewer parameters to store, making it computationally more efficient and reducing storage requirements at the cost of some additional compute. This can lead to faster computations and more compact data representations, which is especially valuable when dealing with large datasets. Additionally, it may aid in noise reduction and can reveal underlying patterns and relationships in the data.</p>
+<p><a href="#fig-matrix-factorization" class="quarto-xref">Figure&nbsp;<span>9.10</span></a> illustrates the decrease in parameterization enabled by low-rank matrix factorization. Observe how the matrix <span class="math inline">\(M\)</span> can be approximated by the product of matrices <span class="math inline">\(L_k\)</span> and <span class="math inline">\(R_k^T\)</span>. For intuition, most fully connected layers in networks are stored as a projection matrix <span class="math inline">\(M\)</span>, which requires <span class="math inline">\(m \times n\)</span> parameter to be loaded on computation. However, by decomposing and approximating it as the product of two lower rank matrices, we thus only need to store <span class="math inline">\(m \times k + k\times n\)</span> parameters in terms of storage while incurring an additional compute cost of the matrix multiplication. So long as <span class="math inline">\(k &lt; n/2\)</span>, this factorization has fewer parameters total to store while adding a computation of runtime <span class="math inline">\(O(mkn)\)</span> (<span class="citation" data-cites="gu2023deep">Gu (<a href="../../references.html#ref-gu2023deep" role="doc-biblioref">2023</a>)</span>).</p>
+<div class="no-row-height column-margin column-container"><div id="ref-gu2023deep" class="csl-entry" role="listitem">
+Gu, Ivy. 2023. <span>“Deep Learning Model Compression (Ii) by Ivy Gu Medium.”</span> <a href="https://ivygdy.medium.com/deep-learning-model-compression-ii-546352ea9453">https://ivygdy.medium.com/deep-learning-model-compression-ii-546352ea9453</a>.
+</div></div><div id="fig-matrix-factorization" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-matrix-factorization-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_low_rank_matrix_factorization.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-factorization-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.8: A visualization showing the decrease in parameterization enabled by low-rank matrix factorization. Observe how the matrix <span class="math inline">\(M\)</span> can be approximated by the product of matrices <span class="math inline">\(L_k\)</span> and <span class="math inline">\(R_k^T\)</span>. For intuition, most fully connected layers in networks are stored as a projection matrix <span class="math inline">\(M\)</span>, which requires <span class="math inline">\(m \times n\)</span> parameter to be loaded on computation. However, by decomposing and approximating it as the product of two lower rank matrices, we thus only need to store <span class="math inline">\(m \times k + k\times n\)</span> parameters in terms of storage while incurring an additional compute cost of the matrix multiplication. So long as <span class="math inline">\(k &lt; n/2\)</span>, this factorization has fewer parameters total to store while adding a computation of runtime <span class="math inline">\(O(mkn)\)</span> (<span class="citation" data-cites="gu2023deep">Gu (<a href="../../references.html#ref-gu2023deep" role="doc-biblioref">2023</a>)</span>).
+Figure&nbsp;9.10: Low matrix factorization. Credit: <a href="https://dustinstansbury.github.io/theclevermachine/svd-data-compression">The Clever Machine.</a>
 </figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-gu2023deep" class="csl-entry" role="listitem">
-Gu, Ivy. 2023. <span>“Deep Learning Model Compression (Ii) by Ivy Gu Medium.”</span> <a href="https://ivygdy.medium.com/deep-learning-model-compression-ii-546352ea9453">https://ivygdy.medium.com/deep-learning-model-compression-ii-546352ea9453</a>.
-</div></div></figure>
+</figure>
 </div>
 </section>
 <section id="challenges-1" class="level5">
@@ -1016,7 +1025,7 @@ Gu, Ivy. 2023. <span>“Deep Learning Model Compression (Ii) by Ivy Gu Medium.�
 </section>
 <section id="tensor-decomposition" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="tensor-decomposition">Tensor Decomposition</h4>
-<p>Similar to low-rank matrix factorization, more complex models may store weights in higher dimensions, such as tensors: tensor decomposition is the higher-dimensional analogue of matrix factorization, where a model tensor is decomposed into lower rank components (see <a href="#fig-tensor-decomposition" class="quarto-xref">Figure&nbsp;<span>9.9</span></a>), which again are easier to compute on and store but may suffer from the same issues as mentioned above of information loss and nuanced hyperparameter tuning. Mathematically, given a tensor <span class="math inline">\(\mathcal{A}\)</span>, tensor decomposition seeks to represent <span class="math inline">\(\mathcal{A}\)</span> as a combination of simpler tensors, facilitating a compressed representation that approximates the original data while minimizing the loss of information.</p>
+<p>Similar to low-rank matrix factorization, more complex models may store weights in higher dimensions, such as tensors: tensor decomposition is the higher-dimensional analogue of matrix factorization, where a model tensor is decomposed into lower rank components (see <a href="#fig-tensor-decomposition" class="quarto-xref">Figure&nbsp;<span>9.11</span></a>), which again are easier to compute on and store but may suffer from the same issues as mentioned above of information loss and nuanced hyperparameter tuning. Mathematically, given a tensor <span class="math inline">\(\mathcal{A}\)</span>, tensor decomposition seeks to represent <span class="math inline">\(\mathcal{A}\)</span> as a combination of simpler tensors, facilitating a compressed representation that approximates the original data while minimizing the loss of information.</p>
 <p>The work of Tamara G. Kolda and Brett W. Bader, <a href="https://epubs.siam.org/doi/abs/10.1137/07070111X">“Tensor Decompositions and Applications”</a> (2009), stands out as a seminal paper in the field of tensor decompositions. The authors provide a comprehensive overview of various tensor decomposition methods, exploring their mathematical underpinnings, algorithms, and a wide array of applications, ranging from signal processing to data mining. Of course, the reason we are discussing it is because it has huge potential for system performance improvements, particularly in the space of TinyML, where throughput and memory footprint savings are crucial to feasibility of deployments.</p>
 <div id="fig-tensor-decomposition" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
@@ -1024,7 +1033,7 @@ Gu, Ivy. 2023. <span>“Deep Learning Model Compression (Ii) by Ivy Gu Medium.�
 <img src="images/png/modeloptimization_tensor_decomposition.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tensor-decomposition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.9: A visualization showing the decrease in parameterization enabled by tensor decomposition. Observe how the shown three-dimensional tensor <span class="math inline">\(y\)</span> can be approximated by three matrices, all of lower rank, greatly reducing the number of parameters to be held in memory (<span class="citation" data-cites="xinyu">Xinyu (<a href="../../references.html#ref-xinyu" role="doc-biblioref">n.d.</a>)</span>).
+Figure&nbsp;9.11: Tensor decomposition. Credit: <span class="citation" data-cites="xinyu">Xinyu (<a href="../../references.html#ref-xinyu" role="doc-biblioref">n.d.</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-xinyu" class="csl-entry" role="listitem">
 Xinyu, Chen. n.d.
@@ -1050,14 +1059,14 @@ Xinyu, Chen. n.d.
 <p>As covered in previous sections, edge devices are constrained specifically with limitations on memory and parallelizable computations: as such, if there are critical inference speed requirements, computations must be flexible enough to satisfy hardware constraints, something that can be designed at the model architecture level. Furthermore, trying to cram SOTA large ML models onto edge devices even after pruning and compression is generally infeasible purely due to size: the model complexity itself must be chosen with more nuance as to more feasibly fit the device. Edge ML developers have approached this architectural challenge both through designing bespoke edge ML model architectures and through device-aware neural architecture search (NAS), which can more systematically generate feasible on-device model architectures.</p>
 <section id="model-design-techniques" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="model-design-techniques">Model Design Techniques</h4>
-<p>One edge friendly architecture design is depthwise separable convolutions. Commonly used in deep learning for image processing, it consists of two distinct steps: the first is the depthwise convolution, where each input channel is convolved independently with its own set of learnable filters, as show in <a href="#fig-depthwise-convolution" class="quarto-xref">Figure&nbsp;<span>9.10</span></a>. This step reduces computational complexity by a significant margin compared to standard convolutions, as it drastically reduces the number of parameters and computations involved. The second step is the pointwise convolution, which combines the output of the depthwise convolution channels through a 1x1 convolution, creating inter-channel interactions. This approach offers several advantages. Pros include reduced model size, faster inference times, and often better generalization due to fewer parameters, making it suitable for mobile and embedded applications. However, depthwise separable convolutions may not capture complex spatial interactions as effectively as standard convolutions and might require more depth (layers) to achieve the same level of representational power, potentially leading to longer training times. Nonetheless, their efficiency in terms of parameters and computation makes them a popular choice in modern convolutional neural network architectures.</p>
+<p>One edge friendly architecture design is depthwise separable convolutions. Commonly used in deep learning for image processing, it consists of two distinct steps: the first is the depthwise convolution, where each input channel is convolved independently with its own set of learnable filters, as show in <a href="#fig-depthwise-convolution" class="quarto-xref">Figure&nbsp;<span>9.12</span></a>. This step reduces computational complexity by a significant margin compared to standard convolutions, as it drastically reduces the number of parameters and computations involved. The second step is the pointwise convolution, which combines the output of the depthwise convolution channels through a 1x1 convolution, creating inter-channel interactions. This approach offers several advantages. Pros include reduced model size, faster inference times, and often better generalization due to fewer parameters, making it suitable for mobile and embedded applications. However, depthwise separable convolutions may not capture complex spatial interactions as effectively as standard convolutions and might require more depth (layers) to achieve the same level of representational power, potentially leading to longer training times. Nonetheless, their efficiency in terms of parameters and computation makes them a popular choice in modern convolutional neural network architectures.</p>
 <div id="fig-depthwise-convolution" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-depthwise-convolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_depthwise_separable_convolution.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-depthwise-convolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.10: A visualization showing each of the individual operations behind a single depthwise separable convolution: first, we give the input image a convolution without modifying the depth. Once those convolutions are completed, we then do a pointwise 1-by-1 convolution to get to the desired number of channels. This reduces the number of parameters, making it a key TinyML technique (<span class="citation" data-cites="hegde2023introduction">Hegde (<a href="../../references.html#ref-hegde2023introduction" role="doc-biblioref">2023</a>)</span>).
+Figure&nbsp;9.12: Depthwise separable convolutions. Credit: <span class="citation" data-cites="hegde2023introduction">Hegde (<a href="../../references.html#ref-hegde2023introduction" role="doc-biblioref">2023</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-hegde2023introduction" class="csl-entry" role="listitem">
 Hegde, Sumant. 2023. <span>“An Introduction to Separable Convolutions - Analytics Vidhya.”</span> <a href="https://www.analyticsvidhya.com/blog/2021/11/an-introduction-to-separable-convolutions/">https://www.analyticsvidhya.com/blog/2021/11/an-introduction-to-separable-convolutions/</a>.
@@ -1131,13 +1140,14 @@ Gordon, Ariel, Elad Eban, Ofir Nachum, Bo Chen, Hao Wu, Tien-Ju Yang, and Edward
 <p><strong>Single Precision (Float32):</strong> With 32 bits at its disposal, single precision (e.g., 3.1415927) strikes a balance between numerical accuracy and memory conservation. In ML, Float32 might be employed to store weights during training to maintain a reasonable level of precision.</p>
 <p><strong>Half Precision (Float16):</strong> Constrained to 16 bits, half precision (e.g., 3.14) curtails memory usage and can expedite computations, albeit sacrificing numerical accuracy and range. In ML, especially during inference on resource-constrained devices, Float16 might be utilized to reduce the model’s memory footprint.</p>
 <p><strong>Bfloat16:</strong> Brain Floating-Point Format or Bfloat16, also employs 16 bits but allocates them differently compared to FP16: 1 bit for the sign, 8 bits for the exponent (resulting in the same number range as in float32), and 7 bits for the fraction. This format, developed by Google, prioritizes a larger exponent range over precision, making it particularly useful in deep learning applications where the dynamic range is crucial.</p>
+<p><a href="#fig-3float" class="quarto-xref">Figure&nbsp;<span>9.13</span></a> illustrates the differences between the three floating-point formats: Float32, Float16, and BFloat16.</p>
 <div id="fig-3float" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-3float-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/jpg/modeloptimization_3float_types.jpeg" class="img-fluid figure-img">
+<img src="images/jpg/modeloptimization_3float_types.jpeg" class="img-fluid figure-img" style="width:90.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-3float-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.11: Three floating-point formats.
+Figure&nbsp;9.13: Three floating-point formats.
 </figcaption>
 </figure>
 </div>
@@ -1226,17 +1236,16 @@ Figure&nbsp;9.11: Three floating-point formats.
 </section>
 <section id="computational-complexity" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="computational-complexity">Computational Complexity</h4>
-<p>Numerical precision directly impacts computational complexity, influencing the time and resources required to perform arithmetic operations. For example, operations using Float64 generally consume more computational resources than their Float32 or Float16 counterparts (see <a href="#fig-quantized-energy" class="quarto-xref">Figure&nbsp;<span>9.12</span></a>). In the realm of ML, where models might need to process millions of operations (e.g., multiplications and additions in matrix operations during forward and backward passes), even minor differences in the computational complexity per operation can aggregate into a substantial impact on training and inference times. As shown in <a href="#fig-models-speeds" class="quarto-xref">Figure&nbsp;<span>9.13</span></a>, quantized models can be many times faster than their unquantized versions.</p>
-<p>In addition to pure runtimes, there is also a concern over energy efficiency. Not all numerical computations are created equal from the underlying hardware standpoint. Some numerical operations are more energy efficient than others. For example, <a href="#fig-operations-energy-comparison" class="quarto-xref">Figure&nbsp;<span>9.14</span></a> below shows that integer addition is much more energy efficient than integer multiplication.</p>
-<div id="fig-quantized-energy" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<p>Numerical precision directly impacts computational complexity, influencing the time and resources required to perform arithmetic operations. For example, operations using Float64 generally consume more computational resources than their Float32 or Float16 counterparts (see <a href="#fig-quantized-energy" class="quarto-xref">Figure&nbsp;<span>9.14</span></a>). In the realm of ML, where models might need to process millions of operations (e.g., multiplications and additions in matrix operations during forward and backward passes), even minor differences in the computational complexity per operation can aggregate into a substantial impact on training and inference times. As shown in <a href="#fig-models-speeds" class="quarto-xref">Figure&nbsp;<span>9.15</span></a>, quantized models can be many times faster than their unquantized versions.</p>
+<div id="fig-quantized-energy" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-quantized-energy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_horowitz.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantized-energy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.12: Tables comparing energy use by quantized operations (<span class="citation" data-cites="isscc2014computings">Isscc (<a href="../../references.html#ref-isscc2014computings" role="doc-biblioref">2014</a>)</span>).
+Figure&nbsp;9.14: Energy use by quantized operations. Credit: <span class="citation" data-cites="energyproblem">(<a href="../../references.html#ref-energyproblem" role="doc-biblioref"><strong>energyproblem?</strong></a>)</span>.
 </figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
+</figure>
 </div>
 <div id="fig-models-speeds" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1244,17 +1253,18 @@ Figure&nbsp;9.12: Tables comparing energy use by quantized operations (<span cla
 <img src="images/png/efficientnumerics_int8vsfloat.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-models-speeds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.13: Graph showing the speed differences for three different models in normal and quantized form.
+Figure&nbsp;9.15: Speed of three different models in normal and quantized form.
 </figcaption>
 </figure>
 </div>
+<p>In addition to pure runtimes, there is also a concern over energy efficiency. Not all numerical computations are created equal from the underlying hardware standpoint. Some numerical operations are more energy efficient than others. For example, <a href="#fig-operations-energy-comparison" class="quarto-xref">Figure&nbsp;<span>9.16</span></a> below shows that integer addition is much more energy efficient than integer multiplication.</p>
 <div id="fig-operations-energy-comparison" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-operations-energy-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_100x.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-operations-energy-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.14: In this visualization, we can note the massive reductions in energy use by quantized operations (<span class="citation" data-cites="isscc2014computings">Isscc (<a href="../../references.html#ref-isscc2014computings" role="doc-biblioref">2014</a>)</span>).
+Figure&nbsp;9.16: Energy use by quantized operations. Credit: <span class="citation" data-cites="isscc2014computings">Isscc (<a href="../../references.html#ref-isscc2014computings" role="doc-biblioref">2014</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-isscc2014computings" class="csl-entry" role="listitem">
 Isscc. 2014. <span>“Computing’s Energy Problem (and What We Can Do about It).”</span> <a href="https://ieeexplore.ieee.org/document/6757323">https://ieeexplore.ieee.org/document/6757323</a>.
@@ -1327,36 +1337,36 @@ Isscc. 2014. <span>“Computing’s Energy Problem (and What We Can Do about It)
 <section id="initial-breakdown" class="level4">
 <h4 class="anchored" data-anchor-id="initial-breakdown">Initial Breakdown</h4>
 <p>We begin our foray into quantization with a brief analysis of one important use for quantization.</p>
-<p>In signal processing, the continuous sine wave can be quantized into discrete values through a process known as sampling. This is a fundamental concept in digital signal processing and is crucial for converting analog signals (like the continuous sine wave) into a digital form that can be processed by computers. The sine wave is a prevalent example due to its periodic and smooth nature, making it a useful tool for explaining concepts like frequency, amplitude, phase, and, of course, quantization.</p>
+<p>In signal processing, the continuous sine wave (shown in <a href="#fig-sine-wave" class="quarto-xref">Figure&nbsp;<span>9.17</span></a>) can be quantized into discrete values through a process known as sampling. This is a fundamental concept in digital signal processing and is crucial for converting analog signals (like the continuous sine wave) into a digital form that can be processed by computers. The sine wave is a prevalent example due to its periodic and smooth nature, making it a useful tool for explaining concepts like frequency, amplitude, phase, and, of course, quantization.</p>
 <div id="fig-sine-wave" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-sine-wave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_sinewave.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sine-wave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.15: Sine Wave
+Figure&nbsp;9.17: Sine Wave.
 </figcaption>
 </figure>
 </div>
-<p>In the quantized version shown below, the continuous sine wave is sampled at regular intervals (in this case, every <span class="math inline">\(\frac{\pi}{4}\)</span> radians), and only these sampled values are represented in the digital version of the signal. The step-wise lines between the points show one way to represent the quantized signal in a piecewise-constant form. This is a simplified example of how analog-to-digital conversion works, where a continuous signal is mapped to a discrete set of values, enabling it to be represented and processed digitally.</p>
+<p>In the quantized version shown in <a href="#fig-quantized-sine-wave" class="quarto-xref">Figure&nbsp;<span>9.18</span></a>, the continuous sine wave (<a href="#fig-sine-wave" class="quarto-xref">Figure&nbsp;<span>9.17</span></a>) is sampled at regular intervals (in this case, every <span class="math inline">\(\frac{\pi}{4}\)</span> radians), and only these sampled values are represented in the digital version of the signal. The step-wise lines between the points show one way to represent the quantized signal in a piecewise-constant form. This is a simplified example of how analog-to-digital conversion works, where a continuous signal is mapped to a discrete set of values, enabling it to be represented and processed digitally.</p>
 <div id="fig-quantized-sine-wave" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-quantized-sine-wave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_quantizedsine.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantized-sine-wave-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.16: Quantized Sine Wave
+Figure&nbsp;9.18: Quantized Sine Wave.
 </figcaption>
 </figure>
 </div>
-<p>Returning to the context of Machine Learning (ML), quantization refers to the process of constraining the possible values that numerical parameters (such as weights and biases) can take to a discrete set, thereby reducing the precision of the parameters and consequently, the model’s memory footprint. When properly implemented, quantization can reduce model size by up to 4x and improve inference latency and throughput by up to 2-3x, as show in <a href="#fig-quantized-models-size" class="quarto-xref">Figure&nbsp;<span>9.17</span></a>. For example, an Image Classification model like ResNet-50 can be compressed from 96MB down to 24MB with 8-bit quantization. There is typically less than 1% loss in model accuracy from well tuned quantization. Accuracy can often be recovered by re-training the quantized model with quantization aware training techniques. Therefore, this technique has emerged to be very important in deploying ML models to resource-constrained environments, such as mobile devices, IoT devices, and edge computing platforms, where computational resources (memory and processing power) are limited.</p>
+<p>Returning to the context of Machine Learning (ML), quantization refers to the process of constraining the possible values that numerical parameters (such as weights and biases) can take to a discrete set, thereby reducing the precision of the parameters and consequently, the model’s memory footprint. When properly implemented, quantization can reduce model size by up to 4x and improve inference latency and throughput by up to 2-3x. <a href="#fig-quantized-models-size" class="quarto-xref">Figure&nbsp;<span>9.19</span></a> illustrates the impact that quantization has on different models’ sizes: for example, an Image Classification model like ResNet-v2 can be compressed from 180MB down to 45MB with 8-bit quantization. There is typically less than 1% loss in model accuracy from well tuned quantization. Accuracy can often be recovered by re-training the quantized model with quantization aware training techniques. Therefore, this technique has emerged to be very important in deploying ML models to resource-constrained environments, such as mobile devices, IoT devices, and edge computing platforms, where computational resources (memory and processing power) are limited.</p>
 <div id="fig-quantized-models-size" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-quantized-models-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_reducedmodelsize.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantized-models-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.17: Figure comparing the sizes of three models with their quantized forms
+Figure&nbsp;9.19: Effect of quantization on model sizes. Credit: HarvardX.
 </figcaption>
 </figure>
 </div>
@@ -1395,7 +1405,7 @@ Xu, Chen, Jianqiang Yao, Zhouchen Lin, Wenwu Ou, Yuanbin Cao, Zhirong Wang, and 
 <img src="images/png/efficientnumerics_uniformnonuniform.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-uniformity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.18: Comparison between uniform quantization (left) and non-uniform quantization (right) (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.20: Quantization uniformity. Credit: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
@@ -1410,7 +1420,7 @@ Figure&nbsp;9.18: Comparison between uniform quantization (left) and non-uniform
 <img src="images/png/efficientnumerics_binary.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-integer-binary-quantization-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.19: Integer vs Binary quantization functions.
+Figure&nbsp;9.21: Integer vs Binary quantization functions.
 </figcaption>
 </figure>
 </div>
@@ -1425,7 +1435,7 @@ Figure&nbsp;9.19: Integer vs Binary quantization functions.
 <p>Calibration is the process of selecting the most effective clipping range [<span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>] for weights and activations to be quantized to. For example, consider quantizing activations that originally have a floating-point range between -6 and 6 to 8-bit integers. If you just take the minimum and maximum possible 8-bit integer values (-128 to 127) as your quantization range, it might not be the most effective. Instead, calibration would involve passing a representative dataset then use this observed range for quantization.</p>
 <p>There are many calibration methods but a few commonly used include:</p>
 <ul>
-<li>Max: Use the maximum absolute value seen during calibration. However, this method is susceptible to outlier data.</li>
+<li>Max: Use the maximum absolute value seen during calibration. However, this method is susceptible to outlier data. Notice how in <a href="#fig-resnet-activations-histogram" class="quarto-xref">Figure&nbsp;<span>9.22</span></a>, we have an outlier cluster around 2.1, while the rest are clustered around smaller values.</li>
 <li>Entropy: Use KL divergence to minimize information loss between the original floating-point values and values that could be represented by the quantized format. This is the default method used by TensorRT.</li>
 <li>Percentile: Set the range to a percentile of the distribution of absolute values seen during calibration. For example, 99% calibration would clip 1% of the largest magnitude values.</li>
 </ul>
@@ -1435,7 +1445,7 @@ Figure&nbsp;9.19: Integer vs Binary quantization functions.
 <img src="images/png/efficientnumerics_calibrationcopy.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resnet-activations-histogram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.20: Histogram of input activations to layer 3 in ResNet50 and calibrated ranges (<span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>).
+Figure&nbsp;9.22: Input activations to layer 3 in ResNet50. Credit: @<span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
@@ -1447,28 +1457,28 @@ Figure&nbsp;9.20: Histogram of input activations to layer 3 in ResNet50 and cali
 </section>
 <section id="asymmetric-quantization" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="asymmetric-quantization">Asymmetric Quantization</h4>
-<p>Asymmetric quantization maps real values to an asymmetrical clipping range that isn’t necessarily centered around 0. It involves choosing a range [<span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>] where <span class="math inline">\(\alpha \neq -\beta\)</span>. For example, selecting a range based on the minimum and maximum real values, or where <span class="math inline">\(\alpha = r_{min}\)</span> and <span class="math inline">\(\beta = r_{max}\)</span>, creates an asymmetric range. Typically, asymmetric quantization produces tighter clipping ranges compared to symmetric quantization, which is important when target weights and activations are imbalanced, e.g., the activation after the ReLU always has non-negative values. Despite producing tighter clipping ranges, asymmetric quantization is less preferred to symmetric quantization as it doesn’t always zero out the real value zero.</p>
+<p>Asymmetric quantization maps real values to an asymmetrical clipping range that isn’t necessarily centered around 0, as shown in <a href="#fig-quantization-symmetry" class="quarto-xref">Figure&nbsp;<span>9.23</span></a> on the right. It involves choosing a range [<span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\beta\)</span>] where <span class="math inline">\(\alpha \neq -\beta\)</span>. For example, selecting a range based on the minimum and maximum real values, or where <span class="math inline">\(\alpha = r_{min}\)</span> and <span class="math inline">\(\beta = r_{max}\)</span>, creates an asymmetric range. Typically, asymmetric quantization produces tighter clipping ranges compared to symmetric quantization, which is important when target weights and activations are imbalanced, e.g., the activation after the ReLU always has non-negative values. Despite producing tighter clipping ranges, asymmetric quantization is less preferred to symmetric quantization as it doesn’t always zero out the real value zero.</p>
 <div id="fig-quantization-symmetry" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-quantization-symmetry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_symmetry.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-symmetry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.21: Illustration of symmetric quantization (left) and asymmetric quantization (right). Symmetric quantization maps real values to [-127, 127], and asymmetric maps to [-128, 127] (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.23: Quantization (a)symmetry. Credit: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
 </section>
 <section id="granularity" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="granularity">Granularity</h4>
-<p>Upon deciding the type of clipping range, it is essential to tighten the range to allow a model to retain as much of its accuracy as possible. We’ll be taking a look at convolutional neural networks as our way of exploring methods that fine tune the granularity of clipping ranges for quantization. The input activation of a layer in our CNN undergoes convolution with multiple convolutional filters. Every convolutional filter can possess a unique range of values. Consequently, one distinguishing feature of quantization approaches is the precision with which the clipping range [α,β] is determined for the weights.</p>
+<p>Upon deciding the type of clipping range, it is essential to tighten the range to allow a model to retain as much of its accuracy as possible. We’ll be taking a look at convolutional neural networks as our way of exploring methods that fine tune the granularity of clipping ranges for quantization. The input activation of a layer in our CNN undergoes convolution with multiple convolutional filters. Every convolutional filter can possess a unique range of values. Notice how in <a href="#fig-quantization-granularity" class="quarto-xref">Figure&nbsp;<span>9.24</span></a>, the range for Filter1 is much smaller than that for Filter 3. Consequently, one distinguishing feature of quantization approaches is the precision with which the clipping range [α,β] is determined for the weights.</p>
 <div id="fig-quantization-granularity" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-quantization-granularity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_granularity.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-granularity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.22: Illustration of the main forms of quantization granularities. In layerwise quantization, the same clipping range is applied to all filters which belong to the same layer. Notice how this can result in lower quantization resolutions for channels with narrow distributions, e.g.&nbsp;Filter 1, Filter 2, and Filter C. A higher quantization resolution can be achieved using channelwise quantization which dedicates different clipping ranges to different channels (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.24: Quantization granularity: variable ranges. Credit: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
@@ -1496,56 +1506,51 @@ Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan 
 <h3 data-number="9.3.7" class="anchored" data-anchor-id="techniques"><span class="header-section-number">9.3.7</span> Techniques</h3>
 <p>The two prevailing techniques for quantizing models are Post Training Quantization and Quantization Aware Training.</p>
 <p><strong>Post Training Quantization</strong> - Post-training quantization (PTQ) is a quantization technique where the model is quantized after it has been trained. The model is trained in floating point and then weights and activations are quantized as a post-processing step. This is the simplest approach and does not require access to the training data. Unlike Quantization-Aware Training (QAT), PTQ sets weight and activation quantization parameters directly, making it low-overhead and suitable for limited or unlabeled data situations. However, not readjusting the weights after quantizing, especially in low-precision quantization can lead to very different behavior and thus lower accuracy. To tackle this, techniques like bias correction, equalizing weight ranges, and adaptive rounding methods have been developed. PTQ can also be applied in zero-shot scenarios, where no training or testing data are available. This method has been made even more efficient to benefit compute- and memory- intensive large language models. Recently, SmoothQuant, a training-free, accuracy-preserving, and general-purpose PTQ solution which enables 8-bit weight, 8-bit activation quantization for LLMs, has been developed, demonstrating up to 1.56x speedup and 2x memory reduction for LLMs with negligible loss in accuracy <a href="https://arxiv.org/abs/2211.10438">(<span class="citation" data-cites="xiao2022smoothquant">Xiao et al. (<span>2022</span>)</span>)</a>.</p>
-<div id="fig-quantization-precisions" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-quantization-precisions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_lecturenote.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-precisions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.23: Table showing the differences between different precisions of quantization.
-</figcaption>
-</figure>
-</div>
+<p>In PTQ, a pretrained model undergoes a calibration process, as shown in <a href="#fig-PTQ-diagram" class="quarto-xref">Figure&nbsp;<span>9.25</span></a>. Calibration involves using a separate dataset known as calibration data, a specific subset of the training data reserved for quantization to help find the appropriate clipping ranges and scaling factors.</p>
 <div id="fig-PTQ-diagram" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_PTQ.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.24: In PTQ, a pretrained model is calibrated using calibration data (e.g., a small subset of training data) to compute the clipping ranges and scaling factors (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.25: Post-Training Quantization and calibration. Credit: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
-<p><strong>Quantization Aware Training</strong> - Quantization-aware training (QAT) is a fine-tuning of the PTQ model. The model is trained aware of quantization, allowing it to adjust for quantization effects. This produces better accuracy with quantized inference. Quantizing a trained neural network model with methods such as PTQ introduces perturbations that can deviate the model from its original convergence point. For instance, Krishnamoorthi showed that even with per-channel quantization, networks like MobileNet do not reach baseline accuracy with int8 Post Training Quantization (PTQ) and require Quantization Aware Training (QAT) <a href="https://arxiv.org/abs/1806.08342">(<span class="citation" data-cites="krishnamoorthi2018quantizing">Krishnamoorthi (<span>2018</span>)</span>)</a>.To address this, QAT retrains the model with quantized parameters, employing forward and backward passes in floating point but quantizing parameters after each gradient update. Handling the non-differentiable quantization operator is crucial; a widely used method is the Straight Through Estimator (STE), approximating the rounding operation as an identity function. While other methods and variations exist, STE remains the most commonly used due to its practical effectiveness.</p>
+<p><strong>Quantization Aware Training</strong> - Quantization-aware training (QAT) is a fine-tuning of the PTQ model. The model is trained aware of quantization, allowing it to adjust for quantization effects. This produces better accuracy with quantized inference. Quantizing a trained neural network model with methods such as PTQ introduces perturbations that can deviate the model from its original convergence point. For instance, Krishnamoorthi showed that even with per-channel quantization, networks like MobileNet do not reach baseline accuracy with int8 Post Training Quantization (PTQ) and require Quantization Aware Training (QAT) <a href="https://arxiv.org/abs/1806.08342">(<span class="citation" data-cites="krishnamoorthi2018quantizing">Krishnamoorthi (<span>2018</span>)</span>)</a>.To address this, QAT retrains the model with quantized parameters, employing forward and backward passes in floating point but quantizing parameters after each gradient update. Handling the non-differentiable quantization operator is crucial; a widely used method is the Straight Through Estimator (STE), approximating the rounding operation as an identity function. While other methods and variations exist, STE remains the most commonly used due to its practical effectiveness. In QAT, a pretrained model is quantized and then finetuned using training data to adjust parameters and recover accuracy degradation, as shown in <a href="#fig-QAT-diagram" class="quarto-xref">Figure&nbsp;<span>9.26</span></a>. The calibration process is often conducted in parallel with the finetuning process for QAT.</p>
 <div id="fig-QAT-diagram" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_QAT.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.25: In QAT, a pretrained model is quantized and then finetuned using training data to adjust parameters and recover accuracy degradation. Note: the calibration process is often conducted in parallel with the finetuning process for QAT (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
+Figure&nbsp;9.26: Quantization-Aware Training. Credit: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
+<div class="no-row-height column-margin column-container"><div id="ref-gholami2021survey" class="csl-entry" role="listitem">
+Gholami, Dong Kim, Mahoney Yao, and Keutzer. 2021. <span>“A Survey of Quantization Methods for Efficient Neural Network Inference).”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2103.13630">https://arxiv.org/abs/2103.13630</a>.
+</div></div></figure>
 </div>
+<p>Quantization-Aware Training serves as a natural extension of Post-Training Quantization. Following the initial quantization performed by PTQ, QAT is used to further refine and fine-tune the quantized parameters - see how in <a href="#fig-QAT-PTQ-relation" class="quarto-xref">Figure&nbsp;<span>9.27</span></a>, the PTQ model undergoes an additional step, QAT. It involves a retraining process where the model is exposed to additional training iterations using the original data. This dynamic training approach allows the model to adapt and adjust its parameters, compensating for the performance degradation caused by quantization.</p>
 <div id="fig-QAT-PTQ-relation" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_PTQQAT.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.26: Note that QAT is an extension of PTQ. It receives the model quantized by PTQ and retrains it to finetune quantized parameters (<span class="citation" data-cites="ultimate"><span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training”</span> (<a href="../../references.html#ref-ultimate" role="doc-biblioref">n.d.</a>)</span>).
+Figure&nbsp;9.27: PTQ and QAT. Credit: <span class="citation" data-cites="ultimate"><span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training”</span> (<a href="../../references.html#ref-ultimate" role="doc-biblioref">n.d.</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-ultimate" class="csl-entry" role="listitem">
 <span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training.”</span> n.d. <a href="https://deci.ai/quantization-and-quantization-aware-training/">https://deci.ai/quantization-and-quantization-aware-training/</a>.
 </div></div></figure>
 </div>
+<p><a href="#fig-quantization-methods-summary" class="quarto-xref">Figure&nbsp;<span>9.28</span></a> shows the relative accuracy of different models after PTQ and QAT. In almost all cases, QAT yields a better accuracy than PTQ. Consider for example EfficientNet b0. After PTQ, the accuracy drops from 76.85% to 72.06%. But when we apply QAT, the accuracy rebounds to 76.95% (with even a slight improvement over the original accuracy).</p>
 <div id="fig-quantization-methods-summary" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_PTQQATsummary.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.27: Summary of Post Training Quantization and Quantization Aware Training. PTQ reports the best accuracy and corresponding calibration for each model (<span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>).
+Figure&nbsp;9.28: Relative accuracies of PTQ and QAT. Credit: <span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"></div></figure>
 </div>
@@ -1648,14 +1653,14 @@ Figure&nbsp;9.27: Summary of Post Training Quantization and Quantization Aware T
 </section>
 <section id="weights-vs.-activations" class="level3" data-number="9.3.8">
 <h3 data-number="9.3.8" class="anchored" data-anchor-id="weights-vs.-activations"><span class="header-section-number">9.3.8</span> Weights vs.&nbsp;Activations</h3>
-<p>Weight Quantization: Involves converting the continuous or high-precision weights of a model to lower-precision, such as converting Float32 weights to quantized INT8 (integer) weights. This reduces the model size, thereby reducing the memory required to store the model and the computational resources needed to perform inference. For example, consider a weight matrix in a neural network layer with Float32 weights as [0.215, -1.432, 0.902, …]. Through weight quantization, these might be mapped to INT8 values like [27, -183, 115, …], significantly reducing the memory required to store them.</p>
+<p>Weight Quantization: Involves converting the continuous or high-precision weights of a model to lower-precision, such as converting Float32 weights to quantized INT8 (integer) weights - in <a href="#fig-weight-activations-quantization" class="quarto-xref">Figure&nbsp;<span>9.29</span></a>, weight quantization is taking place in the second step (red squares) when we multiply the inputs. This reduces the model size, thereby reducing the memory required to store the model and the computational resources needed to perform inference. For example, consider a weight matrix in a neural network layer with Float32 weights as [0.215, -1.432, 0.902, …]. Through weight quantization, these might be mapped to INT8 values like [27, -183, 115, …], significantly reducing the memory required to store them.</p>
 <div id="fig-weight-activations-quantization" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-weight-activations-quantization-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_weightsactivations.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-weight-activations-quantization-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.28: Diagram of quantizing weights and activations
+Figure&nbsp;9.29: Weight and activation quantization. Credit: HarvardX.
 </figcaption>
 </figure>
 </div>
@@ -1664,43 +1669,33 @@ Figure&nbsp;9.28: Diagram of quantizing weights and activations
 <section id="trade-offs" class="level3 page-columns page-full" data-number="9.3.9">
 <h3 data-number="9.3.9" class="anchored" data-anchor-id="trade-offs"><span class="header-section-number">9.3.9</span> Trade-offs</h3>
 <p>Quantization invariably introduces a trade-off between model size/performance and accuracy. While it significantly reduces the memory footprint and can accelerate inference, especially on hardware optimized for low-precision arithmetic, the reduced precision can degrade model accuracy.</p>
-<p>Model Size: A model with weights represented as Float32 being quantized to INT8 can theoretically reduce the model size by a factor of 4, enabling it to be deployed on devices with limited memory.</p>
+<p>Model Size: A model with weights represented as Float32 being quantized to INT8 can theoretically reduce the model size by a factor of 4, enabling it to be deployed on devices with limited memory. The model size of large language models is developing at a faster pace than the GPU memory in recent years, leading to a big gap between the supply and demand for memory. <a href="#fig-model-size-pace" class="quarto-xref">Figure&nbsp;<span>9.30</span></a> illustrates the recent trend of the widening gap between model size (red line) and acceleartor memory (yellow line). Quantization and model compression techniques can help bridge the gap</p>
 <div id="fig-model-size-pace" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-model-size-pace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_modelsizes.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-model-size-pace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.29: The model size of large language models is developing at a faster pace than the GPU memory in recent years, leading to a big gap between the supply and demand for memory. Quantization and model compression techniques can help bridge the gap (<span class="citation" data-cites="xiao2022smoothquant">Xiao et al. (<a href="../../references.html#ref-xiao2022smoothquant" role="doc-biblioref">2022</a>)</span>).
+Figure&nbsp;9.30: Model size vs.&nbsp;accelerator memory. Credit: <span class="citation" data-cites="xiao2022smoothquant">Xiao et al. (<a href="../../references.html#ref-xiao2022smoothquant" role="doc-biblioref">2022</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-xiao2022smoothquant" class="csl-entry" role="listitem">
 Xiao, Seznec Lin, Demouth Wu, and Han. 2022. <span>“<span>SmoothQuant:</span> <span>Accurate</span> and Efficient Post-Training Quantization for Large Language Models.”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2211.10438">https://arxiv.org/abs/2211.10438</a>.
 </div></div></figure>
 </div>
-<p>Inference Speed: Quantization can also accelerate inference, as lower-precision arithmetic is computationally less expensive. For example, certain hardware accelerators, like Google’s Edge TPU, are optimized for INT8 arithmetic and can perform inference significantly faster with INT8 quantized models compared to their floating-point counterparts.</p>
+<p>Inference Speed: Quantization can also accelerate inference, as lower-precision arithmetic is computationally less expensive. For example, certain hardware accelerators, like Google’s Edge TPU, are optimized for INT8 arithmetic and can perform inference significantly faster with INT8 quantized models compared to their floating-point counterparts. The reduction in memory from quantization helps reduce the amount of data transmission, saving up memory and speeding the process. <a href="#fig-nvidia-turing" class="quarto-xref">Figure&nbsp;<span>9.31</span></a> compares the increase in throughput and the reduction in bandwidth memory for different data type on the NVIDIA Turing GPU.</p>
 <div id="fig-nvidia-turing" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-nvidia-turing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/efficientnumerics_benefitsofprecision.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nvidia-turing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.30: Benefits of lower precision data types for tensor operations on the NVIDIA Turing GPU architecture (<span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>).
+Figure&nbsp;9.31: Benefits of lower precision data types. Credit: <span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-wu2020integer" class="csl-entry" role="listitem">
 Wu, Zhang Judd, and Micikevicius Isaev. 2020. <span>“Integer Quantization for Deep Learning Inference: <span>Principles</span> and Empirical Evaluation).”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2004.09602">https://arxiv.org/abs/2004.09602</a>.
 </div></div></figure>
 </div>
 <p>Accuracy: The reduction in numerical precision post-quantization can lead to a degradation in model accuracy, which might be acceptable in certain applications (e.g., image classification) but not in others (e.g., medical diagnosis). Therefore, post-quantization, the model typically requires re-calibration or fine-tuning to mitigate accuracy loss. Furthermore, recent work has explored the use of <a href="https://arxiv.org/pdf/2306.00978.pdf">Activation-aware Weight Quantization (<span class="citation" data-cites="lin2023awq">Lin et al. (<span>2023</span>)</span>)</a> which is based on the observation that protecting only 1% of salient weights can greatly reduce quantization error.</p>
-<div id="fig-alexnet-accuracy" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-alexnet-accuracy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_alexnet.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-alexnet-accuracy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.31: Accuracy of AlexNet with different aggressiveness of weight sharing and quantization. 8/5 bit quantization has no loss of accuracy; 8/4 bit quantization, which is more hardware friendly, has negligible loss of accuracy of 0.01%; To be really aggressive, 4/2 bit quantization resulted in 1.99% and 2.60% loss of accuracy (<span class="citation" data-cites="han2015deep">Han, Mao, and Dally (<a href="../../references.html#ref-han2015deep" role="doc-biblioref">2015</a>)</span>).
-</figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
-</div>
 </section>
 <section id="quantization-and-pruning" class="level3 page-columns page-full" data-number="9.3.10">
 <h3 data-number="9.3.10" class="anchored" data-anchor-id="quantization-and-pruning"><span class="header-section-number">9.3.10</span> Quantization and Pruning</h3>
@@ -1711,39 +1706,17 @@ Figure&nbsp;9.31: Accuracy of AlexNet with different aggressiveness of weight sh
 <img src="images/png/efficientnumerics_qp1.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-compression-methods-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.32: Accuracy v.s. compression rate under different compression methods. Pruning and quantization works best when combined (<span class="citation" data-cites="han2015deep">Han, Mao, and Dally (<a href="../../references.html#ref-han2015deep" role="doc-biblioref">2015</a>)</span>).
-</figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
-</div>
-<div id="fig-pruning-quantization-effect" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-pruning-quantization-effect-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_qp2.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pruning-quantization-effect-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.33: Pruning doesn’t hurt quantization. Dashed: quantization on unpruned network. Solid: quantization on pruned network; Accuracy begins to drop at the same number of quantization bits whether or not the network has been pruned. ALthough pruning made the number of parameters less, quantization still works well, or even better (3 bits case on the left figure) as in the unpruned network (<span class="citation" data-cites="han2015deep">Han, Mao, and Dally (<a href="../../references.html#ref-han2015deep" role="doc-biblioref">2015</a>)</span>).
+Figure&nbsp;9.32: Accuracy vs.&nbsp;compression rate under different compression methods. Credit: <span class="citation" data-cites="han2015deep">Han, Mao, and Dally (<a href="../../references.html#ref-han2015deep" role="doc-biblioref">2015</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-han2015deep" class="csl-entry" role="listitem">
 Han, Song, Huizi Mao, and William J Dally. 2015. <span>“Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding.”</span> <em>arXiv Preprint arXiv:1510.00149</em>.
 </div></div></figure>
 </div>
 </section>
-<section id="edge-aware-quantization" class="level3 page-columns page-full" data-number="9.3.11">
+<section id="edge-aware-quantization" class="level3" data-number="9.3.11">
 <h3 data-number="9.3.11" class="anchored" data-anchor-id="edge-aware-quantization"><span class="header-section-number">9.3.11</span> Edge-aware Quantization</h3>
 <p>Quantization not only reduces model size but also enables faster computations and draws less power, making it vital to edge development. Edge devices typically have tight resource constraints with compute, memory, and power, which are impossible to meet for many of the deep NN models of today. Furthermore, edge processors do not support floating point operations, making integer quantization particularly important for chips like GAP-8, a RISC-V SoC for edge inference with a dedicated CNN accelerator, which only support integer arithmetic..</p>
-<p>One hardware platform utilizing quantization is the ARM Cortex-M group of 32-bit RISC ARM processor cores. They leverage fixed-point quantization with power of two scaling factors so that quantization and dequantization can be efficiently done by bit shifting. Additionally, Google Edge TPUs, Google’s emerging solution for running inference at the edge, is designed for small, low-powered devices and can only support 8-bit arithmetic. Recently, there has been significant strides in the computing power of edge processors, enabling the deployment and inference of costly NN models previously limited to servers.</p>
-<div id="fig-throughout-comparison" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-throughout-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_edgequant.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-throughout-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.34: Throughput comparison of different commerical edge processors for NN inference at the edge (<span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>).
-</figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-gholami2021survey" class="csl-entry" role="listitem">
-Gholami, Dong Kim, Mahoney Yao, and Keutzer. 2021. <span>“A Survey of Quantization Methods for Efficient Neural Network Inference).”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2103.13630">https://arxiv.org/abs/2103.13630</a>.
-</div></div></figure>
-</div>
+<p>One hardware platform utilizing quantization is the ARM Cortex-M group of 32-bit RISC ARM processor cores. They leverage fixed-point quantization with power of two scaling factors so that quantization and dequantization can be efficiently done by bit shifting. Additionally, Google Edge TPUs, Google’s emerging solution for running inference at the edge, is designed for small, low-powered devices and can only support 8-bit arithmetic. Many complex neural network models that could only be deployed on servers due to their high computational needs can now be run on edge devices thanks to recent advancements (e.g.&nbsp;quantization methods) in edge computing field.</p>
 <p>In addition to being an indispensable technique for many edge processors, quantization has also brought noteworthy improvements to non-edge processors such as encouraging such processors to meet the Service Level Agreement (SLA) requirements such as 99th percentile latency.</p>
 <p>Thus, quantization combined with efficient low-precision logic and dedicated deep learning accelerators, has been one crucial driving force for the evolution of such edge processors.</p>
 <p>The video below is a lecture on quantization and the different quantization methods.</p>
@@ -1756,18 +1729,6 @@ Gholami, Dong Kim, Mahoney Yao, and Keutzer. 2021. <span>“A Survey of Quantiza
 <section id="hardware-aware-neural-architecture-search" class="level3 page-columns page-full" data-number="9.4.1">
 <h3 data-number="9.4.1" class="anchored" data-anchor-id="hardware-aware-neural-architecture-search"><span class="header-section-number">9.4.1</span> Hardware-Aware Neural Architecture Search</h3>
 <p>Focusing only on the accuracy when performing Neural Architecture Search leads to models that are exponentially complex and require increasing memory and compute. This has lead to hardware constraints limiting the exploitation of the deep learning models at their full potential. Manually designing the architecture of the model is even harder when considering the hardware variety and limitations. This has lead to the creation of Hardware-aware Neural Architecture Search that incorporate the hardware contractions into their search and optimize the search space for a specific hardware and accuracy. HW-NAS can be categorized based how it optimizes for hardware. We will briefly explore these categories and leave links to related papers for the interested reader.</p>
-<div id="fig-hw-nas" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-hw-nas-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/modeloptimization_HW-NAS.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hw-nas-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.35: Taxonomy of HW-NAS <span class="citation" data-cites="benmeziane2021hardwareaware">(<a href="../../references.html#ref-benmeziane2021hardwareaware" role="doc-biblioref">Benmeziane et al. 2021</a>)</span>
-</figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-benmeziane2021hardwareaware" class="csl-entry" role="listitem">
-Benmeziane, Hadjer, Kaoutar El Maghraoui, Hamza Ouarnoughi, Smail Niar, Martin Wistuba, and Naigang Wang. 2021. <span>“Hardware-Aware Neural Architecture Search: <span>Survey</span> and Taxonomy.”</span> In <em>Proceedings of the Thirtieth International Joint Conference on Artificial Intelligence</em>, edited by Zhi-Hua Zhou, 4322–29. International Joint Conferences on Artificial Intelligence Organization. <a href="https://doi.org/10.24963/ijcai.2021/592">https://doi.org/10.24963/ijcai.2021/592</a>.
-</div></div></figure>
-</div>
 <section id="single-target-fixed-platfrom-configuration" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="single-target-fixed-platfrom-configuration">Single Target, Fixed Platfrom Configuration</h4>
 <p>The goal here is to find the best architecture in terms of accuracy and hardware efficiency for one fixed target hardware. For a specific hardware, the Arduino Nicla Vision for example, this category of HW-NAS will look for the architecture that optimizes accuracy, latency, energy consumption, etc.</p>
@@ -1807,7 +1768,7 @@ Hu, Yang, Jie Jiang, Lifu Zhang, Yunfeng Shi, and Jian Shi. 2023. <span>“Halid
 <section id="tinynas" class="level5 page-columns page-full">
 <h5 class="anchored" data-anchor-id="tinynas">TinyNAS</h5>
 <p>TinyNAS adopts a two stage approach to finding an optimal architecture for model with the constraints of the specific microcontroller in mind.</p>
-<p>First, TinyNAS generate multiple search spaces by varying the input resolution of the model, and the number of channels of the layers of the model. Then, TinyNAS chooses a search space based on the FLOPs (Floating Point Operations Per Second) of each search space</p>
+<p>First, TinyNAS generate multiple search spaces by varying the input resolution of the model, and the number of channels of the layers of the model. Then, TinyNAS chooses a search space based on the FLOPs (Floating Point Operations Per Second) of each search space. Spaces with a higher probability of containiung architectures with a large number of FLOPs yields models with higher accuracies - compare the red line vs.&nbsp;the black line in <a href="#fig-search-space-flops" class="quarto-xref">Figure&nbsp;<span>9.33</span></a>. Since a higher number FLOPs means the model has a higher computational capacity, the model is more likely to have a higher accuracy.</p>
 <p>Then, TinyNAS performs a search operation on the chosen space to find the optimal architecture for the specific constraints of the microcontroller. <span class="citation" data-cites="lin2020mcunet">(<a href="../../references.html#ref-lin2020mcunet" role="doc-biblioref">J. Lin et al. 2020</a>)</span></p>
 <div class="no-row-height column-margin column-container"></div><div id="fig-search-space-flops" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
@@ -1815,7 +1776,7 @@ Hu, Yang, Jie Jiang, Lifu Zhang, Yunfeng Shi, and Jian Shi. 2023. <span>“Halid
 <img src="images/png/modeloptimization_TinyNAS.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-search-space-flops-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.36: A diagram showing how search spaces with high probability of finding an architecture with large number of FLOPs provide models with higher accuracy <span class="citation" data-cites="lin2020mcunet">(<a href="../../references.html#ref-lin2020mcunet" role="doc-biblioref">J. Lin et al. 2020</a>)</span>
+Figure&nbsp;9.33: Search spaces accuracy. Credit: <span class="citation" data-cites="lin2020mcunet">J. Lin et al. (<a href="../../references.html#ref-lin2020mcunet" role="doc-biblioref">2020</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-lin2020mcunet" class="csl-entry" role="listitem">
 Lin, Ji, Wei-Ming Chen, Yujun Lin, John Cohn, Chuang Gan, and Song Han. 2020. <span>“<span>MCUNet:</span> <span>Tiny</span> Deep Learning on <span>IoT</span> Devices.”</span> In <em>Advances in Neural Information Processing Systems 33: Annual Conference on Neural Information Processing Systems 2020, NeurIPS 2020, December 6-12, 2020, Virtual</em>, edited by Hugo Larochelle, Marc’Aurelio Ranzato, Raia Hadsell, Maria-Florina Balcan, and Hsuan-Tien Lin. <a href="https://proceedings.neurips.cc/paper/2020/hash/86c51678350f656dcc7f490a43946ee5-Abstract.html">https://proceedings.neurips.cc/paper/2020/hash/86c51678350f656dcc7f490a43946ee5-Abstract.html</a>.
@@ -1862,14 +1823,15 @@ Lai, Liangzhen, Naveen Suda, and Vikas Chandra. 2018. <span>“<span>CMSIS</span
 </section>
 <section id="compute-in-memory-cim" class="level3 page-columns page-full" data-number="9.4.4">
 <h3 data-number="9.4.4" class="anchored" data-anchor-id="compute-in-memory-cim"><span class="header-section-number">9.4.4</span> Compute-in-Memory (CiM)</h3>
-<p>This is one example of Algorithm-Hardware Co-design. CiM is a computing paradigm that performs computation within memory. Therefore, CiM architectures allow for operations to be performed directly on the stored data, without the need to shuttle data back and forth between separate processing and memory units. This design paradigm is particularly beneficial in scenarios where data movement is a primary source of energy consumption and latency, such as in TinyML applications on edge devices. Through algorithm-hardware co-design, the algorithms can be optimized to leverage the unique characteristics of CiM architectures, and conversely, the CiM hardware can be customized or configured to better support the computational requirements and characteristics of the algorithms. This is achieved by using the analog properties of memory cells, such as addition and multiplication in DRAM. <span class="citation" data-cites="zhou2021analognets">(<a href="../../references.html#ref-zhou2021analognets" role="doc-biblioref">Zhou et al. 2021</a>)</span></p>
+<p>This is one example of Algorithm-Hardware Co-design. CiM is a computing paradigm that performs computation within memory. Therefore, CiM architectures allow for operations to be performed directly on the stored data, without the need to shuttle data back and forth between separate processing and memory units. This design paradigm is particularly beneficial in scenarios where data movement is a primary source of energy consumption and latency, such as in TinyML applications on edge devices. <a href="#fig-computing-memory" class="quarto-xref">Figure&nbsp;<span>9.34</span></a> is one example of using CiM in TinyML: keyword spotting requires an always-on process that looks for certain wake words (such as ‘Hey, Siri’). Given the resource-intensive nature of this task, integrating CiM for the always-on keyword detection model can enhance efficiency.</p>
+<p>Through algorithm-hardware co-design, the algorithms can be optimized to leverage the unique characteristics of CiM architectures, and conversely, the CiM hardware can be customized or configured to better support the computational requirements and characteristics of the algorithms. This is achieved by using the analog properties of memory cells, such as addition and multiplication in DRAM. <span class="citation" data-cites="zhou2021analognets">(<a href="../../references.html#ref-zhou2021analognets" role="doc-biblioref">Zhou et al. 2021</a>)</span></p>
 <div class="no-row-height column-margin column-container"></div><div id="fig-computing-memory" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-computing-memory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_CiM.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-computing-memory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.37: A figure showing how Computing in Memory can be used for always-on tasks to offload tasks of the power consuming processing unit <span class="citation" data-cites="zhou2021analognets">(<a href="../../references.html#ref-zhou2021analognets" role="doc-biblioref">Zhou et al. 2021</a>)</span>
+Figure&nbsp;9.34: CiM for keyword spotting. Credit: <span class="citation" data-cites="zhou2021analognets">Zhou et al. (<a href="../../references.html#ref-zhou2021analognets" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-zhou2021analognets" class="csl-entry" role="listitem">
 Zhou, Chuteng, Fernando Garcia Redondo, Julian Büchel, Irem Boybat, Xavier Timoneda Comas, S. R. Nandakumar, Shidhartha Das, Abu Sebastian, Manuel Le Gallo, and Paul N. Whatmough. 2021. <span>“<span>AnalogNets:</span> <span class="nocase">Ml-hw</span> Co-Design of Noise-Robust <span>TinyML</span> Models and Always-on Analog Compute-in-Memory Accelerator.”</span> <a href="https://arxiv.org/abs/2111.06503">https://arxiv.org/abs/2111.06503</a>.
@@ -1887,14 +1849,14 @@ Krishna, Adithya, Srikanth Rohit Nudurupati, Chandana D G, Pritesh Dwivedi, Andr
 </div></div></section>
 <section id="optimization-frameworks" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="optimization-frameworks">Optimization Frameworks</h4>
-<p>Optimization Frameworks have been introduced to exploit the specific capabilities of the hardware to accelerate the software. One example of such a framework is hls4ml. This open-source software-hardware co-design workflow aids in interpreting and translating machine learning algorithms for implementation with both FPGA and ASIC technologies, enhancing their. Features such as network optimization, new Python APIs, quantization-aware pruning, and end-to-end FPGA workflows are embedded into the hls4ml framework, leveraging parallel processing units, memory hierarchies, and specialized instruction sets to optimize models for edge hardware. Moreover, hls4ml is capable of translating machine learning algorithms directly into FPGA firmware.</p>
+<p>Optimization Frameworks have been introduced to exploit the specific capabilities of the hardware to accelerate the software. One example of such a framework is hls4ml - <a href="#fig-hls4ml-workflow" class="quarto-xref">Figure&nbsp;<span>9.35</span></a> provides an overview of the framework’s workflow. This open-source software-hardware co-design workflow aids in interpreting and translating machine learning algorithms for implementation with both FPGA and ASIC technologies. Features such as network optimization, new Python APIs, quantization-aware pruning, and end-to-end FPGA workflows are embedded into the hls4ml framework, leveraging parallel processing units, memory hierarchies, and specialized instruction sets to optimize models for edge hardware. Moreover, hls4ml is capable of translating machine learning algorithms directly into FPGA firmware.</p>
 <div id="fig-hls4ml-workflow" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-hls4ml-workflow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_hls4ml.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hls4ml-workflow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.38: A Diagram showing the workflow with the hls4ml framework <span class="citation" data-cites="fahim2021hls4ml">(<a href="../../references.html#ref-fahim2021hls4ml" role="doc-biblioref">Fahim et al. 2021</a>)</span>
+Figure&nbsp;9.35: hls4ml framework workflow. Credit: <span class="citation" data-cites="fahim2021hls4ml">Fahim et al. (<a href="../../references.html#ref-fahim2021hls4ml" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-fahim2021hls4ml" class="csl-entry" role="listitem">
 Fahim, Farah, Benjamin Hawks, Christian Herwig, James Hirschauer, Sergo Jindariani, Nhan Tran, Luca P. Carloni, et al. 2021. <span>“Hls4ml: <span>An</span> Open-Source Codesign Workflow to Empower Scientific Low-Power Machine Learning Devices.”</span> <a href="https://arxiv.org/abs/2103.05579">https://arxiv.org/abs/2103.05579</a>.
@@ -1913,7 +1875,7 @@ Prakash, Shvetank, Tim Callahan, Joseph Bushagour, Colby Banbury, Alan V. Green,
 <img src="images/png/modeloptimization_preprocessor.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fpga-preprocessing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.39: A diagram showing how an FPGA was used to offload data preprocessing of the general purpose computation unit. <span class="citation" data-cites="kwon2021hardwaresoftware">(<a href="../../references.html#ref-kwon2021hardwaresoftware" role="doc-biblioref">Kwon and Park 2021</a>)</span>
+Figure&nbsp;9.36: Delegating data processing to an FPGA. Credit: <span class="citation" data-cites="kwon2021hardwaresoftware">Kwon and Park (<a href="../../references.html#ref-kwon2021hardwaresoftware" role="doc-biblioref">2021</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-kwon2021hardwaresoftware" class="csl-entry" role="listitem">
 Kwon, Jisu, and Daejin Park. 2021. <span>“<span>Hardware/Software</span> Co-Design for <span>TinyML</span> Voice-Recognition Application on Resource Frugal Edge Devices.”</span> <em>Applied Sciences</em> 11 (22): 11073. <a href="https://doi.org/10.3390/app112211073">https://doi.org/10.3390/app112211073</a>.
@@ -1922,14 +1884,14 @@ Kwon, Jisu, and Daejin Park. 2021. <span>“<span>Hardware/Software</span> Co-De
 </section>
 <section id="splitnets" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="splitnets">SplitNets</h4>
-<p>SplitNets were introduced in the context of Head-Mounted systems. They distribute the Deep Neural Networks (DNNs) workload among camera sensors and an aggregator. This is particularly compelling the in context of TinyML. The SplitNet framework is a split-aware NAS to find the optimal neural network architecture to achieve good accuracy, split the model among the sensors and the aggregator, and minimize the communication between the sensors and the aggregator. Minimal communication is important in TinyML where memory is highly constrained, this way the sensors conduct some of the processing on their chips and then they send only the necessary information to the aggregator. When testing on ImageNet, SplitNets were able to reduce the latency by one order of magnitude on head-mounted devices. This can be helpful when the sensor has its own chip. <span class="citation" data-cites="dong2022splitnets">(<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">Dong et al. 2022</a>)</span></p>
+<p>SplitNets were introduced in the context of Head-Mounted systems. They distribute the Deep Neural Networks (DNNs) workload among camera sensors and an aggregator. This is particularly compelling the in context of TinyML. The SplitNet framework is a split-aware NAS to find the optimal neural network architecture to achieve good accuracy, split the model among the sensors and the aggregator, and minimize the communication between the sensors and the aggregator. <a href="#fig-splitnet-performance" class="quarto-xref">Figure&nbsp;<span>9.37</span></a> demonstrates how SplitNets (in red) achieves higher accuracy for lower latency (running on ImageNet) than different approaches, such as running the DNN on-sensor (All-on-sensor; in green) or on mobile (All-on-aggregator; in blue). Minimal communication is important in TinyML where memory is highly constrained, this way the sensors conduct some of the processing on their chips and then they send only the necessary information to the aggregator. When testing on ImageNet, SplitNets were able to reduce the latency by one order of magnitude on head-mounted devices. This can be helpful when the sensor has its own chip. <span class="citation" data-cites="dong2022splitnets">(<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">Dong et al. 2022</a>)</span></p>
 <div class="no-row-height column-margin column-container"></div><div id="fig-splitnet-performance" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-splitnet-performance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_SplitNets.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-splitnet-performance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.40: A chart showing a comparison between the performance of SplitNets vs all on sensor and all on aggregator approaches. <span class="citation" data-cites="dong2022splitnets">(<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">Dong et al. 2022</a>)</span>
+Figure&nbsp;9.37: SplitNets vs other approaches. Credit: <span class="citation" data-cites="dong2022splitnets">Dong et al. (<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">2022</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-dong2022splitnets" class="csl-entry" role="listitem">
 Dong, Xin, Barbara De Salvo, Meng Li, Chiao Liu, Zhongnan Qu, H. T. Kung, and Ziyun Li. 2022. <span>“<span>SplitNets:</span> <span>Designing</span> Neural Architectures for Efficient Distributed Computing on Head-Mounted Systems.”</span> In <em>2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 12549–59. IEEE. <a href="https://doi.org/10.1109/cvpr52688.2022.01223">https://doi.org/10.1109/cvpr52688.2022.01223</a>.
@@ -1957,23 +1919,25 @@ Dong, Xin, Barbara De Salvo, Meng Li, Chiao Liu, Zhongnan Qu, H. T. Kung, and Zi
 <p>These APIs allow users to enable optimization techniques like quantization and pruning without directly modifying model code. Parameters like target sparsity rates, quantization bit-widths etc. can be configured. Similarly, PyTorch provides torch.quantization for converting models to lower precision representations. TorchTensor and TorchModule form the base classes for quantization support. It also offers torch.nn.utils.prune for built-in pruning of models. MXNet offers gluon.contrib layers that add quantization capabilities like fixed point rounding and stochastic rounding of weights/activations during training. This allows quantization to be readily included in gluon models.</p>
 <p>The core benefit of built-in optimizations is that users can apply them without re-implementing complex techniques. This makes optimized models accessible to a broad range of practitioners. It also ensures best practices are followed by building on research and experience implementing the methods. As new optimizations emerge, frameworks strive to provide native support and APIs where possible to further lower the barrier to efficient ML. The availability of these tools is key to widespread adoption.</p>
 </section>
-<section id="automated-optimization-tools" class="level3" data-number="9.5.2">
+<section id="automated-optimization-tools" class="level3 page-columns page-full" data-number="9.5.2">
 <h3 data-number="9.5.2" class="anchored" data-anchor-id="automated-optimization-tools"><span class="header-section-number">9.5.2</span> Automated Optimization Tools</h3>
 <p>Automated optimization tools provided by frameworks can analyze models and automatically apply optimizations like quantization, pruning, and operator fusion to make the process easier and accessible without excessive manual tuning. In effect, this builds on top of the previous section. For example, TensorFlow provides the TensorFlow Model Optimization Toolkit which contains modules like:</p>
 <ul>
 <li><a href="https://www.tensorflow.org/model_optimization/guide/quantization/training">QuantizationAwareTraining</a> - Automatically quantizes weights and activations in a model to lower precision like UINT8 or INT8 with minimal accuracy loss. It inserts fake quantization nodes during training so that the model can learn to be quantization-friendly.</li>
 <li><a href="https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras">Pruning</a> - Automatically removes unnecessary connections in a model based on analysis of weight importance. Can prune entire filters in convolutional layers or attention heads in transformers. Handles iterative re-training to recover any accuracy loss.</li>
-<li><a href="https://www.tensorflow.org/guide/graph_optimization">GraphOptimizer</a> - Applies graph optimizations like operator fusion to consolidate operations and reduce execution latency, especially for inference.</li>
+<li><a href="https://www.tensorflow.org/guide/graph_optimization">GraphOptimizer</a> - Applies graph optimizations like operator fusion to consolidate operations and reduce execution latency, especially for inference. In <a href="#fig-graph-optimizer" class="quarto-xref">Figure&nbsp;<span>9.38</span></a>, you can see the original (Source Graph) on the left, and how its operations are transformed (consolidated) on the right. Notice how Block1 in Source Graph has 3 separate steps (Convolution, BiasAdd, and Activation), which are then consolidated together in Block1 on Optimized Graph.</li>
 </ul>
-<div id="fig-graph-optimizer" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
+<div id="fig-graph-optimizer" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-graph-optimizer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/shows-an-example-of-how-a-graph-could-be-optimized-by-the-mapping-toolchain-In-the.png" class="img-fluid figure-img">
+<img src="https://www.researchgate.net/publication/347955230/figure/fig5/AS:975063935365122@1609484766968/shows-an-example-of-how-a-graph-could-be-optimized-by-the-mapping-toolchain-In-the.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-graph-optimizer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.41: Before/after diagram showing GraphOptimizer fusing operators in a sample graph
+Figure&nbsp;9.38: GraphOptimizer. Credit: <span class="citation" data-cites="annette2020">Wess et al. (<a href="../../references.html#ref-annette2020" role="doc-biblioref">2020</a>)</span>.
 </figcaption>
-</figure>
+<div class="no-row-height column-margin column-container"><div id="ref-annette2020" class="csl-entry" role="listitem">
+Wess, Matthias, Matvey Ivanov, Christoph Unger, and Anvesh Nookala. 2020. <span>“ANNETTE: Accurate Neural Network Execution Time Estimation with Stacked Models.”</span> <em>IEEE</em>. <a href="https://doi.org/10.1109/ACCESS.2020.3047259">https://doi.org/10.1109/ACCESS.2020.3047259</a>.
+</div></div></figure>
 </div>
 <p>These automated modules only require the user to provide the original floating point model, and handle the end-to-end optimization pipeline including any re-training to regain accuracy. Other frameworks like PyTorch also offer increasing automation support, for example through torch.quantization.quantize_dynamic. Automated optimization makes efficient ML accessible to practitioners without optimization expertise.</p>
 </section>
@@ -1990,60 +1954,50 @@ Figure&nbsp;9.41: Before/after diagram showing GraphOptimizer fusing operators i
 <section id="visualizing-optimizations" class="level3 page-columns page-full" data-number="9.5.4">
 <h3 data-number="9.5.4" class="anchored" data-anchor-id="visualizing-optimizations"><span class="header-section-number">9.5.4</span> Visualizing Optimizations</h3>
 <p>Implementing model optimization techniques without visibility into the effects on the model can be challenging. Dedicated tooling or visualization tools can provide critical and useful insight into model changes and helps track the optimization process. Let’s consider the optimizations we considered earlier, such as pruning for sparsity and quantization.</p>
-<section id="sparsity-add-some-links-into-here" class="level5 page-columns page-full">
+<section id="sparsity-add-some-links-into-here" class="level5">
 <h5 class="anchored" data-anchor-id="sparsity-add-some-links-into-here">Sparsity (ADD SOME LINKS INTO HERE)</h5>
-<p>For example, consider sparsity optimizations. Sparsity visualization tools can provide critical insights into pruned models by mapping out exactly which weights have been removed. For example, sparsity heat maps can use color gradients to indicate the percentage of weights pruned in each layer of a neural network. Layers with higher percentages pruned appear darker. This identifies which layers have been simplified the most by pruning. (Souza (<a href="https://www.numenta.com/blog/2020/10/30/case-for-sparsity-in-neural-networks-part-2-dynamic-sparsity/">2020</a>))</p>
+<p>For example, consider sparsity optimizations. Sparsity visualization tools can provide critical insights into pruned models by mapping out exactly which weights have been removed. For example, sparsity heat maps can use color gradients to indicate the percentage of weights pruned in each layer of a neural network. Layers with higher percentages pruned appear darker (see <a href="#fig-sprase-heat-map" class="quarto-xref">Figure&nbsp;<span>9.39</span></a>). This identifies which layers have been simplified the most by pruning (<a href="https://www.numenta.com/blog/2020/10/30/case-for-sparsity-in-neural-networks-part-2-dynamic-sparsity/">Souza 2020</a>).</p>
 <div id="fig-sprase-heat-map" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-sprase-heat-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://www.numenta.com/wp-content/uploads/2020/10/Picture1.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sprase-heat-map-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.42: A heat map showing a sparse neural network.
+Figure&nbsp;9.39: Sparse network heat map. Credit: <a href="https://www.numenta.com/blog/2020/10/30/case-for-sparsity-in-neural-networks-part-2-dynamic-sparsity/">Numenta</a>.
 </figcaption>
 </figure>
 </div>
 <p>Trend plots can also track sparsity over successive pruning rounds - they may show initial rapid pruning followed by more gradual incremental increases. Tracking the current global sparsity along with statistics like average, minimum, and maximum sparsity per-layer in tables or plots provides an overview of the model composition. For a sample convolutional network, these tools could reveal that the first convolution layer is pruned 20% while the final classifier layer is pruned 70% given its redundancy. The global model sparsity may increase from 10% after initial pruning to 40% after five rounds.</p>
-<div id="fig-matrix-sparse-cols" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-matrix-sparse-cols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/modeloptimization_sparsity.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-matrix-sparse-cols-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.43: A figure showing the sparse columns of the filter matrix of a CNN that are aggregated to create a dense matrix that, leading to smaller dimensions in the matrix and more efficient computations <span class="citation" data-cites="kung2018packing">(<a href="../../references.html#ref-kung2018packing" role="doc-biblioref">Kung, McDanel, and Zhang 2018</a>)</span>
-</figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-kung2018packing" class="csl-entry" role="listitem">
-Kung, H. T., Bradley McDanel, and Sai Qian Zhang. 2018. <span>“Packing Sparse Convolutional Neural Networks for Efficient Systolic Array Implementations: <span>Column</span> Combining Under Joint Optimization.”</span> <a href="https://arxiv.org/abs/1811.04770">https://arxiv.org/abs/1811.04770</a>.
-</div></div></figure>
-</div>
 <p>By making sparsity data visually accessible, practitioners can better understand exactly how their model is being optimized and which areas are being impacted. The visibility enables them to fine-tune and control the pruning process for a given architecture.</p>
 <p>Sparsity visualization turns pruning into a transparent technique instead of a black-box operation.</p>
 </section>
 <section id="quantization" class="level5 page-columns page-full">
 <h5 class="anchored" data-anchor-id="quantization">Quantization</h5>
-<p>Converting models to lower numeric precisions through quantization introduces errors that can impact model accuracy if not properly tracked and addressed. Visualizing quantization error distributions provides valuable insights into the effects of reduced precision numerics applied to different parts of a model. For this, histograms of the quantization errors for weights and activations can be generated. These histograms can reveal the shape of the error distribution - whether they resemble a Gaussian distribution or contain significant outliers and spikes. Large outliers may indicate issues with particular layers handling the quantization. Comparing the histograms across layers highlights any problem areas standing out with abnormally high errors.</p>
+<p>Converting models to lower numeric precisions through quantization introduces errors that can impact model accuracy if not properly tracked and addressed. Visualizing quantization error distributions provides valuable insights into the effects of reduced precision numerics applied to different parts of a model. For this, histograms of the quantization errors for weights and activations can be generated. These histograms can reveal the shape of the error distribution - whether they resemble a Gaussian distribution or contain significant outliers and spikes. <a href="#fig-quantization-error" class="quarto-xref">Figure&nbsp;<span>9.40</span></a> shows the distributions of different quantization methods. Large outliers may indicate issues with particular layers handling the quantization. Comparing the histograms across layers highlights any problem areas standing out with abnormally high errors.</p>
 <div id="fig-quantization-error" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-quantization-error-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/modeloptimization_quant_hist.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-error-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.44: A smooth histogram of quantization error. <span class="citation" data-cites="kuzmin2022fp8">(<a href="../../references.html#ref-kuzmin2022fp8" role="doc-biblioref">Kuzmin et al. 2022</a>)</span>
+Figure&nbsp;9.40: Quantization errors. Credit: <span class="citation" data-cites="kuzmin2022fp8">Kuzmin et al. (<a href="../../references.html#ref-kuzmin2022fp8" role="doc-biblioref">2022</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-kuzmin2022fp8" class="csl-entry" role="listitem">
 Kuzmin, Andrey, Mart Van Baalen, Yuwei Ren, Markus Nagel, Jorn Peters, and Tijmen Blankevoort. 2022. <span>“<span>FP8</span> Quantization: <span>The</span> Power of the Exponent.”</span> <a href="https://arxiv.org/abs/2208.09225">https://arxiv.org/abs/2208.09225</a>.
 </div></div></figure>
 </div>
-<p>Activation visualizations are also important to detect overflow issues. By color mapping the activations before and after quantization, any values pushed outside the intended ranges become visible. This reveals saturation and truncation issues that could skew the information flowing through the model. Detecting these errors allows recalibrating activations to prevent loss of information. (Mandal (<a href="https://medium.com/exemplifyml-ai/visualizing-neural-network-activation-a27caa451ff">2022</a>))</p>
-<div id="fig-color-mapping" class="quarto-figure quarto-figure-center quarto-float anchored">
-<figure class="quarto-float quarto-float-fig figure">
+<p>Activation visualizations are also important to detect overflow issues. By color mapping the activations before and after quantization, any values pushed outside the intended ranges become visible. This reveals saturation and truncation issues that could skew the information flowing through the model. Detecting these errors allows recalibrating activations to prevent loss of information (<a href="https://medium.com/exemplifyml-ai/visualizing-neural-network-activation-a27caa451ff">Mandal 2022</a>). <a href="#fig-color-mapping" class="quarto-xref">Figure&nbsp;<span>9.41</span></a> is a color mapping of the AlexNet convolutional kernels.</p>
+<div id="fig-color-mapping" class="quarto-figure quarto-figure-center quarto-float anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-color-mapping-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://compsci697l.github.io/assets/cnnvis/filt1.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-color-mapping-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.45: Color mapping of activations.
+Figure&nbsp;9.41: Color mapping of activations. Credit: <span class="citation" data-cites="alexnet2012">Krizhevsky, Sutskever, and Hinton (<a href="../../references.html#ref-alexnet2012" role="doc-biblioref">2012</a>)</span>.
 </figcaption>
-</figure>
+<div class="no-row-height column-margin column-container"><div id="ref-alexnet2012" class="csl-entry" role="listitem">
+Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E Hinton. 2012. <span>“ImageNet Classification with Deep Convolutional Neural Networks.”</span> Edited by F. Pereira, C. J. Burges, L. Bottou, and K. Q. Weinberger 25. <a href="https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf</a>.
+</div></div></figure>
 </div>
 <p>Other techniques, such as tracking the overall mean square quantization error at each step of the quantization-aware training process identifies fluctuations and divergences. Sudden spikes in the tracking plot may indicate points where quantization is disrupting the model training. Monitoring this metric builds intuition on model behavior under quantization. Together these techniques turn quantization into a transparent process. The empirical insights enable practitioners to properly assess quantization effects. They pinpoint areas of the model architecture or training process to recalibrate based on observed quantization issues. This helps achieve numerically stable and accurate quantized models.</p>
 <p>Providing this data enables practitioners to properly assess the impact of quantization and identify potential problem areas of the model to recalibrate or redesign to be more quantization friendly. This empirical analysis builds intuition on achieving optimal quantization.</p>
@@ -2054,14 +2008,14 @@ Figure&nbsp;9.45: Color mapping of activations.
 <h3 data-number="9.5.5" class="anchored" data-anchor-id="model-conversion-and-deployment"><span class="header-section-number">9.5.5</span> Model Conversion and Deployment</h3>
 <p>Once models have been successfully optimized in frameworks like TensorFlow and PyTorch, specialized model conversion and deployment platforms are needed to bridge the gap to running them on target devices.</p>
 <p>TensorFlow Lite - TensorFlow’s platform to convert models to a lightweight format optimized for mobile, embedded and edge devices. Supports optimizations like quantization, kernel fusion, and stripping away unused ops. Models can be executed using optimized TensorFlow Lite kernels on device hardware. Critical for mobile and TinyML deployment.</p>
-<p>ONNX Runtime - Performs model conversion and inference for models in the open ONNX model format. Provides optimized kernels, supports hardware accelerators like GPUs, and cross-platform deployment from cloud to edge. Allows framework-agnostic deployment.</p>
+<p>ONNX Runtime - Performs model conversion and inference for models in the open ONNX model format. Provides optimized kernels, supports hardware accelerators like GPUs, and cross-platform deployment from cloud to edge. Allows framework-agnostic deployment. <a href="#fig-interop" class="quarto-xref">Figure&nbsp;<span>9.42</span></a> is an ONNX interoperability map, including major popular frameworks.</p>
 <div id="fig-interop" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-interop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://miro.medium.com/v2/resize:fit:1400/1*3N6uPaLNEYDjtWBW1vdNoQ.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-interop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.46: Interoperablily of ONNX
+Figure&nbsp;9.42: Interoperablily of ONNX. Credit: <a href="https://towardsdatascience.com/onnx-preventing-framework-lock-in-9a798fb34c92">TowardsDataScience</a>.
 </figcaption>
 </figure>
 </div>
