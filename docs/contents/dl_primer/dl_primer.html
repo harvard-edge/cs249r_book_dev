@@ -105,6 +105,35 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../scripts/ai_menu/dist/384.bundle.js" defer=""></script>
 <script src="../../scripts/ai_menu/dist/761.bundle.js" defer=""></script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -649,12 +678,13 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   <li><a href="#neural-networks" id="toc-neural-networks" class="nav-link" data-scroll-target="#neural-networks"><span class="header-section-number">3.2</span> Neural Networks</a>
   <ul>
   <li><a href="#perceptrons" id="toc-perceptrons" class="nav-link" data-scroll-target="#perceptrons"><span class="header-section-number">3.2.1</span> Perceptrons</a></li>
-  <li><a href="#multilayer-perceptrons" id="toc-multilayer-perceptrons" class="nav-link" data-scroll-target="#multilayer-perceptrons"><span class="header-section-number">3.2.2</span> Multilayer Perceptrons</a>
+  <li><a href="#multilayer-perceptrons" id="toc-multilayer-perceptrons" class="nav-link" data-scroll-target="#multilayer-perceptrons"><span class="header-section-number">3.2.2</span> Multilayer Perceptrons</a></li>
+  <li><a href="#training-process" id="toc-training-process" class="nav-link" data-scroll-target="#training-process"><span class="header-section-number">3.2.3</span> Training Process</a>
   <ul class="collapse">
   <li><a href="#forward-pass" id="toc-forward-pass" class="nav-link" data-scroll-target="#forward-pass">Forward Pass</a></li>
   <li><a href="#backward-pass-backpropagation" id="toc-backward-pass-backpropagation" class="nav-link" data-scroll-target="#backward-pass-backpropagation">Backward Pass (Backpropagation)</a></li>
   </ul></li>
-  <li><a href="#model-architectures" id="toc-model-architectures" class="nav-link" data-scroll-target="#model-architectures"><span class="header-section-number">3.2.3</span> Model Architectures</a>
+  <li><a href="#model-architectures" id="toc-model-architectures" class="nav-link" data-scroll-target="#model-architectures"><span class="header-section-number">3.2.4</span> Model Architectures</a>
   <ul class="collapse">
   <li><a href="#multilayer-perceptrons-mlps" id="toc-multilayer-perceptrons-mlps" class="nav-link" data-scroll-target="#multilayer-perceptrons-mlps">Multilayer Perceptrons (MLPs)</a></li>
   <li><a href="#convolutional-neural-networks-cnns" id="toc-convolutional-neural-networks-cnns" class="nav-link" data-scroll-target="#convolutional-neural-networks-cnns">Convolutional Neural Networks (CNNs)</a></li>
@@ -663,8 +693,8 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   <li><a href="#autoencoders" id="toc-autoencoders" class="nav-link" data-scroll-target="#autoencoders">Autoencoders</a></li>
   <li><a href="#transformer-networks" id="toc-transformer-networks" class="nav-link" data-scroll-target="#transformer-networks">Transformer Networks</a></li>
   </ul></li>
-  <li><a href="#traditional-ml-vs-deep-learning" id="toc-traditional-ml-vs-deep-learning" class="nav-link" data-scroll-target="#traditional-ml-vs-deep-learning"><span class="header-section-number">3.2.4</span> Traditional ML vs Deep Learning</a></li>
-  <li><a href="#choosing-traditional-ml-vs.-dl" id="toc-choosing-traditional-ml-vs.-dl" class="nav-link" data-scroll-target="#choosing-traditional-ml-vs.-dl"><span class="header-section-number">3.2.5</span> Choosing Traditional ML vs.&nbsp;DL</a>
+  <li><a href="#traditional-ml-vs-deep-learning" id="toc-traditional-ml-vs-deep-learning" class="nav-link" data-scroll-target="#traditional-ml-vs-deep-learning"><span class="header-section-number">3.2.5</span> Traditional ML vs Deep Learning</a></li>
+  <li><a href="#choosing-traditional-ml-vs.-dl" id="toc-choosing-traditional-ml-vs.-dl" class="nav-link" data-scroll-target="#choosing-traditional-ml-vs.-dl"><span class="header-section-number">3.2.6</span> Choosing Traditional ML vs.&nbsp;DL</a>
   <ul class="collapse">
   <li><a href="#data-availability-and-volume" id="toc-data-availability-and-volume" class="nav-link" data-scroll-target="#data-availability-and-volume">Data Availability and Volume</a></li>
   <li><a href="#complexity-of-the-problem" id="toc-complexity-of-the-problem" class="nav-link" data-scroll-target="#complexity-of-the-problem">Complexity of the Problem</a></li>
@@ -672,7 +702,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   <li><a href="#regulatory-compliance" id="toc-regulatory-compliance" class="nav-link" data-scroll-target="#regulatory-compliance">Regulatory Compliance</a></li>
   <li><a href="#interpretability" id="toc-interpretability" class="nav-link" data-scroll-target="#interpretability">Interpretability</a></li>
   </ul></li>
-  <li><a href="#making-an-informed-choice" id="toc-making-an-informed-choice" class="nav-link" data-scroll-target="#making-an-informed-choice"><span class="header-section-number">3.2.6</span> Making an Informed Choice</a></li>
+  <li><a href="#making-an-informed-choice" id="toc-making-an-informed-choice" class="nav-link" data-scroll-target="#making-an-informed-choice"><span class="header-section-number">3.2.7</span> Making an Informed Choice</a></li>
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion"><span class="header-section-number">3.3</span> Conclusion</a></li>
   <li><a href="#sec-deep-learning-primer-resource" id="toc-sec-deep-learning-primer-resource" class="nav-link" data-scroll-target="#sec-deep-learning-primer-resource"><span class="header-section-number">3.4</span> Resources</a></li>
@@ -738,7 +768,7 @@ Learning Objectives
 <img src="images/png/ai_dl_progress_nvidia.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ai-ml-dl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3.1: Artificial intelligence subfields. Credit: NVIDIA.
+Figure&nbsp;3.1: The diagram illustrates artificial intelligence as the overarching field encompassing all computational methods that mimic human cognitive functions. Machine learning is a subset of AI that includes algorithms capable of learning from data. Deep learning, a further subset of ML, specifically involves neural networks that are able to learn more complex patterns in large volumes of data. Credit: NVIDIA.
 </figcaption>
 </figure>
 </div>
@@ -768,14 +798,13 @@ Figure&nbsp;3.2: Growth of deep learning models.
 <div class="no-row-height column-margin column-container"><div id="ref-jouppi2017datacenter" class="csl-entry" role="listitem">
 Jouppi, Norman P., Cliff Young, Nishant Patil, David Patterson, Gaurav Agrawal, Raminder Bajwa, Sarah Bates, et al. 2017. <span>“In-Datacenter Performance Analysis of a Tensor Processing Unit.”</span> In <em>Proceedings of the 44th Annual International Symposium on Computer Architecture</em>, 1–12. ISCA ’17. New York, NY, USA: ACM. <a href="https://doi.org/10.1145/3079856.3080246">https://doi.org/10.1145/3079856.3080246</a>.
 </div></div><p>Second, the digital revolution has yielded a wealth of big data, offering rich material for deep learning models to learn from and excel in tasks such as image and speech recognition, language translation, and game playing. Large, labeled datasets have been key in refining and successfully deploying deep learning applications in real-world settings.</p>
-<p>Additionally, collaborations and open-source efforts have nurtured a dynamic community of researchers and practitioners, accelerating advancements in deep learning techniques. Innovations like deep reinforcement learning, transfer learning, and generative adversarial networks have broadened the scope of what is achievable with deep learning, opening new possibilities in various sectors, including healthcare, finance, transportation, and entertainment.</p>
+<p>Additionally, collaborations and open-source efforts have nurtured a dynamic community of researchers and practitioners, accelerating advancements in deep learning techniques. Innovations like deep reinforcement learning, transfer learning, and generative artificial intelligence have broadened the scope of what is achievable with deep learning, opening new possibilities in various sectors, including healthcare, finance, transportation, and entertainment.</p>
 <p>Organizations worldwide recognize deep learning’s transformative potential and invest heavily in research and development to leverage its capabilities in providing innovative solutions, optimizing operations, and creating new business opportunities. As deep learning continues its upward trajectory, it is set to redefine how we interact with technology, enhancing convenience, safety, and connectivity in our lives.</p>
 </section>
 <section id="applications-of-deep-learning" class="level3" data-number="3.1.3">
 <h3 data-number="3.1.3" class="anchored" data-anchor-id="applications-of-deep-learning"><span class="header-section-number">3.1.3</span> Applications of Deep Learning</h3>
-<p>Deep learning is extensively used across numerous industries today, and its transformative impact on society is evident. In finance, it is employed for stock market prediction, risk assessment, and fraud detection. For instance, deep learning algorithms can predict stock market trends, guide investment strategies, and enhance financial decisions. Marketing uses it for customer segmentation, personalization, and content optimization. In healthcare, machine learning aids in diagnosis, treatment planning, and patient monitoring. Similarly, deep learning can make medical predictions that improve patient diagnosis and save lives. The benefits are clear: machine learning predicts with greater accuracy than humans and does so much more quickly.</p>
-<p>In manufacturing, deep learning has had a significant impact. By continuously learning from vast amounts of data collected during manufacturing, companies can boost productivity while minimizing waste through improved efficiency. This financial benefit for companies translates to better quality products at lower customer prices. Machine learning enables manufacturers to continually refine their processes, producing higher quality goods more efficiently than ever.</p>
-<p>Deep learning enhances everyday products like Netflix recommendations and Google Translate text translations. Moreover, it helps companies like Amazon and Uber reduce customer service costs by swiftly identifying dissatisfied customers.</p>
+<p>Deep learning is extensively used across numerous industries today, and its transformative impact on society is evident. In finance, it powers stock market prediction, risk assessment, and fraud detection. For instance, deep learning algorithms can predict stock market trends, guide investment strategies, and enhance financial decisions. In marketing, it drives customer segmentation, personalization, and content optimization. Deep learning analyzes consumer behavior and preferences to enable highly targeted advertising and personalized content delivery. In manufacturing, deep learning streamlines production processes and enhances quality control by continuously analyzing large volumes of data. This allows companies to boost productivity and minimize waste, leading to the production of higher quality goods at lower costs. In healthcare, machine learning aids in diagnosis, treatment planning, and patient monitoring. Similarly, deep learning can make medical predictions that improve patient diagnosis and save lives. The benefits are clear: machine learning predicts with greater accuracy than humans and does so much more quickly.</p>
+<p>Deep learning enhances everyday products, such as strengthening Netflix’s recommender systems to provide users with more <a href="https://dl.acm.org/doi/abs/10.1145/3543873.3587675">personalized recommendations</a>. At Google, deep learning models have driven significant improvements in <a href="https://research.google/blog/recent-advances-in-google-translate/">Google Translate</a>, enabling it to handle over <a href="https://cloud.google.com/translate/docs/languages">100 languages</a>. Autonomous vehicles from companies like Waymo, Cruise, and Motional have become a reality through the use of deep learning in their <a href="https://motional.com/news/technically-speaking-improving-av-perception-through-transformative-machine-learning">perception system</a>. Additionally, Amazon employs deep learning at the edge in their Alexa devices to perform <a href="https://towardsdatascience.com/how-amazon-alexa-works-your-guide-to-natural-language-processing-ai-7506004709d3">keyword spotting</a>.</p>
 </section>
 <section id="relevance-to-embedded-ai" class="level3" data-number="3.1.4">
 <h3 data-number="3.1.4" class="anchored" data-anchor-id="relevance-to-embedded-ai"><span class="header-section-number">3.1.4</span> Relevance to Embedded AI</h3>
@@ -785,38 +814,69 @@ Jouppi, Norman P., Cliff Young, Nishant Patil, David Patterson, Gaurav Agrawal, 
 <section id="neural-networks" class="level2 page-columns page-full" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="neural-networks"><span class="header-section-number">3.2</span> Neural Networks</h2>
 <p>Deep learning draws inspiration from the human brain’s neural networks to create decision-making patterns. This section delves into the foundational concepts of deep learning, providing insights into the more complex topics discussed later in this primer.</p>
-<p>Neural networks serve as the foundation of deep learning, inspired by the biological neural networks in the human brain to process and analyze data hierarchically. Below, we examine the primary components and structures in neural networks.</p>
+<p>Neural networks serve as the foundation of deep learning, inspired by the biological neural networks in the human brain to process and analyze data hierarchically. Neural networks are composed of basic units called perceptrons, which are typically organized into layers. Each layer consists of several perceptrons, and multiple layers are stacked to form the entire network. The connections between these layers are defined by sets of weights or parameters that determine how data is processed as it flows from the input to the output of the network.</p>
+<p>Below, we examine the primary components and structures in neural networks.</p>
 <section id="perceptrons" class="level3" data-number="3.2.1">
 <h3 data-number="3.2.1" class="anchored" data-anchor-id="perceptrons"><span class="header-section-number">3.2.1</span> Perceptrons</h3>
-<p>The Perceptron is the basic unit or node that is the foundation for more complex structures. It takes various inputs, applies weights and biases to them, and then uses an activation function to produce an output. <a href="#fig-perceptron" class="quarto-xref">Figure&nbsp;<span>3.3</span></a> illustrates the building blocks of a perceptron. In simple terms, think of a perceptron as a tiny decision-maker that learns to make a binary decision (e.g.&nbsp;‘yes’ or ‘no’). It takes in numbers as inputs (<code>x_1, x_2, ...</code>), each representing a feature of an object we wish to analyze (an image for example). Then it multiplies each input by a weight, adds them up, and if the total is high enough (crosses a certain threshold), it returns “yes” as an asnwer, otherwise, it outputs “no.”</p>
+<p>The Perceptron is the basic unit or node that forms the foundation for more complex structures. It functions by taking multiple inputs, each representing a feature of the object under analysis, such as the characteristics of a home for predicting its price or the attributes of a song to forecast its popularity in music streaming services. These inputs are denoted as <span class="math inline">\(x_1, x_2, ..., x_n\)</span>.</p>
+<p>Each input <span class="math inline">\(x_i\)</span> has a corresponding weight <span class="math inline">\(w_{ij}\)</span>, and the perceptron simply multiplies each input by its matching weight. This operation is similar to linear regression, where the intermediate output, <span class="math inline">\(z\)</span>, is computed as the sum of the products of inputs and their weights:</p>
+<p><span class="math display">\[
+z = \sum (x_i \cdot w_{ij})
+\]</span></p>
+<p>To this intermediate calculation, a bias term <span class="math inline">\(b\)</span> is added, allowing the model to better fit the data by shifting the linear output function up or down. Thus, the intermediate linear combination computed by the perceptron including the bias becomes:</p>
+<p><span class="math display">\[
+z = \sum (x_i \cdot w_{ij}) + b
+\]</span></p>
+<p>This basic form of a perceptron can only model linear relationships between the input and output. Patterns found in nature are often complex and extend beyond linear relationships. To enable the perceptron to handle non-linear relationships, an activation function is applied to the linear output <span class="math inline">\(z\)</span>.</p>
+<p><span class="math display">\[
+\hat{y} = \sigma(z)
+\]</span></p>
+<p><a href="#fig-nonlinear" class="quarto-xref">Figure&nbsp;<span>3.3</span></a> illustrates an example where data exhibit a nonlinear pattern that could not be adequately modeled with a linear approach. The activation function, such as sigmoid, tanh, or ReLU, transforms the linear input sum into a non-linear output. The primary objective of this function is to introduce non-linearity into the model, enabling it to learn and perform more sophisticated tasks. Thus, the final output of the perceptron, including the activation function, can be expressed as:</p>
+<div id="fig-nonlinear" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nonlinear-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/nonlinear_patterns.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nonlinear-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3.3: Activation functions enable the modeling of complex non-linear relationships. Credit: Medium - Sachin Kaushik.
+</figcaption>
+</figure>
+</div>
+<p>A perceptron can be configured to perform either regression or classification tasks. For regression, the actual numerical output <span class="math inline">\(\hat{y}\)</span> is used. For classification, the output depends on whether <span class="math inline">\(\hat{y}\)</span> crosses a certain threshold. If <span class="math inline">\(\hat{y}\)</span> exceeds this threshold, the perceptron might output one class (e.g., ‘yes’), and if it does not, another class (e.g., ‘no’).</p>
 <div id="fig-perceptron" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-perceptron-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/png/Rosenblattperceptron.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-perceptron-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3.3: Perceptron. Credit: Wikimedia - Chrislb.
+Figure&nbsp;3.4: Perceptron. Conceived in the 1950s, perceptrons paved the way for developing more intricate neural networks and have been a fundamental building block in deep learning. Credit: Wikimedia - Chrislb.
 </figcaption>
 </figure>
 </div>
-<p>Conceived in the 1950s, perceptrons paved the way for developing more intricate neural networks and have been a fundamental building block in deep learning.</p>
+<p><a href="#fig-perceptron" class="quarto-xref">Figure&nbsp;<span>3.4</span></a> illustrates the fundamental building blocks of a perceptron, which serves as the foundation for more complex neural networks. A perceptron can be thought of as a miniature decision-maker, utilizing its weights, bias, and activation function to process inputs and generate outputs based on learned parameters. This concept forms the basis for understanding more intricate neural network architectures, such as multilayer perceptrons. In these advanced structures, layers of perceptrons work in concert, with each layer’s output serving as the input for the subsequent layer. This hierarchical arrangement creates a deep learning model capable of comprehending and modeling complex, abstract patterns within data. By stacking these simple units, neural networks gain the ability to tackle increasingly sophisticated tasks, from image recognition to natural language processing.</p>
 </section>
 <section id="multilayer-perceptrons" class="level3" data-number="3.2.2">
 <h3 data-number="3.2.2" class="anchored" data-anchor-id="multilayer-perceptrons"><span class="header-section-number">3.2.2</span> Multilayer Perceptrons</h3>
-<p>Multilayer perceptrons (MLPs) are an evolution of the single-layer perceptron model, featuring multiple layers of nodes connected in a feedforward manner, as shown in <a href="#fig-mlp" class="quarto-xref">Figure&nbsp;<span>3.4</span></a>. These layers include an input layer for data reception, several hidden layers for data processing, and an output layer for final result generation. MLPs are skilled at identifying non-linear relationships and use a backpropagation technique for training, where weights are optimized through a gradient descent algorithm.</p>
+<p>Multilayer perceptrons (MLPs) are an evolution of the single-layer perceptron model, featuring multiple layers of nodes connected in a feedforward manner. In a feedforward network, information moves in only one direction - from the input layer, through the hidden layers, to the output layer, without any cycles or loops. This structure is illustrated in <a href="#fig-mlp" class="quarto-xref">Figure&nbsp;<span>3.5</span></a>. The network layers include an input layer for data reception, several hidden layers for data processing, and an output layer for final result generation.</p>
+<p>While a single perceptron is limited in its capacity to model complex patterns, the real strength of neural networks emerges from the assembly of multiple layers. Each layer consists of numerous perceptrons working together, allowing the network to capture intricate and non-linear relationships within the data. With sufficient depth and breadth, these networks can approximate virtually any function, no matter how complex.</p>
 <div id="fig-mlp" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mlp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="https://www.nomidl.com/wp-content/uploads/2022/04/image-7.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mlp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3.4: Multilayer Perceptron. Credit: Wikimedia - Charlie.
+Figure&nbsp;3.5: Multilayer Perceptron. Credit: Wikimedia - Charlie.
 </figcaption>
 </figure>
 </div>
+</section>
+<section id="training-process" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="training-process"><span class="header-section-number">3.2.3</span> Training Process</h3>
+<p>A neural network receives an input, performs a calculation, and produces a prediction. The prediction is determined by the calculations performed within the sets of perceptrons found between the input and output layers. These calculations depend primarily on the input and the weights. Since you do not have control over the input, the objective during training is to adjust the weights in such a way that the output of the network provides the most accurate prediction.</p>
+<p>The training process involves several key steps, beginning with the forward pass, where the existing weights of the network are used to calculate the output for a given input. This output is then compared to the true target values to calculate an error, which measures how well the network’s prediction matches the expected outcome. Following this, a backward pass is performed. This involves using the error to make adjustments to the weights of the network through a process called backpropagation. This adjustment aims to reduce the error in subsequent predictions. The cycle of forward pass, error calculation, and backward pass is repeated iteratively. This process continues until the network’s predictions are sufficiently accurate or a predefined number of iterations is reached, effectively minimizing the loss function used to measure the error.</p>
 <section id="forward-pass" class="level4">
 <h4 class="anchored" data-anchor-id="forward-pass">Forward Pass</h4>
-<p>The forward pass is the initial phase where data moves through the network from the input to the output layer. During this phase, each layer performs specific computations on the input data, using weights and biases before passing the resulting values to subsequent layers. The final output of this phase is used to compute the loss, indicating the difference between the predicted output and actual target values.</p>
+<p>The forward pass is the initial phase where data moves through the network from the input to the output layer. At the start of training, the network’s weights are randomly initialized, setting the initial conditions for learning. During the forward pass, each layer performs specific computations on the input data using these weights and biases, and the results are then passed to the subsequent layer. The final output of this phase is the network’s prediction. This prediction is compared to the actual target values present in the dataset to calculate the loss, which can be thought of as the difference between the predicted outputs and the target values. The loss quantifies the network’s performance at this stage, providing a crucial metric for the subsequent adjustment of weights during the backward pass.</p>
 <p><a href="#vid-nn" class="quarto-xref">Video&nbsp;<span>3.1</span></a> below explains how neural networks work using handwritten digit recognition as an example application. It also touches on the math underlying neural nets.</p>
 <div id="vid-nn" class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -834,7 +894,8 @@ Video&nbsp;3.1: Neural Networks
 </section>
 <section id="backward-pass-backpropagation" class="level4">
 <h4 class="anchored" data-anchor-id="backward-pass-backpropagation">Backward Pass (Backpropagation)</h4>
-<p>Backpropagation is a key algorithm in training deep neural networks. This phase involves calculating the gradient of the loss function concerning each weight using the chain rule, effectively moving backward through the network. The gradients calculated in this step guide the adjustment of weights to minimize the loss function, thereby enhancing the network’s performance with each iteration of training.</p>
+<p>After completing the forward pass and computing the loss, which measures how far the model’s predictions deviate from the actual target values, the next step is to improve the model’s performance by adjusting the network’s weights. Since we cannot control the inputs to the model, adjusting the weights becomes our primary method for refining the model.</p>
+<p>We determine how to adjust the weights of our model through a key algorithm called backpropagation. Backpropagation uses the calculated loss to determine the gradient of each weight. These gradients describe the direction and magnitude in which the weights should be adjusted. By tuning the weights based on these gradients, the model is better positioned to make predictions that are closer to the actual target values in the next forward pass.</p>
 <p>Grasping these foundational concepts paves the way to understanding more intricate deep learning architectures and techniques, fostering the development of more sophisticated and productive applications, especially within embedded AI systems.</p>
 <p><a href="#vid-gd" class="quarto-xref">Video&nbsp;<span>3.2</span></a> and <a href="#vid-bp" class="quarto-xref">Video&nbsp;<span>3.3</span></a> build upon <a href="#vid-nn" class="quarto-xref">Video&nbsp;<span>3.1</span></a>. They cover gradient descent and backpropagation in neural networks.</p>
 <div id="vid-gd" class="callout callout-style-default callout-important callout-titled">
@@ -865,8 +926,8 @@ Video&nbsp;3.3: Backpropagation
 </div>
 </section>
 </section>
-<section id="model-architectures" class="level3 page-columns page-full" data-number="3.2.3">
-<h3 data-number="3.2.3" class="anchored" data-anchor-id="model-architectures"><span class="header-section-number">3.2.3</span> Model Architectures</h3>
+<section id="model-architectures" class="level3 page-columns page-full" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="model-architectures"><span class="header-section-number">3.2.4</span> Model Architectures</h3>
 <p>Deep learning architectures refer to the various structured approaches that dictate how neurons and layers are organized and interact in neural networks. These architectures have evolved to tackle different problems and data types effectively. This section overviews some well-known deep learning architectures and their characteristics.</p>
 <section id="multilayer-perceptrons-mlps" class="level4">
 <h4 class="anchored" data-anchor-id="multilayer-perceptrons-mlps">Multilayer Perceptrons (MLPs)</h4>
@@ -894,7 +955,7 @@ Exercise&nbsp;3.1: Multilayer Perceptrons (MLPs)
 </section>
 <section id="convolutional-neural-networks-cnns" class="level4">
 <h4 class="anchored" data-anchor-id="convolutional-neural-networks-cnns">Convolutional Neural Networks (CNNs)</h4>
-<p>CNNs are mainly used in image and video recognition tasks. This architecture employs convolutional layers that filter input data to identify features like edges, corners, and textures. A typical CNN also includes pooling layers to reduce the spatial dimensions of the data and fully connected layers for classification. CNNs have proven highly effective in image recognition, object detection, and computer vision applications.</p>
+<p>CNNs are mainly used in image and video recognition tasks. This architecture consists of two main parts: the convolutional base and the fully connected layers. In the convolutional base, convolutional layers filter input data to identify features like edges, corners, and textures. Following each convolutional layer, a pooling layer can be applied to reduce the spatial dimensions of the data, thereby decreasing computational load and concentrating the extracted features. Unlike MLPs, which treat input features as flat, independent entities, CNNs maintain the spatial relationships between pixels, making them particularly effective for image and video data. The extracted features from the convolutional base are then passed into the fully connected layers, similar to those used in MLPs, which perform classification based on the features extracted by the convolution layers. CNNs have proven highly effective in image recognition, object detection, and other computer vision applications.</p>
 <p>In embedded AI, CNNs are crucial for image and video recognition tasks, where real-time processing is often needed. They can be optimized for embedded systems using techniques like quantization and pruning to minimize memory usage and computational demands, enabling efficient object detection and facial recognition functionalities in devices with limited computational resources.</p>
 <div id="exr-cnn" class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="true" aria-label="Toggle callout">
@@ -941,9 +1002,9 @@ Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan 
 <p>These architectures serve specific purposes and excel in different domains, offering a rich toolkit for addressing diverse problems in embedded AI systems. Understanding the nuances of these architectures is crucial in designing effective and efficient deep learning models for various applications.</p>
 </section>
 </section>
-<section id="traditional-ml-vs-deep-learning" class="level3" data-number="3.2.4">
-<h3 data-number="3.2.4" class="anchored" data-anchor-id="traditional-ml-vs-deep-learning"><span class="header-section-number">3.2.4</span> Traditional ML vs Deep Learning</h3>
-<p>To briefly highlight the differences, <a href="#tbl-mlvsdl" class="quarto-xref">Table&nbsp;<span>3.1</span></a> illustrates the contrasting characteristics between traditional ML and deep learning:</p>
+<section id="traditional-ml-vs-deep-learning" class="level3" data-number="3.2.5">
+<h3 data-number="3.2.5" class="anchored" data-anchor-id="traditional-ml-vs-deep-learning"><span class="header-section-number">3.2.5</span> Traditional ML vs Deep Learning</h3>
+<p>Deep learning extends traditional machine learning by utilizing neural networks to discern patterns in data. In contrast, traditional machine learning relies on a set of established algorithms such as decision trees, k-nearest neighbors, and support vector machines, but does not involve neural networks. To briefly highlight the differences, <a href="#tbl-mlvsdl" class="quarto-xref">Table&nbsp;<span>3.1</span></a> illustrates the contrasting characteristics between traditional ML and deep learning:</p>
 <div id="tbl-mlvsdl" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mlvsdl-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1000,8 +1061,8 @@ Table&nbsp;3.1: Comparison of traditional machine learning and deep learning.
 </figure>
 </div>
 </section>
-<section id="choosing-traditional-ml-vs.-dl" class="level3" data-number="3.2.5">
-<h3 data-number="3.2.5" class="anchored" data-anchor-id="choosing-traditional-ml-vs.-dl"><span class="header-section-number">3.2.5</span> Choosing Traditional ML vs.&nbsp;DL</h3>
+<section id="choosing-traditional-ml-vs.-dl" class="level3" data-number="3.2.6">
+<h3 data-number="3.2.6" class="anchored" data-anchor-id="choosing-traditional-ml-vs.-dl"><span class="header-section-number">3.2.6</span> Choosing Traditional ML vs.&nbsp;DL</h3>
 <section id="data-availability-and-volume" class="level4">
 <h4 class="anchored" data-anchor-id="data-availability-and-volume">Data Availability and Volume</h4>
 <p><strong>Amount of Data:</strong> Traditional machine learning algorithms, such as decision trees or Naive Bayes, are often more suitable when data availability is limited. They offer robust predictions even with smaller datasets. This is particularly true in medical diagnostics for disease prediction and customer segmentation in marketing.</p>
@@ -1019,15 +1080,15 @@ Table&nbsp;3.1: Comparison of traditional machine learning and deep learning.
 </section>
 <section id="regulatory-compliance" class="level4">
 <h4 class="anchored" data-anchor-id="regulatory-compliance">Regulatory Compliance</h4>
-<p>Regulatory compliance is crucial in various industries, requiring adherence to guidelines and best practices such as the GDPR in the EU. Traditional ML models, due to their inherent interpretability, often align better with these regulations, especially in sectors like finance and healthcare.</p>
+<p>Regulatory compliance is crucial in various industries, requiring adherence to guidelines and best practices such as the General Data Protection Regulation (GDPR) in the EU. Traditional ML models, due to their inherent interpretability, often align better with these regulations, especially in sectors like finance and healthcare.</p>
 </section>
 <section id="interpretability" class="level4">
 <h4 class="anchored" data-anchor-id="interpretability">Interpretability</h4>
 <p>Understanding the decision-making process is easier with traditional machine learning techniques than deep learning models, which function as “black boxes,” making it challenging to trace decision pathways.</p>
 </section>
 </section>
-<section id="making-an-informed-choice" class="level3" data-number="3.2.6">
-<h3 data-number="3.2.6" class="anchored" data-anchor-id="making-an-informed-choice"><span class="header-section-number">3.2.6</span> Making an Informed Choice</h3>
+<section id="making-an-informed-choice" class="level3" data-number="3.2.7">
+<h3 data-number="3.2.7" class="anchored" data-anchor-id="making-an-informed-choice"><span class="header-section-number">3.2.7</span> Making an Informed Choice</h3>
 <p>Given the constraints of embedded AI systems, understanding the differences between traditional ML techniques and deep learning becomes essential. Both avenues offer unique advantages, and their distinct characteristics often dictate the choice of one over the other in different scenarios.</p>
 <p>Despite this, deep learning has steadily outperformed traditional machine learning methods in several key areas due to abundant data, computational advancements, and proven effectiveness in complex tasks. Here are some specific reasons why we focus on deep learning:</p>
 <p>1.&nbsp;<strong>Superior Performance in Complex Tasks:</strong> Deep learning models, particularly deep neural networks, excel in tasks where the relationships between data points are incredibly intricate. Tasks like image and speech recognition, language translation, and playing complex games like Go and Chess have seen significant advancements primarily through deep learning algorithms.</p>
