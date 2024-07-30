@@ -856,7 +856,7 @@ Figure&nbsp;9.1: Three layers to be covered.
 <p>There are several common pruning techniques used in machine learning, these include structured pruning, unstructured pruning, iterative pruning, bayesian pruning, and even random pruning. In addition to pruning the weights, one can also prune the activations. Activation pruning specifically targets neurons or filters that activate rarely or have overall low activation. There are numerous other methods, such as sensitivity and movement pruning. For a comprehensive list of methods, the reader is encouraged to read the following paper: <a href="https://arxiv.org/pdf/2308.06767.pdf">“A Survey on Deep Neural Network Pruning: Taxonomy, Comparison, Analysis, and Recommendations” (2023)</a>.</p>
 <p>So how does one choose the type of pruning methods? Many variations of pruning techniques exist where each varies the heuristic of what should be kept and pruned from the model as well the number of times pruning occurs. Traditionally, pruning happens after the model is fully trained, where the pruned model may experience mild accuracy loss. However, as we will discuss further, recent discoveries have found that pruning can be used during training (i.e., iteratively) to identify more efficient and accurate model representations.</p>
 </section>
-<section id="structured-pruning" class="level4">
+<section id="structured-pruning" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="structured-pruning">Structured Pruning</h4>
 <p>We start with structured pruning, a technique that reduces the size of a neural network by eliminating entire model-specific substructures while maintaining the overall model structure. It removes entire neurons/channels or layers based on importance criteria. For example, for a convolutional neural network (CNN), this could be certain filter instances or channels. For fully connected networks, this could be neurons themselves while maintaining full connectivity or even be elimination of entire model layers that are deemed to be insignificant. This type of pruning often leads to regular, structured sparse networks that are hardware friendly.</p>
 <section id="components" class="level5">
@@ -886,7 +886,7 @@ Figure&nbsp;9.2: Channel vs layer pruning.
 </figure>
 </div>
 </section>
-<section id="establishing-a-criteria-for-pruning" class="level5">
+<section id="establishing-a-criteria-for-pruning" class="level5 page-columns page-full">
 <h5 class="anchored" data-anchor-id="establishing-a-criteria-for-pruning">Establishing a criteria for pruning</h5>
 <p>Establishing well-defined criteria for determining which specific structures to prune from a neural network model is a crucial component of the model pruning process. The core goal here is to identify and remove components that contribute the least to the model’s predictive capabilities, while retaining structures integral to preserving the model’s accuracy.</p>
 <p>A widely adopted and effective strategy for systematically pruning structures relies on computing importance scores for individual components like neurons, filters, channels or layers. These scores serve as quantitative metrics to gauge the significance of each structure and its effect on the model’s output.</p>
@@ -897,8 +897,12 @@ Figure&nbsp;9.2: Channel vs layer pruning.
 <li>Activation-based pruning tracks activation values for neurons/filters over a validation dataset. Consistently low activation values suggest less relevance, warranting removal.</li>
 <li>Taylor expansion approximates the change in loss function from removing a given weight. Weights with negligible impact on loss are prime candidates for pruning.</li>
 </ul>
-<p>The idea is to measure, either directly or indirectly, the contribution of each component to the model’s output. Structures with minimal influence according to the defined criteria are pruned first. This enables selective, optimized pruning that maximally compresses models while preserving predictive capacity. In general, it is important to evaluate the impact of removing particular structures on the model’s output.</p>
-</section>
+<p>The idea is to measure, either directly or indirectly, the contribution of each component to the model’s output. Structures with minimal influence according to the defined criteria are pruned first. This enables selective, optimized pruning that maximally compresses models while preserving predictive capacity. In general, it is important to evaluate the impact of removing particular structures on the model’s output, with recent works such as <span class="citation" data-cites="rachwan2022winning">(<a href="../../references.html#ref-rachwan2022winning" role="doc-biblioref">Rachwan et al. 2022</a>)</span> and <span class="citation" data-cites="lubana2020gradient">(<a href="../../references.html#ref-lubana2020gradient" role="doc-biblioref">Lubana and Dick 2020</a>)</span> investigating combinations of techniques like magnitude-based pruning and gradient-based pruning.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-rachwan2022winning" class="csl-entry" role="listitem">
+Rachwan, John, Daniel Zügner, Bertrand Charpentier, Simon Geisler, Morgane Ayle, and Stephan Günnemann. 2022. <span>“Winning the Lottery Ahead of Time: <span>Efficient</span> Early Network Pruning.”</span> In <em>International Conference on Machine Learning</em>, 18293–309. PMLR.
+</div><div id="ref-lubana2020gradient" class="csl-entry" role="listitem">
+Lubana, Ekdeep Singh, and Robert P Dick. 2020. <span>“A Gradient Flow Framework for Analyzing Network Pruning.”</span> <em>arXiv Preprint arXiv:2009.11839</em>.
+</div></div></section>
 <section id="selecting-a-pruning-strategy" class="level5">
 <h5 class="anchored" data-anchor-id="selecting-a-pruning-strategy">Selecting a pruning strategy</h5>
 <p>The pruning strategy orchestrates how structures are removed and integrates with subsequent model fine-tuning to recover predictive performance. Two main structured pruning strategies exist: iterative pruning and one-shot pruning.</p>
@@ -1061,7 +1065,7 @@ Figure&nbsp;9.7: Finding the winning ticket subnetwork.
 </figure>
 </div>
 </section>
-<section id="challenges-limitations" class="level4">
+<section id="challenges-limitations" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="challenges-limitations">Challenges &amp; Limitations</h4>
 <p>There is no free lunch with pruning optimizations, with some choices coming with both improvements and costs to considers. Below we discuss some tradeoffs for practitioners to consider.</p>
 <section id="quality-vs.-size-reduction" class="level5">
@@ -1088,10 +1092,12 @@ Figure&nbsp;9.7: Finding the winning ticket subnetwork.
 <h5 class="anchored" data-anchor-id="complexity-in-implementing-pruning-algorithms">Complexity in Implementing Pruning Algorithms</h5>
 <p>Unstructured pruning might introduce additional complexity in implementing pruning algorithms due to the need to manage sparse representations of weights. Developing or adapting algorithms that can efficiently handle, store, and compute sparse weight matrices is an additional challenge and consideration in unstructured pruning.</p>
 </section>
-<section id="legal-and-ethical-considerations" class="level5">
+<section id="legal-and-ethical-considerations" class="level5 page-columns page-full">
 <h5 class="anchored" data-anchor-id="legal-and-ethical-considerations">Legal and Ethical Considerations</h5>
-<p>Last but not least, adherence to legal and ethical guidelines is paramount, especially in domains with significant consequences. Both pruning methods must undergo rigorous validation, testing, and potentially certification processes to ensure compliance with relevant regulations and standards. This is especially important in use cases like medical AI applications or autonomous driving where quality drops due to pruning like optimizations can be life threatening.</p>
-<div id="fig-sparse-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<p>Last but not least, adherence to legal and ethical guidelines is important, especially in domains with significant consequences. Pruning methods must undergo rigorous validation, testing, and potentially certification processes to ensure compliance with relevant regulations and standards, though arguably at this time no such formal standards and best practices exist that are vetted and validated by 3rd party entities. This is particularly crucial in high-stakes applications like medical AI and autonomous driving, where quality drops due to pruning-like optimizations can be life-threatening. Moreover, ethical considerations extend beyond safety to fairness and equality; recent work by <span class="citation" data-cites="tran2022pruning">(<a href="../../references.html#ref-tran2022pruning" role="doc-biblioref">Tran et al. 2022</a>)</span> has revealed that pruning can disproportionately impact people of color, underscoring the need for comprehensive ethical evaluation in the pruning process.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-tran2022pruning" class="csl-entry" role="listitem">
+Tran, Cuong, Ferdinando Fioretto, Jung-Eun Kim, and Rakshit Naidu. 2022. <span>“Pruning Has a Disparate Impact on Model Accuracy.”</span> <em>Adv Neural Inf Process Syst</em> 35: 17652–64.
+</div></div><div id="fig-sparse-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-sparse-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/jpg/modeloptimization_sprase_matrix.jpeg" class="img-fluid figure-img">
@@ -2183,10 +2189,10 @@ Kuzmin, Andrey, Mart Van Baalen, Yuwei Ren, Markus Nagel, Jorn Peters, and Tijme
 <img src="https://compsci697l.github.io/assets/cnnvis/filt1.jpeg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-color-mapping-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.41: Color mapping of activations. Credit: <span class="citation" data-cites="alexnet2012">Krizhevsky, Sutskever, and Hinton (<a href="../../references.html#ref-alexnet2012" role="doc-biblioref">2012</a>)</span>.
+Figure&nbsp;9.41: Color mapping of activations. Credit: <span class="citation" data-cites="alexnet2012">Krizhevsky, Sutskever, and Hinton (<a href="../../references.html#ref-alexnet2012" role="doc-biblioref">2017</a>)</span>.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-alexnet2012" class="csl-entry" role="listitem">
-Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E Hinton. 2012. <span>“<span>ImageNet</span> Classification with Deep Convolutional Neural Networks.”</span> Edited by F. Pereira, C. J. Burges, L. Bottou, and K. Q. Weinberger 25. <a href="https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf</a>.
+Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2017. <span>“<span>ImageNet</span> Classification with Deep Convolutional Neural Networks.”</span> Edited by F. Pereira, C. J. Burges, L. Bottou, and K. Q. Weinberger. <em>Commun. ACM</em> 60 (6): 84–90. <a href="https://doi.org/10.1145/3065386">https://doi.org/10.1145/3065386</a>.
 </div></div></figure>
 </div>
 <p>Other techniques, such as tracking the overall mean square quantization error at each step of the quantization-aware training process identifies fluctuations and divergences. Sudden spikes in the tracking plot may indicate points where quantization is disrupting the model training. Monitoring this metric builds intuition on model behavior under quantization. Together these techniques turn quantization into a transparent process. The empirical insights enable practitioners to properly assess quantization effects. They pinpoint areas of the model architecture or training process to recalibrate based on observed quantization issues. This helps achieve numerically stable and accurate quantized models.</p>
