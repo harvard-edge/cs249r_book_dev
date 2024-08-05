@@ -828,17 +828,17 @@ Figure&nbsp;8.5: Three floating-point formats.
 <p><strong>Integer:</strong> These are integer representations using 8, 4, and 2 bits. They are often used during the inference phase of neural networks, where the weights and activations of the model are quantized to these lower precisions. Integer representations are deterministic and offer significant speed and memory advantages over floating-point representations. For many inference tasks, especially on edge devices, the slight loss in accuracy due to quantization is often acceptable, given the efficiency gains. An extreme form of integer numerics is for binary neural networks (BNNs), where weights and activations are constrained to one of two values: +1 or -1.</p>
 <p><strong>Variable bit widths:</strong> Beyond the standard widths, research is ongoing into extremely low bit-width numerics, even down to binary or ternary representations. Extremely low bit-width operations can offer significant speedups and further reduce power consumption. While challenges remain in maintaining model accuracy with such drastic quantization, advances continue to be made in this area.</p>
 <p>Efficient numerics is not just about reducing the bit-width of numbers but understanding the trade-offs between accuracy and efficiency. As machine learning models become more pervasive, especially in real-world, resource-constrained environments, the focus on efficient numerics will continue to grow. By thoughtfully selecting and leveraging the appropriate numeric precision, one can achieve robust model performance while optimizing for speed, memory, and energy. <a href="#tbl-precision" class="quarto-xref">Table&nbsp;<span>8.1</span></a> summarizes these trade-offs.</p>
-<div id="tbl-precision" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-precision" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;8.1: Comparing precision levels in deep learning.
 </figcaption>
 <div aria-describedby="tbl-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
+<table class="table-striped table-hover caption-top table">
 <colgroup>
-<col style="width: 10%">
-<col style="width: 48%">
-<col style="width: 41%">
+<col style="width: 13%">
+<col style="width: 43%">
+<col style="width: 43%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -849,34 +849,75 @@ Table&nbsp;8.1: Comparing precision levels in deep learning.
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>FP32</strong> (Floating Point 32-bit)</td>
-<td style="text-align: left;">Standard precision used in most deep learning frameworks.<br> High accuracy due to ample representational capacity.<br> Well-suited for training</td>
-<td style="text-align: left;">High memory usage.<br> Slower inference times compared to quantized models.<br> Higher energy consumption.</td>
+<td style="text-align: left;">FP32 (Floating Point 32-bit)</td>
+<td style="text-align: left;"><ul>
+<li>Standard precision used in most deep learning frameworks.</li>
+<li>High accuracy due to ample representational capacity.</li>
+<li>Well-suited for training</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>High memory usage.</li>
+<li>Slower inference times compared to quantized models.</li>
+<li>Higher energy consumption.</li>
+</ul></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>FP16</strong> (Floating Point 16-bit)</td>
-<td style="text-align: left;">Reduces memory usage compared to FP32.<br> Speeds up computations on hardware that supports FP16.<br> Often used in mixed-precision training to balance speed and accuracy.</td>
-<td style="text-align: left;">Lower representational capacity compared to FP32.<br> Risk of numerical instability in some models or layers.</td>
+<td style="text-align: left;">FP16 (Floating Point 16-bit)</td>
+<td style="text-align: left;"><ul>
+<li>Reduces memory usage compared to FP32.</li>
+<li>Speeds up computations on hardware that supports FP16.</li>
+<li>Often used in mixed-precision training to balance speed and accuracy.</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>Lower representational capacity compared to FP32.</li>
+<li>Risk of numerical instability in some models or layers.</li>
+</ul></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>INT8</strong> (8-bit Integer)</td>
-<td style="text-align: left;">Significantly reduced memory footprint compared to floating-point representations.<br> Faster inference if hardware supports INT8 computations.<br> Suitable for many post-training quantization scenarios.</td>
-<td style="text-align: left;">Quantization can lead to some accuracy loss.<br> Requires careful calibration during quantization to minimize accuracy degradation.</td>
+<td style="text-align: left;">INT8 (8-bit Integer)</td>
+<td style="text-align: left;"><ul>
+<li>Significantly reduced memory footprint compared to floating-point representations.</li>
+<li>Faster inference if hardware supports INT8 computations.</li>
+<li>Suitable for many post-training quantization scenarios.</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>Quantization can lead to some accuracy loss.</li>
+<li>Requires careful calibration during quantization to minimize accuracy degradation.</li>
+</ul></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>INT4</strong> (4-bit Integer)</td>
-<td style="text-align: left;">Even lower memory usage than INT8.&lt; br//&gt; Further speedup potential for inference.</td>
-<td style="text-align: left;">Higher risk of accuracy loss compared to INT8.<br> Calibration during quantization becomes more critical.</td>
+<td style="text-align: left;">INT4 (4-bit Integer)</td>
+<td style="text-align: left;"><ul>
+<li>Even lower memory usage than INT8.</li>
+<li>Further speedup potential for inference.</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>Higher risk of accuracy loss compared to INT8.</li>
+<li>Calibration during quantization becomes more critical.</li>
+</ul></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Binary</strong></td>
-<td style="text-align: left;">Minimal memory footprint (only 1 bit per parameter).<br> Extremely fast inference due to bitwise operations.<br> Power efficient.</td>
-<td style="text-align: left;">Significant accuracy drop for many tasks.<br> Complex training dynamics due to extreme quantization.</td>
+<td style="text-align: left;">Binary</td>
+<td style="text-align: left;"><ul>
+<li>Minimal memory footprint (only 1 bit per parameter).</li>
+<li>Extremely fast inference due to bitwise operations.</li>
+<li>Power efficient.</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>Significant accuracy drop for many tasks.</li>
+<li>Complex training dynamics due to extreme quantization.</li>
+</ul></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Ternary</strong></td>
-<td style="text-align: left;">Low memory usage but slightly more than binary.<br> Offers a middle ground between representation and efficiency.</td>
-<td style="text-align: left;">accuracy might still be lower than that of higher precision models.<br> Training dynamics can be complex.</td>
+<td style="text-align: left;">Ternary</td>
+<td style="text-align: left;"><ul>
+<li>Low memory usage but slightly more than binary.</li>
+<li>Offers a middle ground between representation and efficiency.</li>
+</ul></td>
+<td style="text-align: left;"><ul>
+<li>Accuracy might still be lower than that of higher precision models.</li>
+<li>Training dynamics can be complex.</li>
+</ul></td>
 </tr>
 </tbody>
 </table>
