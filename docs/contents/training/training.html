@@ -885,7 +885,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Why are the nonlinear operations necessary? If we only had linear layers, the entire network would be equivalent to a single linear layer consisting of the product of the linear operators. Hence, the nonlinear functions play a key role in the power of neural networks as they enhance the neural network’s ability to fit functions.</p>
+<p>Why are the nonlinear operations necessary? If we only had linear layers, the entire network would be equivalent to a single linear layer consisting of the product of the linear operators. Hence, the nonlinear functions play a key role in the power of neural networks as they improve the neural network’s ability to fit functions.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -1943,7 +1943,7 @@ Video&nbsp;7.8: Weight Initialization
 </section>
 <section id="optimizing-matrix-multiplication" class="level4">
 <h4 class="anchored" data-anchor-id="optimizing-matrix-multiplication">Optimizing Matrix Multiplication</h4>
-<p>Several techniques enhance the efficiency of general dense/sparse matrix-matrix and matrix-vector operations to improve overall efficiency. Some key methods include:</p>
+<p>Several techniques improve the efficiency of general dense/sparse matrix-matrix and matrix-vector operations to improve overall efficiency. Some key methods include:</p>
 <ul>
 <li>Leveraging optimized math libraries like <a href="https://developer.nvidia.com/cublas">cuBLAS</a> for GPU acceleration</li>
 <li>Enabling lower precision formats like FP16 or INT8 where accuracy permits</li>
@@ -1955,12 +1955,12 @@ Video&nbsp;7.8: Weight Initialization
 <li>Parallelization of computation across available hardware</li>
 <li>Caching/pre-computing results where possible to reduce redundant operations</li>
 </ul>
-<p>The potential optimization techniques are vast, given the outsized portion of time models spend in matrix and vector math. Even incremental improvements speed up runtimes and lower energy usage. Finding new ways to enhance these linear algebra primitives remains an active area of research aligned with the future demands of machine learning. We will discuss these in detail in the <a href="../../contents/optimizations/optimizations.html">Optimizations</a> and <a href="../../contents/hw_acceleration/hw_acceleration.html">AI Acceleration</a> chapters.</p>
+<p>The potential optimization techniques are vast, given the outsized portion of time models spend in matrix and vector math. Even incremental improvements speed up runtimes and lower energy usage. Finding new ways to improve these linear algebra primitives remains an active area of research aligned with the future demands of machine learning. We will discuss these in detail in the <a href="../../contents/optimizations/optimizations.html">Optimizations</a> and <a href="../../contents/hw_acceleration/hw_acceleration.html">AI Acceleration</a> chapters.</p>
 </section>
 </section>
 <section id="compute-vs.-memory-bottleneck" class="level3 page-columns page-full" data-number="7.10.2">
 <h3 data-number="7.10.2" class="anchored" data-anchor-id="compute-vs.-memory-bottleneck"><span class="header-section-number">7.10.2</span> Compute vs.&nbsp;Memory Bottleneck</h3>
-<p>At this point, matrix-matrix multiplication is the core mathematical operation underpinning neural networks. Both training and inference for neural networks heavily utilize these matrix multiply operations. Analysis shows that over 90% of computational requirements in state-of-the-art neural networks arise from matrix multiplications. Consequently, the performance of matrix multiplication has an enormous influence on overall model training or inference time.</p>
+<p>At this point, matrix-matrix multiplication is the core mathematical operation underpinning neural networks. Both training and inference for neural networks heavily use these matrix multiply operations. Analysis shows that over 90% of computational requirements in state-of-the-art neural networks arise from matrix multiplications. Consequently, the performance of matrix multiplication has an enormous influence on overall model training or inference time.</p>
 <section id="training-versus-inference" class="level4">
 <h4 class="anchored" data-anchor-id="training-versus-inference">Training versus Inference</h4>
 <p>While training and inference rely heavily on matrix multiplication performance, their precise computational profiles differ. Specifically, neural network inference tends to be more compute-bound than training for an equivalent batch size. The key difference lies in the backpropagation pass, which is only required during training. Backpropagation involves a sequence of matrix multiply operations to calculate gradients with respect to activations across each network layer. Critically, though, no additional memory bandwidth is needed here—the inputs, outputs, and gradients are read/written from cache or registers.</p>
@@ -1989,7 +1989,7 @@ Figure&nbsp;7.7: AI training roofline model.
 </section>
 <section id="hardware-characteristics" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="hardware-characteristics">Hardware Characteristics</h4>
-<p>Modern hardware like CPUs and GPUs is highly optimized for computational throughput rather than memory bandwidth. For example, high-end H100 Tensor Core GPUs can deliver over 60 TFLOPS of double-precision performance but only provide up to 3 TB/s of memory bandwidth. This means there is almost a 20x imbalance between arithmetic units and memory access; consequently, for hardware like GPU accelerators, neural network training workloads must be made as computationally intensive as possible to utilize the available resources fully.</p>
+<p>Modern hardware like CPUs and GPUs is highly optimized for computational throughput rather than memory bandwidth. For example, high-end H100 Tensor Core GPUs can deliver over 60 TFLOPS of double-precision performance but only provide up to 3 TB/s of memory bandwidth. This means there is almost a 20x imbalance between arithmetic units and memory access; consequently, for hardware like GPU accelerators, neural network training workloads must be made as computationally intensive as possible to use the available resources fully.</p>
 <p>This further motivates the need for using large batch sizes during training. When using a small batch, the matrix multiplication is bounded by memory bandwidth, underutilizing the abundant compute resources. However, we can shift the bottleneck towards computation and attain much higher arithmetic intensity with sufficiently large batches. For instance, batches of 256 or 512 samples may be needed to saturate a high-end GPU. The downside is that larger batches provide less frequent parameter updates, which can impact convergence. Still, the parameter serves as an important tuning knob to balance memory vs compute limitations.</p>
 <p>Therefore, given the imbalanced compute-memory architectures of modern hardware, employing large batch sizes is essential to alleviate bottlenecks and maximize throughput. As mentioned, the subsequent software and algorithms also need to accommodate such batch sizes since larger batch sizes may have diminishing returns toward the network’s convergence. Using very small batch sizes may lead to suboptimal hardware utilization, ultimately limiting training efficiency. Scaling up to large batch sizes is a research topic explored in various works that aim to do large-scale training <span class="citation" data-cites="yang2018imagenet">(<a href="../../references.html#ref-yang2018imagenet" role="doc-biblioref">You et al. 2017</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-yang2018imagenet" class="csl-entry" role="listitem">
@@ -2125,7 +2125,7 @@ Table&nbsp;7.5: Comparing data parallelism and model parallelism.
 <section id="conclusion" class="level2" data-number="7.12">
 <h2 data-number="7.12" class="anchored" data-anchor-id="conclusion"><span class="header-section-number">7.12</span> Conclusion</h2>
 <p>In this chapter, we have covered the core foundations that enable effective training of artificial intelligence models. We explored the mathematical concepts like loss functions, backpropagation, and gradient descent that make neural network optimization possible. We also discussed practical techniques around leveraging training data, regularization, hyperparameter tuning, weight initialization, and distributed parallelization strategies that improve convergence, generalization, and scalability.</p>
-<p>These methodologies form the bedrock through which the success of deep learning has been attained over the past decade. Mastering these fundamentals equips practitioners to architect systems and refine models tailored to their problem context. However, as models and datasets grow exponentially, training systems must optimize across metrics like time, cost, and carbon footprint. Hardware scaling through warehouse scales enables massive computational throughput - but optimizations around efficiency and specialization will be key. Software techniques like compression and sparsity exploitation can augment hardware gains. We will discuss several of these in the coming chapters.</p>
+<p>These methodologies form the bedrock through which the success of deep learning has been attained over the past decade. Mastering these fundamentals equips practitioners to architect systems and refine models tailored to their problem context. However, as models and datasets grow exponentially, training systems must optimize across metrics like time, cost, and carbon footprint. Hardware scaling through warehouse scales enables massive computational throughput - but optimizations around efficiency and specialization will be key. Software techniques like compression and sparsity exploitation can increase hardware gains. We will discuss several of these in the coming chapters.</p>
 <p>Overall, the fundamentals covered in this chapter equip practitioners to build, refine, and deploy models. However, interdisciplinary skills spanning theory, systems, and hardware will differentiate experts who can lift AI to the next level sustainably and responsibly that society requires. Understanding efficiency alongside accuracy constitutes the balanced engineering approach needed to train intelligent systems that integrate smoothly across many real-world contexts.</p>
 </section>
 <section id="sec-ai-training-resource" class="level2" data-number="7.13">
@@ -2143,7 +2143,7 @@ Slides
 </div>
 <div id="callout-21" class="callout-21-contents callout-collapse collapse show">
 <div class="callout-body-container callout-body">
-<p>These slides are a valuable tool for instructors to deliver lectures and for students to review the material at their own pace. We encourage students and instructors to leverage these slides to enhance their understanding and facilitate effective knowledge transfer.</p>
+<p>These slides are a valuable tool for instructors to deliver lectures and for students to review the material at their own pace. We encourage students and instructors to leverage these slides to improve their understanding and facilitate effective knowledge transfer.</p>
 <ul>
 <li><p><a href="https://docs.google.com/presentation/d/1X92JqVkUY7k6yJXQcT2u83dpdrx5UzGFAJkkDMDfKe0/edit#slide=id.g94db9f9f78_0_2">Thinking About Loss.</a></p></li>
 <li><p><a href="https://docs.google.com/presentation/d/1x3xbZHo4VtaZgoXfueCbOGGXuWRYj0nOsKwAAoGsrD0/edit#slide=id.g94db9f9f78_0_2">Minimizing Loss.</a></p></li>
