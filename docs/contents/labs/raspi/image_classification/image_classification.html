@@ -856,9 +856,8 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">tflite_11_05_08/mobilenet_v2_1.0_224_quant.tgz</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> xzf mobilenet_v2_1.0_224_quant.tgz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Get its labels:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">lite/java/demo/app/src/main/assets/labels_mobilenet_quant_v1_224.txt</span> <span class="at">-O</span> labels.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Get its <a href="https://github.com/Mjrovai/EdgeML-with-Raspberry-Pi/blob/main/IMG_CLASS/models/labels.txt">labels</a>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://github.com/Mjrovai/EdgeML-with-Raspberry-Pi/blob/main/IMG_CLASS/models/labels.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>In the end, you should have the models in its directory:</p>
 <p><img src="images/png/models_dir.png" class="img-fluid"></p>
 <blockquote class="blockquote">
@@ -949,7 +948,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <p><img src="images/png/process_img.png" class="img-fluid"></p>
 <p>So, let’s reshape the image, add the batch dimension, and see the result:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>img <span class="op">=</span> img.resize((input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">1</span>], input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">2</span>]))</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>input_data <span class="op">=</span> np.expand_dims(img, axis<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>input_data <span class="op">=</span> np.expand_dims(img, axis<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>input_data.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>The input_data shape is as expected: (1, 224, 224, 3)</p>
 <p>Let’s confirm the dtype of the input data:</p>
@@ -1028,30 +1027,30 @@ Let’s create a general function to give an image as input, and we get the Top-
 <span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get input and output tensors</span></span>
 <span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    input_details <span class="op">=</span> interpreter.get_input_details()</span>
 <span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    output_details <span class="op">=</span> interpreter.get_output_details()</span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Preprocess</span></span>
 <span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    img <span class="op">=</span> img.resize((input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">1</span>], </span>
 <span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>                      input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">2</span>]))</span>
 <span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    input_data <span class="op">=</span> np.expand_dims(img, axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inference on Raspi-Zero</span></span>
 <span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>    interpreter.set_tensor(input_details[<span class="dv">0</span>][<span class="st">'index'</span>], input_data)</span>
 <span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>    interpreter.invoke()</span>
 <span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Obtain results and map them to the classes</span></span>
 <span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> interpreter.get_tensor(output_details[<span class="dv">0</span>][<span class="st">'index'</span>])[<span class="dv">0</span>]</span>
-<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get indices of the top k results</span></span>
 <span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    top_k_indices <span class="op">=</span> np.argsort(predictions)[::<span class="op">-</span><span class="dv">1</span>][:top_k_results]</span>
-<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get quantization parameters</span></span>
 <span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    scale, zero_point <span class="op">=</span> output_details[<span class="dv">0</span>][<span class="st">'quantization'</span>]</span>
-<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Dequantize the output and apply softmax</span></span>
 <span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>    dequantized_output <span class="op">=</span> (predictions.astype(np.float32) <span class="op">-</span> zero_point) <span class="op">*</span> scale</span>
 <span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    exp_output <span class="op">=</span> np.exp(dequantized_output <span class="op">-</span> np.<span class="bu">max</span>(dequantized_output))</span>
 <span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>    probabilities <span class="op">=</span> exp_output <span class="op">/</span> np.<span class="bu">sum</span>(exp_output)</span>
-<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\t</span><span class="st">[PREDICTION]        [Prob]</span><span class="ch">\n</span><span class="st">"</span>)</span>
 <span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(top_k_results):</span>
 <span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"</span><span class="ch">\t</span><span class="sc">{:20}</span><span class="st">: </span><span class="sc">{}</span><span class="st">%"</span>.<span class="bu">format</span>(</span>
@@ -1658,11 +1657,11 @@ Let’s create a general function to give an image as input, and we get the Top-
 <span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Load the TFLite model</span></span>
 <span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    interpreter <span class="op">=</span> tflite.Interpreter(model_path<span class="op">=</span>model_path)</span>
 <span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>    interpreter.allocate_tensors()</span>
-<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get input and output tensors</span></span>
 <span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>    input_details <span class="op">=</span> interpreter.get_input_details()</span>
 <span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>    output_details <span class="op">=</span> interpreter.get_output_details()</span>
-<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Preprocess</span></span>
 <span id="cb57-18"><a href="#cb57-18" aria-hidden="true" tabindex="-1"></a>    img <span class="op">=</span> img.resize((input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">1</span>], </span>
 <span id="cb57-19"><a href="#cb57-19" aria-hidden="true" tabindex="-1"></a>                      input_details[<span class="dv">0</span>][<span class="st">'shape'</span>][<span class="dv">2</span>]))</span>
@@ -1678,20 +1677,20 @@ Let’s create a general function to give an image as input, and we get the Top-
 <span id="cb57-29"><a href="#cb57-29" aria-hidden="true" tabindex="-1"></a>        input_data <span class="op">=</span> np.expand_dims(img_array, axis<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb57-30"><a href="#cb57-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:  <span class="co"># float32</span></span>
 <span id="cb57-31"><a href="#cb57-31" aria-hidden="true" tabindex="-1"></a>        input_data <span class="op">=</span> np.expand_dims(np.array(img, dtype<span class="op">=</span>np.float32), axis<span class="op">=</span><span class="dv">0</span>) <span class="op">/</span> <span class="fl">255.0</span></span>
-<span id="cb57-32"><a href="#cb57-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-32"><a href="#cb57-32" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-33"><a href="#cb57-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Inference on Raspi-Zero</span></span>
 <span id="cb57-34"><a href="#cb57-34" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.time()</span>
 <span id="cb57-35"><a href="#cb57-35" aria-hidden="true" tabindex="-1"></a>    interpreter.set_tensor(input_details[<span class="dv">0</span>][<span class="st">'index'</span>], input_data)</span>
 <span id="cb57-36"><a href="#cb57-36" aria-hidden="true" tabindex="-1"></a>    interpreter.invoke()</span>
 <span id="cb57-37"><a href="#cb57-37" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> time.time()</span>
 <span id="cb57-38"><a href="#cb57-38" aria-hidden="true" tabindex="-1"></a>    inference_time <span class="op">=</span> (end_time <span class="op">-</span> start_time) <span class="op">*</span> <span class="dv">1000</span>  <span class="co"># Convert to milliseconds</span></span>
-<span id="cb57-39"><a href="#cb57-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-39"><a href="#cb57-39" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-40"><a href="#cb57-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Obtain results</span></span>
 <span id="cb57-41"><a href="#cb57-41" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> interpreter.get_tensor(output_details[<span class="dv">0</span>][<span class="st">'index'</span>])[<span class="dv">0</span>]</span>
-<span id="cb57-42"><a href="#cb57-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-42"><a href="#cb57-42" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-43"><a href="#cb57-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get indices of the top k results</span></span>
 <span id="cb57-44"><a href="#cb57-44" aria-hidden="true" tabindex="-1"></a>    top_k_indices <span class="op">=</span> np.argsort(predictions)[::<span class="op">-</span><span class="dv">1</span>][:top_k_results]</span>
-<span id="cb57-45"><a href="#cb57-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-45"><a href="#cb57-45" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-46"><a href="#cb57-46" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Handle output based on type</span></span>
 <span id="cb57-47"><a href="#cb57-47" aria-hidden="true" tabindex="-1"></a>    output_dtype <span class="op">=</span> output_details[<span class="dv">0</span>][<span class="st">'dtype'</span>]</span>
 <span id="cb57-48"><a href="#cb57-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> output_dtype <span class="kw">in</span> [np.int8, np.uint8]:</span>
@@ -1705,7 +1704,7 @@ Let’s create a general function to give an image as input, and we get the Top-
 <span id="cb57-56"><a href="#cb57-56" aria-hidden="true" tabindex="-1"></a>        probabilities <span class="op">=</span> exp_preds <span class="op">/</span> np.<span class="bu">sum</span>(exp_preds)</span>
 <span id="cb57-57"><a href="#cb57-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
 <span id="cb57-58"><a href="#cb57-58" aria-hidden="true" tabindex="-1"></a>        probabilities <span class="op">=</span> predictions</span>
-<span id="cb57-59"><a href="#cb57-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-59"><a href="#cb57-59" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb57-60"><a href="#cb57-60" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\t</span><span class="st">[PREDICTION]        [Prob]</span><span class="ch">\n</span><span class="st">"</span>)</span>
 <span id="cb57-61"><a href="#cb57-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(top_k_results):</span>
 <span id="cb57-62"><a href="#cb57-62" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"</span><span class="ch">\t</span><span class="sc">{:20}</span><span class="st">: </span><span class="sc">{:.1f}</span><span class="st">%"</span>.<span class="bu">format</span>(</span>
