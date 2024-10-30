@@ -847,9 +847,7 @@ Learning Objectives
 </div>
 <section id="introduction" class="level2" data-number="9.1">
 <h2 data-number="9.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">9.1</span> Introduction</h2>
-<p>We have structured this chapter in three tiers. First, in <a href="#sec-model_ops_representation" class="quarto-xref"><span>Section 9.2</span></a> we examine the significance and methodologies of reducing the parameter complexity of models without compromising their inference capabilities. Techniques such as pruning and knowledge distillation are discussed, offering insights into how models can be compressed and simplified while maintaining, or even enhancing, their performance.</p>
-<p>Going one level lower, in <a href="#sec-model_ops_numerics" class="quarto-xref"><span>Section 9.3</span></a>, we study the role of numerical precision in model computations and how altering it impacts model size, speed, and accuracy. We will examine the various numerical formats and how reduced-precision arithmetic can be leveraged to optimize models for embedded deployment.</p>
-<p>Finally, as we go lower and closer to the hardware, in <a href="#sec-model_ops_hw" class="quarto-xref"><span>Section 9.4</span></a>, we will navigate through the landscape of hardware-software co-design, exploring how models can be optimized by tailoring them to the specific characteristics and capabilities of the target hardware. We will discuss how models can be adapted to exploit the available hardware resources effectively.</p>
+<p>The optimization of machine learning models for practical deployment is a critical aspect of AI systems. This chapter focuses on exploring model optimization techniques as they relate to the development of ML systems, ranging from high-level model architecture considerations to low-level hardware adaptations. <a href="#fig-3-sections" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> Illustrates the three layers of the optimization stack we cover.</p>
 <div id="fig-3-sections" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-3-sections-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -860,6 +858,10 @@ Figure&nbsp;9.1: Three layers to be covered.
 </figcaption>
 </figure>
 </div>
+<p>At the highest level, we examine methodologies for reducing the complexity of model parameters without compromising inferential capabilities. Techniques such as pruning and knowledge distillation offer powerful approaches to compress and refine models while maintaining or even improving their performance, not only in terms of model quality but also in actual system runtime performance. These methods are crucial for creating efficient models that can be deployed in resource-constrained environments.</p>
+<p>Furthermore, we explore the role of numerical precision in model computations. Understanding how different levels of numerical precision impact model size, speed, and accuracy is essential for optimizing performance. We investigate various numerical formats and the application of reduced-precision arithmetic, particularly relevant for embedded system deployments where computational resources are often limited.</p>
+<p>At the lowest level, we navigate the intricate landscape of hardware-software co-design. This exploration reveals how models can be tailored to leverage the specific characteristics and capabilities of target hardware platforms. By aligning model design with hardware architecture, we can significantly enhance performance and efficiency.</p>
+<p>This collective approach focuses on helping us develop and deploy efficient, powerful, and hardware-aware machine learning models. From simplifying model architectures to fine-tuning numerical precision and adapting to specific hardware, this chapter covers the full spectrum of optimization strategies. By the conclusion of this chapter, readers will have gained a thorough understanding of various optimization techniques and their practical applications in real-world scenarios. This knowledge is important for creating machine learning models that not only perform well but are also optimized for the constraints and opportunities presented by modern computing environments.</p>
 </section>
 <section id="sec-model_ops_representation" class="level2 page-columns page-full" data-number="9.2">
 <h2 data-number="9.2" class="anchored" data-anchor-id="sec-model_ops_representation"><span class="header-section-number">9.2</span> Efficient Model Representation</h2>
@@ -916,7 +918,7 @@ Rachwan, John, Daniel Zügner, Bertrand Charpentier, Simon Geisler, Morgane Ayle
 Lubana, Ekdeep Singh, and Robert P Dick. 2020. <span>“A Gradient Flow Framework for Analyzing Network Pruning.”</span> <em>arXiv Preprint arXiv:2009.11839</em>.
 </div></div></section>
 <section id="selecting-a-pruning-strategy" class="level5">
-<h5 class="anchored" data-anchor-id="selecting-a-pruning-strategy">3. Selecting a pruning strategy</h5>
+<h5 class="anchored" data-anchor-id="selecting-a-pruning-strategy">3. Selecting a Pruning Strategy</h5>
 <p>Now that you understand some techniques for determining the importance of structures within a neural network, the next step is to decide how to apply these insights. This involves selecting an appropriate pruning strategy, which dictates how and when the identified structures are removed and how the model is fine-tuned to maintain its performance. Two main structured pruning strategies exist: iterative pruning and one-shot pruning.</p>
 <p><strong>Iterative pruning</strong> gradually removes structures across multiple cycles of pruning followed by fine-tuning. In each cycle, a small set of structures are pruned based on importance criteria. The model is then fine-tuned, allowing it to adjust smoothly to the structural changes before the next pruning iteration. This gradual, cyclic approach prevents abrupt accuracy drops. It allows the model to slowly adapt as structures are reduced across iterations.</p>
 <p>Consider a situation where we wish to prune the 6 least effective channels (based on some specific criteria) from a convolutional neural network. In <a href="#fig-iterative-pruning" class="quarto-xref">Figure&nbsp;<span>9.3</span></a>, we show a simplified pruning process carried over 3 iterations. In every iteration, we only prune 2 channels. Removing the channels results in accuracy degradation. In the first iteration, the accuracy drops from 0.995 to 0.971. However, after we fine-tune the model on the new structure, we are able to recover from the performance loss, bringing the accuracy up to 0.992. Since the structural changes are minor and gradual, the network can more easily adapt to them. Running the same process 2 more times, we end up with a final accuracy of 0.991 (a loss of only 0.4% from the original) and 27% decrease in the number of channels. Thus, iterative pruning enables us to maintain performance while benefiting from increased computational efficiency due to the decreased model size.</p>
@@ -932,7 +934,7 @@ Figure&nbsp;9.3: Iterative pruning.
 </div>
 <p><strong>One-shot pruning</strong> takes a more aggressive approach by pruning a large portion of structures simultaneously in one shot based on predefined importance criteria. This is followed by extensive fine-tuning to recover model accuracy. While faster, this aggressive strategy can degrade accuracy if the model cannot recover during fine-tuning.</p>
 <p>The choice between these strategies involves weighing factors like model size, target sparsity level, available compute and acceptable accuracy losses. One-shot pruning can rapidly compress models, but iterative pruning may enable better accuracy retention for a target level of pruning. In practice, the strategy is tailored based on use case constraints. The overarching aim is to generate an optimal strategy that removes redundancy, achieves efficiency gains through pruning, and finely tunes the model to stabilize accuracy at an acceptable level for deployment.</p>
-<p>Now consider the same network we had in the iterative pruning example. Whereas in the iterative process we pruned 2 channels at a time, in the one-shot pruning we would prune the 6 channels at once (<a href="#fig-oneshot-pruning" class="quarto-xref">Figure&nbsp;<span>9.4</span></a>). Removing 27% of the network’s channel simultaneously alters the structure significantly, causing the accuracy to drop from 0.995 to 0.914. Given the major changes, the network is not able to properly adapt during fine-tuning, and the accuracy went up to 0.943, a 5% degradation from the accuracy of the unpruned network. While the final structures in both iterative pruning and oneshot pruning processes are identical, the former is able to maintain high performance while the latter suffers significant degradations.</p>
+<p>Now consider the same network we had in the iterative pruning example. Whereas in the iterative process we pruned 2 channels at a time, in the one-shot pruning we would prune the 6 channels at once, as shown in <a href="#fig-oneshot-pruning" class="quarto-xref">Figure&nbsp;<span>9.4</span></a>. Removing 27% of the network’s channel simultaneously alters the structure significantly, causing the accuracy to drop from 0.995 to 0.914. Given the major changes, the network is not able to properly adapt during fine-tuning, and the accuracy went up to 0.943, a 5% degradation from the accuracy of the unpruned network. While the final structures in both iterative pruning and oneshot pruning processes are identical, the former is able to maintain high performance while the latter suffers significant degradations.</p>
 <div id="fig-oneshot-pruning" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-oneshot-pruning-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1181,8 +1183,7 @@ Figure&nbsp;9.10: Low matrix factorization. Source: <a href="https://dustinstans
 </section>
 <section id="tensor-decomposition" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="tensor-decomposition">Tensor Decomposition</h4>
-<p>You have learned in <a href="../frameworks/frameworks.html#sec-tensor-data-structures" class="quarto-xref"><span>Section 6.4.1</span></a> that tensors are flexible structures, commonly used by ML Frameworks, that can represent data in higher dimensions. Similar to low-rank matrix factorization, more complex models may store weights in higher dimensions, such as tensors. Tensor decomposition is the higher-dimensional analogue of matrix factorization, where a model tensor is decomposed into lower rank components (see <a href="#fig-tensor-decomposition" class="quarto-xref">Figure&nbsp;<span>9.11</span></a>). These lower-rank components are easier to compute on and store but may suffer from the same issues mentioned above, such as information loss and the need for nuanced hyperparameter tuning. Mathematically, given a tensor <span class="math inline">\(\mathcal{A}\)</span>, tensor decomposition seeks to represent <span class="math inline">\(\mathcal{A}\)</span> as a combination of simpler tensors, facilitating a compressed representation that approximates the original data while minimizing the loss of information.</p>
-<p>The work of Tamara G. Kolda and Brett W. Bader, <a href="https://epubs.siam.org/doi/abs/10.1137/07070111X">“Tensor Decompositions and Applications”</a> (2009), stands out as a seminal paper in the field of tensor decompositions. The authors provide a comprehensive overview of various tensor decomposition methods, exploring their mathematical underpinnings, algorithms, and a wide array of applications, ranging from signal processing to data mining. Of course, the reason we are discussing it is because it has huge potential for system performance improvements, particularly in the space of TinyML, where throughput and memory footprint savings are crucial to feasibility of deployments.</p>
+<p>You have learned in <a href="../frameworks/frameworks.html#sec-tensor-data-structures" class="quarto-xref"><span>Section 6.4.1</span></a> that tensors are flexible structures, commonly used by ML Frameworks, that can represent data in higher dimensions. Similar to low-rank matrix factorization, more complex models may store weights in higher dimensions, such as tensors. Tensor decomposition is the higher-dimensional analogue of matrix factorization, where a model tensor is decomposed into lower-rank components (see <a href="#fig-tensor-decomposition" class="quarto-xref">Figure&nbsp;<span>9.11</span></a>). These lower-rank components are easier to compute on and store but may suffer from the same issues mentioned above, such as information loss and the need for nuanced hyperparameter tuning. Mathematically, given a tensor <span class="math inline">\(\mathcal{A}\)</span>, tensor decomposition seeks to represent <span class="math inline">\(\mathcal{A}\)</span> as a combination of simpler tensors, facilitating a compressed representation that approximates the original data while minimizing the loss of information.</p>
 <div id="fig-tensor-decomposition" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-tensor-decomposition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1195,6 +1196,7 @@ Figure&nbsp;9.11: Tensor decomposition. Source: <span class="citation" data-cite
 Xinyu, Chen. n.d.
 </div></div></figure>
 </div>
+<p>The work of Tamara G. Kolda and Brett W. Bader, <a href="https://epubs.siam.org/doi/abs/10.1137/07070111X">“Tensor Decompositions and Applications”</a> (2009), stands out as a seminal paper in the field of tensor decompositions. The authors provide a comprehensive overview of various tensor decomposition methods, exploring their mathematical underpinnings, algorithms, and a wide array of applications, ranging from signal processing to data mining. Of course, the reason we are discussing it is because it has huge potential for system performance improvements, particularly in the space of TinyML, where throughput and memory footprint savings are crucial to feasibility of deployments.</p>
 <div id="exr-mc" class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1270,7 +1272,7 @@ Exercise&nbsp;9.3: Edge-Aware Model Design
 </div>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Imagine you’re building a tiny robot that can identify different flowers. It needs to be smart, but also small and energy-efficient! In the “Edge-Aware Model Design” world, we learned about techniques like depthwise separable convolutions and architectures like SqueezeNet, MobileNet, and EfficientNet – all designed to pack intelligence into compact models. Now, let’s see these ideas in action with some xColabs:</p>
+<p>Imagine you’re building a tiny robot that can identify different flowers. It needs to be smart, but also small and energy-efficient! In the “Edge-Aware Model Design” world, we learned about techniques like depthwise separable convolutions and architectures like SqueezeNet, MobileNet, and EfficientNet—all designed to pack intelligence into compact models. Now, let’s see these ideas in action with some xColabs:</p>
 <p><strong>SqueezeNet in Action:</strong> Maybe you’d like a Colab showing how to train a SqueezeNet model on a flower image dataset. This would demonstrate its small size and how it learns to recognize patterns despite its efficiency.</p>
 <p><a href="https://colab.research.google.com/github/GoogleCloudPlatform/training-data-analyst/blob/master/courses/fast-and-lean-data-science/07_Keras_Flowers_TPU_squeezenet.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.png" class="img-fluid"></a></p>
 <p><strong>MobileNet Exploration:</strong> Ever wonder if those tiny image models are just as good as the big ones? Let’s find out! In this Colab, we’re pitting MobileNet, the lightweight champion, against a classic image classification model. We’ll race them for speed, measure their memory needs, and see who comes out on top for accuracy. Get ready for a battle of the image brains!</p>
@@ -1617,69 +1619,27 @@ Yao, Zhewei, Zhen Dong, Zhangcheng Zheng, Amir Gholami, Jiali Yu, Eric Tan, Leyu
 </section>
 <section id="techniques" class="level3 page-columns page-full" data-number="9.3.7">
 <h3 data-number="9.3.7" class="anchored" data-anchor-id="techniques"><span class="header-section-number">9.3.7</span> Techniques</h3>
-<p>The two prevailing techniques for quantizing models are Post Training Quantization and Quantization-Aware Training.</p>
-<p><strong>Post Training Quantization:</strong> Post-training quantization (PTQ) is a quantization technique where the model is quantized after it has been trained. The model is trained in floating point and then weights and activations are quantized as a post-processing step. This is the simplest approach and does not require access to the training data. Unlike Quantization-Aware Training (QAT), PTQ sets weight and activation quantization parameters directly, making it low-overhead and suitable for limited or unlabeled data situations. However, not readjusting the weights after quantizing, especially in low-precision quantization can lead to very different behavior and thus lower accuracy. To tackle this, techniques like bias correction, equalizing weight ranges, and adaptive rounding methods have been developed. PTQ can also be applied in zero-shot scenarios, where no training or testing data are available. This method has been made even more efficient to benefit compute- and memory- intensive large language models. Recently, SmoothQuant, a training-free, accuracy-preserving, and general-purpose PTQ solution which enables 8-bit weight, 8-bit activation quantization for LLMs, has been developed, demonstrating up to 1.56x speedup and 2x memory reduction for LLMs with negligible loss in accuracy <a href="https://arxiv.org/abs/2211.10438"><span class="citation" data-cites="xiao2022smoothquant">(<span>Xiao et al. 2022</span>)</span></a>.</p>
-<p>In PTQ, a pretrained model undergoes a calibration process, as shown in <a href="#fig-PTQ-diagram" class="quarto-xref">Figure&nbsp;<span>9.25</span></a>. Calibration involves using a separate dataset known as calibration data, a specific subset of the training data reserved for quantization to help find the appropriate clipping ranges and scaling factors.</p>
-<div id="fig-PTQ-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_PTQ.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.25: Post-Training Quantization and calibration. Source: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
+<p>When optimizing machine learning models for deployment, various quantization techniques are used to balance model efficiency, accuracy, and adaptability. Each method—post-training quantization, quantization-aware training, and dynamic quantization–offers unique advantages and trade-offs, impacting factors such as implementation complexity, computational overhead, and performance optimization.</p>
+<p><a href="#tbl-quantization_methods" class="quarto-xref">Table&nbsp;<span>9.2</span></a> provides an overview of these quantization methods, highlighting their respective strengths, limitations, and trade-offs. We will delve deeper into each of these methods because they are widely deployed and used across all ML systems of wildly different scales.</p>
+<div id="tbl-quantization_methods" class="striped hover quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-quantization_methods-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;9.2: Comparison of post-training quantization, quantization-aware training, and dynamic quantization.
 </figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
-</div>
-<p><strong>Quantization-Aware Training:</strong> Quantization-aware training (QAT) is a fine-tuning of the PTQ model. The model is trained aware of quantization, allowing it to adjust for quantization effects. This produces better accuracy with quantized inference. Quantizing a trained neural network model with methods such as PTQ introduces perturbations that can deviate the model from its original convergence point. For instance, Krishnamoorthi showed that even with per-channel quantization, networks like MobileNet do not reach baseline accuracy with int8 Post Training Quantization (PTQ) and require Quantization-Aware Training (QAT) <a href="https://arxiv.org/abs/1806.08342"><span class="citation" data-cites="krishnamoorthi2018quantizing">(<span>Krishnamoorthi 2018</span>)</span></a>.To address this, QAT retrains the model with quantized parameters, employing forward and backward passes in floating point but quantizing parameters after each gradient update. Handling the non-differentiable quantization operator is crucial; a widely used method is the Straight Through Estimator (STE), approximating the rounding operation as an identity function. While other methods and variations exist, STE remains the most commonly used due to its practical effectiveness. In QAT, a pretrained model is quantized and then finetuned using training data to adjust parameters and recover accuracy degradation, as shown in <a href="#fig-QAT-diagram" class="quarto-xref">Figure&nbsp;<span>9.26</span></a>. The calibration process is often conducted in parallel with the finetuning process for QAT.</p>
-<div id="fig-QAT-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_QAT.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.26: Quantization-Aware Training. Source: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
-</figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-gholami2021survey" class="csl-entry" role="listitem">
-Gholami, Dong Kim, Mahoney Yao, and Keutzer. 2021. <span>“A Survey of Quantization Methods for Efficient Neural Network Inference).”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2103.13630">https://arxiv.org/abs/2103.13630</a>.
-</div></div></figure>
-</div>
-<p>Quantization-Aware Training serves as a natural extension of Post-Training Quantization. Following the initial quantization performed by PTQ, QAT is used to further refine and fine-tune the quantized parameters - see how in <a href="#fig-QAT-PTQ-relation" class="quarto-xref">Figure&nbsp;<span>9.27</span></a>, the PTQ model undergoes an additional step, QAT. It involves a retraining process where the model is exposed to additional training iterations using the original data. This dynamic training approach allows the model to adapt and adjust its parameters, compensating for the performance degradation caused by quantization.</p>
-<div id="fig-QAT-PTQ-relation" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_PTQQAT.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.27: PTQ and QAT. Source: <span class="citation" data-cites="ultimate"><span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training”</span> (<a href="../../references.html#ref-ultimate" role="doc-biblioref">n.d.</a>)</span>.
-</figcaption>
-<div class="no-row-height column-margin column-container"><div id="ref-ultimate" class="csl-entry" role="listitem">
-<span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training.”</span> n.d. <a href="https://deci.ai/quantization-and-quantization-aware-training/">https://deci.ai/quantization-and-quantization-aware-training/</a>.
-</div></div></figure>
-</div>
-<p><a href="#fig-quantization-methods-summary" class="quarto-xref">Figure&nbsp;<span>9.28</span></a> shows the relative accuracy of different models after PTQ and QAT. In almost all cases, QAT yields a better accuracy than PTQ. Consider for example EfficientNet b0. After PTQ, the accuracy drops from 76.85% to 72.06%. But when we apply QAT, the accuracy rebounds to 76.95% (with even a slight improvement over the original accuracy).</p>
-<div id="fig-quantization-methods-summary" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
-<figure class="quarto-float quarto-float-fig figure page-columns page-full">
-<div aria-describedby="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/png/efficientnumerics_PTQQATsummary.png" class="img-fluid figure-img">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9.28: Relative accuracies of PTQ and QAT. Source: <span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>.
-</figcaption>
-<div class="no-row-height column-margin column-container"></div></figure>
-</div>
-<table class="caption-top table">
+<div aria-describedby="tbl-quantization_methods-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table-striped table-hover caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
+<col style="width: 24%">
+<col style="width: 24%">
+<col style="width: 24%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;"><strong>Aspect</strong></th>
-<th style="text-align: left;"><strong>Post Training Quantization</strong></th>
-<th style="text-align: left;"><strong>Quantization-Aware Training</strong></th>
-<th style="text-align: left;"><strong>Dynamic Quantization</strong></th>
+<th style="text-align: left;">Aspect</th>
+<th style="text-align: left;">Post Training Quantization</th>
+<th style="text-align: left;">Quantization-Aware Training</th>
+<th style="text-align: left;">Dynamic Quantization</th>
 </tr>
 </thead>
 <tbody>
@@ -1763,6 +1723,58 @@ Figure&nbsp;9.28: Relative accuracies of PTQ and QAT. Source: <span class="citat
 </tr>
 </tbody>
 </table>
+</div>
+</figure>
+</div>
+<p><strong>Post Training Quantization:</strong> Post-training quantization (PTQ) is a quantization technique where the model is quantized after it has been trained. The model is trained in floating point and then weights and activations are quantized as a post-processing step. This is the simplest approach and does not require access to the training data. Unlike Quantization-Aware Training (QAT), PTQ sets weight and activation quantization parameters directly, making it low-overhead and suitable for limited or unlabeled data situations. However, not readjusting the weights after quantizing, especially in low-precision quantization can lead to very different behavior and thus lower accuracy. To tackle this, techniques like bias correction, equalizing weight ranges, and adaptive rounding methods have been developed. PTQ can also be applied in zero-shot scenarios, where no training or testing data are available. This method has been made even more efficient to benefit compute- and memory- intensive large language models. Recently, SmoothQuant, a training-free, accuracy-preserving, and general-purpose PTQ solution which enables 8-bit weight, 8-bit activation quantization for LLMs, has been developed, demonstrating up to 1.56x speedup and 2x memory reduction for LLMs with negligible loss in accuracy <a href="https://arxiv.org/abs/2211.10438"><span class="citation" data-cites="xiao2022smoothquant">(<span>Xiao et al. 2022</span>)</span></a>.</p>
+<p>In PTQ, a pretrained model undergoes a calibration process, as shown in <a href="#fig-PTQ-diagram" class="quarto-xref">Figure&nbsp;<span>9.25</span></a>. Calibration involves using a separate dataset known as calibration data, a specific subset of the training data reserved for quantization to help find the appropriate clipping ranges and scaling factors.</p>
+<div id="fig-PTQ-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/efficientnumerics_PTQ.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-PTQ-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.25: Post-Training Quantization and calibration. Source: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
+</figcaption>
+<div class="no-row-height column-margin column-container"></div></figure>
+</div>
+<p><strong>Quantization-Aware Training:</strong> Quantization-aware training (QAT) is a fine-tuning of the PTQ model. The model is trained aware of quantization, allowing it to adjust for quantization effects. This produces better accuracy with quantized inference. Quantizing a trained neural network model with methods such as PTQ introduces perturbations that can deviate the model from its original convergence point. For instance, Krishnamoorthi showed that even with per-channel quantization, networks like MobileNet do not reach baseline accuracy with int8 PTQ and require QAT <a href="https://arxiv.org/abs/1806.08342"><span class="citation" data-cites="krishnamoorthi2018quantizing">(<span>Krishnamoorthi 2018</span>)</span></a>.To address this, QAT retrains the model with quantized parameters, employing forward and backward passes in floating point but quantizing parameters after each gradient update. Handling the non-differentiable quantization operator is crucial; a widely used method is the Straight Through Estimator (STE), approximating the rounding operation as an identity function. While other methods and variations exist, STE remains the most commonly used due to its practical effectiveness. In QAT, a pretrained model is quantized and then finetuned using training data to adjust parameters and recover accuracy degradation, as shown in <a href="#fig-QAT-diagram" class="quarto-xref">Figure&nbsp;<span>9.26</span></a>. The calibration process is often conducted in parallel with the finetuning process for QAT.</p>
+<div id="fig-QAT-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/efficientnumerics_QAT.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.26: Quantization-Aware Training. Source: <span class="citation" data-cites="gholami2021survey">Gholami et al. (<a href="../../references.html#ref-gholami2021survey" role="doc-biblioref">2021</a>)</span>.
+</figcaption>
+<div class="no-row-height column-margin column-container"><div id="ref-gholami2021survey" class="csl-entry" role="listitem">
+Gholami, Dong Kim, Mahoney Yao, and Keutzer. 2021. <span>“A Survey of Quantization Methods for Efficient Neural Network Inference).”</span> <em>ArXiv Preprint</em>. <a href="https://arxiv.org/abs/2103.13630">https://arxiv.org/abs/2103.13630</a>.
+</div></div></figure>
+</div>
+<p>Quantization-Aware Training serves as a natural extension of Post-Training Quantization. Following the initial quantization performed by PTQ, QAT is used to further refine and fine-tune the quantized parameters - see how in <a href="#fig-QAT-PTQ-relation" class="quarto-xref">Figure&nbsp;<span>9.27</span></a>, the PTQ model undergoes an additional step, QAT. It involves a retraining process where the model is exposed to additional training iterations using the original data. This dynamic training approach allows the model to adapt and adjust its parameters, compensating for the performance degradation caused by quantization.</p>
+<div id="fig-QAT-PTQ-relation" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/efficientnumerics_PTQQAT.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-QAT-PTQ-relation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.27: PTQ and QAT. Source: <span class="citation" data-cites="ultimate"><span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training”</span> (<a href="../../references.html#ref-ultimate" role="doc-biblioref">n.d.</a>)</span>.
+</figcaption>
+<div class="no-row-height column-margin column-container"><div id="ref-ultimate" class="csl-entry" role="listitem">
+<span>“The Ultimate Guide to Deep Learning Model Quantization and Quantization-Aware Training.”</span> n.d. <a href="https://deci.ai/quantization-and-quantization-aware-training/">https://deci.ai/quantization-and-quantization-aware-training/</a>.
+</div></div></figure>
+</div>
+<p><a href="#fig-quantization-methods-summary" class="quarto-xref">Figure&nbsp;<span>9.28</span></a> shows the relative accuracy of different models after PTQ and QAT. In almost all cases, QAT yields a better accuracy than PTQ. Consider for example EfficientNet b0. After PTQ, the accuracy drops from 76.85% to 72.06%. But when we apply QAT, the accuracy rebounds to 76.95% (with even a slight improvement over the original accuracy).</p>
+<div id="fig-quantization-methods-summary" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/png/efficientnumerics_PTQQATsummary.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-quantization-methods-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.28: Relative accuracies of PTQ and QAT. Source: <span class="citation" data-cites="wu2020integer">Wu, Judd, and Isaev (<a href="../../references.html#ref-wu2020integer" role="doc-biblioref">2020</a>)</span>.
+</figcaption>
+<div class="no-row-height column-margin column-container"></div></figure>
+</div>
 </section>
 <section id="weights-vs.-activations" class="level3" data-number="9.3.8">
 <h3 data-number="9.3.8" class="anchored" data-anchor-id="weights-vs.-activations"><span class="header-section-number">9.3.8</span> Weights vs.&nbsp;Activations</h3>
@@ -2009,7 +2021,8 @@ Kwon, Jisu, and Daejin Park. 2021. <span>“<span>Hardware/Software</span> Co-De
 </section>
 <section id="splitnets" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="splitnets">SplitNets</h4>
-<p>SplitNets were introduced in the context of Head-Mounted systems. They distribute the Deep Neural Networks (DNNs) workload among camera sensors and an aggregator. This is particularly compelling the in context of TinyML. The SplitNet framework is a split-aware NAS to find the optimal neural network architecture to achieve good accuracy, split the model among the sensors and the aggregator, and minimize the communication between the sensors and the aggregator. <a href="#fig-splitnet-performance" class="quarto-xref">Figure&nbsp;<span>9.37</span></a> demonstrates how SplitNets (in red) achieves higher accuracy for lower latency (running on ImageNet) than different approaches, such as running the DNN on-sensor (All-on-sensor; in green) or on mobile (All-on-aggregator; in blue). Minimal communication is important in TinyML where memory is highly constrained, this way the sensors conduct some of the processing on their chips and then they send only the necessary information to the aggregator. When testing on ImageNet, SplitNets were able to reduce the latency by one order of magnitude on head-mounted devices. This can be helpful when the sensor has its own chip. <span class="citation" data-cites="dong2022splitnets">(<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">Dong et al. 2022</a>)</span></p>
+<p>SplitNets were introduced in the context of Head-Mounted systems. They distribute the Deep Neural Networks (DNNs) workload among camera sensors and an aggregator. This is particularly compelling the in context of TinyML. The SplitNet framework is a split-aware NAS to find the optimal neural network architecture to achieve good accuracy, split the model among the sensors and the aggregator, and minimize the communication between the sensors and the aggregator.</p>
+<p><a href="#fig-splitnet-performance" class="quarto-xref">Figure&nbsp;<span>9.37</span></a> demonstrates how SplitNets (in red) achieves higher accuracy for lower latency (running on ImageNet) than different approaches, such as running the DNN on-sensor (All-on-sensor; in green) or on mobile (All-on-aggregator; in blue). Minimal communication is important in TinyML where memory is highly constrained, this way the sensors conduct some of the processing on their chips and then they send only the necessary information to the aggregator. When testing on ImageNet, SplitNets were able to reduce the latency by one order of magnitude on head-mounted devices. This can be helpful when the sensor has its own chip. <span class="citation" data-cites="dong2022splitnets">(<a href="../../references.html#ref-dong2022splitnets" role="doc-biblioref">Dong et al. 2022</a>)</span></p>
 <div class="no-row-height column-margin column-container"></div><div id="fig-splitnet-performance" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-splitnet-performance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -2037,9 +2050,9 @@ Dong, Xin, Barbara De Salvo, Meng Li, Chiao Liu, Zhongnan Qu, H. T. Kung, and Zi
 <h3 data-number="9.5.1" class="anchored" data-anchor-id="built-in-optimization-apis"><span class="header-section-number">9.5.1</span> Built-in Optimization APIs</h3>
 <p>Major machine learning frameworks like TensorFlow, PyTorch, and MXNet provide libraries and APIs to allow common model optimization techniques to be applied without requiring custom implementations. For example, TensorFlow offers the TensorFlow Model Optimization Toolkit which contains modules like:</p>
 <ul>
-<li><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/quantization/keras/quantize_model">quantization</a> - Applies quantization-aware training to convert floating point models to lower precision like int8 with minimal accuracy loss. Handles weight and activation quantization.</li>
-<li><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/sparsity/keras">sparsity</a> - Provides pruning APIs to induce sparsity and remove unnecessary connections in models like neural networks. Can prune weights, layers, etc.</li>
-<li><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/clustering">clustering</a> - Supports model compression by clustering weights into groups for higher compression rates.</li>
+<li><strong><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/quantization/keras/quantize_model">Quantization</a></strong>: Applies quantization-aware training to convert floating point models to lower precision like int8 with minimal accuracy loss. Handles weight and activation quantization.</li>
+<li><strong><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/sparsity/keras">Sparsity</a></strong>: Provides pruning APIs to induce sparsity and remove unnecessary connections in models like neural networks. Can prune weights, layers, etc.</li>
+<li><strong><a href="https://www.tensorflow.org/model_optimization/api_docs/python/tfmot/clustering">Clustering</a></strong>: Supports model compression by clustering weights into groups for higher compression rates.</li>
 </ul>
 <p>These APIs allow users to enable optimization techniques like quantization and pruning without directly modifying model code. Parameters like target sparsity rates, quantization bit-widths etc. can be configured. Similarly, PyTorch provides torch.quantization for converting models to lower precision representations. TorchTensor and TorchModule form the base classes for quantization support. It also offers torch.nn.utils.prune for built-in pruning of models. MXNet offers gluon.contrib layers that add quantization capabilities like fixed point rounding and stochastic rounding of weights/activations during training. This allows quantization to be readily included in gluon models.</p>
 <p>The core benefit of built-in optimizations is that users can apply them without re-implementing complex techniques. This makes optimized models accessible to a broad range of practitioners. It also ensures best practices are followed by building on research and experience implementing the methods. As new optimizations emerge, frameworks strive to provide native support and APIs where possible to further lower the barrier to efficient ML. The availability of these tools is key to widespread adoption.</p>
@@ -2048,9 +2061,9 @@ Dong, Xin, Barbara De Salvo, Meng Li, Chiao Liu, Zhongnan Qu, H. T. Kung, and Zi
 <h3 data-number="9.5.2" class="anchored" data-anchor-id="automated-optimization-tools"><span class="header-section-number">9.5.2</span> Automated Optimization Tools</h3>
 <p>Automated optimization tools provided by frameworks can analyze models and automatically apply optimizations like quantization, pruning, and operator fusion to make the process easier and accessible without excessive manual tuning. In effect, this builds on top of the previous section. For example, TensorFlow provides the TensorFlow Model Optimization Toolkit which contains modules like:</p>
 <ul>
-<li><a href="https://www.tensorflow.org/model_optimization/guide/quantization/training">QuantizationAwareTraining</a> - Automatically quantizes weights and activations in a model to lower precision like UINT8 or INT8 with minimal accuracy loss. It inserts fake quantization nodes during training so that the model can learn to be quantization-friendly.</li>
-<li><a href="https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras">Pruning</a> - Automatically removes unnecessary connections in a model based on analysis of weight importance. Can prune entire filters in convolutional layers or attention heads in transformers. Handles iterative re-training to recover any accuracy loss.</li>
-<li><a href="https://www.tensorflow.org/guide/graph_optimization">GraphOptimizer</a> - Applies graph optimizations like operator fusion to consolidate operations and reduce execution latency, especially for inference. In <a href="#fig-graph-optimizer" class="quarto-xref">Figure&nbsp;<span>9.38</span></a>, you can see the original (Source Graph) on the left, and how its operations are transformed (consolidated) on the right. Notice how Block1 in Source Graph has 3 separate steps (Convolution, BiasAdd, and Activation), which are then consolidated together in Block1 on Optimized Graph.</li>
+<li><strong><a href="https://www.tensorflow.org/model_optimization/guide/quantization/training">QuantizationAwareTraining</a></strong>: Automatically quantizes weights and activations in a model to lower precision like UINT8 or INT8 with minimal accuracy loss. It inserts fake quantization nodes during training so that the model can learn to be quantization-friendly.</li>
+<li><strong><a href="https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras">Pruning</a></strong>: Automatically removes unnecessary connections in a model based on analysis of weight importance. Can prune entire filters in convolutional layers or attention heads in transformers. Handles iterative re-training to recover any accuracy loss.</li>
+<li><strong><a href="https://www.tensorflow.org/guide/graph_optimization">GraphOptimizer</a></strong>: Applies graph optimizations like operator fusion to consolidate operations and reduce execution latency, especially for inference. In <a href="#fig-graph-optimizer" class="quarto-xref">Figure&nbsp;<span>9.38</span></a>, you can see the original (Source Graph) on the left, and how its operations are transformed (consolidated) on the right. Notice how Block1 in Source Graph has 3 separate steps (Convolution, BiasAdd, and Activation), which are then consolidated together in Block1 on Optimized Graph.</li>
 </ul>
 <div id="fig-graph-optimizer" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
