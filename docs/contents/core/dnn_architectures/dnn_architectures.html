@@ -1223,13 +1223,13 @@ Rumelhart, David E, Geoffrey E Hinton, and Ronald J Williams. 1986. <span>“Lea
 </div></div><p>These building blocks and their evolution provide insight into modern architectures. What began with the simple perceptron <span class="citation" data-cites="rosenblatt1958perceptron">(<a href="../references.html#ref-rosenblatt1958perceptron" role="doc-biblioref">Rosenblatt 1958</a>)</span> evolved into multi-layer networks <span class="citation" data-cites="rumelhart1986learning">(<a href="../references.html#ref-rumelhart1986learning" role="doc-biblioref">Rumelhart, Hinton, and Williams 1986</a>)</span>, which then spawned specialized patterns for spatial and sequential processing. Each advancement maintained useful elements from its predecessors while introducing new computational primitives. Today’s sophisticated architectures, like Transformers, can be seen as carefully engineered combinations of these fundamental building blocks.</p>
 <p>This progression reveals not just the evolution of neural networks, but also the discovery and refinement of core computational patterns that remain relevant. As we have seen through our exploration of different neural network architectures, deep learning has evolved significantly, with each new architecture bringing its own set of computational demands and system-level challenges.</p>
 <p><a href="#tbl-dl-evolution" class="quarto-xref">Table&nbsp;<span>4.1</span></a> summarizes this evolution, highlighting the key primitives and system focus for each era of deep learning development. This table encapsulates the major shifts in deep learning architecture design and the corresponding changes in system-level considerations. From the early focus on dense matrix operations optimized for CPUs, we see a progression through convolutions leveraging GPU acceleration, to sequential operations necessitating sophisticated memory hierarchies, and finally to the current era of attention mechanisms requiring flexible accelerators and high-bandwidth memory.</p>
-<div id="tbl-dl-evolution" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-dl-evolution" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-dl-evolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4.1: Evolution of deep learning architectures and their system implications
 </figcaption>
 <div aria-describedby="tbl-dl-evolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
+<table class="table-hover table-striped caption-top table">
 <colgroup>
 <col style="width: 16%">
 <col style="width: 19%">
@@ -1323,13 +1323,13 @@ Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohu
 </div><div id="ref-brown2020language" class="csl-entry" role="listitem">
 Brown, Tom B, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, et al. 2020. <span>“Language Models Are Few-Shot Learners.”</span> <em>Advances in Neural Information Processing Systems</em> 33: 1877–1901.
 </div></div><p>To illustrate how these modern architectures synthesize and innovate upon previous approaches, consider the following comparison of primitive utilization across different neural network architectures:</p>
-<div id="tbl-primitive-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-primitive-comparison" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-primitive-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4.2: Comparison of primitive utilization across neural network architectures.
 </figcaption>
 <div aria-describedby="tbl-primitive-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
+<table class="table-hover table-striped caption-top table">
 <colgroup>
 <col style="width: 13%">
 <col style="width: 18%">
@@ -1389,13 +1389,13 @@ Table&nbsp;4.2: Comparison of primitive utilization across neural network archit
 <p>Dynamic computation, where the operation itself depends on the input data, emerged prominently with attention mechanisms but represents a fundamental capability needed for adaptive processing. In Transformer attention, each query dynamically determines its interaction weights with all keys—for a sequence of length 512, this means 512 different weight patterns must be computed on the fly. Unlike fixed patterns where we know the computation graph in advance, dynamic computation requires runtime decisions. This creates specific implementation challenges—hardware must provide flexible routing of data (modern GPUs use dynamic scheduling) and support variable computation patterns, while software frameworks need efficient mechanisms for handling data-dependent execution paths (PyTorch’s dynamic computation graphs, TensorFlow’s dynamic control flow).</p>
 <p>These primitives combine in sophisticated ways in modern architectures. A Transformer layer processing a sequence of 512 tokens demonstrates this clearly: it uses matrix multiplications for feature projections (512×512 operations implemented through tensor cores), may employ sliding windows for efficient attention over long sequences (using specialized memory access patterns for local regions), and requires dynamic computation for attention weights (computing 512×512 attention patterns at runtime). The way these primitives interact creates specific demands on system design—from memory hierarchy organization to computation scheduling.</p>
 <p>Different neural network architectures leverage these core computational primitives in varying ways, as illustrated in <a href="#tbl-nn-arch-primitives" class="quarto-xref">Table&nbsp;<span>4.3</span></a>:</p>
-<div id="tbl-nn-arch-primitives" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-nn-arch-primitives" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-nn-arch-primitives-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4.3: Utilization of primitives across neural network architectures.
 </figcaption>
 <div aria-describedby="tbl-nn-arch-primitives-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
+<table class="table-hover table-striped caption-top table">
 <colgroup>
 <col style="width: 13%">
 <col style="width: 18%">
@@ -1450,8 +1450,63 @@ Table&nbsp;4.3: Utilization of primitives across neural network architectures.
 <p>Strided access appears prominently in CNNs, where each output position needs to access a window of input values at regular intervals. For a CNN processing MNIST images with 3×3 filters, each output position requires accessing 9 input values with a stride matching the input width. While less efficient than sequential access, hardware supports this through pattern-aware caching strategies and specialized memory controllers. Software frameworks often transform these strided patterns into sequential access through data layout reorganization—the im2col transformation in deep learning frameworks converts convolution’s strided access into efficient matrix multiplications.</p>
 <p>Random access poses the greatest challenge for system efficiency. In a Transformer processing a sequence of 512 tokens, each attention operation potentially needs to access any position in the sequence, creating unpredictable memory access patterns. Random access can severely impact performance through cache misses (potentially causing 100+ cycle stalls per access) and unpredictable memory latencies. Systems address this through large cache hierarchies (modern GPUs have several MB of L2 cache) and sophisticated prefetching strategies, while software frameworks employ techniques like attention pattern pruning to reduce random access requirements.</p>
 <p>These different memory access patterns contribute significantly to the overall memory requirements of each architecture. To illustrate this, let’s compare the memory complexity of MLPs, CNNs, RNNs, and Transformers.</p>
-<p>+===============+==================+====================+========================+==================+ | Architecture | Input Dependency | Parameter Storage | Activation Storage | Scaling Behavior | +:==============+:=================+:===================+:=======================+:=================+ | MLP | Linear | O(N × W) | O(B × W) | Predictable | +—————+——————+——————–+————————+——————+ | CNN | Constant | O(K × C) | O(B × H_img × W_img) | Efficient | +—————+——————+——————–+————————+——————+ | RNN | Linear | O(H_hidden^2) | O(B × T × H_hidden) | Challenging | +—————+——————+——————–+————————+——————+ | Transformer | Quadratic | O(N × d) | O(B × N^2) | Problematic | +===============+==================+====================+========================+==================+</p>
-<p>: DNN architecture complexity. {#tbl-arch-complexity}</p>
+<div id="tbl-arch-complexity" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-arch-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4.4: DNN architecture complexity.
+</figcaption>
+<div aria-describedby="tbl-arch-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table-hover table-striped caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 17%">
+<col style="width: 19%">
+<col style="width: 29%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Architecture</th>
+<th style="text-align: left;">Input Dependency</th>
+<th style="text-align: left;">Parameter Storage</th>
+<th style="text-align: left;">Activation Storage</th>
+<th style="text-align: left;">Scaling Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">MLP</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">O(N × W)</td>
+<td style="text-align: left;">O(B × W)</td>
+<td style="text-align: left;">Predictable</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CNN</td>
+<td style="text-align: left;">Constant</td>
+<td style="text-align: left;">O(K × C)</td>
+<td style="text-align: left;">O(B × H<span class="math inline">\(_{img}\)</span> × W<span class="math inline">\(_{img}\)</span>)</td>
+<td style="text-align: left;">Efficient</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RNN</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">O(h<span class="math inline">\(^{2}\)</span>)</td>
+<td style="text-align: left;">O(B × T × h)</td>
+<td style="text-align: left;">Challenging</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Transformer</td>
+<td style="text-align: left;">Quadratic</td>
+<td style="text-align: left;">O(N × d)</td>
+<td style="text-align: left;">O(B × N<span class="math inline">\(^{2}\)</span>)</td>
+<td style="text-align: left;">Problematic</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
 <p>Where:</p>
 <ul>
 <li>N: Input or sequence size</li>
@@ -1461,11 +1516,11 @@ Table&nbsp;4.3: Utilization of primitives across neural network architectures.
 <li>C: Number of channels</li>
 <li>H_img: Height of input feature map (CNN)</li>
 <li>W_img: Width of input feature map (CNN)</li>
-<li>H_hidden: Hidden state size (RNN)</li>
+<li>h: Hidden state size (RNN)</li>
 <li>T: Sequence length</li>
 <li>d: Model dimensionality</li>
 </ul>
-<p><span class="quarto-unresolved-ref">?tbl-arch-complexity</span> reveals how memory requirements scale with different architectural choices. The quadratic scaling of activation storage in Transformers, for instance, highlights the need for large memory capacities and efficient memory management in systems designed for Transformer-based workloads. In contrast, CNNs exhibit more favorable memory scaling due to their parameter sharing and localized processing. These memory complexity considerations are crucial when making system-level design decisions, such as choosing memory hierarchy configurations and developing memory optimization strategies.</p>
+<p><a href="#tbl-arch-complexity" class="quarto-xref">Table&nbsp;<span>4.4</span></a> reveals how memory requirements scale with different architectural choices. The quadratic scaling of activation storage in Transformers, for instance, highlights the need for large memory capacities and efficient memory management in systems designed for Transformer-based workloads. In contrast, CNNs exhibit more favorable memory scaling due to their parameter sharing and localized processing. These memory complexity considerations are crucial when making system-level design decisions, such as choosing memory hierarchy configurations and developing memory optimization strategies.</p>
 <p>The impact of these patterns becomes clearer when we consider data reuse opportunities. In CNNs, each input pixel participates in multiple convolution windows (typically 9 times for a 3×3 filter), making effective data reuse fundamental for performance. Modern GPUs provide multi-level cache hierarchies (L1, L2, shared memory) to capture this reuse, while software techniques like loop tiling ensure data remains in cache once loaded.</p>
 <p>Working set size—the amount of data needed simultaneously for computation—varies dramatically across architectures. An MLP layer processing MNIST images might need only a few hundred KB (weights plus activations), while a Transformer processing long sequences can require several MB just for storing attention patterns. These differences directly influence hardware design choices, like the balance between compute units and on-chip memory, and software optimizations like activation checkpointing or attention approximation techniques.</p>
 <p>Having a good grasp of these memory access patterns is essential as architectures evolve. The shift from CNNs to Transformers, for instance, has driven the development of hardware with larger on-chip memories and more sophisticated caching strategies to handle increased working sets and more dynamic access patterns. Future architectures will likely continue to be shaped by their memory access characteristics as much as their computational requirements.</p>
@@ -1492,14 +1547,14 @@ Table&nbsp;4.3: Utilization of primitives across neural network architectures.
 <p>One of the most significant impacts of these primitives on system design is the push towards specialized hardware. The prevalence of matrix multiplications and convolutions in deep learning has led to the development of tensor processing units (TPUs) and tensor cores in GPUs, which are specifically designed to perform these operations efficiently. These specialized units can perform many multiply-accumulate operations in parallel, dramatically accelerating the core computations of neural networks.</p>
 <p>Memory systems have also been profoundly influenced by the demands of deep learning primitives. The need to support both sequential and random access patterns efficiently has driven the development of sophisticated memory hierarchies. High-bandwidth memory (HBM) has become common in AI accelerators to support the massive data movement requirements, especially for operations like attention mechanisms in Transformers. On-chip memory hierarchies have grown in complexity, with multiple levels of caching and scratchpad memories to support the diverse working set sizes of different neural network layers.</p>
 <p>The data movement primitives have particularly influenced the design of interconnects and on-chip networks. The need to support efficient broadcasts, gathers, and reductions has led to the development of more flexible and higher-bandwidth interconnects. Some AI chips now feature specialized networks-on-chip designed to accelerate common data movement patterns in neural networks.</p>
-<p><a href="#tbl-sys-design-implications" class="quarto-xref">Table&nbsp;<span>4.4</span></a> summarizes the system implications of these primitives:</p>
-<div id="tbl-sys-design-implications" class="quarto-float quarto-figure quarto-figure-center anchored">
+<p><a href="#tbl-sys-design-implications" class="quarto-xref">Table&nbsp;<span>4.5</span></a> summarizes the system implications of these primitives:</p>
+<div id="tbl-sys-design-implications" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-sys-design-implications-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4.4: System implications of primitives.
+Table&nbsp;4.5: System implications of primitives.
 </figcaption>
 <div aria-describedby="tbl-sys-design-implications-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
+<table class="table-hover table-striped caption-top table">
 <colgroup>
 <col style="width: 21%">
 <col style="width: 25%">
@@ -1537,9 +1592,7 @@ Table&nbsp;4.4: System implications of primitives.
 <td style="text-align: left;">Sequential Access</td>
 <td style="text-align: left;">Burst mode DRAM</td>
 <td style="text-align: left;">Contiguous allocation</td>
-<td style="text-align: left;"><ul>
-<li></li>
-</ul></td>
+<td style="text-align: left;"></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Random Access</td>
