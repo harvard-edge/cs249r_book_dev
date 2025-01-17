@@ -1366,7 +1366,7 @@ Table&nbsp;4.2: Comparison of primitive utilization across neural network archit
 <p>This synthesis of primitives in Transformers exemplifies how modern architectures innovate by recombining and refining existing building blocks, rather than inventing entirely new computational paradigms. Also, this evolutionary process provides insight into the development of future architectures and helps to guide the design of efficient systems to support them.</p>
 </section>
 </section>
-<section id="system-level-building-blocks" class="level2 page-columns page-full" data-number="4.7">
+<section id="system-level-building-blocks" class="level2" data-number="4.7">
 <h2 data-number="4.7" class="anchored" data-anchor-id="system-level-building-blocks"><span class="header-section-number">4.7</span> System-Level Building Blocks</h2>
 <p>After having examined different deep learning architectures, we can distill their system requirements into fundamental primitives that underpin both hardware and software implementations. These primitives represent operations that cannot be broken down further while maintaining their essential characteristics. Just as complex molecules are built from basic atoms, sophisticated neural networks are constructed from these fundamental operations.</p>
 <section id="core-computational-primitives" class="level3" data-number="4.7.1">
@@ -1379,7 +1379,7 @@ Table&nbsp;4.2: Comparison of primitive utilization across neural network archit
 <p>These primitives combine in sophisticated ways in modern architectures. A Transformer layer processing a sequence of 512 tokens demonstrates this clearly: it uses matrix multiplications for feature projections (<span class="math inline">\(512\times 512\)</span> operations implemented through tensor cores), may employ sliding windows for efficient attention over long sequences (using specialized memory access patterns for local regions), and requires dynamic computation for attention weights (computing <span class="math inline">\(512\times 512\)</span> attention patterns at runtime). The way these primitives interact creates specific demands on system design—from memory hierarchy organization to computation scheduling.</p>
 <p>The building blocks we’ve discussed help explain why certain hardware features exist (like tensor cores for matrix multiplication) and why software frameworks organize computations in particular ways (like batching similar operations together). As we move from computational primitives to consider memory access and data movement patterns, it’s important to recognize how these fundamental operations shape the demands placed on memory systems and data transfer mechanisms. The way computational primitives are implemented and combined has direct implications for how data needs to be stored, accessed, and moved within the system.</p>
 </section>
-<section id="memory-access-primitives" class="level3 page-columns page-full" data-number="4.7.2">
+<section id="memory-access-primitives" class="level3" data-number="4.7.2">
 <h3 data-number="4.7.2" class="anchored" data-anchor-id="memory-access-primitives"><span class="header-section-number">4.7.2</span> Memory Access Primitives</h3>
 <p>The efficiency of deep learning systems heavily depends on how they access and manage memory. In fact, memory access often becomes the primary bottleneck in modern ML systems—while a matrix multiplication unit might be capable of performing thousands of operations per cycle, it will sit idle if data isn’t available at the right time. For example, accessing data from DRAM typically takes hundreds of cycles, while on-chip computation takes only a few cycles.</p>
 <p>Three fundamental memory access patterns dominate in deep learning architectures: sequential access, strided access, and random access. Each pattern creates different demands on the memory system and offers different opportunities for optimization.</p>
@@ -1387,12 +1387,12 @@ Table&nbsp;4.2: Comparison of primitive utilization across neural network archit
 <p>Strided access appears prominently in CNNs, where each output position needs to access a window of input values at regular intervals. For a CNN processing MNIST images with <span class="math inline">\(3\times 3\)</span> filters, each output position requires accessing 9 input values with a stride matching the input width. While less efficient than sequential access, hardware supports this through pattern-aware caching strategies and specialized memory controllers. Software frameworks often transform these strided patterns into sequential access through data layout reorganization—the im2col transformation in deep learning frameworks converts convolution’s strided access into efficient matrix multiplications.</p>
 <p>Random access poses the greatest challenge for system efficiency. In a Transformer processing a sequence of 512 tokens, each attention operation potentially needs to access any position in the sequence, creating unpredictable memory access patterns. Random access can severely impact performance through cache misses (potentially causing 100+ cycle stalls per access) and unpredictable memory latencies. Systems address this through large cache hierarchies (modern GPUs have several MB of L2 cache) and sophisticated prefetching strategies, while software frameworks employ techniques like attention pattern pruning to reduce random access requirements.</p>
 <p>These different memory access patterns contribute significantly to the overall memory requirements of each architecture. To illustrate this, <a href="#tbl-arch-complexity" class="quarto-xref">Table&nbsp;<span>4.3</span></a> compares the memory complexity of MLPs, CNNs, RNNs, and Transformers.</p>
-<div id="tbl-arch-complexity" class="hover striped quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
-<figure class="quarto-float quarto-float-tbl figure page-columns page-full">
+<div id="tbl-arch-complexity" class="hover striped quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-arch-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4.3: DNN architecture complexity.
+Table&nbsp;4.3: DNN architecture complexity. Note that for RNNs, parameter storage is bounded by O(N × h) when N &gt; h.
 </figcaption>
-<div aria-describedby="tbl-arch-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<div aria-describedby="tbl-arch-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table-hover table-striped caption-top table">
 <colgroup>
 <col style="width: 10%">
@@ -1426,7 +1426,7 @@ Table&nbsp;4.3: DNN architecture complexity.
 <td style="text-align: left;">Efficient</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">RNN<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></td>
+<td style="text-align: left;">RNN</td>
 <td style="text-align: left;">Linear</td>
 <td style="text-align: left;">O(h<span class="math inline">\(^{2}\)</span>)</td>
 <td style="text-align: left;">O(B × T × h)</td>
@@ -1441,7 +1441,7 @@ Table&nbsp;4.3: DNN architecture complexity.
 </tr>
 </tbody>
 </table>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;For RNNs, parameter storage is bounded by O(N × h) when N &gt; h.</p></div></div></div>
+</div>
 </figure>
 </div>
 <p>Where:</p>
@@ -1570,7 +1570,6 @@ Table&nbsp;4.4: System implications of primitives.
 
 
 </section>
-
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
