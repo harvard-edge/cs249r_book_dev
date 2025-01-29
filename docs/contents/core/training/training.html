@@ -1272,7 +1272,7 @@ Chen, Tianqi, Mu Li, Yutian Li, Min Lin, Naiyan Wang, Minjie Wang, Tianjun Xiao,
 <div id="tbl-optimizer-properties" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-optimizer-properties-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;8.3: Optimizer characteristics and system implications
+Table&nbsp;8.3: Optimizer characteristics and system implications.
 </figcaption>
 <div aria-describedby="tbl-optimizer-properties-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1417,7 +1417,7 @@ Paszke, Adam, Sam Gross, Francisco Massa, and et al. 2019. <span>“PyTorch: An 
 <h2 data-number="8.4" class="anchored" data-anchor-id="training-pipeline-architecture"><span class="header-section-number">8.4</span> Training Pipeline Architecture</h2>
 <p>A training pipeline is the framework that governs how raw data is transformed into a trained machine learning model. Within the confines of a single system, it orchestrates the steps necessary for data preparation, computational execution, and model evaluation. The design of such pipelines is critical to ensure that training is both efficient and reproducible, allowing machine learning workflows to operate reliably.</p>
 <p>As shown in <a href="#fig-training-pipeline" class="quarto-xref">Figure&nbsp;<span>8.4</span></a>, the training pipeline consists of three main components: the data pipeline for ingestion and preprocessing, the training loop that handles model updates, and the evaluation pipeline for assessing performance. These components work together in a coordinated manner, with processed batches flowing from the data pipeline to the training loop, and evaluation metrics providing feedback to guide the training process.</p>
-<div class="cell" data-fig-width="100" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-training-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1806,14 +1806,7 @@ Figure&nbsp;8.7: Parallel fetching and overlapping implementation. The job finis
 <p>Prefetching eliminates waiting time by loading data asynchronously during model computation. Data loaders operate as separate threads or processes, preparing the next batch while the current batch trains. This ensures immediate data availability for the GPU when the current batch completes.</p>
 <p>Overlapping extends this efficiency by coordinating all three pipeline stages simultaneously. As the GPU processes one batch, preprocessing begins on the next batch, while data fetching starts for the subsequent batch. This coordination maintains constant activity across all pipeline stages.</p>
 <p>Modern machine learning frameworks implement these techniques through built-in utilities. PyTorch’s <code>DataLoader</code> class demonstrates this implementation:</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">PyTorch</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>loader <span class="op">=</span> DataLoader(dataset, batch_size<span class="op">=</span><span class="dv">32</span>, num_workers<span class="op">=</span><span class="dv">4</span>, prefetch_factor<span class="op">=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-</div>
 <p>The parameters <code>num_workers</code> and <code>prefetch_factor</code> control parallel processing and data buffering. Multiple worker processes handle data loading and preprocessing concurrently, while prefetch_factor determines the number of batches prepared in advance.</p>
 <p>Buffer management plays a key role in pipeline efficiency. The prefetch buffer size requires careful tuning to balance resource utilization. A buffer that is too small causes the GPU to wait for data preparation, reintroducing the idle time these techniques aim to eliminate. Conversely, allocating an overly large buffer consumes memory that could otherwise store model parameters or larger batch sizes.</p>
 <p>The implementation relies on effective CPU-GPU coordination. The CPU manages data preparation tasks while the GPU handles computation. This division of labor, combined with storage I/O operations, creates an efficient pipeline that minimizes idle time across hardware resources.</p>
@@ -1904,7 +1897,7 @@ Wang, Y., and P. Kanwar. 2019. <span>“BFloat16: The Secret to High Performance
 </div></div><p>A neural network trained in FP32 requires 4 bytes per parameter, while both FP16 and bfloat16 use 2 bytes. For a model with <span class="math inline">\(10^9\)</span> parameters, this reduction cuts memory usage from 4GB to 2GB. This memory reduction enables larger batch sizes and deeper architectures on the same hardware.</p>
 <p>The numerical precision differences between these formats shape their use cases. FP32 represents numbers from approximately <span class="math inline">\(\pm1.18 \times 10^{-38}\)</span> to <span class="math inline">\(\pm3.4 \times 10^{38}\)</span> with 7 decimal digits of precision. FP16 ranges from <span class="math inline">\(\pm6.10 \times 10^{-5}\)</span> to <span class="math inline">\(\pm65,504\)</span> with 3-4 decimal digits of precision. Bfloat16, developed by Google Brain, maintains the same dynamic range as FP32 (<span class="math inline">\(\pm1.18 \times 10^{-38}\)</span> to <span class="math inline">\(\pm3.4 \times 10^{38}\)</span>) but with reduced precision (3-4 decimal digits). This range preservation makes bfloat16 particularly suited for deep learning training, as it handles large and small gradients more effectively than FP16.</p>
 <p>The hybrid approach proceeds in three main phases, as illustrated in <a href="#fig-mixed-precision" class="quarto-xref">Figure&nbsp;<span>8.8</span></a>. During the forward pass, input data converts to reduced precision (FP16 or bfloat16), and matrix multiplications execute in this format, including activation function computations. In the gradient computation phase, the backward pass calculates gradients in reduced precision, but results are stored in FP32 master weights. Finally, during weight updates, the optimizer updates the main weights in FP32, and these updated weights convert back to reduced precision for the next forward pass.</p>
-<div class="cell" data-fig-width="100%" data-layout-align="default">
+<div class="cell" data-fig-width="50%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-mixed-precision" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1991,13 +1984,13 @@ Jia, Xianyan, Shutao Song, Wei He, Yangzihao Wang, Haidong Rong, Feihu Zhou, Liq
 <section id="gradient-accumulation" class="level5">
 <h5 class="anchored" data-anchor-id="gradient-accumulation">Gradient Accumulation</h5>
 <p>Gradient accumulation simulates larger batch sizes by splitting a single effective batch into smaller “micro-batches.” As illustrated in <a href="#fig-grad-accumulation" class="quarto-xref">Figure&nbsp;<span>8.9</span></a>, during each forward and backward pass, the gradients for a micro-batch are computed and added to an accumulated gradient buffer. Instead of immediately applying the gradients to update the model parameters, this process repeats for several micro-batches. Once the gradients from all micro-batches in the effective batch are accumulated, the parameters are updated using the combined gradients.</p>
-<div class="cell" data-fig-width="6" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-grad-accumulation" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-grad-accumulation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
-<svg width="576" height="576" viewbox="0.00 0.00 477.39 245.00" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="; max-width: none; max-height: none">
+<svg width="NaN" height="576" viewbox="0.00 0.00 477.39 245.00" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="; max-width: none; max-height: none">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 241)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-241 473.39,-241 473.39,4 -4,4"></polygon>
@@ -2422,7 +2415,7 @@ Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffr
 <section id="mechanics-3" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="mechanics-3">Mechanics</h4>
 <p>Model parallelism divides neural networks across multiple computing devices, with each device computing a distinct portion of the model’s operations. This division allows training of models whose parameter counts exceed single-device memory capacity. The technique encompasses device coordination, data flow management, and gradient computation across distributed model segments. The mechanics of model parallelism are illustrated in <a href="#fig-model-parallelism" class="quarto-xref">Figure&nbsp;<span>8.11</span></a>. These steps are described next:</p>
-<div class="cell" data-fig-width="100%" data-layout-align="default">
+<div class="cell" data-fig-width="50%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-model-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
