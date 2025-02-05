@@ -827,7 +827,7 @@ Learning Objectives
 <section id="evolution-of-systems" class="level3 page-columns page-full" data-number="8.2.1">
 <h3 data-number="8.2.1" class="anchored" data-anchor-id="evolution-of-systems"><span class="header-section-number">8.2.1</span> Evolution of Systems</h3>
 <p>Computing system architectures have evolved through distinct generations, with each new era building upon previous advances while introducing specialized optimizations for emerging application requirements (<a href="#fig-evolution-systems" class="quarto-xref">Figure&nbsp;<span>8.1</span></a>). This progression demonstrates how hardware adaptation to application needs shapes modern machine learning systems.</p>
-<div id="fig-evolution-systems" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-evolution-systems" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-evolution-systems-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="dc4c2138bc12e0bd8a077d237b8ac73bd193d15d.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;8.1: Timeline of major advancements in computing systems for machine learning, showing the evolution from mainframes to AI hypercomputing systems."><img src="training_files/mediabag/dc4c2138bc12e0bd8a077d237b8ac73bd193d15d.svg" class="img-fluid figure-img"></a>
@@ -1698,7 +1698,7 @@ Figure&nbsp;8.6: Example memory footprint breakdown for the Llama-7B model under
 <section id="prefetching-and-overlapping" class="level3 page-columns page-full" data-number="8.5.1">
 <h3 data-number="8.5.1" class="anchored" data-anchor-id="prefetching-and-overlapping"><span class="header-section-number">8.5.1</span> Prefetching and Overlapping</h3>
 <p>Training machine learning models involves significant data movement between storage, memory, and computational units. The data pipeline consists of sequential transfers: from disk storage to CPU memory, CPU memory to GPU memory, and through the GPU processing units. In standard implementations, each transfer must complete before the next begins, as shown in <a href="#fig-fetching-naive" class="quarto-xref">Figure&nbsp;<span>8.7</span></a>, resulting in computational inefficiencies.</p>
-<div id="fig-fetching-naive" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-fetching-naive" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fetching-naive-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="f6efca348c50c0af6045ffea29af62b74c9fd23d.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;8.7: Naive data fetching implementation."><img src="training_files/mediabag/f6efca348c50c0af6045ffea29af62b74c9fd23d.svg" class="img-fluid figure-img"></a>
@@ -1712,7 +1712,7 @@ Figure&nbsp;8.7: Naive data fetching implementation.
 <div class="no-row-height column-margin column-container"><div id="ref-tensorflow_data_2015" class="csl-entry" role="listitem">
 Abadi, Martín, Ashish Agarwal, Paul Barham, et al. 2015. <span>“TensorFlow: Large-Scale Machine Learning on Heterogeneous Systems.”</span> Google Brain.
 </div></div><p>Overlapping builds upon prefetching by coordinating multiple pipeline stages to execute concurrently. The system processes the current batch while simultaneously preparing future batches through data loading and preprocessing operations. This coordination establishes a continuous data flow through the training pipeline, as illustrated in <a href="#fig-fetching-optimized" class="quarto-xref">Figure&nbsp;<span>8.8</span></a>.</p>
-<div id="fig-fetching-optimized" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-fetching-optimized" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fetching-optimized-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="d435c04539628fa1b5acf7d78cf38717a1891513.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;8.8: Parallel fetching and overlapping implementation. The job finishes at 00:40 seconds, instead of 01:30 seconds as in Figure&nbsp;fig-fetching-naive."><img src="training_files/mediabag/d435c04539628fa1b5acf7d78cf38717a1891513.svg" class="img-fluid figure-img"></a>
@@ -1824,7 +1824,7 @@ Wang, Y., and P. Kanwar. 2019. <span>“BFloat16: The Secret to High Performance
 </div></div><p>A neural network trained in FP32 requires 4 bytes per parameter, while both FP16 and bfloat16 use 2 bytes. For a model with <span class="math inline">\(10^9\)</span> parameters, this reduction cuts memory usage from 4 GB to 2 GB. This memory reduction enables larger batch sizes and deeper architectures on the same hardware.</p>
 <p>The numerical precision differences between these formats shape their use cases. FP32 represents numbers from approximately <span class="math inline">\(\pm1.18 \times 10^{-38}\)</span> to <span class="math inline">\(\pm3.4 \times 10^{38}\)</span> with 7 decimal digits of precision. FP16 ranges from <span class="math inline">\(\pm6.10 \times 10^{-5}\)</span> to <span class="math inline">\(\pm65,504\)</span> with 3-4 decimal digits of precision. Bfloat16, developed by Google Brain, maintains the same dynamic range as FP32 (<span class="math inline">\(\pm1.18 \times 10^{-38}\)</span> to <span class="math inline">\(\pm3.4 \times 10^{38}\)</span>) but with reduced precision (3-4 decimal digits). This range preservation makes bfloat16 particularly suited for deep learning training, as it handles large and small gradients more effectively than FP16.</p>
 <p>The hybrid approach proceeds in three main phases, as illustrated in <a href="#fig-mixed-precision" class="quarto-xref">Figure&nbsp;<span>8.9</span></a>. During the forward pass, input data converts to reduced precision (FP16 or bfloat16), and matrix multiplications execute in this format, including activation function computations. In the gradient computation phase, the backward pass calculates gradients in reduced precision, but results are stored in FP32 master weights. Finally, during weight updates, the optimizer updates the main weights in FP32, and these updated weights convert back to reduced precision for the next forward pass.</p>
-<div id="fig-mixed-precision" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-mixed-precision" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mixed-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="a8b8efea4d4dfd7b643177181af7a118f3db3f43.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8.9: Mixed preicision training flow."><img src="training_files/mediabag/a8b8efea4d4dfd7b643177181af7a118f3db3f43.svg" class="img-fluid figure-img"></a>
@@ -2222,7 +2222,7 @@ g_{\text{global}} = \frac{1}{|B_{\text{total}}|} \sum_{x_i \in B_{\text{total}}}
 <section id="mechanics-2" class="level4">
 <h4 class="anchored" data-anchor-id="mechanics-2">Mechanics</h4>
 <p>The process of data parallelism can be broken into a series of distinct steps, each with its role in ensuring the system operates efficiently. These steps are illustrated in <a href="#fig-data-parallelism" class="quarto-xref">Figure&nbsp;<span>8.11</span></a>.</p>
-<div id="fig-data-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-data-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-data-parallelism-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="54cb16bf66986d1c0dabe2484953ea81e7131631.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;8.11: Data-level parallelism."><img src="training_files/mediabag/54cb16bf66986d1c0dabe2484953ea81e7131631.svg" class="img-fluid figure-img"></a>
@@ -2286,7 +2286,7 @@ Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffr
 <section id="mechanics-3" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="mechanics-3">Mechanics</h4>
 <p>Model parallelism divides neural networks across multiple computing devices, with each device computing a distinct portion of the model’s operations. This division allows training of models whose parameter counts exceed single-device memory capacity. The technique encompasses device coordination, data flow management, and gradient computation across distributed model segments. The mechanics of model parallelism are illustrated in <a href="#fig-model-parallelism" class="quarto-xref">Figure&nbsp;<span>8.12</span></a>. These steps are described next:</p>
-<div id="fig-model-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-model-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-model-parallelism-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="b31445b8b27e572bbe85120848a2dc58a8ef5b09.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;8.12: Model-level parallelism."><img src="training_files/mediabag/b31445b8b27e572bbe85120848a2dc58a8ef5b09.svg" class="img-fluid figure-img"></a>
@@ -2565,7 +2565,7 @@ Table&nbsp;8.6: Comparison of data parallelism, model parallelism, and hybrid pa
 </figure>
 </div>
 <p><a href="#fig-parallelism-flowchart" class="quarto-xref">Figure&nbsp;<span>8.15</span></a> provides a general guideline for selecting parallelism strategies in distributed training systems. While the chart offers a structured decision-making process based on model size, dataset size, and scaling constraints, it is intentionally simplified. Real-world scenarios often involve additional complexities such as hardware heterogeneity, communication bandwidth, and workload imbalance, which may influence the choice of parallelism techniques. The chart is best viewed as a foundational tool for understanding the trade-offs and decision points in parallelism strategy selection. Practitioners should consider this guideline as a starting point and adapt it to the specific requirements and constraints of their systems to achieve optimal performance.</p>
-<div id="fig-parallelism-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-parallelism-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-parallelism-flowchart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="738e0183ddfa193f955a5a8184e338acb27f4810.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;8.15: TDecision flowchart for selecting parallelism strategies in distributed training."><img src="training_files/mediabag/738e0183ddfa193f955a5a8184e338acb27f4810.svg" class="img-fluid figure-img"></a>
