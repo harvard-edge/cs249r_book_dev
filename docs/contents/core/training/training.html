@@ -725,8 +725,7 @@ window.Quarto = {
 <li>
 <a href="#data-parallelism" id="toc-data-parallelism" class="nav-link" data-scroll-target="#data-parallelism"><span class="header-section-number">8.6.1</span> Data Parallelism</a>
   <ul class="collapse">
-<li><a href="#mathematical-foundations-1" id="toc-mathematical-foundations-1" class="nav-link" data-scroll-target="#mathematical-foundations-1">Mathematical Foundations</a></li>
-  <li><a href="#mechanics-2" id="toc-mechanics-2" class="nav-link" data-scroll-target="#mechanics-2">Mechanics</a></li>
+<li><a href="#mechanics-2" id="toc-mechanics-2" class="nav-link" data-scroll-target="#mechanics-2">Mechanics</a></li>
   <li><a href="#benefits-3" id="toc-benefits-3" class="nav-link" data-scroll-target="#benefits-3">Benefits</a></li>
   <li><a href="#challenges" id="toc-challenges" class="nav-link" data-scroll-target="#challenges">Challenges</a></li>
   </ul>
@@ -1868,8 +1867,7 @@ Figure&nbsp;8.12: Multi-GPU training where the input data is divided into non-ov
 <section id="data-parallelism" class="level3 page-columns page-full" data-number="8.6.1"><h3 data-number="8.6.1" class="anchored" data-anchor-id="data-parallelism">
 <span class="header-section-number">8.6.1</span> Data Parallelism</h3>
 <p>Data parallelism is a method for distributing the training process across multiple devices by splitting the dataset into smaller subsets. Each device trains a complete copy of the model using its assigned subset of the data. For example, when training an image classification model on 1 million images using 4 GPUs, each GPU would process 250,000 images while maintaining an identical copy of the model architecture.</p>
-<p>Data parallelism is particularly effective when the dataset size is large but the model size is manageable, as each device must store a full copy of the model in memory. This method is widely used in scenarios such as image classification and natural language processing, where the dataset can be processed in parallel without dependencies between data samples. For instance, when training a ResNet model on ImageNet, each GPU can independently process its portion of images since the classification of one image doesn’t depend on the results of another.</p>
-<section id="mathematical-foundations-1" class="level4"><h4 class="anchored" data-anchor-id="mathematical-foundations-1">Mathematical Foundations</h4>
+<p>It is particularly effective when the dataset size is large but the model size is manageable, as each device must store a full copy of the model in memory. This method is widely used in scenarios such as image classification and natural language processing, where the dataset can be processed in parallel without dependencies between data samples. For instance, when training a ResNet model on ImageNet, each GPU can independently process its portion of images since the classification of one image doesn’t depend on the results of another.</p>
 <p>Data parallelism builds on a key insight from stochastic gradient descent. Gradients computed on different minibatches can be averaged. This property enables parallel computation across devices. Let’s examine why this works mathematically.</p>
 <p>Consider a model with parameters <span class="math inline">\(θ\)</span> training on a dataset <span class="math inline">\(D\)</span>. The loss function for a single data point <span class="math inline">\(x_i\)</span> is <span class="math inline">\(L(θ, x_i)\)</span>. In standard SGD with batch size <span class="math inline">\(B\)</span>, the gradient update for a minibatch is: <span class="math display">\[
 g = \frac{1}{B} \sum_{i=1}^B \nabla_θ L(θ, x_i)
@@ -1885,7 +1883,7 @@ g_{\text{global}} = \frac{1}{|B_{\text{total}}|} \sum_{x_i \in B_{\text{total}}}
 \]</span></p>
 <p>This equivalence shows why data parallelism maintains the statistical properties of SGD training. The approach distributes distinct data subsets across devices, computes local gradients independently, and averages these gradients to approximate the full-batch gradient.</p>
 <p>The method parallels gradient accumulation, where a single device accumulates gradients over multiple forward passes before updating parameters. Both techniques leverage the additive properties of gradients to process large batches efficiently.</p>
-</section><section id="mechanics-2" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="mechanics-2">Mechanics</h4>
+<section id="mechanics-2" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="mechanics-2">Mechanics</h4>
 <p>The process of data parallelism can be broken into a series of distinct steps, each with its role in ensuring the system operates efficiently. These steps are illustrated in <a href="#fig-data-parallelism" class="quarto-xref">Figure&nbsp;<span>8.13</span></a>.</p>
 <div id="fig-data-parallelism" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-data-parallelism-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
