@@ -2555,23 +2555,17 @@ Table&nbsp;4.3: DNN architecture complexity. Note that for RNNs, parameter stora
 <section id="data-movement-primitives" class="level3" data-number="4.7.3">
 <h3 data-number="4.7.3" class="anchored" data-anchor-id="data-movement-primitives"><span class="header-section-number">4.7.3</span> Data Movement Primitives</h3>
 <p>While computational and memory access patterns define what operations occur where, data movement primitives characterize how information flows through the system. These patterns are key because data movement often consumes more time and energy than computation itself—moving data from off-chip memory typically requires 100-1000<span class="math inline">\(\times\)</span> more energy than performing a floating-point operation.</p>
-<p>Four fundamental data movement patterns are prevalent in deep learning architectures: broadcast, scatter, gather, and reduction. These patterns determine how data is distributed and collected across computational units, as illustrated in <a href="#fig-allgather" class="quarto-xref">Figure&nbsp;<span>4.11</span></a> with the “all-gather” primitive where tensors across different devices are gathered and replicated.</p>
-<div id="fig-allgather" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
+<p>Four fundamental data movement patterns are prevalent in deep learning architectures: broadcast, scatter, gather, and reduction. <a href="#fig-collective-comm" class="quarto-xref">Figure&nbsp;<span>4.11</span></a> illustrates these patterns and their relationships. Broadcast operations send the same data to multiple destinations simultaneously. In matrix multiplication with batch size 32, each weight must be broadcast to process different inputs in parallel. Modern hardware supports this through specialized interconnects—NVIDIA GPUs provide hardware multicast capabilities achieving up to 600 GB/s broadcast bandwidth, while TPUs use dedicated broadcast buses. Software frameworks optimize broadcasts by restructuring computations (like matrix tiling) to maximize data reuse.</p>
+<div id="fig-collective-comm" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-allgather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="images/png/allgather.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="An example of the “all-gather” communication primitive, where tensors across different devices or “ranks” are gathered into a larger tensor and replicated across all devices. Source: NVIDIA"><img src="images/png/allgather.png" class="img-fluid figure-img"></a></p>
-<figcaption>An example of the “all-gather” communication primitive, where tensors across different devices or “ranks” are gathered into a larger tensor and replicated across all devices. Source: NVIDIA</figcaption>
-</figure>
+<div aria-describedby="fig-collective-comm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/png/collective_comm.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4.11: Collective communication routines."><img src="images/png/collective_comm.png" class="img-fluid figure-img"></a>
 </div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-allgather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4.11
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-collective-comm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.11: Collective communication routines.
 </figcaption>
 </figure>
 </div>
-<p>Broadcast operations send the same data to multiple destinations simultaneously. In matrix multiplication with batch size 32, each weight must be broadcast to process different inputs in parallel. Modern hardware supports this through specialized interconnects—NVIDIA GPUs provide hardware multicast capabilities achieving up to 600 GB/s broadcast bandwidth, while TPUs use dedicated broadcast buses. Software frameworks optimize broadcasts by restructuring computations (like matrix tiling) to maximize data reuse.</p>
 <p>Scatter operations distribute different elements to different destinations. When parallelizing a <span class="math inline">\(512\times 512\)</span> matrix multiplication across GPU cores, each core receives a subset of the computation. This parallelization is important for performance but challenging—memory conflicts and load imbalance can reduce efficiency by 50% or more. Hardware provides flexible interconnects (like NVIDIA’s NVLink offering 600 GB/s bi-directional bandwidth), while software frameworks employ sophisticated work distribution algorithms to maintain high utilization.</p>
 <p>Gather operations collect data from multiple sources. In Transformer attention with sequence length 512, each query must gather information from 512 different key-value pairs. These irregular access patterns are challenging—random gathering can be <span class="math inline">\(10\times\)</span> slower than sequential access. Hardware supports this through high-bandwidth interconnects and large caches, while software frameworks employ techniques like attention pattern pruning to reduce gathering overhead.</p>
 <p>Reduction operations combine multiple values into a single result through operations like summation. When computing attention scores in Transformers or layer outputs in MLPs, efficient reduction is essential. Hardware implements tree-structured reduction networks (reducing latency from <span class="math inline">\(O(n)\)</span> to <span class="math inline">\(O(\log n)\)</span>), while software frameworks use optimized parallel reduction algorithms that can achieve near-theoretical peak performance.</p>
