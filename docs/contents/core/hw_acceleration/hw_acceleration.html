@@ -1428,17 +1428,17 @@ Listing&nbsp;11.7: RISC-V vectorized multiply-accumulate loop
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<pre class="assembly"><code>vsetvli t0, a0, e32   # Process 8 elements at once
-loop_batch:
-    loop_neuron:
-        vxor.vv v0, v0, v0    # Clear 8 accumulators
-        loop_feature:
-            vle32.v v1, (in_ptr)    # Load 8 inputs together
-            vle32.v v2, (wt_ptr)    # Load 8 weights together
-            vfmacc.vv v0, v1, v2    # 8 multiply-adds at once
-            add in_ptr, in_ptr, 32  # Move to next 8 inputs
-            add wt_ptr, wt_ptr, 32  # Move to next 8 weights
-            bnez feature_cnt, loop_feature</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>vsetvli t0<span class="op">,</span> a0<span class="op">,</span> e32   # Process <span class="dv">8</span> elements at once</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>loop_batch<span class="op">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    loop_neuron<span class="op">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        vxor<span class="op">.</span>vv v0<span class="op">,</span> v0<span class="op">,</span> v0    # Clear <span class="dv">8</span> accumulators</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        loop_feature<span class="op">:</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>            vle32<span class="op">.</span>v v1<span class="op">,</span> <span class="op">(</span>in_ptr<span class="op">)</span>    # Load <span class="dv">8</span> inputs together</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>            vle32<span class="op">.</span>v v2<span class="op">,</span> <span class="op">(</span>wt_ptr<span class="op">)</span>    # Load <span class="dv">8</span> weights together</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            vfmacc<span class="op">.</span>vv v0<span class="op">,</span> v1<span class="op">,</span> v2    # <span class="dv">8</span> multiply<span class="op">-</span>adds at once</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>            add in_ptr<span class="op">,</span> in_ptr<span class="op">,</span> <span class="dv">32</span>  # Move to next <span class="dv">8</span> inputs</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>            add wt_ptr<span class="op">,</span> wt_ptr<span class="op">,</span> <span class="dv">32</span>  # Move to next <span class="dv">8</span> weights</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>            bnez feature_cnt<span class="op">,</span> loop_feature</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <p>This vector implementation processes eight data elements in parallel, reducing both computation time and energy consumption. Vector load instructions transfer eight values simultaneously, maximizing memory bandwidth utilization. The vector multiply-accumulate instruction processes eight pairs of values in parallel, dramatically reducing the total instruction count from over 4 million to approximately 500,000.</p>
@@ -1571,14 +1571,12 @@ Listing&nbsp;11.10: Matrix unit operation for block-wise computation in hardware
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<div class="cell">
-<pre class="assembly cell-code"><code>mload mr1, (weight_ptr)     # Load e.g., 16x16 block of
-                            # weight matrix
-mload mr2, (input_ptr)      # Load corresponding input block
-matmul.mm mr3, mr1, mr2     # Multiply and accumulate entire
-                            # blocks at once
-mstore (output_ptr), mr3    # Store computed output block</code></pre>
-</div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mload mr1<span class="op">,</span> <span class="op">(</span>weight_ptr<span class="op">)</span>     # Load e<span class="op">.</span>g<span class="op">.,</span> <span class="dv">16</span><span class="er">x16</span> block of</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                            <span class="pp"># </span><span class="er">weight matrix</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>mload mr2<span class="op">,</span> <span class="op">(</span>input_ptr<span class="op">)</span>      # Load corresponding input block</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>matmul<span class="op">.</span>mm mr3<span class="op">,</span> mr1<span class="op">,</span> mr2     # Multiply and accumulate entire</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                            <span class="pp"># </span><span class="er">blocks at once</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>mstore <span class="op">(</span>output_ptr<span class="op">),</span> mr3    # Store computed output block</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <p>This matrix processing unit can handle <span class="math inline">\(16\times16\)</span> blocks of the linear layer computation described earlier, processing 256 multiply-accumulate operations simultaneously compared to the 8 operations possible with vector processing. These matrix operations complement vectorized computation by enabling structured many-to-many transformations. The interplay between matrix and vector operations shapes the efficiency of neural network execution.</p>
@@ -1757,11 +1755,11 @@ Listing&nbsp;11.14: Hardware-accelerated non-linear vector operations
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<pre class="assembly"><code>vld.v v1, (input_ptr)    # Load vector of values
-vrelu.v v2, v1           # Single-cycle ReLU on entire vector
-vsigm.v v3, v1           # Fixed-latency sigmoid computation
-vtanh.v v4, v1           # Direct hardware tanh implementation
-vrsqrt.v v5, v1          # Fast reciprocal square root</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>vld<span class="op">.</span>v v1<span class="op">,</span> <span class="op">(</span>input_ptr<span class="op">)</span>    # Load vector of values</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>vrelu<span class="op">.</span>v v2<span class="op">,</span> v1           # Single<span class="op">-</span>cycle ReLU on entire vector</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>vsigm<span class="op">.</span>v v3<span class="op">,</span> v1           # Fixed<span class="op">-</span>latency sigmoid computation</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>vtanh<span class="op">.</span>v v4<span class="op">,</span> v1           # Direct hardware tanh implementation</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>vrsqrt<span class="op">.</span>v v5<span class="op">,</span> v1          # Fast reciprocal square root</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <p>Each SFU implements a specific function through specialized circuitry. For instance, a ReLU unit performs the comparison and selection in dedicated logic, eliminating branching overhead. Square root operations use hardware implementations of algorithms like Newton-Raphson with fixed iteration counts, providing guaranteed latency. Exponential and logarithmic functions often combine small lookup tables with hardware interpolation circuits <span class="citation" data-cites="Lauterbach2019">(<a href="../references.html#ref-Lauterbach2019" role="doc-biblioref">Costa et al. 2019</a>)</span>. Using these custom instructions, the SFU implementation eliminates multiple passes over data, removes complex arithmetic sequences, and maintains high computational efficiency. <a href="#tbl-sfu" class="quarto-xref">Table&nbsp;<span>11.4</span></a> shows the various hardware implementations and their typical latencies.</p>
@@ -1845,11 +1843,11 @@ Listing&nbsp;11.15: Vector operation implementation using ARM SVE
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<pre class="assembly"><code>ptrue p0.s              # Create predicate for vector length
-ld1w z0.s, p0/z, [x0]   # Load vector of inputs
-fmul z1.s, z0.s, z0.s   # Multiply elements
-fadd z2.s, z1.s, z0.s   # Add elements
-st1w z2.s, p0, [x1]     # Store results</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ptrue p0<span class="op">.</span>s              # Create predicate <span class="cf">for</span> vector length</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ld1w z0<span class="op">.</span>s<span class="op">,</span> p0<span class="op">/</span>z<span class="op">,</span> <span class="op">[</span>x0<span class="op">]</span>   # Load vector of inputs</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>fmul z1<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s   # Multiply elements</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>fadd z2<span class="op">.</span>s<span class="op">,</span> z1<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s   # Add elements</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>st1w z2<span class="op">.</span>s<span class="op">,</span> p0<span class="op">,</span> <span class="op">[</span>x1<span class="op">]</span>     # Store results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <p>Processor architectures continue to expand SIMD capabilities to accommodate increasing computational demands. Intel’s Advanced Matrix Extensions (AMX) and ARM’s SVE2 architecture provide flexible SIMD execution, enabling software to scale across different hardware implementations <span class="citation" data-cites="stephens2017arm">(<a href="../references.html#ref-stephens2017arm" role="doc-biblioref">Stephens et al. 2017</a>)</span>.</p>
@@ -1898,15 +1896,13 @@ Listing&nbsp;11.17: Tensor Core operation on NVIDIA A100 GPU
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<div class="cell">
-<pre class="text cell-code"><code>
-Tensor Core Operation (NVIDIA A100):
-mma.sync.aligned.m16n16k16.f16.f16
-  {d0,d1,d2,d3},     // Destination registers
-  {a0,a1,a2,a3},     // Source matrix A
-  {b0,b1,b2,b3},     // Source matrix B
-  {c0,c1,c2,c3}      // Accumulator</code></pre>
-</div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>Tensor Core Operation <span class="op">(</span>NVIDIA A100<span class="op">):</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>mma<span class="op">.</span>sync<span class="op">.</span>aligned<span class="op">.</span>m16n16k16<span class="op">.</span>f16<span class="op">.</span>f16</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>d0<span class="op">,</span>d1<span class="op">,</span>d2<span class="op">,</span>d3<span class="op">},</span>     <span class="co">// Destination registers</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>a0<span class="op">,</span>a1<span class="op">,</span>a2<span class="op">,</span>a3<span class="op">},</span>     <span class="co">// Source matrix A</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>b0<span class="op">,</span>b1<span class="op">,</span>b2<span class="op">,</span>b3<span class="op">},</span>     <span class="co">// Source matrix B</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>c0<span class="op">,</span>c1<span class="op">,</span>c2<span class="op">,</span>c3<span class="op">}</span>      <span class="co">// Accumulator</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <p>A single tensor core instruction processes an entire matrix block while maintaining intermediate results in local registers, significantly improving computational efficiency compared to implementations based on scalar or vector operations. This structured approach enables hardware to achieve high throughput while reducing the burden of explicit loop unrolling and data management at the software level.</p>
