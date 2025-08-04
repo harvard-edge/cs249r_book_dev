@@ -92,7 +92,7 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-4a990d8dcb58f517c7c86712b8f2ac7c.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-99be8780ff6e71109135f2f4094e89b8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-d46705ecab2af7a798e23204a0b37845.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -139,29 +139,33 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   });
 </script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-M21L0CBCVN"></script><script type="module" src="../../../tools/scripts/ai_menu/dist/bundle.js" defer=""></script><script type="module" src="../../../tools/scripts/ai_menu/dist/sqlite3-opfs-async-proxy-B_ImRJXp.js"></script><script type="module" src="../../../tools/scripts/ai_menu/dist/sqlite3-worker1-bundler-friendly-CbDNa4by.js"></script><script type="module" src="../../../tools/scripts/ai_menu/dist/worker-voUF5YDa.js"></script><script src="../../../assets/scripts/sidebar-auto-collapse.js" defer=""></script><style>
+.callout-quiz-question {
+  --color1: #E6F4F7;
+  --color2: #119EC7;
+}
 .callout-chapter-connection {
   --color1: #FDF2F7;
   --color2: #ED3237;
+}
+.callout-code {
+  --color1: #E1F3F8;
+  --color2: #119EC7;
 }
 .callout-quiz-answer {
   --color1: #E8F2EA;
   --color2: #4a7c59;
 }
+.callout-resource-videos {
+  --color1: #f9f5f0;
+  --color2: #8b5e3c;
+}
 .callout-resource-slides {
   --color1: #E9F3E3;
   --color2: #55984D;
 }
-.callout-quiz-question {
-  --color1: #E6F4F7;
-  --color2: #119EC7;
-}
 .callout-resource-exercises {
   --color1: #f7f0fa;
   --color2: #815AA4;
-}
-.callout-resource-videos {
-  --color1: #f9f5f0;
-  --color2: #8b5e3c;
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
@@ -1081,7 +1085,7 @@ Patterson, David A., and John L. Hennessy. 2021. <em>Computer Organization and D
 </ol>
 <p>This progression from domain-specific specialization to general-purpose integration has played a central role in shaping modern computing architectures. As computational workloads expanded beyond arithmetic operations, these same fundamental principles were applied to new domains, such as graphics processing, digital signal processing, and ultimately, machine learning acceleration. Each of these domains introduced specialized architectures tailored to their unique computational requirements, establishing hardware specialization as a cornerstone strategy for advancing computing performance and efficiency in increasingly complex workloads.</p>
 <p>The evolution of specialized computing hardware follows a consistent trajectory, wherein architectural innovations are introduced to mitigate emerging computational bottlenecks and are eventually incorporated into mainstream computing platforms. As illustrated in <a href="#fig-timeline" class="quarto-xref">Figure&nbsp;1</a>, each computing era gave rise to accelerators that addressed the dominant workload characteristics of the time. These developments have not only advanced architectural efficiency but have also shaped the foundation upon which contemporary machine learning systems are built. The computational capabilities required for tasks such as real-time language translation, personalized recommendations, and on-device inference rely on the foundational principles and architectural innovations established in earlier domains, including floating-point computation, graphics processing, and digital signal processing.</p>
-<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="284c5b21bbcb3bac7a47ffbf3fc71aecca5b7daa.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Hardware Specialization Trajectory: Computing architectures progressively incorporate specialized accelerators to address emerging performance bottlenecks and workload demands, mirroring a historical pattern from floating-point units to graphics processors and, ultimately, machine learning accelerators. This evolution reflects a fundamental strategy for improving computational efficiency by tailoring hardware to specific task characteristics and enabling the advancement of increasingly complex applications."><img src="hw_acceleration_files/mediabag/284c5b21bbcb3bac7a47ffbf3fc71aecca5b7daa.svg" class="img-fluid figure-img"></a>
 </div>
@@ -1270,45 +1274,29 @@ Application-optimized designs
 <p>Modern neural networks are built upon a small number of core computational patterns. Regardless of the layer type, whether fully connected, convolutional, or attention-based, the underlying operation typically involves multiplying input values by learned weights and accumulating the results. This repeated multiply-accumulate process dominates neural network execution and defines the arithmetic foundation of AI workloads. The regularity and frequency of these operations have led to the development of AI compute primitive*: hardware-level abstractions optimized to execute these core computations with high efficiency.</p>
 <p>Unlike traditional software applications, which often involve irregular control flow and diverse instruction types, neural networks exhibit highly structured, data-parallel computations applied across large arrays. This characteristic enables architectural simplifications and optimizations, where hardware is tailored to the consistent patterns in AI execution. These patterns emphasize parallelism, predictable data reuse, and fixed operation sequences—making them ideal candidates for specialized accelerator design. AI compute primitives distill these patterns into reusable architectural units that support high-throughput and energy-efficient execution.</p>
 <p>This decomposition is illustrated in <a href="#lst-dense_layer_def" class="quarto-xref">Listing&nbsp;1</a>, which defines a dense layer at the framework level.</p>
-<div id="lst-dense_layer_def" class="callout callout-style-default callout-important callout-titled" title="**Dense Layer Definition**: Defines a dense layer using a high-level API, illustrating how neural networks implement parallel transformations across input tensors.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-dense_layer_def" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-dense_layer_def-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;1: <strong>Dense Layer Definition</strong>: Defines a dense layer using a high-level API, illustrating how neural networks implement parallel transformations across input tensors.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-dense_layer_def-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dense <span class="op">=</span> Dense(<span class="dv">512</span>)(input_tensor)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This high-level call expands into mathematical operations is shown in <a href="#lst-dense_expansion" class="quarto-xref">Listing&nbsp;2</a>.</p>
-<div id="lst-dense_expansion" class="callout callout-style-default callout-important callout-titled" title="**Layer Computation**: Neural networks compute each layer's output via weighted input summation followed by an activation function transformation.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-dense_expansion" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-dense_expansion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;2: <strong>Layer Computation</strong>: Neural networks compute each layer’s output via weighted input summation followed by an activation function transformation.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-dense_expansion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> matmul(input_weights) <span class="op">+</span> bias</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> activation(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>At the processor level, the computation reduces to nested loops that multiply inputs and weights, sum the results, and apply a nonlinear function, as shown in <a href="#lst-loop_level_dense" class="quarto-xref">Listing&nbsp;3</a>.</p>
-<div id="lst-loop_level_dense" class="callout callout-style-default callout-important callout-titled" title="**Nested Loops**: Computes output values through sequential matrix multiplications and bias additions, followed by activation function application to produce final outputs.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-loop_level_dense" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-loop_level_dense-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;3: <strong>Nested Loops</strong>: Computes output values through sequential matrix multiplications and bias additions, followed by activation function application to produce final outputs.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-loop_level_dense-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> n <span class="kw">in</span> <span class="bu">range</span>(batch_size):</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> m <span class="kw">in</span> <span class="bu">range</span>(output_size):</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">sum</span> <span class="op">=</span> bias[m]</span>
@@ -1316,6 +1304,7 @@ Listing&nbsp;3: <strong>Nested Loops</strong>: Computes output values through se
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>            <span class="bu">sum</span> <span class="op">+=</span> <span class="bu">input</span>[n,k] <span class="op">*</span> weights[k,m]</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        output[n,m] <span class="op">=</span> activation(<span class="bu">sum</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This transformation, from framework-level abstraction to processor-level implementation, reveals four essential computational characteristics. First, data-level parallelism enables simultaneous execution across inputs. Second, structured matrix operations define the computational workload and guide the need for dedicated datapaths. Third, predictable data movement patterns drive memory system design to minimize latency and maximize reuse. Fourth, frequent nonlinear transformations motivate hardware support for activation and normalization functions.</p>
 <p>The design of AI compute primitives is guided by three architectural criteria. First, the primitive must be used frequently enough to justify dedicated hardware resources. Second, its specialized implementation must offer substantial performance or energy efficiency gains relative to general-purpose alternatives. Third, the primitive must remain stable across generations of neural network architectures to ensure long-term applicability. These considerations shape the inclusion of primitives such as vector operations, matrix operations, and special function units in modern ML accelerators. Together, they serve as the architectural foundation for efficient and scalable neural network execution.</p>
@@ -1323,48 +1312,31 @@ Listing&nbsp;3: <strong>Nested Loops</strong>: Computes output values through se
 <p>Vector operations provide the first level of hardware acceleration by processing multiple data elements simultaneously. This parallelism exists at multiple scales, from individual neurons to entire layers, making vector processing essential for efficient neural network execution. By examining how framework-level code translates to hardware instructions, we can understand the critical role of vector processing in neural accelerators.</p>
 <section id="sec-ai-acceleration-frameworkhardware-execution-23df" class="level4"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-frameworkhardware-execution-23df">Framework-Hardware Execution</h4>
 <p>Machine learning frameworks hide hardware complexity through high-level abstractions. These abstractions decompose into progressively lower-level operations, revealing opportunities for hardware acceleration. One such abstraction is shown in <a href="#lst-linear_layer_highlevel" class="quarto-xref">Listing&nbsp;4</a>, which illustrates the execution flow of a linear layer.</p>
-<div id="lst-linear_layer_highlevel" class="callout callout-style-default callout-important callout-titled" title="**Linear Layer**: Neural networks transform input data into a higher-dimensional space using linear mappings to enable complex feature extraction.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-linear_layer_highlevel" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-linear_layer_highlevel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;4: <strong>Linear Layer</strong>: Neural networks transform input data into a higher-dimensional space using linear mappings to enable complex feature extraction.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-linear_layer_highlevel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>layer <span class="op">=</span> nn.Linear(<span class="dv">256</span>, <span class="dv">512</span>)  <span class="co"># 256 inputs to</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                             <span class="co"># 512 outputs</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> layer(input_tensor) <span class="co"># Process a batch of inputs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This abstraction represents a fully connected layer that transforms input features through learned weights. As shown in <a href="#lst-linear_math_internal" class="quarto-xref">Listing&nbsp;5</a> the framework translates this high-level expression into mathematical operations.</p>
-<div id="lst-linear_math_internal" class="callout callout-style-default callout-important callout-titled" title="**Fully Connected Layer**: Each output is computed as a weighted sum of all inputs plus a bias, followed by an activation function transformation. Linear transformations enable complex model architectures in neural networks. Through this">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-linear_math_internal" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-linear_math_internal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;5: <strong>Fully Connected Layer</strong>: Each output is computed as a weighted sum of all inputs plus a bias, followed by an activation function transformation. Linear transformations enable complex model architectures in neural networks. Through this
+</figcaption><div aria-describedby="lst-linear_math_internal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> matmul(weights, <span class="bu">input</span>) <span class="op">+</span> bias <span class="co"># Each output needs all inputs</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> activation(Z)            <span class="co"># Transform each result</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<div class="callout-body-container callout-body">
-<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> matmul(weights, <span class="bu">input</span>) <span class="op">+</span> bias <span class="co"># Each output needs all inputs</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> activation(Z)            <span class="co"># Transform each result</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+</figure>
 </div>
 <p>These mathematical operations decompose into explicit computational steps during processor execution. See <a href="#lst-loop_linear_layer" class="quarto-xref">Listing&nbsp;6</a> for an illustration of these multiply-accumulate operations.</p>
-<div id="lst-loop_linear_layer" class="callout callout-style-default callout-important callout-titled" title="**Linear Layer Computation**: Each output neuron is computed by summing weighted inputs from all features, followed by an activation function application through This code. Understanding this process helps in grasping the fundamental building blocks of neural networks.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-loop_linear_layer" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-loop_linear_layer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;6: <strong>Linear Layer Computation</strong>: Each output neuron is computed by summing weighted inputs from all features, followed by an activation function application through This code. Understanding this process helps in grasping the fundamental building blocks of neural networks.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-loop_linear_layer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> batch <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):            <span class="co"># Process 32 samples at once</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> out_neuron <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">512</span>):  <span class="co"># Compute each output neuron</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">sum</span> <span class="op">=</span> <span class="fl">0.0</span></span>
@@ -1375,21 +1347,16 @@ Listing&nbsp;6: <strong>Linear Layer Computation</strong>: Each output neuron is
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        output[batch, out_neuron] <span class="op">=</span> activation(<span class="bu">sum</span> <span class="op">+</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                                    bias[out_neuron])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 </section><section id="sec-ai-acceleration-sequential-scalar-execution-0395" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-sequential-scalar-execution-0395">Sequential Scalar Execution</h4>
 <p>Traditional scalar processors<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> execute these operations sequentially, processing individual values one at a time. For the linear layer example above with a batch of 32 samples, computing the outputs requires over 4 million multiply-accumulate operations. Each operation involves loading an input value and a weight value, multiplying them, and accumulating the result. This sequential approach becomes highly inefficient when processing the massive number of identical operations required by neural networks.</p>
 <div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Scalar Processor</strong>: A scalar processor handles one data element per cycle, executing operations sequentially rather than in parallel.</p></div></div></section><section id="sec-ai-acceleration-parallel-vector-execution-9a78" class="level4"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-parallel-vector-execution-9a78">Parallel Vector Execution</h4>
 <p>Vector processing units transform this execution pattern by operating on multiple data elements simultaneously. As shown in <a href="#lst-riscv_vector_mac" class="quarto-xref">Listing&nbsp;7</a>, the RISC-V assembly code demonstrates modern vector processing.</p>
-<div id="lst-riscv_vector_mac" class="callout callout-style-default callout-important callout-titled" title="**Vectorized Multiply-Accumulate Loop**: This loop showcases how RISC-V vector instructions enable efficient batch processing by performing 8 multiply-add operations simultaneously, reducing computational latency in neural network training. *Source: RISC-V Architecture Manual*">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-riscv_vector_mac" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-riscv_vector_mac-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;7: <strong>Vectorized Multiply-Accumulate Loop</strong>: This loop showcases how RISC-V vector instructions enable efficient batch processing by performing 8 multiply-add operations simultaneously, reducing computational latency in neural network training. <em>Source: RISC-V Architecture Manual</em>
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-riscv_vector_mac-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb7"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>vsetvli t0<span class="op">,</span> a0<span class="op">,</span> e32   # Process <span class="dv">8</span> elements at once</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>loop_batch<span class="op">:</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    loop_neuron<span class="op">:</span></span>
@@ -1402,6 +1369,7 @@ Listing&nbsp;7: <strong>Vectorized Multiply-Accumulate Loop</strong>: This loop 
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            add wt_ptr<span class="op">,</span> wt_ptr<span class="op">,</span> <span class="dv">32</span>  # Move to next <span class="dv">8</span> weights</span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            bnez feature_cnt<span class="op">,</span> loop_feature</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This vector implementation processes eight data elements in parallel, reducing both computation time and energy consumption. Vector load instructions transfer eight values simultaneously, maximizing memory bandwidth utilization. The vector multiply-accumulate instruction processes eight pairs of values in parallel, dramatically reducing the total instruction count from over 4 million to approximately 500,000.</p>
 <p>To clarify how vector instructions map to common deep learning patterns, <a href="#tbl-vector" class="quarto-xref">Table&nbsp;2</a> introduces key vector operations and their typical applications in neural network computation. These operations, such as reduction, gather, scatter, and masked operations, are frequently encountered in layers like pooling, embedding lookups, and attention mechanisms. Understanding this terminology is essential for interpreting how low-level vector hardware accelerates high-level machine learning workloads.</p>
@@ -1464,16 +1432,10 @@ Jordan, T. L. 1982. <span>“A Guide to Parallel Computation and Some Cray-1 Exp
 Goodfellow, Ian J., Aaron Courville, and Yoshua Bengio. 2013a. <span>“Scaling up Spike-and-Slab Models for Unsupervised Feature Learning.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 35 (8): 1902–14. <a href="https://doi.org/10.1109/tpami.2012.273">https://doi.org/10.1109/tpami.2012.273</a>.
 </div></div><section id="sec-ai-acceleration-matrix-operations-nns-349b" class="level4"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-matrix-operations-nns-349b">Matrix Operations in NNs</h4>
 <p>Neural network computations decompose into hierarchical matrix operations. As shown in <a href="#lst-linear_matrix_hierarchy" class="quarto-xref">Listing&nbsp;8</a>, a linear layer demonstrates this hierarchy by transforming input features into output neurons over a batch.</p>
-<div id="lst-linear_matrix_hierarchy" class="callout callout-style-default callout-important callout-titled" title="**Matrix Operations**: Neural networks perform transformations using matrix multiplications and biases to achieve output predictions. Training requires careful management of input batches and activation functions to optimize model performance.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-linear_matrix_hierarchy" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-linear_matrix_hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;8: <strong>Matrix Operations</strong>: Neural networks perform transformations using matrix multiplications and biases to achieve output predictions. Training requires careful management of input batches and activation functions to optimize model performance.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-linear_matrix_hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>layer <span class="op">=</span> nn.Linear(<span class="dv">256</span>, <span class="dv">512</span>)  <span class="co"># Layer transforms 256 inputs to</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                             <span class="co"># 512 outputs</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> layer(input_batch)  <span class="co"># Process a batch of 32 samples</span></span>
@@ -1486,20 +1448,15 @@ Listing&nbsp;8: <strong>Matrix Operations</strong>: Neural networks perform tran
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> relu(Z)             <span class="co"># Vector: applies activation to</span></span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                             <span class="co"># each element independently</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This computation demonstrates the inherent scale of matrix operations in neural networks. Each output neuron (512 total) must process all input features (256 total) for every sample in the batch (32 samples). The weight matrix alone contains <span class="math inline">\(256 \times 512 = 131,072\)</span> parameters that define these transformations, illustrating why efficient matrix multiplication becomes crucial for performance.</p>
 </section><section id="sec-ai-acceleration-matrix-computation-types-nns-f9a8" class="level4"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-matrix-computation-types-nns-f9a8">Matrix Computation Types in NNs</h4>
 <p>Matrix operations appear consistently across modern neural architectures, as illustrated in <a href="#lst-matrix_patterns" class="quarto-xref">Listing&nbsp;9</a>.</p>
-<div id="lst-matrix_patterns" class="callout callout-style-default callout-important callout-titled" title="**Linear Layers**: Layer transformations combine input features to produce hidden representations. Matrix operations in neural networks enable efficient feature extraction and transformation, forming the backbone of many machine learning architectures.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-matrix_patterns" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-matrix_patterns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;9: <strong>Linear Layers</strong>: Layer transformations combine input features to produce hidden representations. Matrix operations in neural networks enable efficient feature extraction and transformation, forming the backbone of many machine learning architectures.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-matrix_patterns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>hidden <span class="op">=</span> matmul(weights, inputs)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># weights: [out_dim x in_dim], inputs: [in_dim x batch]</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Result combines all inputs for each output</span></span>
@@ -1518,20 +1475,15 @@ Listing&nbsp;9: <strong>Linear Layers</strong>: Layer transformations combine in
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> matmul(kernel, patches)</span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply kernels to all patches simultaneously</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This pervasive pattern of matrix multiplication has direct implications for hardware design. The need for efficient matrix operations drives the development of specialized hardware architectures that can handle these computations at scale. The following sections explore how modern AI accelerators implement matrix operations, focusing on their architectural features and performance optimizations.</p>
 </section><section id="sec-ai-acceleration-matrix-operations-hardware-acceleration-f710" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-matrix-operations-hardware-acceleration-f710">Matrix Operations Hardware Acceleration</h4>
 <p>The computational demands of matrix operations have driven specialized hardware optimizations. Modern processors implement dedicated matrix units that extend beyond vector processing capabilities. An example of such matrix acceleration is shown in <a href="#lst-matrix_unit" class="quarto-xref">Listing&nbsp;10</a>.</p>
-<div id="lst-matrix_unit" class="callout callout-style-default callout-important callout-titled" title="**Matrix Unit Operation**: Enables efficient block-wise matrix multiplication and accumulation in hardware-accelerated systems, showcasing how specialized units streamline computational tasks essential for AI/ML operations.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-matrix_unit" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-matrix_unit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;10: <strong>Matrix Unit Operation</strong>: Enables efficient block-wise matrix multiplication and accumulation in hardware-accelerated systems, showcasing how specialized units streamline computational tasks essential for AI/ML operations.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-matrix_unit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb10"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mload mr1<span class="op">,</span> <span class="op">(</span>weight_ptr<span class="op">)</span>     # Load e<span class="op">.</span>g<span class="op">.,</span> <span class="dv">16</span><span class="er">x16</span> block of</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                            <span class="pp"># </span><span class="er">weight matrix</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>mload mr2<span class="op">,</span> <span class="op">(</span>input_ptr<span class="op">)</span>      # Load corresponding input block</span>
@@ -1539,6 +1491,7 @@ Listing&nbsp;10: <strong>Matrix Unit Operation</strong>: Enables efficient block
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                            <span class="pp"># </span><span class="er">blocks at once</span></span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>mstore <span class="op">(</span>output_ptr<span class="op">),</span> mr3    # Store computed output block</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This matrix processing unit can handle <span class="math inline">\(16\times16\)</span> blocks of the linear layer computation described earlier, processing 256 multiply-accumulate operations simultaneously compared to the 8 operations possible with vector processing. These matrix operations complement vectorized computation by enabling structured many-to-many transformations. The interplay between matrix and vector operations shapes the efficiency of neural network execution.</p>
 <div id="tbl-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1612,16 +1565,10 @@ Owens, J. D., M. Houston, D. Luebke, S. Green, J. E. Stone, and J. C. Phillips. 
 <p>Non-linear functions play a fundamental role in machine learning by enabling neural networks to model complex relationships <span class="citation" data-cites="Goodfellow2016">(<a href="#ref-Goodfellow2016" role="doc-biblioref">Goodfellow, Courville, and Bengio 2013b</a>)</span>. <a href="#lst-nonlinear_layer" class="quarto-xref">Listing&nbsp;11</a> illustrates a typical neural network layer sequence.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-Goodfellow2016" class="csl-entry" role="listitem">
 ———. 2013b. <span>“Scaling up Spike-and-Slab Models for Unsupervised Feature Learning.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 35 (8): 1902–14. <a href="https://doi.org/10.1109/tpami.2012.273">https://doi.org/10.1109/tpami.2012.273</a>.
-</div></div><div id="lst-nonlinear_layer" class="callout callout-style-default callout-important callout-titled" title="**Non-Linear Transformations**: Neural networks process input data through a sequence of linear transformations followed by non-linear activations to capture complex patterns. This layer sequence enhances model expressiveness and learning capabilities.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+</div></div><div id="lst-nonlinear_layer" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-nonlinear_layer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;11: <strong>Non-Linear Transformations</strong>: Neural networks process input data through a sequence of linear transformations followed by non-linear activations to capture complex patterns. This layer sequence enhances model expressiveness and learning capabilities.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-nonlinear_layer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>layer <span class="op">=</span> nn.Sequential(</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    nn.Linear(<span class="dv">256</span>, <span class="dv">512</span>),</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    nn.ReLU(),</span>
@@ -1629,18 +1576,13 @@ Listing&nbsp;11: <strong>Non-Linear Transformations</strong>: Neural networks pr
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> layer(input_tensor)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This sequence introduces multiple non-linear transformations. As shown in <a href="#lst-nonlinear_math" class="quarto-xref">Listing&nbsp;12</a>, the framework decomposes it into mathematical operations.</p>
-<div id="lst-nonlinear_math" class="callout callout-style-default callout-important callout-titled" title="**Non-linear Transformations**: Neural networks apply linear and non-linear operations to transform input data into meaningful features for learning. Machine learning models leverage these transformations to capture complex patterns in data efficiently.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-nonlinear_math" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-nonlinear_math-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;12: <strong>Non-linear Transformations</strong>: Neural networks apply linear and non-linear operations to transform input data into meaningful features for learning. Machine learning models leverage these transformations to capture complex patterns in data efficiently.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-nonlinear_math-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> matmul(weights, <span class="bu">input</span>) <span class="op">+</span> bias    <span class="co"># Linear transformation</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, Z)                        <span class="co"># ReLU activation</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> reduce_mean(H, axis<span class="op">=</span><span class="dv">0</span>)        <span class="co"># BatchNorm statistics</span></span>
@@ -1648,21 +1590,16 @@ Listing&nbsp;12: <strong>Non-linear Transformations</strong>: Neural networks ap
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> gamma <span class="op">*</span> (H <span class="op">-</span> mean)<span class="op">/</span>sqrt(var <span class="op">+</span> eps) <span class="op">+</span> beta</span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="co"># Normalization</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 </section><section id="sec-ai-acceleration-nonlinear-functions-implementation-7449" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-nonlinear-functions-implementation-7449">Non-Linear Functions Implementation</h4>
 <p>On traditional processors, these seemingly simple mathematical operations translate into complex sequences of instructions. Consider the computation of batch normalization: calculating the square root requires multiple iterations of numerical approximation, while exponential functions in operations like softmax need series expansion or lookup tables <span class="citation" data-cites="Ioffe2015">(<a href="#ref-Ioffe2015" role="doc-biblioref">Ioffe and Szegedy 2015</a>)</span>. Even a simple ReLU activation introduces branching logic that can disrupt instruction pipelining—see <a href="#lst-traditional_overhead" class="quarto-xref">Listing&nbsp;13</a> for an example.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-Ioffe2015" class="csl-entry" role="listitem">
 Ioffe, Sergey, and Christian Szegedy. 2015. <span>“Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift.”</span> <em>International Conference on Machine Learning (ICML)</em>, February, 448–56. <a href="http://arxiv.org/abs/1502.03167v3">http://arxiv.org/abs/1502.03167v3</a>.
-</div></div><div id="lst-traditional_overhead" class="callout callout-style-default callout-important callout-titled" title="**ReLU and BatchNorm Operations**: Neural networks process input data through conditional operations that can disrupt instruction pipelining and multiple passes required for normalization, highlighting efficiency challenges in traditional implementations. Source: IEEE Spectrum">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+</div></div><div id="lst-traditional_overhead" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-traditional_overhead-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;13: <strong>ReLU and BatchNorm Operations</strong>: Neural networks process input data through conditional operations that can disrupt instruction pipelining and multiple passes required for normalization, highlighting efficiency challenges in traditional implementations. Source: IEEE Spectrum
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-traditional_overhead-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> batch <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> feature <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">512</span>):</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>       <span class="co"># ReLU: Requires branch prediction and potential</span></span>
@@ -1691,6 +1628,7 @@ Listing&nbsp;13: <strong>ReLU and BatchNorm Operations</strong>: Neural networks
 <span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        output[batch, feature] <span class="op">=</span> temp[batch, feature] <span class="op">*</span></span>
 <span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>                                 scale <span class="op">+</span> shift</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>These operations introduce several key inefficiencies:</p>
 <ol type="1">
@@ -1705,22 +1643,17 @@ Listing&nbsp;13: <strong>ReLU and BatchNorm Operations</strong>: Neural networks
 Goldberg, David. 1991. <span>“What Every Computer Scientist Should Know about Floating-Point Arithmetic.”</span> <em>ACM Computing Surveys</em> 23 (1): 5–48. <a href="https://doi.org/10.1145/103162.103163">https://doi.org/10.1145/103162.103163</a>.
 </div></div></section><section id="sec-ai-acceleration-hardware-acceleration-bfe4" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-hardware-acceleration-bfe4">Hardware Acceleration</h4>
 <p>SFUs address these inefficiencies through dedicated hardware implementation. Modern ML accelerators include specialized circuits that transform these complex operations into single-cycle or fixed-latency computations. The accelerator can load a vector of values and apply non-linear functions directly, eliminating the need for multiple passes and complex instruction sequences as shown in <a href="#lst-sfu_vector_ops" class="quarto-xref">Listing&nbsp;14</a>.</p>
-<div id="lst-sfu_vector_ops" class="callout callout-style-default callout-important callout-titled" title="**Hardware Acceleration**: Single-cycle non-linear operations enable efficient vector processing in ML accelerators, showcasing how specialized hardware reduces computational latency.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-sfu_vector_ops" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-sfu_vector_ops-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;14: <strong>Hardware Acceleration</strong>: Single-cycle non-linear operations enable efficient vector processing in ML accelerators, showcasing how specialized hardware reduces computational latency.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-sfu_vector_ops-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb14"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>vld<span class="op">.</span>v v1<span class="op">,</span> <span class="op">(</span>input_ptr<span class="op">)</span>    # Load vector of values</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>vrelu<span class="op">.</span>v v2<span class="op">,</span> v1           # Single<span class="op">-</span>cycle ReLU on entire vector</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>vsigm<span class="op">.</span>v v3<span class="op">,</span> v1           # Fixed<span class="op">-</span>latency sigmoid computation</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>vtanh<span class="op">.</span>v v4<span class="op">,</span> v1           # Direct hardware tanh implementation</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>vrsqrt<span class="op">.</span>v v5<span class="op">,</span> v1          # Fast reciprocal square root</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>Each SFU implements a specific function through specialized circuitry. For instance, a ReLU unit performs the comparison and selection in dedicated logic, eliminating branching overhead. Square root operations use hardware implementations of algorithms like Newton-Raphson with fixed iteration counts, providing guaranteed latency. Exponential and logarithmic functions often combine small lookup tables with hardware interpolation circuits <span class="citation" data-cites="Lauterbach2019">(<a href="#ref-Lauterbach2019" role="doc-biblioref">Costa et al. 2019</a>)</span>. Using these custom instructions, the SFU implementation eliminates multiple passes over data, removes complex arithmetic sequences, and maintains high computational efficiency. <a href="#tbl-sfu" class="quarto-xref">Table&nbsp;4</a> shows the various hardware implementations and their typical latencies.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-Lauterbach2019" class="csl-entry" role="listitem">
@@ -1792,22 +1725,17 @@ Palmer, John F. 1980. <span>“The INTEL 8087 Numeric Data Processor.”</span> 
 <p>Each execution unit combines these computational primitives with specialized memory and control mechanisms, optimizing both performance and energy efficiency. This structured packaging allows hardware vendors to expose standardized programming interfaces while implementing diverse underlying architectures tailored to specific workload requirements. The choice of execution unit significantly influences overall system efficiency, affecting data locality, compute density, and workload adaptability. Subsequent sections examine how these execution units operate within AI accelerators to maximize performance across different machine learning tasks.</p>
 </section><section id="sec-ai-acceleration-simd-simt-transition-396f" class="level4 page-columns page-full"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-simd-simt-transition-396f">SIMD to SIMT Transition</h4>
 <p>Single Instruction Multiple Data (SIMD) execution applies identical operations to multiple data elements in parallel, minimizing instruction overhead while maximizing data throughput. This execution model is widely used to accelerate workloads with regular, independent data parallelism, such as neural network computations. The ARM Scalable Vector Extension (SVE) provides a representative example of how modern architectures implement SIMD operations efficiently, as illustrated in <a href="#lst-arm_sve_vector" class="quarto-xref">Listing&nbsp;15</a>.</p>
-<div id="lst-arm_sve_vector" class="callout callout-style-default callout-important callout-titled" title="**Vector Operation**: Vector multiplication and addition operations enable efficient parallel processing in machine learning models. *Source: ARM Documentation*">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-arm_sve_vector" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-arm_sve_vector-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;15: <strong>Vector Operation</strong>: Vector multiplication and addition operations enable efficient parallel processing in machine learning models. <em>Source: ARM Documentation</em>
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-arm_sve_vector-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb15"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>ptrue p0<span class="op">.</span>s              # Create predicate <span class="cf">for</span> vector length</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>ld1w z0<span class="op">.</span>s<span class="op">,</span> p0<span class="op">/</span>z<span class="op">,</span> <span class="op">[</span>x0<span class="op">]</span>   # Load vector of inputs</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>fmul z1<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s   # Multiply elements</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>fadd z2<span class="op">.</span>s<span class="op">,</span> z1<span class="op">.</span>s<span class="op">,</span> z0<span class="op">.</span>s   # Add elements</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>st1w z2<span class="op">.</span>s<span class="op">,</span> p0<span class="op">,</span> <span class="op">[</span>x1<span class="op">]</span>     # Store results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>Processor architectures continue to expand SIMD capabilities to accommodate increasing computational demands. Intel’s Advanced Matrix Extensions (AMX) and ARM’s SVE2 architecture provide flexible SIMD execution, enabling software to scale across different hardware implementations <span class="citation" data-cites="stephens2017arm">(<a href="#ref-stephens2017arm" role="doc-biblioref">Stephens et al. 2017</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-stephens2017arm" class="csl-entry" role="listitem">
@@ -1815,16 +1743,10 @@ Stephens, Nigel, Stuart Biles, Matthias Boettcher, Jacob Eapen, Mbou Eyole, Giac
 </div><div id="ref-lindholm2008nvidia" class="csl-entry" role="listitem">
 Lindholm, Erik, John Nickolls, Stuart Oberman, and John Montrym. 2008. <span>“NVIDIA Tesla: A Unified Graphics and Computing Architecture.”</span> <em>IEEE Micro</em> 28 (2): 39–55. <a href="https://doi.org/10.1109/mm.2008.31">https://doi.org/10.1109/mm.2008.31</a>.
 </div></div><p>To address these limitations, SIMT extends SIMD principles by enabling parallel execution across multiple independent threads, each maintaining its own program counter and architectural state <span class="citation" data-cites="lindholm2008nvidia">(<a href="#ref-lindholm2008nvidia" role="doc-biblioref">Lindholm et al. 2008</a>)</span>. This model maps naturally to matrix computations, where each thread processes different portions of a workload while still benefiting from shared instruction execution. In NVIDIA’s GPU architectures, each Streaming Multiprocessor (SM) coordinates thousands of threads executing in parallel, allowing for efficient scaling of neural network computations, as demonstrated in <a href="#lst-cuda_simt" class="quarto-xref">Listing&nbsp;16</a>.</p>
-<div id="lst-cuda_simt" class="callout callout-style-default callout-important callout-titled" title="**SIMT Execution**: Each thread processes a unique output element in parallel, demonstrating how SIMT enables efficient matrix multiplication on GPUs.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-cuda_simt" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-cuda_simt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;16: <strong>SIMT Execution</strong>: Each thread processes a unique output element in parallel, demonstrating how SIMT enables efficient matrix multiplication on GPUs.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-cuda_simt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb16"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#</span><span class="er">| eval: false</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>__global__ <span class="dt">void</span> matrix_multiply<span class="op">(</span><span class="dt">float</span><span class="op">*</span> C<span class="op">,</span> <span class="dt">float</span><span class="op">*</span> A<span class="op">,</span> <span class="dt">float</span><span class="op">*</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                                B<span class="op">,</span> <span class="dt">int</span> N<span class="op">)</span> <span class="op">{</span></span>
@@ -1840,21 +1762,16 @@ Listing&nbsp;16: <strong>SIMT Execution</strong>: Each thread processes a unique
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    C<span class="op">[</span>row <span class="op">*</span> N <span class="op">+</span> col<span class="op">]</span> <span class="op">=</span> sum<span class="op">;</span></span>
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>SIMT execution allows neural network computations to scale efficiently across thousands of threads while maintaining flexibility for divergent execution paths. Similar execution models appear in AMD’s RDNA and Intel’s Xe architectures, reinforcing SIMT as a fundamental mechanism for AI acceleration.</p>
 </section><section id="sec-ai-acceleration-tensor-cores-3af8" class="level4"><h4 class="anchored" data-anchor-id="sec-ai-acceleration-tensor-cores-3af8">Tensor Cores</h4>
 <p>While SIMD and SIMT units provide efficient execution of vector operations, neural networks rely heavily on matrix computations that require specialized execution units for structured multi-dimensional processing. Tensor processing units extend SIMD and SIMT principles by enabling efficient matrix operations through dedicated hardware blocks. These units execute matrix multiplications and accumulations on entire matrix blocks in a single operation, reducing instruction overhead and optimizing data movement.</p>
 <p>Tensor cores, implemented in architectures such as NVIDIA’s Ampere GPUs, provide an example of this approach. They expose matrix computation capabilities through specialized instructions, such as the tensor core operation shown in <a href="#lst-tensor_core_op" class="quarto-xref">Listing&nbsp;17</a> on the NVIDIA A100 GPU.</p>
-<div id="lst-tensor_core_op" class="callout callout-style-default callout-important callout-titled" title="**Tensor Core Operation**: Matrix multiplications are performed in parallel across entire matrix blocks, optimizing computational efficiency for neural network training.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-tensor_core_op" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-tensor_core_op-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;17: <strong>Tensor Core Operation</strong>: Matrix multiplications are performed in parallel across entire matrix blocks, optimizing computational efficiency for neural network training.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-tensor_core_op-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb17"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Tensor Core Operation <span class="op">(</span>NVIDIA A100<span class="op">):</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>mma<span class="op">.</span>sync<span class="op">.</span>aligned<span class="op">.</span>m16n16k16<span class="op">.</span>f16<span class="op">.</span>f16</span>
@@ -1863,6 +1780,7 @@ Listing&nbsp;17: <strong>Tensor Core Operation</strong>: Matrix multiplications 
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>b0<span class="op">,</span>b1<span class="op">,</span>b2<span class="op">,</span>b3<span class="op">},</span>     <span class="co">// Source matrix B</span></span>
 <span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span>c0<span class="op">,</span>c1<span class="op">,</span>c2<span class="op">,</span>c3<span class="op">}</span>      <span class="co">// Accumulator</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>A single tensor core instruction processes an entire matrix block while maintaining intermediate results in local registers, significantly improving computational efficiency compared to implementations based on scalar or vector operations. This structured approach enables hardware to achieve high throughput while reducing the burden of explicit loop unrolling and data management at the software level.</p>
 <p>Tensor processing unit architectures differ based on design priorities. NVIDIA’s Ampere architecture incorporates tensor cores optimized for general-purpose deep learning acceleration. Google’s TPUv4 utilizes large-scale matrix units arranged in systolic arrays to maximize sustained training throughput. Apple’s M1 neural engine integrates smaller matrix processors optimized for mobile inference workloads, while Intel’s Sapphire Rapids architecture introduces AMX tiles designed for high-performance datacenter applications.</p>
@@ -1889,7 +1807,7 @@ Inc., Tesla. 2021. <span>“Tesla AI Day: D1 Dojo Chip.”</span> <em>Tesla AI D
 <p>The concept of systolic arrays was first introduced by H.T. Kung, who formalized their use in parallel computing architectures for efficient matrix operations <span class="citation" data-cites="Kung1982">(<a href="#ref-Kung1982" role="doc-biblioref">Kung 1982</a>)</span>. Unlike general-purpose execution units, systolic arrays exploit spatial and temporal locality by reusing operands as they propagate through the grid. Google’s Tensor Processing Unit (TPU) exemplifies this architectural approach. In the TPUv4, a <span class="math inline">\(128\times128\)</span> systolic array of multiply-accumulate units processes matrix operations by streaming data through the array in a pipelined manner, as shown in <a href="#fig-systolic-array" class="quarto-xref">Figure&nbsp;3</a>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-Kung1982" class="csl-entry" role="listitem">
 Kung. 1982. <span>“Why Systolic Architectures?”</span> <em>Computer</em> 15 (1): 37–46. <a href="https://doi.org/10.1109/mc.1982.1653825">https://doi.org/10.1109/mc.1982.1653825</a>.
-</div></div><div id="fig-systolic-array" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+</div></div><div id="fig-systolic-array" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-systolic-array-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="dede33aee56e913cf2833b5974515808d7d51ec4.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Systolic Array Dataflow: Processing elements within the array execute matrix operations by streaming data in a pipelined manner, maximizing operand reuse and minimizing memory access compared to traditional memory-compute architectures. This spatial and temporal locality enables efficient parallel computation, as exemplified by the multiply-accumulate units in Google’s tpuv4."><img src="hw_acceleration_files/mediabag/dede33aee56e913cf2833b5974515808d7d51ec4.svg" class="img-fluid figure-img"></a>
 </div>
@@ -2247,7 +2165,7 @@ Table&nbsp;8: <strong>Memory Hierarchy Trade-Offs</strong>: AI accelerators leve
 </section></section><section id="sec-ai-acceleration-hostaccelerator-communication-ea82" class="level3"><h3 class="anchored" data-anchor-id="sec-ai-acceleration-hostaccelerator-communication-ea82">Host-Accelerator Communication</h3>
 <p>Machine learning accelerators, such as GPUs and TPUs, achieve high computational throughput through parallel execution. However, their efficiency is fundamentally constrained by data movement between the host (CPU) and accelerator memory. Unlike general-purpose workloads that operate entirely within a CPU’s memory subsystem, AI workloads require frequent data transfers between CPU main memory and the accelerator, introducing latency, consuming bandwidth, and affecting overall performance.</p>
 <p>Host-accelerator data movement follows a structured sequence, as illustrated in <a href="#fig-host-accelerator-data-movement" class="quarto-xref">Figure&nbsp;6</a>. Before computation begins, data is copied from CPU memory to the accelerator’s memory. The CPU then issues execution instructions, and the accelerator processes the data in parallel. Once computation completes, the results are stored in accelerator memory and transferred back to the CPU. Each step introduces potential inefficiencies that must be managed to optimize performance.</p>
-<div id="fig-host-accelerator-data-movement" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-host-accelerator-data-movement" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-host-accelerator-data-movement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="cf23a8d1625cee8fb1933a06c1f5e463a91bf915.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Host-Accelerator Data Transfer: AI workloads require frequent data movement between CPU memory and accelerators; this figure details the sequential steps of copying input data, executing computation, and transferring results, each introducing potential performance bottlenecks. Understanding this data transfer sequence is crucial for optimizing AI system performance and minimizing latency."><img src="hw_acceleration_files/mediabag/cf23a8d1625cee8fb1933a06c1f5e463a91bf915.svg" class="img-fluid figure-img"></a>
 </div>
@@ -2692,28 +2610,22 @@ Sze, Vivienne, Yu-Hsin Chen, Tien-Ju Yang, and Joel Emer. 2017a. <span>“Effici
 <p>While computational mapping determines where and when operations occur, its success depends heavily on how efficiently data is accessed and transferred across the memory hierarchy. Unlike traditional computing workloads, which often exhibit structured and predictable memory access patterns, machine learning workloads present irregular access behaviors due to frequent retrieval of weights, activations, and intermediate values.</p>
 <p>Even when computational units are mapped efficiently, poor data movement strategies can severely degrade performance, leading to frequent memory stalls and underutilized hardware resources. If data cannot be supplied to processing elements at the required rate, computational units remain idle, increasing latency, memory traffic, and energy consumption <span class="citation" data-cites="chen2016eyeriss">(<a href="#ref-chen2016eyeriss" role="doc-biblioref">Chen et al. 2016</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"></div><p>To illustrate the impact of data movement inefficiencies, consider a typical matrix multiplication operation shown in <a href="#lst-matmul_data_movement" class="quarto-xref">Listing&nbsp;18</a>, which forms the backbone of many machine learning models.</p>
-<div id="lst-matmul_data_movement" class="callout callout-style-default callout-important callout-titled" title="**Matrix Multiplication**: Data movement bottlenecks can lead to underutilized hardware resources, illustrating the importance of efficient data flow in optimizing machine learning model performance. Via This operation">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-matmul_data_movement" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-matmul_data_movement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;18: <strong>Matrix Multiplication</strong>: Data movement bottlenecks can lead to underutilized hardware resources, illustrating the importance of efficient data flow in optimizing machine learning model performance. Via This operation
+</figcaption><div aria-describedby="lst-matmul_data_movement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Matrix multiplication where:</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">## weights: [512 x 256] - model parameters</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">## input:   [256 x 32]  - batch of activations</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">## Z:       [512 x 32]  - output activations</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co">## Computing each output element Z[i,j]:</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">512</span>):</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">256</span>):</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>            Z[i,j] <span class="op">+=</span> weights[i,k] <span class="op">*</span> <span class="bu">input</span>[k,j]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<div class="callout-body-container callout-body">
-<div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">## Matrix multiplication where:</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">## weights: [512 x 256] - model parameters</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">## input:   [256 x 32]  - batch of activations</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">## Z:       [512 x 32]  - output activations</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co">## Computing each output element Z[i,j]:</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">512</span>):</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">256</span>):</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>            Z[i,j] <span class="op">+=</span> weights[i,k] <span class="op">*</span> <span class="bu">input</span>[k,j]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+</figure>
 </div>
 <p>This computation reveals several critical dataflow challenges.</p>
 <p>The first challenge is the number of memory accesses required. For each output <span class="math inline">\(Z[i, j]\)</span>, the computation must fetch an entire row of weights from the weight matrix and a full column of activations from the input matrix. Since the weight matrix contains 512 rows and the input matrix contains 32 columns, this results in repeated memory accesses that place a significant burden on memory bandwidth.</p>
@@ -2729,16 +2641,10 @@ Han, Song, Xingyu Liu, Huizi Mao, Jing Pu, Ardavan Pedram, Mark A. Horowitz, and
 <p>The Weight Stationary strategy keeps weights fixed in local memory, while input activations and partial sums are streamed through the system. This approach is particularly beneficial in CNNs and matrix multiplications, where the same set of weights is applied across multiple inputs. By ensuring weights remain stationary, this method reduces redundant memory fetches, which helps alleviate bandwidth bottlenecks and improves energy efficiency.</p>
 <p>A key advantage of the weight stationary approach is that it maximizes weight reuse, reducing the frequency of memory accesses to external storage. Since weight parameters are often shared across multiple computations, keeping them in local memory eliminates unnecessary data movement, lowering the overall energy cost of computation. This makes it particularly effective for architectures where weights represent the dominant memory overhead, such as systolic arrays and custom accelerators designed for machine learning.</p>
 <p>A simplified Weight Stationary implementation for matrix multiplication is illustrated in <a href="#lst-weight_stationary" class="quarto-xref">Listing&nbsp;19</a>.</p>
-<div id="lst-weight_stationary" class="callout callout-style-default callout-important callout-titled" title="**Weight Stationary Matrix Multiplication**: This approach keeps weights fixed in local memory while input activations stream through, demonstrating how it maximizes weight reuse to reduce energy costs.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-weight_stationary" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-weight_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;19: <strong>Weight Stationary Matrix Multiplication</strong>: This approach keeps weights fixed in local memory while input activations stream through, demonstrating how it maximizes weight reuse to reduce energy costs.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-weight_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Weight Stationary Matrix Multiplication</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co">## - Weights remain fixed in local memory</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">## - Input activations stream through</span></span>
@@ -2751,6 +2657,7 @@ Listing&nbsp;19: <strong>Weight Stationary Matrix Multiplication</strong>: This 
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>            output_block <span class="op">+=</span> compute(weight_block, input_block)</span>
 <span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Reuse weights across inputs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>In weight stationary execution, weights are loaded once into local memory and remain fixed throughout the computation, while inputs are streamed dynamically, thereby reducing redundant memory accesses. At the same time, partial sums are accumulated in an efficient manner that minimizes unnecessary data movement, ensuring that the system maintains high throughput and energy efficiency.</p>
 <p>By keeping weights fixed in local storage, memory bandwidth requirements are significantly reduced, as weights do not need to be reloaded for each new computation. Instead, the system efficiently reuses the stored weights across multiple input activations, allowing for high throughput execution. This makes weight stationary dataflow highly effective for workloads with heavy weight reuse patterns, such as CNNs and matrix multiplications.</p>
@@ -2762,16 +2669,10 @@ Listing&nbsp;19: <strong>Weight Stationary Matrix Multiplication</strong>: This 
 Chen, Yu-Hsin, Tushar Krishna, Joel S. Emer, and Vivienne Sze. 2016. <span>“Eyeriss: A Spatial Architecture for Energy-Efficient Dataflow for Convolutional Neural Networks.”</span> <em>IEEE Journal of Solid-State Circuits</em> 51 (1): 186–98. <a href="https://doi.org/10.1109/JSSC.2015.2488709">https://doi.org/10.1109/JSSC.2015.2488709</a>.
 </div></div><p>A key advantage of the output stationary approach is that it optimizes accumulation efficiency, ensuring that each output element is computed as efficiently as possible before being written to memory. Unlike Weight Stationary, which prioritizes weight reuse, Output Stationary execution is designed to minimize memory bandwidth overhead caused by frequent writes of intermediate results. This makes it well-suited for workloads where accumulation dominates the computational pattern, such as fully connected layers and matrix multiplications in transformer-based models.</p>
 <p><a href="#lst-output_stationary" class="quarto-xref">Listing&nbsp;20</a> shows a simplified Output Stationary implementation for matrix multiplication.</p>
-<div id="lst-output_stationary" class="callout callout-style-default callout-important callout-titled" title="**Output Stationary Execution**: Accumulates partial sums locally to reduce memory writes and enhance efficiency during matrix multiplication, making it ideal for transformer-based models.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-output_stationary" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-output_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;20: <strong>Output Stationary Execution</strong>: Accumulates partial sums locally to reduce memory writes and enhance efficiency during matrix multiplication, making it ideal for transformer-based models.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-output_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">## - Partial sums remain in local memory</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">## - Weights and input activations stream through dynamically</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">## - Final outputs are written only once</span></span>
@@ -2783,6 +2684,7 @@ Listing&nbsp;20: <strong>Output Stationary Execution</strong>: Accumulates parti
 <span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Accumulate partial sums</span></span>
 <span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    store_output(accumulator)  <span class="co"># Single write to memory</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This implementation follows the core principles of output stationary execution: - Partial sums are kept in local memory throughout the computation. - Weights and inputs are streamed dynamically, ensuring that intermediate results remain locally accessible. - Final outputs are written back to memory only once, reducing unnecessary memory traffic.</p>
 <p>By accumulating partial sums locally, this approach eliminates excessive memory writes, improving overall system efficiency. In architectures such as systolic arrays, where computation progresses through a grid of processing elements, keeping partial sums stationary aligns naturally with structured accumulation workflows, reducing synchronization overhead.</p>
@@ -2792,16 +2694,10 @@ Listing&nbsp;20: <strong>Output Stationary Execution</strong>: Accumulates parti
 <p>The Input Stationary strategy keeps input activations fixed in local memory, while weights and partial sums stream through the system. This approach is particularly effective for batch processing, transformer models, and sequence-based architectures, where input activations are reused across multiple computations. By ensuring that activations remain in local memory, this method reduces redundant input fetches, improving data locality and minimizing memory traffic.</p>
 <p>A key advantage of the Input Stationary approach is that it maximizes input reuse, reducing the frequency of memory accesses for activations. Since many models, especially those in natural language processing (NLP) and recommendation systems, process the same input data across multiple computations, keeping inputs stationary eliminates unnecessary memory transfers, thereby lowering energy consumption. This strategy is particularly useful when dealing with large batch sizes, where a single batch of input activations contributes to multiple weight transformations.</p>
 <p>A simplified Input Stationary implementation for matrix multiplication is illustrated in <a href="#lst-input_stationary" class="quarto-xref">Listing&nbsp;21</a>.</p>
-<div id="lst-input_stationary" class="callout callout-style-default callout-important callout-titled" title="**Input Stationary**: This approach keeps input activations stationary while dynamically streaming weights to maximize memory reuse and reduce energy consumption.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-input_stationary" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-input_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;21: <strong>Input Stationary</strong>: This approach keeps input activations stationary while dynamically streaming weights to maximize memory reuse and reduce energy consumption.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-input_stationary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">## - Input activations remain in local memory</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">## - Weights stream through dynamically</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co">## - Partial sums accumulate and are written out</span></span>
@@ -2813,6 +2709,7 @@ Listing&nbsp;21: <strong>Input Stationary</strong>: This approach keeps input ac
 <span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>            output_block <span class="op">+=</span> compute(weight_block, input_block)</span>
 <span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Reuse inputs across weights</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This implementation follows the core principles of input stationary execution:</p>
 <ul>
@@ -2928,16 +2825,10 @@ Table&nbsp;13: <strong>Data Layout Strategies</strong>: Row-major (NHWC) and cha
 <div class="no-row-height column-margin column-container"><div id="ref-nvidia2017gpu" class="csl-entry" role="listitem">
 Corporation, NVIDIA. 2017. <span>“GPU-Accelerated Machine Learning and Deep Learning.”</span> <em>Technical Report</em>.
 </div></div><p><a href="#lst-naive_execution" class="quarto-xref">Listing&nbsp;22</a> illustrates a naïve execution model in which each operation is treated as a separate kernel, meaning that each intermediate result is written to memory and then read back for the next operation.</p>
-<div id="lst-naive_execution" class="callout callout-style-default callout-important callout-titled" title="**Naïve Execution**: Each step writes intermediate results to memory before processing the next, leading to increased bandwidth usage and reduced efficiency. *Source: NVIDIA GPU Technology Conference 2017*[nvidia2017gpu]">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-naive_execution" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-naive_execution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;22: <strong>Naïve Execution</strong>: Each step writes intermediate results to memory before processing the next, leading to increased bandwidth usage and reduced efficiency. <em>Source: NVIDIA GPU Technology Conference 2017</em>[nvidia2017gpu]
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-naive_execution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">## Input tensor</span></span>
@@ -2949,6 +2840,7 @@ Listing&nbsp;22: <strong>Naïve Execution</strong>: Each step writes intermediat
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>X2 <span class="op">=</span> torch.batch_norm(X1)  <span class="co"># Another intermediate tensor stored</span></span>
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>Y  <span class="op">=</span> <span class="fl">2.0</span> <span class="op">*</span> X2 <span class="op">+</span> <span class="fl">1.0</span>        <span class="co"># Final result</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>Each operation produces an intermediate tensor that must be written to memory and retrieved for the next operation. On large tensors, this overhead of moving data can outweigh the computational cost of the operations <span class="citation" data-cites="shazeer2018mesh">(<a href="#ref-shazeer2018mesh" role="doc-biblioref">Shazeer et al. 2018</a>)</span>. <a href="#tbl-memory-footprint" class="quarto-xref">Table&nbsp;14</a> illustrates the memory overhead in a naïve execution model. While only the final result <span class="math inline">\(Y\)</span> is needed, storing multiple intermediate tensors creates unnecessary memory traffic and inefficient memory usage. This data movement bottleneck significantly impacts performance, making memory optimization crucial for AI accelerators.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-shazeer2018mesh" class="csl-entry" role="listitem">
@@ -3055,26 +2947,21 @@ Qi, Xuan, Burak Kantarci, and Chen Liu. 2017. <span>“GPU-Based Acceleration of
 <div class="no-row-height column-margin column-container"><div id="ref-lam1991cache" class="csl-entry" role="listitem">
 Lam, Monica D., Edward E. Rothberg, and Michael E. Wolf. 1991. <span>“The Cache Performance and Optimizations of Blocked Algorithms.”</span> In <em>Proceedings of the Fourth International Conference on Architectural Support for Programming Languages and Operating Systems - ASPLOS-IV</em>, 63–74. ACM Press. <a href="https://doi.org/10.1145/106972.106981">https://doi.org/10.1145/106972.106981</a>.
 </div></div><p>A classic example of inefficient memory access is matrix multiplication, which is widely used in AI models. Without tiling, the naïve approach results in repeated memory accesses for the same data, leading to unnecessary bandwidth consumption (<a href="#lst-naive_matmul" class="quarto-xref">Listing&nbsp;23</a>).</p>
-<div id="lst-naive_matmul" class="callout callout-style-default callout-important callout-titled" title="Naïve matrix multiplication without tiling">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-naive_matmul" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-naive_matmul-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;23: Naïve matrix multiplication without tiling
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-naive_matmul-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>            C[i, j] <span class="op">+=</span> A[i, k] <span class="op">*</span> B[k, j]  <span class="co"># Repeatedly fetching</span></span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="co"># A[i, k] and B[k, j]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>Each iteration requires loading elements from matrices <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> multiple times from memory, causing excessive data movement. As the size of the matrices increases, the memory bottleneck worsens, limiting performance.</p>
 <p>Tiling addresses this problem by ensuring that smaller portions of matrices are loaded into fast memory, reused efficiently, and only written back to main memory when necessary. This technique is especially crucial in AI accelerators, where memory accesses dominate execution time. By breaking up large matrices into smaller tiles, as illustrated in <a href="#fig-tiling-diagram" class="quarto-xref">Figure&nbsp;7</a>, computation can be performed more efficiently on hardware by maximizing data reuse in fast memory. In the following sections, we will explore the fundamental principles of tiling, its different strategies, and the key trade-offs involved in selecting an effective tiling approach.</p>
-<div id="fig-tiling-diagram" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-tiling-diagram" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-tiling-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="2aeadfb47b7bb4fd18d42cef53e862ef7745f96f.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Matrix Tiling: Partitioning large matrices into smaller tiles optimizes data reuse and reduces memory access overhead during computation. This technique improves performance on AI accelerators by enabling efficient loading and processing of data in fast memory, minimizing transfers from slower main memory."><img src="hw_acceleration_files/mediabag/2aeadfb47b7bb4fd18d42cef53e862ef7745f96f.svg" class="img-fluid figure-img"></a>
 </div>
@@ -3090,38 +2977,27 @@ C = A \times B
 C[i,j] = \sum_{k} A[i,k] \times B[k,j]
 \]</span></p>
 <p>A naïve implementation follows this formula directly (<a href="#lst-naive_matmul_repeat" class="quarto-xref">Listing&nbsp;24</a>).</p>
-<div id="lst-naive_matmul_repeat" class="callout callout-style-default callout-important callout-titled" title="**Naïve Matrix Multiplication**: This code directly implements matrix multiplication using nested loops, showing how each element in the output matrix is computed as a sum of products from corresponding elements in the input matrices.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-naive_matmul_repeat" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-naive_matmul_repeat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;24: <strong>Naïve Matrix Multiplication</strong>: This code directly implements matrix multiplication using nested loops, showing how each element in the output matrix is computed as a sum of products from corresponding elements in the input matrices.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-naive_matmul_repeat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(N):</span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>            C[i, j] <span class="op">+=</span> A[i, k] <span class="op">*</span> B[k, j]  <span class="co"># Repeatedly fetching</span></span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="co"># A[i, k] and B[k, j]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>At first glance, this approach seems correct—it computes the desired result and follows the mathematical definition. However, the issue lies in how memory is accessed. Every time the innermost loop runs, it fetches an element from matrix <span class="math inline">\(A\)</span> and matrix <span class="math inline">\(B\)</span> from memory, performs a multiplication, and updates an element in matrix <span class="math inline">\(C\)</span>. Because matrices are large, the processor frequently reloads the same values from memory, even though they were just used in previous computations.</p>
 <p>This unnecessary data movement is expensive. Fetching values from main memory (DRAM) is hundreds of times slower than accessing values stored in on-chip cache or registers. If the same values must be reloaded multiple times instead of being stored in fast memory, execution slows down significantly.</p>
 </section><section id="sec-ai-acceleration-tiling-performance-improvement-75f8" class="level5"><h5 class="anchored" data-anchor-id="sec-ai-acceleration-tiling-performance-improvement-75f8">Tiling Performance Improvement</h5>
 <p>Instead of computing one element at a time and constantly moving data in and out of slow memory, tiling processes submatrices (tiles) at a time, keeping frequently used values in fast memory. The idea is to divide the matrices into smaller blocks that fit within the processor’s cache or shared memory, ensuring that once a block is loaded, it is reused multiple times before moving to the next one.</p>
 <p><a href="#lst-tiled_matmul" class="quarto-xref">Listing&nbsp;25</a> illustrates a tiled version of matrix multiplication, which improves memory locality by processing blocks of data.</p>
-<div id="lst-tiled_matmul" class="callout callout-style-default callout-important callout-titled" title="**Tiled Matrix Multiplication**: This approach divides matrices into smaller blocks to optimize memory usage by reusing data within processor cache, thereby improving computational efficiency.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-tiled_matmul" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-tiled_matmul-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;25: <strong>Tiled Matrix Multiplication</strong>: This approach divides matrices into smaller blocks to optimize memory usage by reusing data within processor cache, thereby improving computational efficiency.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-tiled_matmul-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>TILE_SIZE <span class="op">=</span> <span class="dv">32</span> <span class="co"># Choose a tile size based on</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>               <span class="co"># hardware constraints</span></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3135,6 +3011,7 @@ Listing&nbsp;25: <strong>Tiled Matrix Multiplication</strong>: This approach div
 <span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">for</span> kk <span class="kw">in</span> <span class="bu">range</span>(k, k <span class="op">+</span> TILE_SIZE):</span>
 <span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>                        C[ii, jj] <span class="op">+=</span> A[ii, kk] <span class="op">*</span> B[kk, jj]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>This restructuring significantly improves performance for three main reasons:</p>
 <ol type="1">
@@ -3148,16 +3025,10 @@ Listing&nbsp;25: <strong>Tiled Matrix Multiplication</strong>: This approach div
 <section id="sec-ai-acceleration-spatial-tiling-be4e" class="level6"><h6 class="anchored" data-anchor-id="sec-ai-acceleration-spatial-tiling-be4e">Spatial Tiling</h6>
 <p>Spatial tiling focuses on partitioning data structures into smaller blocks that fit within the fast memory of the processor. This approach ensures that each tile is fully processed before moving to the next, reducing redundant memory accesses. Spatial tiling is widely used in operations such as matrix multiplication, convolutions, and attention mechanisms in transformer models.</p>
 <p>Spatial tiling is illustrated in <a href="#lst-tiled_spatial" class="quarto-xref">Listing&nbsp;26</a>, where the computation proceeds over blocks of the input matrices.</p>
-<div id="lst-tiled_spatial" class="callout callout-style-default callout-important callout-titled" title="**Spatial Tiling**: Reduces redundant memory accesses by processing matrix tiles sequentially.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-tiled_spatial" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-tiled_spatial-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;26: <strong>Spatial Tiling</strong>: Reduces redundant memory accesses by processing matrix tiles sequentially.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-tiled_spatial-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>TILE_SIZE <span class="op">=</span> <span class="dv">32</span>  <span class="co"># Tile size chosen based on available</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                <span class="co"># fast memory</span></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -3170,6 +3041,7 @@ Listing&nbsp;26: <strong>Spatial Tiling</strong>: Reduces redundant memory acces
 <span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">for</span> kk <span class="kw">in</span> <span class="bu">range</span>(k, k <span class="op">+</span> TILE_SIZE):</span>
 <span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>                        C[ii, jj] <span class="op">+=</span> A[ii, kk] <span class="op">*</span> B[kk, jj]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>In this implementation, each tile of <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> is loaded into cache or shared memory before processing, ensuring that the same data does not need to be fetched repeatedly from slower memory. The tile is fully used before moving to the next block, minimizing redundant memory accesses. Since data is accessed in a structured, localized way, cache efficiency improves significantly.</p>
 <p>Spatial tiling is particularly beneficial when dealing with large tensors that do not fit entirely in fast memory. By breaking them into smaller tiles, computations remain localized, avoiding excessive data movement between memory levels. This technique is widely used in AI accelerators where machine learning workloads involve large-scale tensor operations that require careful memory management to achieve high performance.</p>
@@ -3177,16 +3049,10 @@ Listing&nbsp;26: <strong>Spatial Tiling</strong>: Reduces redundant memory acces
 <p>While spatial tiling optimizes how data is partitioned, temporal tiling focuses on reorganizing the computation itself to improve data reuse over time. Many machine learning workloads involve operations where the same data is accessed repeatedly across multiple iterations. Without temporal tiling, this often results in redundant memory fetches, leading to inefficiencies. Temporal tiling, also known as loop blocking, restructures the computation to ensure that frequently used data stays in fast memory for as long as possible before moving on to the next computation.</p>
 <p>A classic example where temporal tiling is beneficial is convolutional operations, where the same set of weights is applied to multiple input regions. Without loop blocking, these weights might be loaded from memory multiple times for each computation. With temporal tiling, the computation is reordered so that the weights remain in fast memory across multiple inputs, reducing unnecessary memory fetches and improving overall efficiency.</p>
 <p><a href="#lst-loop_blocking" class="quarto-xref">Listing&nbsp;27</a> illustrates a simplified example of loop blocking in matrix multiplication.</p>
-<div id="lst-loop_blocking" class="callout callout-style-default callout-important callout-titled" title="**Temporal Tiling**: Reduces redundant memory accesses by caching weights in fast memory across multiple matrix multiplications.">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
+<div id="lst-loop_blocking" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-loop_blocking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing&nbsp;27: <strong>Temporal Tiling</strong>: Reduces redundant memory accesses by caching weights in fast memory across multiple matrix multiplications.
-</div>
-</div>
-<div class="callout-body-container callout-body">
+</figcaption><div aria-describedby="lst-loop_blocking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, N, TILE_SIZE):</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, N, TILE_SIZE):</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, N, TILE_SIZE):</span>
@@ -3200,6 +3066,7 @@ Listing&nbsp;27: <strong>Temporal Tiling</strong>: Reduces redundant memory acce
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>                        C[i<span class="op">+</span>ii, j<span class="op">+</span>jj] <span class="op">+=</span> A_tile[ii, kk] <span class="op">*</span></span>
 <span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>                                         B_tile[kk, jj]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</figure>
 </div>
 <p>Temporal tiling improves performance by ensuring that the data loaded into fast memory is used multiple times before being evicted. In this implementation, small tiles of matrices <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are explicitly loaded into temporary storage before performing computations, reducing memory fetch overhead. This restructuring allows the computation to process an entire tile before moving to the next, thereby reducing the number of times data must be loaded from slower memory.</p>
 <p>This technique is particularly useful in workloads where certain values are used repeatedly, such as convolutions, recurrent neural networks (RNNs), and self-attention mechanisms in transformers. By applying loop blocking, AI accelerators can significantly reduce memory stalls and improve execution throughput.</p>
@@ -3718,7 +3585,7 @@ Kannan, Harish, Pradeep Dubey, and Mark Horowitz. 2023. <span>“Chiplet-Based A
 <div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;<strong>NVLink</strong>: A high-speed interconnect that enables faster data transfers between GPUs, reducing communication bottlenecks.</p></div><div id="fn10"><p><sup>10</sup>&nbsp;<strong>PCIe (Peripheral Component Interconnect Express)</strong>: A common interface for connecting high-speed components; however, it typically offers lower bandwidth compared to NVLink for GPU-to-GPU communication.</p></div><div id="ref-Ben-Nun2019data" class="csl-entry" role="listitem">
 Ben-Nun, Tal, and Torsten Hoefler. 2019. <span>“Demystifying Parallel and Distributed Deep Learning: An in-Depth Concurrency Analysis.”</span> <em>ACM Computing Surveys</em> 52 (4): 1–43. <a href="https://doi.org/10.1145/3320060">https://doi.org/10.1145/3320060</a>.
 </div></div><p>As illustrated in <a href="#fig-multi-gpu" class="quarto-xref">Figure&nbsp;9</a>, NVSwitch interconnects enable high-speed communication between GPUs, reducing bottlenecks in distributed training. However, scaling up the number of GPUs introduces new challenges. Cross-GPU communication bandwidth, memory consistency, and workload scheduling become critical constraints, particularly for large-scale models requiring frequent data exchanges. Unlike chiplets, which leverage high-speed die-to-die interconnects, discrete GPUs rely on external links, incurring higher latency and synchronization overhead.</p>
-<div id="fig-multi-gpu" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-multi-gpu" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure"><div aria-describedby="fig-multi-gpu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="6421c32922420dedaeceb5ae725b870e61f0a4a0.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: Multi-Gpu Scaling: Nvswitch interconnects enable high-bandwidth, low-latency communication between gpus, overcoming pcie bottlenecks for distributed training of large models. Scaling GPU count introduces challenges in maintaining memory consistency and efficiently scheduling workloads across interconnected devices."><img src="hw_acceleration_files/mediabag/6421c32922420dedaeceb5ae725b870e61f0a4a0.svg" class="img-fluid figure-img"></a>
 </div>
