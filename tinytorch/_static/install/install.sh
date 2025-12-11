@@ -7,12 +7,11 @@
 #   curl -sSL tinytorch.ai/install | bash
 #
 # What this script does:
-#   1. Checks you're in a sensible location
-#   2. Checks prerequisites (git, Python 3.8+)
-#   3. Shows you what it's about to do and asks for confirmation
-#   4. Downloads the TinyTorch folder using git sparse checkout
-#   5. Creates a Python virtual environment
-#   6. Installs dependencies and the tito CLI
+#   1. Checks prerequisites (git, Python 3.8+)
+#   2. Shows you what it's about to do and asks for confirmation
+#   3. Downloads the TinyTorch folder using git sparse checkout
+#   4. Creates a Python virtual environment
+#   5. Installs dependencies and the tito CLI
 #
 # The installer creates a 'tinytorch' directory in your current location.
 #
@@ -25,6 +24,8 @@ set -e  # Exit on any error
 # Configuration
 # ============================================================================
 REPO_URL="https://github.com/harvard-edge/cs249r_book.git"
+REPO_SHORT="harvard-edge/cs249r_book"
+BRANCH="main"
 INSTALL_DIR="tinytorch"
 SPARSE_PATH="tinytorch"
 MIN_PYTHON_VERSION="3.8"
@@ -61,6 +62,19 @@ print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
 print_warning() { echo -e "${YELLOW}!${NC} $1"; }
 print_info() { echo -e "${BLUE}→${NC} $1"; }
+
+# Spinner for long-running tasks
+spin() {
+    local pid=$1
+    local msg=$2
+    local spinchars='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r      ${DIM}%s${NC} %s" "${spinchars:i++%10:1}" "$msg"
+        sleep 0.1
+    done
+    printf "\r      %-50s\r" ""
+}
 
 print_banner() {
     echo ""
@@ -106,65 +120,7 @@ check_python_version() {
 # Pre-flight Checks
 # ============================================================================
 
-check_location() {
-    local current_dir="$PWD"
-
-    # Block dangerous locations
-    case "$current_dir" in
-        /)
-            print_error "You're in the root directory (/)"
-            echo "  Please cd to a project folder first."
-            exit 1
-            ;;
-        /tmp|/var/tmp|/private/tmp)
-            print_error "You're in a temporary directory ($current_dir)"
-            echo "  Files here will be deleted. Please cd somewhere permanent."
-            exit 1
-            ;;
-        /System*|/usr*|/bin*|/sbin*|/etc*)
-            print_error "You're in a system directory ($current_dir)"
-            echo "  Please cd to a user directory."
-            exit 1
-            ;;
-        "$HOME")
-            print_warning "You're in your home directory ($current_dir)"
-            echo "  This will create ~/tinytorch which may clutter your home folder."
-            echo ""
-            read -p "  Continue anyway? [y/N] " -n 1 -r
-            echo ""
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                echo "  Suggestion: mkdir -p ~/projects && cd ~/projects"
-                exit 1
-            fi
-            ;;
-        */Downloads|*/Downloads/*)
-            print_warning "You're in your Downloads folder"
-            echo "  This is probably not where you want to install TinyTorch."
-            echo ""
-            read -p "  Continue anyway? [y/N] " -n 1 -r
-            echo ""
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                echo "  Suggestion: mkdir -p ~/projects && cd ~/projects"
-                exit 1
-            fi
-            ;;
-    esac
-
-    # Check if we're inside another git repo
-    if git rev-parse --git-dir >/dev/null 2>&1; then
-        local repo_root
-        repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
-        print_warning "You're inside a git repository: $repo_root"
-        echo "  Installing here will create a nested repo."
-        echo ""
-        read -p "  Continue anyway? [y/N] " -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            echo "  Suggestion: cd to a folder outside this repo"
-            exit 1
-        fi
-    fi
-
+check_write_permission() {
     # Check write permission
     if ! touch ".tinytorch_write_test" 2>/dev/null; then
         print_error "Cannot write to this directory"
@@ -172,6 +128,25 @@ check_location() {
         exit 1
     fi
     rm -f ".tinytorch_write_test"
+}
+
+check_not_in_venv() {
+    # Warn if already in a virtual environment
+    if [ -n "$VIRTUAL_ENV" ]; then
+        print_warning "You're inside a virtual environment: $VIRTUAL_ENV"
+        echo "  Consider deactivating first: deactivate"
+        echo ""
+    fi
+}
+
+check_internet() {
+    # Quick connectivity check
+    if ! git ls-remote --exit-code "$REPO_URL" >/dev/null 2>&1; then
+        print_error "Cannot reach GitHub"
+        echo "  Check your internet connection and try again."
+        exit 1
+    fi
+    print_success "GitHub reachable"
 }
 
 check_prerequisites() {
@@ -222,25 +197,11 @@ check_prerequisites() {
 }
 
 check_existing_directory() {
-    # Check for existing TinyTorch directory (case-insensitive check)
     if [ -d "$INSTALL_DIR" ]; then
-        echo ""
-        print_warning "Directory '$INSTALL_DIR' already exists"
-        echo ""
-        echo "  [1] Overwrite (delete existing and reinstall)"
-        echo "  [2] Cancel"
-        echo ""
-        read -p "  Choice [2]: " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[1]$ ]]; then
-            rm -rf "$INSTALL_DIR"
-            print_success "Removed existing directory"
-        else
-            print_info "Installation cancelled"
-            exit 0
-        fi
+        print_error "Directory '$INSTALL_DIR' already exists"
+        echo "  Remove it first or cd to a different location."
+        exit 1
     fi
-
 }
 
 # ============================================================================
@@ -257,6 +218,8 @@ show_plan_and_confirm() {
     echo "  • Python virtual environment"
     echo "  • tito CLI tool"
     echo ""
+    echo -e "${DIM}Source: ${REPO_SHORT} (${BRANCH} branch)${NC}"
+    echo ""
 }
 
 do_install() {
@@ -267,31 +230,69 @@ do_install() {
 
     TEMP_DIR=$(mktemp -d)
 
-    # Clone with progress (always from main branch for stability)
-    if ! git clone --depth 1 --filter=blob:none --sparse --progress --branch main \
-        "$REPO_URL" "$TEMP_DIR/repo" 2>&1 | while read -r line; do
-            # Show git progress lines (Receiving/Resolving with percentages)
-            if [[ "$line" =~ ^Receiving|^Resolving|^remote:|^Cloning ]]; then
-                printf "\r      %s" "$line"
-            fi
-        done; then
-        echo ""
+    # Clone in background with spinner
+    git clone --depth 1 --filter=blob:none --sparse --branch "$BRANCH" \
+        "$REPO_URL" "$TEMP_DIR/repo" >/dev/null 2>&1 &
+    local clone_pid=$!
+    spin $clone_pid "Cloning repository..."
+    wait $clone_pid
+    local clone_status=$?
+
+    if [ $clone_status -ne 0 ]; then
         print_error "Failed to download from GitHub"
         echo "  Check your internet connection and try again."
         exit 1
     fi
-    printf "\r      %-60s\n" "Done"
 
     local original_dir="$PWD"
     cd "$TEMP_DIR/repo"
     git sparse-checkout set "$SPARSE_PATH" 2>/dev/null
+
+    # Capture commit hash for provenance
+    COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
     cd "$original_dir"
 
     # Move to final location
     mv "$TEMP_DIR/repo/$SPARSE_PATH" "$INSTALL_DIR"
     rm -rf "$TEMP_DIR"
     TEMP_DIR=""
-    print_success "Downloaded TinyTorch"
+
+    # Remove dev-only files that students don't need
+    rm -rf "$INSTALL_DIR/paper" \
+           "$INSTALL_DIR/instructor" \
+           "$INSTALL_DIR/site" \
+           "$INSTALL_DIR/scripts" \
+           "$INSTALL_DIR/tools" \
+           "$INSTALL_DIR/binder" \
+           "$INSTALL_DIR/etc" \
+           "$INSTALL_DIR/assignments" \
+           "$INSTALL_DIR/milestones" \
+           "$INSTALL_DIR/benchmark_results" \
+           "$INSTALL_DIR/.git-hooks" \
+           "$INSTALL_DIR/.claude" \
+           "$INSTALL_DIR/.cursor" \
+           "$INSTALL_DIR/.vscode" \
+           "$INSTALL_DIR/Makefile" \
+           "$INSTALL_DIR/activate.sh" \
+           "$INSTALL_DIR/setup-dev.sh" \
+           "$INSTALL_DIR/setup-environment.sh" \
+           "$INSTALL_DIR/CONTRIBUTING.md" \
+           "$INSTALL_DIR/INSTRUCTOR.md" \
+           "$INSTALL_DIR/settings.ini" \
+           "$INSTALL_DIR/MANIFEST.in" \
+           "$INSTALL_DIR/.pre-commit-config.yaml" \
+           "$INSTALL_DIR/.shared-ai-rules.md" \
+           "$INSTALL_DIR/.tinyrc" \
+           "$INSTALL_DIR/.editorconfig" \
+           "$INSTALL_DIR/.gitattributes" \
+           2>/dev/null || true
+
+    # Clear modules/ folder - students populate via CLI exports from src/
+    if [ -d "$INSTALL_DIR/modules" ]; then
+        find "$INSTALL_DIR/modules" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+    fi
+
+    print_success "Downloaded TinyTorch ${DIM}(${COMMIT_HASH})${NC}"
 
     # Step 2: Create virtual environment
     echo -e "${BLUE}[2/4]${NC} Creating Python environment..."
@@ -303,30 +304,32 @@ do_install() {
     # Step 3: Install dependencies
     echo -e "${BLUE}[3/4]${NC} Installing dependencies..."
 
-    # Upgrade pip (show that something is happening)
-    echo -n "      Upgrading pip..."
-    pip install --upgrade pip -q 2>/dev/null
-    echo " done"
+    # Upgrade pip
+    pip install --upgrade pip -q 2>/dev/null &
+    local pip_pid=$!
+    spin $pip_pid "Upgrading pip..."
+    wait $pip_pid
 
     # Install requirements
     if [ -f "requirements.txt" ]; then
-        # Count packages for progress
         total_pkgs=$(grep -c -E "^[^#]" requirements.txt 2>/dev/null || echo "?")
-        echo -n "      Installing $total_pkgs packages..."
-        pip install -r requirements.txt -q 2>/dev/null
-        echo " done"
+        pip install -r requirements.txt -q 2>/dev/null &
+        local req_pid=$!
+        spin $req_pid "Installing $total_pkgs packages..."
+        wait $req_pid
     fi
 
     # Install tinytorch
-    echo -n "      Installing TinyTorch..."
-    pip install -e . -q 2>/dev/null
-    echo " done"
+    pip install -e . -q 2>/dev/null &
+    local tt_pid=$!
+    spin $tt_pid "Installing TinyTorch..."
+    wait $tt_pid
 
     print_success "Installed dependencies"
 
     # Step 4: Verify
     echo -e "${BLUE}[4/4]${NC} Verifying installation..."
-    if python -c "import tinytorch" 2>/dev/null; then
+    if command -v tito >/dev/null 2>&1; then
         print_success "Verified installation"
     else
         print_warning "Installation completed but verification failed"
@@ -344,26 +347,15 @@ print_success_message() {
     echo ""
     echo -e "  ${CYAN}cd $install_path${NC}"
     echo -e "  ${CYAN}source .venv/bin/activate${NC}"
-    echo -e "  ${CYAN}tito setup${NC}                 # First-time setup & verification"
+    echo -e "  ${CYAN}tito module start 01${NC}       # Start building!"
     echo ""
-    echo -e "${BOLD}Common commands:${NC}"
+    echo -e "${BOLD}Useful commands:${NC}"
     echo ""
-    echo -e "  ${CYAN}tito module start 01${NC}       # Start Module 01 (Tensors)"
-    echo -e "  ${CYAN}tito module complete 01${NC}    # Test & submit your work"
-    echo -e "  ${CYAN}tito milestones${NC}            # View your progress"
-    echo -e "  ${CYAN}tito system doctor${NC}         # Check environment health"
-    echo ""
-    echo -e "${BOLD}Stay updated:${NC}"
-    echo ""
+    echo -e "  ${CYAN}tito module status${NC}         # View your progress"
+    echo -e "  ${CYAN}tito system health${NC}         # Check environment health"
     echo -e "  ${CYAN}tito update${NC}                # Check for updates"
     echo ""
-    echo -e "${BOLD}Resources:${NC}"
-    echo ""
-    echo -e "  Documentation   ${DIM}https://tinytorch.ai/docs${NC}"
-    echo -e "  Community       ${DIM}https://discord.gg/tinyml${NC}"
-    echo -e "  Issues          ${DIM}https://github.com/harvard-edge/cs249r_book/issues${NC}"
-    echo ""
-    echo -e "${DIM}To uninstall: rm -rf $install_path${NC}"
+    echo -e "${DIM}Documentation: https://tinytorch.ai${NC}"
     echo ""
 }
 
@@ -376,12 +368,13 @@ main() {
     print_banner
 
     # Phase 1: Pre-flight checks
-    check_location
+    check_write_permission
+    check_existing_directory
+    check_not_in_venv
 
     echo "Checking prerequisites..."
     check_prerequisites
-
-    check_existing_directory
+    check_internet
 
     # Phase 2: Show plan and confirm
     show_plan_and_confirm
