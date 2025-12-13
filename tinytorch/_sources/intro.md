@@ -94,7 +94,7 @@ Build a complete machine learning (ML) framework from tensors to systems—under
     </div>
     <div class="vision-item">
       <span class="vision-icon">🎯</span>
-      <span class="vision-text"><strong>End goal</strong> — A complete ML systems framework that trains and optimizes models.</span>
+      <span class="vision-text"><strong>End goal</strong> — A complete ML framework that trains and optimizes models.</span>
     </div>
   </div>
 </div>
@@ -300,17 +300,17 @@ Perfect if you want to **debug ML systems**, **implement custom operations**, or
     Add yourself to the map • Share your progress • Connect with builders
   </p>
   <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-  <a href="https://tinytorch.ai/join" target="_blank" 
-     style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
-            color: white; padding: 0.75rem 2rem; border-radius: 0.5rem; 
+  <a href="https://github.com/harvard-edge/cs249r_book/discussions/1076" target="_blank"
+     style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white; padding: 0.75rem 2rem; border-radius: 0.5rem;
             text-decoration: none; font-weight: 600; font-size: 1rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-    Join the Map →
+    Join the Discussion →
   </a>
-    <a href="#" onclick="event.preventDefault(); if(window.openSubscribeModal) openSubscribeModal();" 
-       style="display: inline-block; background: rgba(255,255,255,0.1); 
+    <a href="#" onclick="event.preventDefault(); if(window.openSubscribeModal) openSubscribeModal();"
+       style="display: inline-block; background: rgba(255,255,255,0.1);
               border: 1px solid rgba(255,255,255,0.2);
-              color: #f1f5f9; padding: 0.75rem 2rem; border-radius: 0.5rem; 
+              color: #f1f5f9; padding: 0.75rem 2rem; border-radius: 0.5rem;
               text-decoration: none; font-weight: 600; font-size: 1rem;
               transition: all 0.2s ease;">
       ✉ Subscribe
@@ -321,13 +321,3 @@ Perfect if you want to **debug ML systems**, **implement custom operations**, or
 ---
 
 **Next Steps**: **[Quick Start Guide](quickstart-guide)** (15 min) • **[Course Structure](chapters/00-introduction)** • **[FAQ](faq.md)**
-
-<div style="text-align: center; padding: 1.5rem 0; margin-top: 2rem; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.9rem;">
-  <strong>Tiny🔥Torch</strong>
-  <span style="margin: 0 0.75rem;">•</span>
-  <a href="https://mlsysbook.ai" style="color: #64748b; text-decoration: none;">MLSysBook</a>
-  <span style="margin: 0 0.75rem;">•</span>
-  <a href="https://github.com/harvard-edge/cs249r_book" style="color: #64748b; text-decoration: none;">GitHub</a>
-  <span style="margin: 0 0.75rem;">•</span>
-  <a href="leaderboard" style="color: #64748b; text-decoration: none;">Leaderboard</a>
-</div>
