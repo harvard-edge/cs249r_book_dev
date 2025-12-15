@@ -1,8 +1,7 @@
 ---
 title: "Don't import torch. Build it."
+og:title: "Don't import torch. Build it."
 ---
-
-:og:title: Don't import torch. Build it.
 
 ```{raw} html
 <p style="text-align: center; font-size: 2.5rem; margin: 1rem 0 0.5rem 0; font-weight: 700;">
@@ -13,18 +12,12 @@ Build Your Own ML Framework
 </p>
 ```
 
-<p style="text-align: center; margin: 0 0 1rem 0;">
-<a href="https://mlsysbook.ai" target="_blank" style="color: #64748b; font-size: 0.95rem; text-decoration: none; border-bottom: 1px solid #cbd5e1;">
-Hands-on labs for the <span style="font-weight: 600; color: #475569;">Machine Learning Systems</span> textbook
-</a>
-</p>
-
 <h2 style="background: linear-gradient(135deg, #E74C3C 0%, #E67E22 50%, #F39C12 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-align: center; font-size: 2.5rem; margin: 1rem 0; font-weight: 700;">
 Don't import it. Build it.
 </h2>
 
 <p style="text-align: center; font-size: 1.15rem; margin: 0 auto 1.5rem auto; max-width: 750px; color: #374151;">
-An educational framework for building and optimizing ML—understand how PyTorch, TensorFlow, and JAX really work.
+From tensors to systems. An educational framework for building and optimizing ML—understand how PyTorch, TensorFlow, and JAX really work.
 </p>
 
 <div style="text-align: center; margin: 0 0 2.5rem 0;">
@@ -79,7 +72,6 @@ An educational framework for building and optimizing ML—understand how PyTorch
 </style>
 
 <div class="approach-box">
-  <p class="approach-title">TinyTorch: From Tensors to Systems</p>
   <div class="approach-grid">
     <div class="approach-item">
       <span class="approach-icon">🔧</span>
@@ -270,20 +262,28 @@ Four progressive tiers take you from foundations to production systems:
     Add yourself to the map • Share your progress • Connect with builders
   </p>
   <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-  <a href="https://github.com/harvard-edge/cs249r_book/discussions/1076" target="_blank"
-     style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white; padding: 0.75rem 2rem; border-radius: 0.5rem;
-            text-decoration: none; font-weight: 600; font-size: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
-    Join the Discussion →
-  </a>
-    <a href="#" onclick="event.preventDefault(); if(window.openSubscribeModal) openSubscribeModal();"
-       style="display: inline-block; background: rgba(255,255,255,0.1);
-              border: 1px solid rgba(255,255,255,0.2);
-              color: #f1f5f9; padding: 0.75rem 2rem; border-radius: 0.5rem;
+    <a href="community/"
+       style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+              color: white; padding: 0.75rem 2rem; border-radius: 0.5rem;
+              text-decoration: none; font-weight: 600; font-size: 1rem;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+      🌍 Join the Community
+    </a>
+    <a href="https://github.com/harvard-edge/cs249r_book/discussions/1076" target="_blank"
+       style="display: inline-block; background: rgba(255,255,255,0.15);
+              border: 1px solid rgba(255,255,255,0.3);
+              color: #ffffff; padding: 0.75rem 2rem; border-radius: 0.5rem;
               text-decoration: none; font-weight: 600; font-size: 1rem;
               transition: all 0.2s ease;">
-      ✉ Subscribe
+      💬 Discuss on GitHub
+    </a>
+    <a href="#" onclick="event.preventDefault(); if(window.openSubscribeModal) openSubscribeModal();"
+       style="display: inline-block; background: rgba(255,255,255,0.15);
+              border: 1px solid rgba(255,255,255,0.3);
+              color: #ffffff; padding: 0.75rem 2rem; border-radius: 0.5rem;
+              text-decoration: none; font-weight: 600; font-size: 1rem;
+              transition: all 0.2s ease;">
+      📬 Get Updates
     </a>
   </div>
 </div>
