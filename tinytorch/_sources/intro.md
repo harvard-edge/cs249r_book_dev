@@ -2,6 +2,8 @@
 title: "Don't import torch. Build it."
 ---
 
+:og:title: Don't import torch. Build it.
+
 ```{raw} html
 <p style="text-align: center; font-size: 2.5rem; margin: 1rem 0 0.5rem 0; font-weight: 700;">
 Build Your Own ML Framework
@@ -22,7 +24,7 @@ Don't import it. Build it.
 </h2>
 
 <p style="text-align: center; font-size: 1.15rem; margin: 0 auto 1.5rem auto; max-width: 750px; color: #374151;">
-From tensors to systems. An educational framework for building and optimizing ML—understand how PyTorch, TensorFlow, and JAX really work.
+An educational framework for building and optimizing ML—understand how PyTorch, TensorFlow, and JAX really work.
 </p>
 
 <div style="text-align: center; margin: 0 0 2.5rem 0;">
@@ -77,7 +79,7 @@ From tensors to systems. An educational framework for building and optimizing ML
 </style>
 
 <div class="approach-box">
-  <p class="approach-title">TinyTorch: Build AI Like Bricks</p>
+  <p class="approach-title">TinyTorch: From Tensors to Systems</p>
   <div class="approach-grid">
     <div class="approach-item">
       <span class="approach-icon">🔧</span>
