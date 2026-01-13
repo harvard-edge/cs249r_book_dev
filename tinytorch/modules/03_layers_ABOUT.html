@@ -1080,8 +1080,8 @@ document.write(`
 </ul>
 <p><strong>Attributes:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code>: Tensor of shape <code class="docutils literal notranslate"><span class="pre">(in_features,</span> <span class="pre">out_features)</span></code> with <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code>: Tensor of shape <code class="docutils literal notranslate"><span class="pre">(out_features,)</span></code> with <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code> (or None)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code>: Tensor of shape <code class="docutils literal notranslate"><span class="pre">(in_features,</span> <span class="pre">out_features)</span></code> (gradient tracking enabled in Module 06)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code>: Tensor of shape <code class="docutils literal notranslate"><span class="pre">(out_features,)</span></code> or None (gradient tracking enabled in Module 06)</p></li>
 </ul>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -1196,17 +1196,17 @@ document.write(`
     <span class="c1"># Xavier/Glorot initialization for stable gradients</span>
     <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">XAVIER_SCALE_FACTOR</span> <span class="o">/</span> <span class="n">in_features</span><span class="p">)</span>
     <span class="n">weight_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">weight_data</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">weight_data</span><span class="p">)</span>
 
     <span class="c1"># Initialize bias to zeros or None</span>
     <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
         <span class="n">bias_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_features</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">bias_data</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">bias_data</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code> flag marks these tensors for gradient computation in Module 06. Even though you haven’t built autograd yet, your layers are already prepared for it. Bias starts at zero because the weight initialization already handles the scale, and zero is a neutral starting point for per-class adjustments.</p>
+<p>Weights and biases are created as plain Tensors. In Module 06 (Autograd), you’ll learn to enable gradient tracking via <code class="docutils literal notranslate"><span class="pre">enable_autograd()</span></code>, which monkey patches the Tensor class to support <code class="docutils literal notranslate"><span class="pre">requires_grad</span></code>. At that point, you can set <code class="docutils literal notranslate"><span class="pre">layer.weight.requires_grad</span> <span class="pre">=</span> <span class="pre">True</span></code> for parameters that need gradients. Bias starts at zero because the weight initialization already handles the scale, and zero is a neutral starting point for per-class adjustments.</p>
 <p>For Linear(1000, 10), the scale is <code class="docutils literal notranslate"><span class="pre">sqrt(1/1000)</span> <span class="pre">≈</span> <span class="pre">0.032</span></code>. For Linear(10, 1000), the scale is <code class="docutils literal notranslate"><span class="pre">sqrt(1/10)</span> <span class="pre">≈</span> <span class="pre">0.316</span></code>. Layers with more inputs get smaller initial weights because each input contributes to the output, and you want their combined effect to remain stable.</p>
 </section>
 <section id="parameter-management">
