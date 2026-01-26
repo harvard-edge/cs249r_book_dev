@@ -1236,7 +1236,7 @@ document.write(`
 </pre></div>
 </div>
 <p>This simplicity is ReLU’s greatest strength. The operation is a single comparison per element: O(n) with a tiny constant factor. Modern CPUs can execute billions of comparisons per second. Compare this to sigmoid, which requires computing an exponential for every element.</p>
-<p>ReLU creates <strong>sparsity</strong>. When half your activations are exactly zero, computations become faster (multiplying by zero is free) and models generalize better (sparse representations are less prone to overfitting). In a 1000-neuron layer, ReLU typically activates 300-500 neurons, effectively creating a smaller, specialized network for each input.</p>
+<p>ReLU creates <strong>sparsity</strong>. When half of your activations are exactly zero, computations become faster (multiplying by zero is free) and models generalize better (sparse representations are less prone to overfitting). In a 1000-neuron layer, ReLU typically activates 300-500 neurons, effectively creating a smaller, specialized network for each input.</p>
 <p>The discontinuity at zero is both a feature and a bug. During training (Module 08), you’ll discover that ReLU’s gradient is exactly 1 for positive inputs and exactly 0 for negative inputs. This prevents the vanishing gradient problem that plagued sigmoid-based networks. But it creates a new problem: <strong>dying ReLU</strong>. If a neuron’s weights shift such that it always receives negative inputs, it will output zero forever, and the zero gradient means it can never recover.</p>
 <p>Despite this limitation, ReLU remains the default choice for hidden layers in CNNs and feedforward networks. Its speed and effectiveness at preventing vanishing gradients make it hard to beat.</p>
 </section>
@@ -1448,7 +1448,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p>Let’s walk through the key similarities and differences:</p>
 <ul class="simple">
 <li><p><strong>Line 1 (Import)</strong>: TinyTorch imports activation classes; PyTorch uses functional interface <code class="docutils literal notranslate"><span class="pre">torch.nn.functional</span></code>. Both approaches work; PyTorch also supports class-based activations via <code class="docutils literal notranslate"><span class="pre">torch.nn.ReLU()</span></code>.</p></li>
-<li><p><strong>Line 4-6 (ReLU)</strong>: Identical semantics. Both zero out negative values, preserve positive values.</p></li>
+<li><p><strong>Line 4-6 (ReLU)</strong>: Identical semantics. Both zero out negative values, preserving positive values.</p></li>
 <li><p><strong>Line 9-10 (Sigmoid)</strong>: Identical mathematical function. Both use numerically stable implementations to prevent overflow.</p></li>
 <li><p><strong>Line 13-15 (Softmax)</strong>: Same mathematical operation. Both require specifying the dimension for multidimensional tensors. PyTorch uses <code class="docutils literal notranslate"><span class="pre">dim</span></code> keyword argument; TinyTorch defaults to <code class="docutils literal notranslate"><span class="pre">dim=-1</span></code>.</p></li>
 </ul>
@@ -1494,12 +1494,11 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p><strong>Without max subtraction</strong>: Computing <code class="docutils literal notranslate"><span class="pre">softmax([1000,</span> <span class="pre">1001,</span> <span class="pre">1002])</span></code> requires <code class="docutils literal notranslate"><span class="pre">exp(1000)</span></code>, which overflows to infinity in float32/float64, producing NaN.</p>
 <p><strong>With max subtraction</strong>: First compute <code class="docutils literal notranslate"><span class="pre">x_shifted</span> <span class="pre">=</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">max(x)</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">1,</span> <span class="pre">2]</span></code>, then compute <code class="docutils literal notranslate"><span class="pre">exp([0,</span> <span class="pre">1,</span> <span class="pre">2])</span></code> which stays within float range.</p>
 <p><strong>Why this works mathematically</strong>:</p>
-</div>
-<p>exp(x - max) / Σ exp(x - max) = [exp(x) / exp(max)] / [Σ exp(x) / exp(max)]
-= exp(x) / Σ exp(x)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-The `exp(max)` factor cancels out, so the result is mathematically identical. But numerically, it prevents overflow. This is a classic example of why production ML requires careful numerical engineering, not just correct math.
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">exp</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="nb">max</span><span class="p">)</span> <span class="o">/</span> <span class="n">Σ</span> <span class="n">exp</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="nb">max</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">exp</span><span class="p">(</span><span class="nb">max</span><span class="p">)]</span> <span class="o">/</span> <span class="p">[</span><span class="n">Σ</span> <span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">exp</span><span class="p">(</span><span class="nb">max</span><span class="p">)]</span>
+                                <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">Σ</span> <span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">exp(max)</span></code> factor cancels out, so the result is mathematically identical. But numerically, it prevents overflow. This is a classic example of why production ML requires careful numerical engineering, not just correct math.</p>
 </div>
 <p><strong>Q4: Sparsity Analysis</strong></p>
 <p>A ReLU layer processes input tensor with shape (128, 1024) containing values drawn from a normal distribution N(0, 1). Approximately what percentage of outputs will be exactly zero?</p>
@@ -1536,11 +1535,10 @@ Zeros: ≈ 65,536</p>
 <li><p><strong>Tanh</strong>: Outputs in (-1, 1), not directly interpretable as probabilities</p></li>
 </ul>
 <p><strong>Production pattern</strong>:</p>
-</div>
-<p>Input → Linear + ReLU → Linear + ReLU → Linear + Sigmoid → Binary Probability</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
-<span class="n">For</span> <span class="n">multi</span><span class="o">-</span><span class="k">class</span><span class="w"> </span><span class="nc">sentiment</span> <span class="p">(</span><span class="n">positive</span><span class="o">/</span><span class="n">negative</span><span class="o">/</span><span class="n">neutral</span><span class="p">),</span> <span class="n">you</span><span class="s1">&#39;d use Softmax instead to get a 3-element probability distribution.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Input → Linear + ReLU → Linear + ReLU → Linear + Sigmoid → Binary Probability
 </pre></div>
+</div>
+<p>For multi-class sentiment (positive/negative/neutral), you’d use Softmax instead to get a 3-element probability distribution.</p>
 </div>
 </section>
 <section id="further-reading">
