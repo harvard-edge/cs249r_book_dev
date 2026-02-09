@@ -233,6 +233,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Avik De</span>
     <span class="roles">🪲 🧪</span>
   </a>
+  <a href="https://github.com/Takosaga" class="team-member">
+    <img src="https://avatars.githubusercontent.com/Takosaga?v=4&s=160" alt="Takosaga" />
+    <span class="name">Takosaga</span>
+    <span class="roles">🪲 ✍️</span>
+  </a>
   <a href="https://github.com/rnjema" class="team-member">
     <img src="https://avatars.githubusercontent.com/rnjema?v=4&s=160" alt="rnjema" />
     <span class="name">rnjema</span>
@@ -252,11 +257,6 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <img src="https://avatars.githubusercontent.com/jettythek?v=4&s=160" alt="jettythek" />
     <span class="name">jettythek</span>
     <span class="roles">🧑‍💻</span>
-  </a>
-  <a href="https://github.com/Takosaga" class="team-member">
-    <img src="https://avatars.githubusercontent.com/Takosaga?v=4&s=160" alt="Takosaga" />
-    <span class="name">Takosaga</span>
-    <span class="roles">🪲</span>
   </a>
   <a href="https://github.com/wz1114841863" class="team-member">
     <img src="https://avatars.githubusercontent.com/wz1114841863?v=4&s=160" alt="wzz" />
