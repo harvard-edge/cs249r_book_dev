@@ -919,6 +919,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-functions">Core Functions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantizedlinear-class">QuantizedLinear Class</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-quantization">Model Quantization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantizer-class">Quantizer Class</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a><ul class="nav section-nav flex-column">
@@ -1439,6 +1440,32 @@ initSlideViewer('15_quantization', '../_static/slides/15_quantization.pdf');
 </table>
 </div>
 </section>
+<section id="quantizer-class">
+<h3>Quantizer Class<a class="headerlink" href="#quantizer-class" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Quantizer</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Object-oriented interface wrapping the standalone quantization functions. Provides a convenient API for milestone scripts and production workflows.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Signature</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">quantize_model</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">quantize_model(model,</span> <span class="pre">calibration_data=None)</span></code></p></td>
+<td><p>Quantize model via static method</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">analyze_model_sizes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">analyze_model_sizes(original,</span> <span class="pre">quantized)</span></code></p></td>
+<td><p>Compare original vs quantized model sizes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 <section id="core-concepts">
 <h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">#</a></h2>
@@ -1485,7 +1512,7 @@ initSlideViewer('15_quantization', '../_static/slides/15_quantization.pdf');
 <section id="scale-and-zero-point">
 <h3>Scale and Zero-Point<a class="headerlink" href="#scale-and-zero-point" title="Link to this heading">#</a></h3>
 <p>The scale parameter determines how large each INT8 step is in FP32 space. A scale of 0.01 means each INT8 increment represents 0.01 in the original FP32 values. Smaller scales provide finer precision but can only represent a narrower range; larger scales cover wider ranges but sacrifice precision.</p>
-<p>The zero-point is an integer offset that shifts the quantization range. For a symmetric distribution like [-2, 2], the zero-point is 0, mapping FP32 zero to INT8 zero. For an asymmetric range like [-1, 3], the zero-point might be 64, ensuring the quantization levels are distributed optimally across the actual data range.</p>
+<p>The zero-point is an integer offset that shifts the quantization range. For a symmetric distribution like [-2, 2], the zero-point is 0, mapping FP32 zero to INT8 zero. For an asymmetric range like [-1, 3], the zero-point is -64, ensuring the quantization levels are distributed optimally across the actual data range.</p>
 <p>Here’s how dequantization reverses the process:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">dequantize_int8</span><span class="p">(</span><span class="n">q_tensor</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">zero_point</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dequantize INT8 tensor back to FP32.&quot;&quot;&quot;</span>
@@ -1493,7 +1520,7 @@ initSlideViewer('15_quantization', '../_static/slides/15_quantization.pdf');
     <span class="k">return</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">dequantized_data</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The formula <code class="docutils literal notranslate"><span class="pre">(quantized</span> <span class="pre">-</span> <span class="pre">zero_point)</span> <span class="pre">×</span> <span class="pre">scale</span></code> inverts the quantization mapping. If you quantized 2.5 to INT8 value 85 with scale 0.02 and zero-point 60, dequantization computes <code class="docutils literal notranslate"><span class="pre">(85</span> <span class="pre">-</span> <span class="pre">60)</span> <span class="pre">×</span> <span class="pre">0.02</span> <span class="pre">=</span> <span class="pre">0.5</span></code>. The round-trip isn’t perfect due to quantization being lossy compression, but the error is bounded by the scale value.</p>
+<p>The formula <code class="docutils literal notranslate"><span class="pre">(quantized</span> <span class="pre">-</span> <span class="pre">zero_point)</span> <span class="pre">×</span> <span class="pre">scale</span></code> inverts the quantization mapping. If you quantized 1.5 to INT8 value 50 with scale 0.02 and zero-point -25, dequantization computes <code class="docutils literal notranslate"><span class="pre">(50</span> <span class="pre">-</span> <span class="pre">(-25))</span> <span class="pre">×</span> <span class="pre">0.02</span> <span class="pre">=</span> <span class="pre">1.5</span></code>. The round-trip isn’t perfect due to quantization being lossy compression, but the error is bounded by the scale value.</p>
 </section>
 <section id="post-training-quantization">
 <h3>Post-Training Quantization<a class="headerlink" href="#post-training-quantization" title="Link to this heading">#</a></h3>
@@ -1936,6 +1963,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-functions">Core Functions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantizedlinear-class">QuantizedLinear Class</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-quantization">Model Quantization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantizer-class">Quantizer Class</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a><ul class="nav section-nav flex-column">
