@@ -989,7 +989,7 @@ document.write(`
 <div class="sd-card-title sd-font-weight-bold docutils">
 🚀 Launch Binder</div>
 <p class="sd-card-text">Run interactively in your browser.</p>
-<p class="sd-card-text"><a href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?labpath=tinytorch%2Fmodules%2F14_profiling%2F14_profiling.ipynb" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; margin-top: auto; background: #f97316; color: white; text-align: center; text-decoration: none; border-radius: 27px; font-size: 14px; box-sizing: border-box;">Open in Binder →</a></p>
+<p class="sd-card-text"><a href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?labpath=tinytorch%2Fmodules%2F14_profiling%2Fprofiling.ipynb" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; margin-top: auto; background: #f97316; color: white; text-align: center; text-decoration: none; border-radius: 27px; font-size: 14px; box-sizing: border-box;">Open in Binder →</a></p>
 </div>
 </div>
 </div>
@@ -1293,7 +1293,7 @@ initSlideViewer('14_profiling', '../_static/slides/14_profiling.pdf');
 </div>
 <p><strong>Model-Level Optimizations (15-16)</strong>: Change the model itself</p>
 <ul class="simple">
-<li><p>Quantization: FP32 → INT8 for 4× compression</p></li>
+<li><p>Quantization: FP32 → INT8 for <span class="pasted-text">4</span>× compression</p></li>
 <li><p>Compression: Prune unnecessary weights</p></li>
 </ul>
 <p><strong>Runtime Optimizations (17-18)</strong>: Change how execution happens</p>
@@ -1567,9 +1567,9 @@ initSlideViewer('14_profiling', '../_static/slides/14_profiling.pdf');
     <span class="p">}</span>
 </pre></div>
 </div>
-<p>Parameter memory is persistent and constant regardless of batch size. A model with 125 million parameters uses 500 MB (125M × 4 bytes per float32) whether you’re processing one sample or a thousand.</p>
+<p>Parameter memory is persistent and constant regardless of batch size. A model with <span class="pasted-text">125</span> million parameters uses <span class="pasted-text">477</span> MB (<span class="pasted-text">125</span>M × 4 bytes per float32) whether you’re processing one sample or a thousand.</p>
 <p>Activation memory scales with batch size. Doubling the batch doubles activation memory. This is why large batch training requires more GPU memory than inference.</p>
-<p>Gradient memory matches parameter memory exactly. Every parameter needs a gradient during training, adding another 500 MB for a 125M parameter model.</p>
+<p>Gradient memory matches parameter memory exactly. Every parameter needs a gradient during training, adding another <span class="pasted-text">477</span> MB for a <span class="pasted-text">125</span>M parameter model.</p>
 </section>
 <section id="bottleneck-identification">
 <h3>Bottleneck Identification<a class="headerlink" href="#bottleneck-identification" title="Link to this heading">#</a></h3>
@@ -1694,7 +1694,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <h3>Why Profiling Matters at Scale<a class="headerlink" href="#why-profiling-matters-at-scale" title="Link to this heading">#</a></h3>
 <p>To appreciate profiling’s importance, consider production ML systems:</p>
 <ul class="simple">
-<li><p><strong>GPT-3 (175B parameters)</strong>: 700 GB model size at FP32. Profiling reveals which layers to quantize for deployment.</p></li>
+<li><p><strong>GPT-3 (<span class="pasted-text">175</span>B parameters)</strong>: <span class="pasted-text">652</span> GB model size at FP32. Profiling reveals which layers to quantize for deployment.</p></li>
 <li><p><strong>BERT training</strong>: 80% of time in self-attention. Profiling identifies FlashAttention as the optimization to implement.</p></li>
 <li><p><strong>Image classification</strong>: Batch size 256 uses 12 GB GPU memory. Profiling shows 10 GB is activations, suggesting gradient checkpointing.</p></li>
 </ul>
@@ -1710,43 +1710,43 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Answer</p>
 <p>Each feed-forward network:</p>
 <ul class="simple">
-<li><p>First layer: (768 × 3072) + 3072 = 2,362,368 parameters</p></li>
-<li><p>Second layer: (3072 × 768) + 768 = 2,360,064 parameters</p></li>
-<li><p>Total per layer: 4,722,432 parameters</p></li>
+<li><p>First layer: (768 × 3072) + 3072 = <span class="pasted-text">2,362,368</span> parameters</p></li>
+<li><p>Second layer: (3072 × 768) + 768 = <span class="pasted-text">2,360,064</span> parameters</p></li>
+<li><p>Total per layer: <span class="pasted-text">4,722,432</span> parameters</p></li>
 </ul>
-<p>Across 12 layers: 12 × 4,722,432 = 56,669,184 parameters</p>
-<p>Memory: 56,669,184 × 4 bytes = 226,676,736 bytes ≈ <strong>227 MB</strong></p>
+<p>Across 12 layers: 12 × <span class="pasted-text">4,722,432</span> = <span class="pasted-text">56,669,184</span> parameters</p>
+<p>Memory: <span class="pasted-text">56,669,184</span> × 4 bytes = <span class="pasted-text">226,676,736</span> bytes ≈ <strong><span class="pasted-text">216</span> MB</strong></p>
 <p>This is just the feed-forward networks. Attention adds more parameters.</p>
 </div>
 <p><strong>Q2: FLOP Counting and Computational Cost</strong></p>
 <p>A Linear(512, 512) layer processes a batch of 64 samples. Your profiler’s <code class="docutils literal notranslate"><span class="pre">count_flops()</span></code> method returns FLOPs per sample (batch-size independent). How many FLOPs are required for one sample? For the whole batch, if each sample is processed independently?</p>
 <div class="dropdown admonition">
 <p class="admonition-title">Answer</p>
-<p>Per-sample FLOPs (what <code class="docutils literal notranslate"><span class="pre">count_flops()</span></code> returns): 512 × 512 × 2 = <strong>524,288 FLOPs</strong></p>
+<p>Per-sample FLOPs (what <code class="docutils literal notranslate"><span class="pre">count_flops()</span></code> returns): 512 × 512 × 2 = <strong><span class="pasted-text">524,288</span> FLOPs</strong></p>
 <p>Note: The <code class="docutils literal notranslate"><span class="pre">count_flops()</span></code> method is batch-size independent. It returns per-sample FLOPs whether you pass input_shape=(1, 512) or (64, 512).</p>
-<p>If processing a batch of 64 samples: 64 × 524,288 = 33,554,432 total FLOPs</p>
-<p>Minimum latency at 50 GFLOP/s: 33,554,432 FLOPs ÷ 50 GFLOP/s = <strong>0.67 ms</strong> for the full batch</p>
+<p>If processing a batch of 64 samples: 64 × <span class="pasted-text">524,288</span> = <span class="pasted-text">33,554,432</span> total FLOPs</p>
+<p>Minimum latency at 50 GFLOP/s: <span class="pasted-text">33,554,432</span> FLOPs ÷ 50 GFLOP/s = <strong><span class="pasted-text">0.67</span> ms</strong> for the full batch</p>
 <p>This assumes perfect computational efficiency (100%). Real latency is higher due to memory bandwidth and overhead.</p>
 </div>
 <p><strong>Q3: Memory Bottleneck Analysis</strong></p>
 <p>A model achieves 5 GFLOP/s on hardware with 100 GFLOP/s peak compute. The memory bandwidth is 50 GB/s. Is this workload compute-bound or memory-bound?</p>
 <div class="dropdown admonition">
 <p class="admonition-title">Answer</p>
-<p>Computational efficiency: 5 GFLOP/s ÷ 100 GFLOP/s = <strong>5% efficiency</strong></p>
+<p>Computational efficiency: 5 GFLOP/s ÷ 100 GFLOP/s = <strong><span class="pasted-text">5</span>% efficiency</strong></p>
 <p>This extremely low efficiency suggests the workload is <strong>memory-bound</strong>. The hardware can compute 100 GFLOP/s but only achieves 5 GFLOP/s because it spends most of the time waiting for data transfers.</p>
 <p>Optimization strategy: Focus on reducing memory transfers, improving cache locality, and data layout optimization. Improving the algorithm’s FLOPs won’t help because compute isn’t the bottleneck.</p>
 </div>
 <p><strong>Q4: Training Memory Estimation</strong></p>
-<p>A model has 125M parameters (500 MB). You’re training with Adam optimizer. What’s the total memory requirement during training, including gradients and optimizer state?</p>
+<p>A model has 125M parameters (<span class="pasted-text">500</span> MB). You’re training with Adam optimizer. What’s the total memory requirement during training, including gradients and optimizer state?</p>
 <div class="dropdown admonition">
 <p class="admonition-title">Answer</p>
 <ul class="simple">
-<li><p>Parameters: 500 MB</p></li>
-<li><p>Gradients: 500 MB (same as parameters)</p></li>
-<li><p>Adam momentum: 500 MB (first moment estimates)</p></li>
-<li><p>Adam velocity: 500 MB (second moment estimates)</p></li>
+<li><p>Parameters: <span class="pasted-text">500</span> MB</p></li>
+<li><p>Gradients: <span class="pasted-text">500</span> MB (same as parameters)</p></li>
+<li><p>Adam momentum: <span class="pasted-text">500</span> MB (first moment estimates)</p></li>
+<li><p>Adam velocity: <span class="pasted-text">500</span> MB (second moment estimates)</p></li>
 </ul>
-<p>Total: 500 + 500 + 500 + 500 = <strong>2,000 MB (2 GB)</strong></p>
+<p>Total: <span class="pasted-text">500</span> + <span class="pasted-text">500</span> + <span class="pasted-text">500</span> + <span class="pasted-text">500</span> = <strong><span class="pasted-text">2,000</span> MB (<span class="pasted-text">2</span> GB)</strong></p>
 <p>This is just model state. Activations add more memory that scales with batch size. A typical training run might use 4-8 GB total including activations.</p>
 </div>
 <p><strong>Q5: Latency Measurement Statistics</strong></p>
@@ -1816,7 +1816,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Tip</p>
 <p>Interactive Options</p>
 <ul class="simple">
-<li><p><strong><a class="reference external" href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?urlpath=lab/tree/tinytorch/modules/14_profiling/14_profiling.ipynb">Launch Binder</a></strong> - Run interactively in browser, no setup required</p></li>
+<li><p><strong><a class="reference external" href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?urlpath=lab/tree/tinytorch/modules/14_profiling/profiling.ipynb">Launch Binder</a></strong> - Run interactively in browser, no setup required</p></li>
 <li><p><strong><a class="reference external" href="https://github.com/harvard-edge/cs249r_book/blob/main/tinytorch/src/14_profiling/14_profiling.py">View Source</a></strong> - Browse the implementation code</p></li>
 </ul>
 </div>

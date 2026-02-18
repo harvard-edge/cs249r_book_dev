@@ -989,7 +989,7 @@ document.write(`
 <div class="sd-card-title sd-font-weight-bold docutils">
 🚀 Launch Binder</div>
 <p class="sd-card-text">Run interactively in your browser.</p>
-<p class="sd-card-text"><a href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?labpath=tinytorch%2Fmodules%2F15_quantization%2F15_quantization.ipynb" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; margin-top: auto; background: #f97316; color: white; text-align: center; text-decoration: none; border-radius: 27px; font-size: 14px; box-sizing: border-box;">Open in Binder →</a></p>
+<p class="sd-card-text"><a href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?labpath=tinytorch%2Fmodules%2F15_quantization%2Fquantization.ipynb" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; margin-top: auto; background: #f97316; color: white; text-align: center; text-decoration: none; border-radius: 27px; font-size: 14px; box-sizing: border-box;">Open in Binder →</a></p>
 </div>
 </div>
 </div>
@@ -1279,7 +1279,7 @@ document.write(`
 initSlideViewer('15_quantization', '../_static/slides/15_quantization.pdf');
 </script><section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>Modern neural networks face a memory wall problem. A BERT model requires 440 MB, GPT-2 needs 6 GB, and GPT-3 demands 700 GB, yet mobile devices have only 4-8 GB of RAM. The culprit? Every parameter uses 4 bytes of FP32 precision, representing values with 32-bit accuracy when 8 bits often suffice. Quantization solves this by converting FP32 weights to INT8, achieving 4× memory reduction with less than 1% accuracy loss.</p>
+<p>Modern neural networks face a memory wall problem. A BERT model requires <span class="pasted-text">420 MB</span>, GPT-2 needs <span class="pasted-text">5.6 GB</span>, and GPT-3 demands <span class="pasted-text">652 GB</span>, yet mobile devices have only 4-8 GB of RAM. The culprit? Every parameter uses 4 bytes of FP32 precision, representing values with 32-bit accuracy when 8 bits often suffice. Quantization solves this by converting FP32 weights to INT8, achieving 4× memory reduction with less than 1% accuracy loss.</p>
 <p>In this module, you’ll build a production-quality INT8 quantization system. You’ll implement the core quantization algorithm, create quantized layer classes, and develop calibration techniques that optimize quantization parameters for minimal accuracy degradation. By the end, you’ll compress entire neural networks from hundreds of megabytes to a fraction of their original size, enabling deployment on memory-constrained devices.</p>
 <p>This isn’t just academic compression. Your implementation uses the same symmetric quantization approach deployed in TensorFlow Lite, PyTorch Mobile, and ONNX Runtime, making models small enough to run on phones, IoT devices, and edge hardware without cloud connectivity.</p>
 </section>
@@ -1474,7 +1474,7 @@ initSlideViewer('15_quantization', '../_static/slides/15_quantization.pdf');
 <h3>Precision and Range<a class="headerlink" href="#precision-and-range" title="Link to this heading">#</a></h3>
 <p>Neural networks use FP32 (32-bit floating point) by default, which can represent approximately 4.3 billion unique values across a vast range from 10⁻³⁸ to 10³⁸. This precision is overkill for most inference tasks. Research shows that neural network weights typically cluster in a narrow range like [-3, 3] after training, and networks are naturally robust to small perturbations due to their continuous optimization.</p>
 <p>INT8 quantization maps this continuous FP32 range to just 256 discrete values (from -128 to 127). The key insight is that we can preserve model accuracy by carefully choosing how to map these 256 levels across the actual range of values in each tensor. A tensor with values in [-0.5, 0.5] needs different quantization parameters than one with values in [-10, 10].</p>
-<p>Consider the storage implications. A single FP32 parameter requires 4 bytes, while INT8 uses 1 byte. For a model with 100 million parameters, this is the difference between 400 MB (FP32) and 100 MB (INT8). The 4× compression ratio is consistent across all model sizes because we’re always reducing from 32 bits to 8 bits per value.</p>
+<p>Consider the storage implications. A single FP32 parameter requires 4 bytes, while INT8 uses 1 byte. For a model with 100 million parameters, this is the difference between <span class="pasted-text">381 MB</span> (FP32) and <span class="pasted-text">95 MB</span> (INT8). The 4× compression ratio is consistent across all model sizes because we’re always reducing from 32 bits to 8 bits per value.</p>
 </section>
 <section id="quantization-schemes">
 <h3>Quantization Schemes<a class="headerlink" href="#quantization-schemes" title="Link to this heading">#</a></h3>
@@ -1704,7 +1704,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <h3>Why Quantization Matters at Scale<a class="headerlink" href="#why-quantization-matters-at-scale" title="Link to this heading">#</a></h3>
 <p>To appreciate why quantization is critical for production ML, consider these deployment scenarios:</p>
 <ul class="simple">
-<li><p><strong>Mobile AI</strong>: iPhone has 6 GB RAM shared across all apps. A quantized BERT (110 MB) fits comfortably; FP32 version (440 MB) causes memory pressure and swapping.</p></li>
+<li><p><strong>Mobile AI</strong>: iPhone has 6 GB RAM shared across all apps. A quantized BERT (<span class="pasted-text">105 MB</span>) fits comfortably; FP32 version (<span class="pasted-text">420 MB</span>) causes memory pressure and swapping.</p></li>
 <li><p><strong>Edge computing</strong>: IoT devices often have 512 MB RAM. Quantization enables on-device inference for privacy-sensitive applications (medical devices, security cameras).</p></li>
 <li><p><strong>Data centers</strong>: Serving 1000 requests/second requires multiple model replicas. With 4× memory reduction, you fit 4× more models per GPU, reducing serving costs by 75%.</p></li>
 <li><p><strong>Battery life</strong>: INT8 operations consume 2-4× less energy than FP32 on mobile processors. Quantized models drain battery slower, improving user experience.</p></li>
@@ -1720,16 +1720,16 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Answer</p>
 <p><strong>Parameter count:</strong></p>
 <ul class="simple">
-<li><p>Layer 1: (784 × 256) + 256 = 200,960</p></li>
-<li><p>Layer 2: (256 × 128) + 128 = 32,896</p></li>
-<li><p>Layer 3: (128 × 10) + 10 = 1,290</p></li>
-<li><p><strong>Total: 235,146 parameters</strong></p></li>
+<li><p>Layer 1: (784 × 256) + 256 = <span class="pasted-text">200,960</span></p></li>
+<li><p>Layer 2: (256 × 128) + 128 = <span class="pasted-text">32,896</span></p></li>
+<li><p>Layer 3: (128 × 10) + 10 = <span class="pasted-text">1,290</span></p></li>
+<li><p><strong>Total: <span class="pasted-text">235,146</span> parameters</strong></p></li>
 </ul>
 <p><strong>Memory usage:</strong></p>
 <ul class="simple">
-<li><p>FP32: 235,146 × 4 bytes = <strong>940,584 bytes ≈ 0.92 MB</strong></p></li>
-<li><p>INT8: 235,146 × 1 byte = <strong>235,146 bytes ≈ 0.23 MB</strong></p></li>
-<li><p><strong>Savings: 0.69 MB (75% reduction, 4× compression)</strong></p></li>
+<li><p>FP32: <span class="pasted-text">235,146</span> × 4 bytes = <strong><span class="pasted-text">940,584</span> bytes ≈ <span class="pasted-text">0.90 MB</span></strong></p></li>
+<li><p>INT8: <span class="pasted-text">235,146</span> × 1 byte = <strong><span class="pasted-text">235,146</span> bytes ≈ <span class="pasted-text">0.22 MB</span></strong></p></li>
+<li><p><strong>Savings: <span class="pasted-text">0.67 MB</span> (75% reduction, 4× compression)</strong></p></li>
 </ul>
 <p>This shows why quantization matters: even small models benefit significantly.</p>
 </div>
@@ -1740,15 +1740,15 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p><strong>Quantization error:</strong></p>
 <ul class="simple">
 <li><p>Range: 0.5 - (-0.5) = 1.0</p></li>
-<li><p>Scale: 1.0 / 255 = <strong>0.003922</strong></p></li>
-<li><p>Max error: scale / 2 = <strong>±0.001961</strong> (half step size)</p></li>
+<li><p>Scale: 1.0 / 255 = <strong><span class="pasted-text">0.003922</span></strong></p></li>
+<li><p>Max error: scale / 2 = <strong><span class="pasted-text">±0.001961</span></strong> (half step size)</p></li>
 </ul>
 <p><strong>Signal-to-noise ratio:</strong></p>
 <ul class="simple">
 <li><p>SNR = 20 × log₁₀(signal_range / quantization_step)</p></li>
-<li><p>SNR = 20 × log₁₀(1.0 / 0.003922)</p></li>
+<li><p>SNR = 20 × log₁₀(1.0 / <span class="pasted-text">0.003922</span>)</p></li>
 <li><p>SNR = 20 × log₁₀(255)</p></li>
-<li><p>SNR ≈ <strong>48 dB</strong></p></li>
+<li><p>SNR ≈ <strong><span class="pasted-text">48 dB</span></strong></p></li>
 </ul>
 <p>This is sufficient for neural networks (typical requirement: &gt;40 dB). The 8-bit quantization provides approximately 6 dB per bit, matching the theoretical limit.</p>
 </div>
@@ -1778,17 +1778,17 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Answer</p>
 <p><strong>Loading time:</strong></p>
 <ul class="simple">
-<li><p>FP32 size: 100M × 4 bytes = 400 MB</p></li>
-<li><p>INT8 size: 100M × 1 byte = 100 MB</p></li>
-<li><p>FP32 load time: 400 MB / 500 MB/s = <strong>0.8 seconds</strong></p></li>
-<li><p>INT8 load time: 100 MB / 500 MB/s = <strong>0.2 seconds</strong></p></li>
+<li><p>FP32 size: 100M × 4 bytes = <span class="pasted-text">381 MB</span></p></li>
+<li><p>INT8 size: 100M × 1 byte = <span class="pasted-text">95 MB</span></p></li>
+<li><p>FP32 load time: <span class="pasted-text">381 MB</span> / 500 MB/s = <strong><span class="pasted-text">0.8 seconds</span></strong></p></li>
+<li><p>INT8 load time: <span class="pasted-text">95 MB</span> / 500 MB/s = <strong><span class="pasted-text">0.19 seconds</span></strong></p></li>
 <li><p><strong>Speedup: 4× faster loading</strong></p></li>
 </ul>
 <p><strong>User experience impact:</strong></p>
 <ul class="simple">
-<li><p>Mobile app launch: 0.8s → 0.2s (<strong>0.6s faster startup</strong>)</p></li>
-<li><p>Cloud inference: 0.8s latency → 0.2s latency (<strong>4× better throughput</strong>)</p></li>
-<li><p>Model updates: 400 MB download → 100 MB download (<strong>75% less data usage</strong>)</p></li>
+<li><p>Mobile app launch: <span class="pasted-text">0.8 seconds</span> → <span class="pasted-text">0.19 seconds</span> (<strong><span class="pasted-text">0.6s</span> faster startup</strong>)</p></li>
+<li><p>Cloud inference: <span class="pasted-text">0.8 seconds</span> latency → <span class="pasted-text">0.19 seconds</span> latency (<strong>4× better throughput</strong>)</p></li>
+<li><p>Model updates: <span class="pasted-text">381 MB</span> download → <span class="pasted-text">95 MB</span> download (<strong>75% less data usage</strong>)</p></li>
 </ul>
 <p><strong>Key insight</strong>: Quantization reduces not just RAM usage, but also disk I/O, network transfer, and cold-start latency. The 4× reduction applies to all memory movement operations.</p>
 </div>
@@ -1798,9 +1798,9 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Answer</p>
 <p><strong>SIMD capacity:</strong></p>
 <ul class="simple">
-<li><p>512-bit register with FP32: 512 / 32 = <strong>16 values</strong></p></li>
-<li><p>512-bit register with INT8: 512 / 8 = <strong>64 values</strong></p></li>
-<li><p><strong>Theoretical speedup: 64/16 = 4×</strong></p></li>
+<li><p>512-bit register with FP32: 512 / 32 = <strong><span class="pasted-text">16</span> values</strong></p></li>
+<li><p>512-bit register with INT8: 512 / 8 = <strong><span class="pasted-text">64</span> values</strong></p></li>
+<li><p><strong>Theoretical speedup: <span class="pasted-text">64</span>/<span class="pasted-text">16</span> = <span class="pasted-text">4×</span></strong></p></li>
 </ul>
 <p><strong>Why actual speedup is 2-3× (not 4×):</strong></p>
 <ol class="arabic simple">
@@ -1877,7 +1877,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p class="admonition-title">Tip</p>
 <p>Interactive Options</p>
 <ul class="simple">
-<li><p><strong><a class="reference external" href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?urlpath=lab/tree/tinytorch/modules/15_quantization/15_quantization.ipynb">Launch Binder</a></strong> - Run interactively in browser, no setup required</p></li>
+<li><p><strong><a class="reference external" href="https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?urlpath=lab/tree/tinytorch/modules/15_quantization/quantization.ipynb">Launch Binder</a></strong> - Run interactively in browser, no setup required</p></li>
 <li><p><strong><a class="reference external" href="https://github.com/harvard-edge/cs249r_book/blob/main/tinytorch/src/15_quantization/15_quantization.py">View Source</a></strong> - Browse the implementation code</p></li>
 </ul>
 </div>
