@@ -298,6 +298,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Pastor Soto</span>
     <span class="roles">✍️</span>
   </a>
+  <a href="https://github.com/Pratham-ja" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/114498234?v=4" alt="Pratham Chaudhary" />
+    <span class="name">Pratham Chaudhary</span>
+    <span class="roles">✍️</span>
+  </a>
 </div>
 ```
 
