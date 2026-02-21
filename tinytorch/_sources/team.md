@@ -223,6 +223,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Didier Durand</span>
     <span class="roles">🪲 🧑‍💻 ✍️</span>
   </a>
+  <a href="https://github.com/Pratham-ja" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/114498234?v=4" alt="Pratham Chaudhary" />
+    <span class="name">Pratham Chaudhary</span>
+    <span class="roles">🪲 🧑‍💻 ✍️</span>
+  </a>
   <a href="https://github.com/karthikdani" class="team-member">
     <img src="https://avatars.githubusercontent.com/karthikdani?v=4&s=160" alt="Karthik Dani" />
     <span class="name">Karthik Dani</span>
@@ -296,11 +301,6 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
   <a href="https://github.com/sotoblanco" class="team-member">
     <img src="https://avatars.githubusercontent.com/u/46135649?v=4" alt="Pastor Soto" />
     <span class="name">Pastor Soto</span>
-    <span class="roles">✍️</span>
-  </a>
-  <a href="https://github.com/Pratham-ja" class="team-member">
-    <img src="https://avatars.githubusercontent.com/u/114498234?v=4" alt="Pratham Chaudhary" />
-    <span class="name">Pratham Chaudhary</span>
     <span class="roles">✍️</span>
   </a>
 </div>
