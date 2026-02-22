@@ -303,6 +303,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Pastor Soto</span>
     <span class="roles">✍️</span>
   </a>
+  <a href="https://github.com/salmanmkc" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/32169182?v=4" alt="Salman Chishti" />
+    <span class="name">Salman Chishti</span>
+    <span class="roles">🧑‍💻</span>
+  </a>
 </div>
 ```
 
