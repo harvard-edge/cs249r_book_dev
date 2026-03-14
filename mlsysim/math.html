@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Mathematical Foundations – MLSys·im</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./accuracy.html" rel="next">
+<link href="./architecture.html" rel="prev">
+<link href="./logo.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-59ed77f941ff0743e975be82e7d73c6b.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b1a92788e7afe1d837db571c16f54076.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-59ed77f941ff0743e975be82e7d73c6b.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-919563653baaf171b0fd04f4fea4b2e3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-67a962fcf9e5e074cdcc8ff14f75f0e5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-919563653baaf171b0fd04f4fea4b2e3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0284C7">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles/landing.css">
+<meta property="og:title" content="MLSys·im — ML Systems Infrastructure Modeling">
+<meta property="og:description" content="Predict ML system performance, cost, and carbon from first principles. Companion to the ML Systems textbook.">
+<meta property="og:site_name" content="Machine Learning Systems">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="MLSys·im — ML Systems Infrastructure Modeling">
+<meta name="twitter:description" content="Predict ML performance, cost, and carbon from first principles. Open source.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-md " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">MLSys·im</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-ecosystem" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Ecosystem</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-ecosystem">    
+        <li>
+    <a class="dropdown-item" href="./../book/"><i class="bi bi-book-half" role="img">
+</i> 
+ <span class="dropdown-text">Full Textbook</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="./../vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./../vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: At Scale</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="./../tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./../kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="././"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·im</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="./../labs/"><i class="bi bi-lightbulb" role="img">
+</i> 
+ <span class="dropdown-text">Labs (Coming 2026)</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book#support-this-work" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cli-reference.html">Reference</a></li><li class="breadcrumb-item"><a href="./math.html">Mathematical Foundations</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Get Started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./getting-started.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting Started</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./models-and-solvers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The 3-Tier Resolver Guide</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./tutorials/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tutorials</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Foundations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/00_hello_roofline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hello, Roofline</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/01_memory_wall.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Memory Wall</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/02_two_phases.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Two Phases, One Request</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/03_kv_cache.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">KV-Cache: The Hidden Tax</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/04_starving_the_gpu.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Starving the GPU</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/05_quantization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quantization: Not a Free Lunch</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Scale &amp; Cost</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/06_scaling_1000_gpus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scaling to 1000 GPUs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/07_geography.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Geography is a Systems Variable</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/08_nine_million_dollar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The $9M Question</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/09_sensitivity.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Where to Invest: Sensitivity Analysis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/10_gpu_vs_wafer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GPU vs.&nbsp;Wafer-Scale</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/11_full_stack_audit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Full-Stack Audit: LLaMA-70B Training</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Interactive Apps</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interactive_roofline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Roofline Explorer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./sla_optimizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SLA Optimizer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./carbon_placement.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Carbon Placement</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./zoo/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The MLSys Zoo</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./zoo/hardware.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Silicon Zoo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./zoo/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Model Zoo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./zoo/fleets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Fleet Zoo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./zoo/infra.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Infrastructure Zoo</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true">
+ <span class="menu-text">Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">CLI Reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The 5-Layer Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./math.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Mathematical Foundations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./accuracy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model Accuracy &amp; Validation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Glossary</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="./api/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">API Reference</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/hardware.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hardware</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/infra.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Infrastructure</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./api/core.solver.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Solvers</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true">
+ <span class="menu-text">Guides</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./extending-the-engine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Extending the Engine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./for-students.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">For Students</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./for-instructors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">For Instructors</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./for-engineers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">For Engineers &amp; Researchers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./whitepaper.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MLSys·im Research Paper</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contributing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Contributing to MLSys·im</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#notation-reference" id="toc-notation-reference" class="nav-link active" data-scroll-target="#notation-reference">Notation Reference</a></li>
+  <li><a href="#the-iron-law-of-ml-systems-single-node" id="toc-the-iron-law-of-ml-systems-single-node" class="nav-link" data-scroll-target="#the-iron-law-of-ml-systems-single-node">1. The Iron Law of ML Systems (Single Node)</a></li>
+  <li><a href="#distributed-training-3d-parallelism" id="toc-distributed-training-3d-parallelism" class="nav-link" data-scroll-target="#distributed-training-3d-parallelism">2. Distributed Training (3D Parallelism)</a>
+  <ul>
+  <li><a href="#scaling-efficiency" id="toc-scaling-efficiency" class="nav-link" data-scroll-target="#scaling-efficiency">2.1 Scaling Efficiency</a></li>
+  <li><a href="#ring-all-reduce-data-parallelism" id="toc-ring-all-reduce-data-parallelism" class="nav-link" data-scroll-target="#ring-all-reduce-data-parallelism">2.2 Ring All-Reduce (Data Parallelism)</a></li>
+  <li><a href="#pipeline-parallelism-bubble" id="toc-pipeline-parallelism-bubble" class="nav-link" data-scroll-target="#pipeline-parallelism-bubble">2.3 Pipeline Parallelism Bubble</a></li>
+  <li><a href="#expert-parallelism-mixture-of-experts" id="toc-expert-parallelism-mixture-of-experts" class="nav-link" data-scroll-target="#expert-parallelism-mixture-of-experts">2.4 Expert Parallelism (Mixture of Experts)</a></li>
+  </ul></li>
+  <li><a href="#llm-serving-lifecycle" id="toc-llm-serving-lifecycle" class="nav-link" data-scroll-target="#llm-serving-lifecycle">3. LLM Serving Lifecycle</a>
+  <ul>
+  <li><a href="#pre-fill-phase-compute-bound" id="toc-pre-fill-phase-compute-bound" class="nav-link" data-scroll-target="#pre-fill-phase-compute-bound">3.1 Pre-fill Phase (Compute-Bound)</a></li>
+  <li><a href="#decoding-phase-memory-bound" id="toc-decoding-phase-memory-bound" class="nav-link" data-scroll-target="#decoding-phase-memory-bound">3.2 Decoding Phase (Memory-Bound)</a></li>
+  <li><a href="#kv-cache-size" id="toc-kv-cache-size" class="nav-link" data-scroll-target="#kv-cache-size">3.3 KV-Cache Size</a></li>
+  <li><a href="#prompt-caching-prefix-caching" id="toc-prompt-caching-prefix-caching" class="nav-link" data-scroll-target="#prompt-caching-prefix-caching">3.4 Prompt Caching (Prefix Caching)</a></li>
+  <li><a href="#disaggregated-serving" id="toc-disaggregated-serving" class="nav-link" data-scroll-target="#disaggregated-serving">3.5 Disaggregated Serving</a></li>
+  <li><a href="#speculative-decoding" id="toc-speculative-decoding" class="nav-link" data-scroll-target="#speculative-decoding">3.6 Speculative Decoding</a></li>
+  </ul></li>
+  <li><a href="#the-data-wall" id="toc-the-data-wall" class="nav-link" data-scroll-target="#the-data-wall">4. The Data Wall</a></li>
+  <li><a href="#scaling-physics-chinchilla-laws" id="toc-scaling-physics-chinchilla-laws" class="nav-link" data-scroll-target="#scaling-physics-chinchilla-laws">5. Scaling Physics (Chinchilla Laws)</a></li>
+  <li><a href="#cluster-orchestration-littles-law" id="toc-cluster-orchestration-littles-law" class="nav-link" data-scroll-target="#cluster-orchestration-littles-law">6. Cluster Orchestration (Little’s Law)</a></li>
+  <li><a href="#model-compression-the-compression-tax" id="toc-model-compression-the-compression-tax" class="nav-link" data-scroll-target="#model-compression-the-compression-tax">7. Model Compression (The Compression Tax)</a></li>
+  <li><a href="#datacenter-sustainability" id="toc-datacenter-sustainability" class="nav-link" data-scroll-target="#datacenter-sustainability">8. Datacenter Sustainability</a>
+  <ul>
+  <li><a href="#total-energy" id="toc-total-energy" class="nav-link" data-scroll-target="#total-energy">8.1 Total Energy</a></li>
+  <li><a href="#carbon-footprint" id="toc-carbon-footprint" class="nav-link" data-scroll-target="#carbon-footprint">8.2 Carbon Footprint</a></li>
+  </ul></li>
+  <li><a href="#total-cost-of-ownership-tco" id="toc-total-cost-of-ownership-tco" class="nav-link" data-scroll-target="#total-cost-of-ownership-tco">9. Total Cost of Ownership (TCO)</a></li>
+  <li><a href="#cluster-reliability-the-young-daly-model" id="toc-cluster-reliability-the-young-daly-model" class="nav-link" data-scroll-target="#cluster-reliability-the-young-daly-model">10. Cluster Reliability (The Young-Daly Model)</a></li>
+  <li><a href="#tail-latency-erlang-c-queueing" id="toc-tail-latency-erlang-c-queueing" class="nav-link" data-scroll-target="#tail-latency-erlang-c-queueing">11. Tail Latency (Erlang-C Queueing)</a></li>
+  <li><a href="#weight-streaming-wafer-scale-inference" id="toc-weight-streaming-wafer-scale-inference" class="nav-link" data-scroll-target="#weight-streaming-wafer-scale-inference">12. Weight Streaming (Wafer-Scale Inference)</a></li>
+  <li><a href="#responsible-engineering-dp-sgd-overhead" id="toc-responsible-engineering-dp-sgd-overhead" class="nav-link" data-scroll-target="#responsible-engineering-dp-sgd-overhead">13. Responsible Engineering (DP-SGD Overhead)</a></li>
+  <li><a href="#sensitivity-analysis-binding-constraints" id="toc-sensitivity-analysis-binding-constraints" class="nav-link" data-scroll-target="#sensitivity-analysis-binding-constraints">14. Sensitivity Analysis (Binding Constraints)</a></li>
+  <li><a href="#inverse-roofline-synthesis" id="toc-inverse-roofline-synthesis" class="nav-link" data-scroll-target="#inverse-roofline-synthesis">15. Inverse Roofline Synthesis</a></li>
+  <li><a href="#software-efficiency-wall-3-mfu-decomposition" id="toc-software-efficiency-wall-3-mfu-decomposition" class="nav-link" data-scroll-target="#software-efficiency-wall-3-mfu-decomposition">16. Software Efficiency (Wall 3: MFU Decomposition)</a></li>
+  <li><a href="#continuous-batching-wall-5-pagedattention" id="toc-continuous-batching-wall-5-pagedattention" class="nav-link" data-scroll-target="#continuous-batching-wall-5-pagedattention">17. Continuous Batching (Wall 5: PagedAttention)</a></li>
+  <li><a href="#data-transformation-wall-9-cpu-preprocessing" id="toc-data-transformation-wall-9-cpu-preprocessing" class="nav-link" data-scroll-target="#data-transformation-wall-9-cpu-preprocessing">18. Data Transformation (Wall 9: CPU Preprocessing)</a></li>
+  <li><a href="#network-topology-wall-10-bisection-bandwidth" id="toc-network-topology-wall-10-bisection-bandwidth" class="nav-link" data-scroll-target="#network-topology-wall-10-bisection-bandwidth">19. Network Topology (Wall 10: Bisection Bandwidth)</a></li>
+  <li><a href="#inference-time-scaling-wall-12-reasoning-compute" id="toc-inference-time-scaling-wall-12-reasoning-compute" class="nav-link" data-scroll-target="#inference-time-scaling-wall-12-reasoning-compute">20. Inference-Time Scaling (Wall 12: Reasoning Compute)</a></li>
+  <li><a href="#checkpoint-io-wall-19-mfu-penalty" id="toc-checkpoint-io-wall-19-mfu-penalty" class="nav-link" data-scroll-target="#checkpoint-io-wall-19-mfu-penalty">21. Checkpoint I/O (Wall 19: MFU Penalty)</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./cli-reference.html">Reference</a></li><li class="breadcrumb-item"><a href="./math.html">Mathematical Foundations</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Mathematical Foundations</h1>
+<p class="subtitle lead">The First-Principles Equations Behind Every MLSys·im Solver</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>MLSys·im avoids “black box” heuristics. Every output traces back to one of the equations below, each grounded in a published systems paper. Before diving into code, read this page to understand <em>what</em> the 22 resolvers (20 models and 2 solvers) resolving the <a href="./architecture.html#the-22-systems-walls">22 Systems Walls</a> are computing and <em>why</em>.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Reading these equations
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each solver in MLSys·im implements one or more of the models below. Click any solver name to go directly to its API documentation.</p>
+</div>
+</div>
+<section id="notation-reference" class="level2">
+<h2 class="anchored" data-anchor-id="notation-reference">Notation Reference</h2>
+<p>All quantities carry SI units at runtime via <code>pint</code>. The table below defines every symbol used in the equations that follow.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 22%">
+<col style="width: 48%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Model &amp; Workload</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(P\)</span></td>
+<td>params</td>
+<td>Model parameter count</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(P_{\ell}\)</span></td>
+<td>params</td>
+<td>Per-layer parameter count</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\|W\|\)</span></td>
+<td>bytes</td>
+<td>Total bytes read per step (weights + KV cache)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\|W_{\ell}\|\)</span></td>
+<td>bytes</td>
+<td>Per-layer weight size (<span class="math inline">\(P_{\ell} \times b_{\text{prec}}\)</span>)</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(b_{\text{prec}}\)</span></td>
+<td>bytes/param</td>
+<td>Numerical precision (e.g., 2 for FP16)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(L\)</span></td>
+<td>—</td>
+<td>Number of layers</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(H\)</span></td>
+<td>—</td>
+<td>Number of attention heads (or KV heads)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(D\)</span></td>
+<td>—</td>
+<td>Head dimension</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(S\)</span></td>
+<td>tokens</td>
+<td>Sequence length</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(B\)</span></td>
+<td>samples</td>
+<td>Batch size</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(K\)</span></td>
+<td>—</td>
+<td>Number of reasoning steps</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(C\)</span></td>
+<td>FLOPs</td>
+<td>Total training compute (<span class="math inline">\(6PD\)</span>)</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(I\)</span></td>
+<td>FLOP/byte</td>
+<td>Arithmetic intensity</td>
+</tr>
+<tr class="odd">
+<td><strong>Hardware &amp; Infrastructure</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\text{Peak}_{\text{FLOPS}}\)</span></td>
+<td>FLOP/s</td>
+<td>Peak accelerator throughput</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(BW_{\text{HBM}}\)</span></td>
+<td>bytes/s</td>
+<td>HBM bandwidth</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(BW_{\text{inject}}\)</span></td>
+<td>bytes/s</td>
+<td>Weight injection bandwidth (wafer-scale)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(BW_{\text{link}}\)</span></td>
+<td>bytes/s</td>
+<td>Per-link network bandwidth</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(N\)</span></td>
+<td>—</td>
+<td>Number of nodes in fleet</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(G\)</span></td>
+<td>—</td>
+<td>GPUs per node</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\alpha\)</span></td>
+<td>seconds</td>
+<td>Per-hop network latency</td>
+</tr>
+<tr class="odd">
+<td><strong>Efficiency &amp; Utilization</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\eta\)</span></td>
+<td>—</td>
+<td>Hardware utilization (<span class="math inline">\(\approx\)</span> MFU)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\eta_{\text{overlap}}\)</span></td>
+<td>—</td>
+<td>Compute–communication overlap efficiency</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\rho\)</span></td>
+<td>—</td>
+<td>Utilization ratio (queueing or data)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\beta\)</span></td>
+<td>—</td>
+<td>Bisection bandwidth fraction</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\beta_{\text{opt}}\)</span></td>
+<td>—</td>
+<td>Optimizer state multiplier (total ckpt bytes / weight bytes)</td>
+</tr>
+<tr class="odd">
+<td><strong>Parallelism</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>TP, PP, DP, EP</td>
+<td>—</td>
+<td>Tensor, pipeline, data, expert parallelism</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(V\)</span></td>
+<td>—</td>
+<td>Virtual pipeline stages</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(M_{\text{micro}}\)</span></td>
+<td>—</td>
+<td>Number of microbatches</td>
+</tr>
+<tr class="odd">
+<td><strong>Sustainability</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>PUE</td>
+<td>—</td>
+<td>Power Usage Effectiveness</td>
+</tr>
+<tr class="odd">
+<td>CI</td>
+<td>gCO₂/kWh</td>
+<td>Regional carbon intensity</td>
+</tr>
+<tr class="even">
+<td>WUE</td>
+<td>L/kWh</td>
+<td>Water Usage Effectiveness</td>
+</tr>
+<tr class="odd">
+<td><strong>Key Derived Quantities</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(I^{*}\)</span></td>
+<td>FLOP/byte</td>
+<td>Ridge point (<span class="math inline">\(\text{Peak}/BW_{\text{HBM}}\)</span>)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(B^{*}\)</span></td>
+<td>samples</td>
+<td>Optimal batch size (streaming wall)</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(P^{*}\)</span></td>
+<td>params</td>
+<td>Compute-optimal model size</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(D^{*}\)</span></td>
+<td>tokens</td>
+<td>Compute-optimal dataset size</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\tau_{\text{opt}}\)</span></td>
+<td>seconds</td>
+<td>Optimal checkpoint interval</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="the-iron-law-of-ml-systems-single-node" class="level2">
+<h2 class="anchored" data-anchor-id="the-iron-law-of-ml-systems-single-node">1. The Iron Law of ML Systems (Single Node)</h2>
+<p><em>Implemented in <a href="api/core.solver.SingleNodeModel.qmd"><code>mlsysim.core.solver.SingleNodeModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: The Roofline Bottleneck</strong> Hardware has two speed limits—how fast it can compute, and how fast it can move data from memory to the compute units. Your actual throughput is determined by whichever limit you hit first. This is why we take the <em>maximum</em> of two terms, not their sum.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="williams2009roofline"><a href="#ref-williams2009roofline" role="doc-biblioref">[1]</a></span></p>
+</div>
+</div>
+</div>
+<p><span class="math display">\[
+T = \max \left( \frac{\text{FLOPs}}{\text{Peak\_FLOPs} \times \eta},\ \frac{\text{Bytes}}{\text{Memory\_BW}} \right) + \text{Dispatch\_Tax}
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(\eta\)</span> is the hardware utilization efficiency (typically 0.25–0.55 in practice; MLSys·im defaults to 0.5, with 0.35 recommended for inference — see <a href="./accuracy.html">Accuracy &amp; Validation</a> for guidance).</li>
+<li><span class="math inline">\(\text{Dispatch\_Tax}\)</span> is the constant kernel-launch overhead (e.g., CUDA overhead, ~0.01–0.1 ms).</li>
+<li>If <span class="math inline">\(\frac{\text{FLOPs}}{\text{Peak\_FLOPs} \times \eta} &gt; \frac{\text{Bytes}}{\text{Memory\_BW}}\)</span>: <strong>Compute-bound</strong> — buy faster GPUs or increase arithmetic intensity.</li>
+<li>If <span class="math inline">\(\frac{\text{Bytes}}{\text{Memory\_BW}}\)</span> wins: <strong>Memory-bound</strong> — increase batch size or use operator fusion.</li>
+</ul>
+<p><strong>Arithmetic Intensity</strong> is the key ratio: <span class="math inline">\(I = \text{FLOPs} / \text{Bytes}\)</span>. The <em>roofline ridge point</em> is <span class="math inline">\(I^* = \text{Peak\_FLOPs} / \text{Memory\_BW}\)</span>. If <span class="math inline">\(I &gt; I^*\)</span>, you are compute-bound. If <span class="math inline">\(I &lt; I^*\)</span>, you are memory-bound.</p>
+<hr>
+</section>
+<section id="distributed-training-3d-parallelism" class="level2">
+<h2 class="anchored" data-anchor-id="distributed-training-3d-parallelism">2. Distributed Training (3D Parallelism)</h2>
+<p><em>Implemented in <a href="api/core.solver.DistributedModel.qmd"><code>mlsysim.core.solver.DistributedModel</code></a>.</em></p>
+<p><strong>Why an analytical model?</strong> Real distributed training involves complex interactions between computation, communication, and scheduling. Empirical profiling requires access to expensive multi-GPU clusters and takes hours per configuration. MLSys·im instead decomposes the problem into three independent overheads — data parallelism (gradient synchronization), tensor parallelism (intra-layer communication), and pipeline parallelism (bubble idle time) — each governed by a closed-form equation. This lets you evaluate thousands of parallelism configurations in seconds to identify the best strategy <em>before</em> reserving cluster time.</p>
+<p>The key insight is that each parallelism dimension introduces a <strong>communication tax</strong> that can be modeled from first principles: message size, network bandwidth, and topology. The single-GPU compute time comes from the roofline model (Section 1), and the distributed overhead is additive on top.</p>
+<section id="scaling-efficiency" class="level3">
+<h3 class="anchored" data-anchor-id="scaling-efficiency">2.1 Scaling Efficiency</h3>
+<p>The solver computes an overall <strong>scaling efficiency</strong> — the fraction of ideal linear speedup actually achieved:</p>
+<p><span class="math display">\[
+\eta_{\text{scale}} = \frac{T_{\text{single}}}{T_{\text{single}} + T_{\text{dp}} + T_{\text{tp}} + T_{\text{bubble}}}
+\]</span></p>
+<p>Where <span class="math inline">\(T_{\text{single}}\)</span> is the per-GPU compute time (from the roofline model), and the remaining terms are the communication and scheduling overheads derived below. An efficiency of 80% on 256 GPUs means you get the equivalent throughput of ~205 GPUs — the rest is spent on communication.</p>
+</section>
+<section id="ring-all-reduce-data-parallelism" class="level3">
+<h3 class="anchored" data-anchor-id="ring-all-reduce-data-parallelism">2.2 Ring All-Reduce (Data Parallelism)</h3>
+<p>After each training step, every GPU must synchronize its gradients with every other GPU. The standard algorithm is <strong>ring all-reduce</strong>, which arranges GPUs in a logical ring and passes gradient chunks around it in two phases.</p>
+<p>For a model of size <span class="math inline">\(M\)</span> bytes distributed across <span class="math inline">\(N\)</span> accelerators connected in a ring topology with inter-node bandwidth <span class="math inline">\(BW\)</span> and latency <span class="math inline">\(L\)</span>:</p>
+<p><span class="math display">\[
+T_{\text{dp}} = 2(N-1) \cdot \left( \frac{M / N}{BW} + L \right)
+\]</span></p>
+<p>The factor of 2 arises because ring all-reduce has two phases: scatter-reduce and all-gather, each requiring <span class="math inline">\(N-1\)</span> communication steps. Each step transfers <span class="math inline">\(M/N\)</span> bytes (one chunk of the gradient), so the total data transferred per GPU approaches <span class="math inline">\(2M\)</span> as <span class="math inline">\(N\)</span> grows — meaning the bandwidth cost is nearly independent of cluster size, which is why ring all-reduce scales well.</p>
+<p><strong>Implication</strong>: All-reduce cost grows linearly with model size <span class="math inline">\(M\)</span> but is asymptotically <strong>constant</strong> in <span class="math inline">\(N\)</span> — the factor <span class="math inline">\(2(N-1)/N\)</span> approaches 2 as <span class="math inline">\(N\)</span> grows, meaning adding more GPUs barely increases per-GPU communication time. For very large models (70B+ parameters = ~140 GB gradients in fp16), communication dominates at low batch sizes. Upgrading from 100 Gb Ethernet to InfiniBand NDR (400 Gb/s) can recover 10–30% scaling efficiency.</p>
+</section>
+<section id="pipeline-parallelism-bubble" class="level3">
+<h3 class="anchored" data-anchor-id="pipeline-parallelism-bubble">2.3 Pipeline Parallelism Bubble</h3>
+<p><strong>Pipeline parallelism</strong> splits a model’s layers across multiple stages (nodes). Stage 1 processes layers 1–20, stage 2 processes layers 21–40, and so on. This allows models too large for a single GPU to be trained across multiple nodes.</p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: Shrinking the Pipeline Bubble</strong> In standard 1F1B pipeline parallelism, GPUs sit idle waiting for microbatches to traverse the network. You can’t change the speed of light, but you <em>can</em> change the software schedule. By assigning multiple “virtual stages” (<span class="math inline">\(V\)</span>) to a single GPU, we interleave the execution. While a GPU is waiting for the next microbatch of its <em>first</em> virtual stage, it can compute a microbatch for its <em>second</em> virtual stage, effectively hiding the network latency behind useful compute.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="narayanan2021efficient"><a href="#ref-narayanan2021efficient" role="doc-biblioref">[2]</a></span></p>
+</div>
+</div>
+</div>
+<p>The cost of pipelining is a <strong>pipeline bubble</strong>: at the start of each batch, downstream stages sit idle while waiting for upstream stages to produce output. When a pipeline of depth <span class="math inline">\(P\)</span> processes <span class="math inline">\(M\)</span> microbatches with <span class="math inline">\(V\)</span> virtual stages per GPU, the fraction of time spent idle is:</p>
+<p><span class="math display">\[
+\text{Bubble Fraction} = \frac{P - 1}{V \times M + P - 1}
+\]</span></p>
+<p>The intuition: with <span class="math inline">\(P\)</span> stages and <span class="math inline">\(M\)</span> microbatches, the pipeline takes time to fill and drain. The solution is to either increase <span class="math inline">\(M\)</span> (more microbatches) or increase <span class="math inline">\(V\)</span> (interleaved schedules). Both make the startup and drain phases a smaller fraction of total time.</p>
+<p><strong>Implication</strong>: To keep the bubble below 5% using standard 1F1B (<span class="math inline">\(V=1\)</span>), you need <span class="math inline">\(M \geq 19 \cdot (P-1)\)</span> microbatches. With a 4-stage pipeline (<span class="math inline">\(P=4\)</span>), you need at least 57 microbatches. By using <span class="math inline">\(V=2\)</span> virtual stages, you cut the required microbatches in half.</p>
+</section>
+<section id="expert-parallelism-mixture-of-experts" class="level3">
+<h3 class="anchored" data-anchor-id="expert-parallelism-mixture-of-experts">2.4 Expert Parallelism (Mixture of Experts)</h3>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: Breaking the Iron Law</strong> Standard dense Transformers obey a strict “Iron Law”: if you double the parameters, you double the memory <em>and</em> the compute FLOPs. Mixture of Experts (MoE) breaks this law. It routes tokens only to specific “expert” subnetworks. This means your <strong>Memory Bound</strong> is dictated by the massive <em>Total Parameters</em>, but your <strong>Compute Bound</strong> is dictated only by the much smaller <em>Active Parameters</em>. The physical tradeoff is a massive network bandwidth tax (All-to-All communication) to route tokens to the right experts across the cluster.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="shazeer2017outrageously"><a href="#ref-shazeer2017outrageously" role="doc-biblioref">[3]</a></span></p>
+</div>
+</div>
+</div>
+<p>To model MoE, we move from 3D to <strong>4D Parallelism</strong>:</p>
+<p><span class="math display">\[
+\text{Data Parallelism} = \frac{\text{Total GPUs}}{TP \times PP \times EP}
+\]</span></p>
+<p>Where <span class="math inline">\(EP\)</span> is Expert Parallelism. If <span class="math inline">\(EP &gt; 1\)</span>, the solver adds an All-to-All communication penalty for token routing:</p>
+<p><span class="math display">\[
+T_{\text{all-to-all}} = \frac{N-1}{N} \times \frac{\text{Message Size}}{\text{Bandwidth}} + (N-1) \times \text{Latency}
+\]</span></p>
+<hr>
+</section>
+</section>
+<section id="llm-serving-lifecycle" class="level2">
+<h2 class="anchored" data-anchor-id="llm-serving-lifecycle">3. LLM Serving Lifecycle</h2>
+<p><em>Implemented in <a href="api/core.solver.ServingModel.qmd"><code>mlsysim.core.solver.ServingModel</code></a>.</em></p>
+<p>LLM autoregressive inference has two physically distinct phases. Understanding which phase dominates is critical for capacity planning.</p>
+<section id="pre-fill-phase-compute-bound" class="level3">
+<h3 class="anchored" data-anchor-id="pre-fill-phase-compute-bound">3.1 Pre-fill Phase (Compute-Bound)</h3>
+<p>The initial forward pass over the full prompt is compute-bound because all tokens are processed in parallel:</p>
+<p><span class="math display">\[
+\text{TTFT} = \frac{2 \times \text{Parameters} \times \text{Seq\_Len} \times \text{Batch}}{\text{Peak\_FLOPs} \times \eta} + \text{Dispatch\_Tax}
+\]</span></p>
+<p>The factor of 2 counts both the multiply and the add in each multiply-accumulate (MAC) operation.</p>
+</section>
+<section id="decoding-phase-memory-bound" class="level3">
+<h3 class="anchored" data-anchor-id="decoding-phase-memory-bound">3.2 Decoding Phase (Memory-Bound)</h3>
+<p>Each token decode step requires loading the entire model weight matrix plus the accumulated KV-cache:</p>
+<p><span class="math display">\[
+\text{ITL} = \frac{\text{Model\_Bytes} + \text{KV\_Cache\_Bytes}}{\text{Memory\_BW}}
+\]</span></p>
+<p>This phase is almost always <strong>memory-bound</strong> on current hardware because generating one token requires the same memory load as a full matrix-vector product, but performs far fewer FLOPs.</p>
+</section>
+<section id="kv-cache-size" class="level3">
+<h3 class="anchored" data-anchor-id="kv-cache-size">3.3 KV-Cache Size</h3>
+<p><strong>Simplified form</strong> (contiguous allocation):</p>
+<p><span class="math display">\[
+\text{KV\_Bytes} = 2 \times L \times H_{\text{kv}} \times d \times S \times B \times b
+\]</span></p>
+<p>where <span class="math inline">\(L\)</span> is the number of layers, <span class="math inline">\(H_{\text{kv}}\)</span> is the number of KV heads (equals <span class="math inline">\(H\)</span> for MHA, less for GQA), <span class="math inline">\(d\)</span> is the head dimension, <span class="math inline">\(S\)</span> is the sequence length, <span class="math inline">\(B\)</span> is the batch size, and <span class="math inline">\(b\)</span> is the bytes per parameter.</p>
+<p><strong>PagedAttention form</strong> (paged allocation, as in vLLM):</p>
+<p><span class="math display">\[
+\text{KV\_Bytes} = 2 \times L \times H_{\text{kv}} \times d \times \lceil S/p \rceil \times p \times B \times b
+\]</span></p>
+<p>where <span class="math inline">\(p\)</span> is the page size in tokens. When <span class="math inline">\(p = S\)</span> (no paging), this reduces to the simplified form.</p>
+<p>The factor of 2 counts both the K and V matrices. At fp16 (2 bytes/param), a 70B model with a 4096-token context at batch=32 requires approximately <strong>540 GB</strong> of KV-cache — more than a single H100 node can hold.</p>
+</section>
+<section id="prompt-caching-prefix-caching" class="level3">
+<h3 class="anchored" data-anchor-id="prompt-caching-prefix-caching">3.4 Prompt Caching (Prefix Caching)</h3>
+<p><em>Literature: <span class="citation" data-cites="zheng2024sglang"><a href="#ref-zheng2024sglang" role="doc-biblioref">[4]</a></span> (RadixAttention for automatic prefix caching).</em></p>
+<p>When a prefix of the context (e.g., a system prompt) has been seen before, its KV-cache entries are already computed and resident in memory. Only the <em>new</em> tokens require prefill computation:</p>
+<p><span class="math display">\[
+\text{TTFT}_{\text{cached}} = \frac{2 \times \text{Parameters} \times (\text{Seq\_Len} - P_{\text{cached}}) \times \text{Batch}}{\text{Peak\_FLOPs} \times \eta} + \text{Dispatch\_Tax}
+\]</span></p>
+<p>where <span class="math inline">\(P_{\text{cached}}\)</span> is the number of tokens with pre-computed KV entries. The key asymmetry: <strong>TTFT improves proportionally</strong> (only new tokens need compute), but <strong>ITL is unchanged</strong> (the decode phase still loads the full model weights regardless) and <strong>memory is unchanged</strong> (the full KV-cache, including cached prefix, remains resident).</p>
+<p>The TTFT speedup ratio is:</p>
+<p><span class="math display">\[
+\text{Speedup} = \frac{\text{Seq\_Len}}{\text{Seq\_Len} - P_{\text{cached}}}
+\]</span></p>
+<p>For a chatbot with a 1024-token system prompt in a 4096-token context, caching yields a <span class="math inline">\(\frac{4096}{3072} = 1.33\times\)</span> TTFT improvement. For RAG applications where 75% of the context is cached retrieval, the speedup reaches <span class="math inline">\(4\times\)</span>.</p>
+</section>
+<section id="disaggregated-serving" class="level3">
+<h3 class="anchored" data-anchor-id="disaggregated-serving">3.5 Disaggregated Serving</h3>
+<p><em>Literature: <span class="citation" data-cites="patel2024splitwise"><a href="#ref-patel2024splitwise" role="doc-biblioref">[5]</a></span> (Splitwise: phase-aware LLM inference).</em></p>
+<p>In disaggregated (or “splitwise”) serving, the compute-bound prefill and memory-bound decode phases run on different hardware optimized for each:</p>
+<p><span class="math display">\[
+\text{TTFT}_{\text{disagg}} = \text{TTFT}_{\text{prefill\_node}} + \frac{\text{KV\_Cache\_Bytes}}{\text{Network\_BW}}
+\]</span></p>
+<p>The second term is the cost of transferring the KV-cache from the prefill node to the decode node over the network. This is worthwhile when:</p>
+<ol type="1">
+<li>The prefill node has higher compute throughput (e.g., more FLOPS)</li>
+<li>The decode node has higher memory bandwidth (e.g., more HBM bandwidth per GPU)</li>
+<li>The KV-cache transfer time is small relative to the TTFT savings</li>
+</ol>
+</section>
+<section id="speculative-decoding" class="level3">
+<h3 class="anchored" data-anchor-id="speculative-decoding">3.6 Speculative Decoding</h3>
+<p><em>Literature: <span class="citation" data-cites="leviathan2023fast"><a href="#ref-leviathan2023fast" role="doc-biblioref">[6]</a></span> (Fast Inference from Transformers via Speculative Decoding).</em></p>
+<p>Speculative decoding uses a small <em>draft</em> model to generate <span class="math inline">\(K\)</span> candidate tokens cheaply, then <em>verifies</em> all <span class="math inline">\(K\)</span> in a single forward pass of the target model. The expected number of accepted tokens per step follows a geometric series <span class="citation" data-cites="leviathan2023fast"><a href="#ref-leviathan2023fast" role="doc-biblioref">[6]</a></span>:</p>
+<p><span class="math display">\[
+\mathbb{E}[\text{accepted}] = 1 + \frac{\alpha(1 - \alpha^K)}{1 - \alpha}
+\]</span></p>
+<p>where <span class="math inline">\(\alpha\)</span> is the draft model’s acceptance rate (probability that its token matches the target model’s distribution). The effective ITL becomes:</p>
+<p><span class="math display">\[
+\text{ITL}_{\text{spec}} = \frac{K \cdot t_{\text{draft}} + t_{\text{verify}}}{\mathbb{E}[\text{accepted}]}
+\]</span></p>
+<p>With a good draft model (<span class="math inline">\(\alpha \approx 0.8\)</span>, <span class="math inline">\(K = 4\)</span>), speculative decoding can achieve approximately <span class="math inline">\(2.5\times\)</span> ITL improvement. The trade-off is additional memory for the draft model weights.</p>
+<hr>
+</section>
+</section>
+<section id="the-data-wall" class="level2">
+<h2 class="anchored" data-anchor-id="the-data-wall">4. The Data Wall</h2>
+<p><em>Implemented in <a href="api/core.solver.DataModel.qmd"><code>mlsysim.core.solver.DataModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: Data Ingestion Bottlenecks</strong> The “Data Wall” occurs when the storage or IO interconnect cannot supply data to the compute units fast enough to keep them saturated. This is common in high-throughput training (e.g., video data for autonomous driving) or when training from slow remote storage.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="mlsysbook2025"><a href="#ref-mlsysbook2025" role="doc-biblioref">[7]</a></span>, Chapter 4 (Data Engineering).</p>
+</div>
+</div>
+</div>
+<p>The data supply bandwidth is limited by the minimum bandwidth across the storage hierarchy (SSD/HDD) and the IO interconnect (PCIe):</p>
+<p><span class="math display">\[
+\text{Supply\_BW} = \min(\text{Storage\_BW}, \text{IO\_Interconnect\_BW})
+\]</span></p>
+<p>The system is stalled if the required data rate exceeds the supply bandwidth:</p>
+<p><span class="math display">\[
+\text{Utilization} = \frac{\text{Required\_Data\_Rate}}{\text{Supply\_BW}}
+\]</span></p>
+<p>If <span class="math inline">\(\text{Utilization} &gt; 1.0\)</span>, the compute units will stall waiting for data, reducing effective throughput regardless of the model’s arithmetic intensity.</p>
+<hr>
+</section>
+<section id="scaling-physics-chinchilla-laws" class="level2">
+<h2 class="anchored" data-anchor-id="scaling-physics-chinchilla-laws">5. Scaling Physics (Chinchilla Laws)</h2>
+<p><em>Implemented in <a href="api/core.solver.ScalingModel.qmd"><code>mlsysim.core.solver.ScalingModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: Compute-Optimal Training</strong> Scaling laws describe how model performance improves with more compute (<span class="math inline">\(C\)</span>), parameters (<span class="math inline">\(P\)</span>), and data (<span class="math inline">\(D\)</span>). The Chinchilla study found that most models are “undertrained” and that for a fixed compute budget, <span class="math inline">\(P\)</span> and <span class="math inline">\(D\)</span> should be scaled in equal proportions.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="hoffmann2022chinchilla"><a href="#ref-hoffmann2022chinchilla" role="doc-biblioref">[8]</a></span></p>
+</div>
+</div>
+</div>
+<p>The total floating-point operations required for training a Transformer is approximately:</p>
+<p><span class="math display">\[
+C \approx 6 \times P \times D
+\]</span></p>
+<p>The compute-optimal point (Chinchilla point) occurs when the number of training tokens is roughly 20 times the number of parameters:</p>
+<p><span class="math display">\[
+D \approx 20 \times P
+\]</span></p>
+<p>Given a compute budget <span class="math inline">\(C\)</span> (in FLOPs), the optimal parameter count is:</p>
+<p><span class="math display">\[
+P_{\text{opt}} = \sqrt{\frac{C}{120}}
+\]</span></p>
+<hr>
+</section>
+<section id="cluster-orchestration-littles-law" class="level2">
+<h2 class="anchored" data-anchor-id="cluster-orchestration-littles-law">6. Cluster Orchestration (Little’s Law)</h2>
+<p><em>Implemented in <a href="api/core.solver.OrchestrationModel.qmd"><code>mlsysim.core.solver.OrchestrationModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: The Wait Wall</strong> In a shared cluster, the time a researcher waits for a job to start is determined by the arrival rate of new jobs (<span class="math inline">\(\lambda\)</span>) and the processing rate of the cluster (<span class="math inline">\(\mu\)</span>). As utilization approaches 100%, wait times explode non-linearly.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="little1961proof"><a href="#ref-little1961proof" role="doc-biblioref">[9]</a></span></p>
+</div>
+</div>
+</div>
+<p>Cluster utilization <span class="math inline">\(\rho\)</span> is the ratio of the arrival rate to the service rate:</p>
+<p><span class="math display">\[
+\rho = \frac{\lambda}{\mu}
+\]</span></p>
+<p>Using an M/D/1 queue model (Poisson arrivals, fixed job durations), the average wait time in the queue is:</p>
+<p><span class="math display">\[
+T_{\text{wait}} = \frac{\rho}{2\mu(1 - \rho)}
+\]</span></p>
+<p>As <span class="math inline">\(\rho \to 1.0\)</span>, <span class="math inline">\(T_{\text{wait}} \to \infty\)</span>. This illustrates why maintaining some “headroom” in cluster capacity is essential for researcher productivity.</p>
+<hr>
+</section>
+<section id="model-compression-the-compression-tax" class="level2">
+<h2 class="anchored" data-anchor-id="model-compression-the-compression-tax">7. Model Compression (The Compression Tax)</h2>
+<p><em>Implemented in <a href="api/core.solver.CompressionModel.qmd"><code>mlsysim.core.solver.CompressionModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: Accuracy vs.&nbsp;Efficiency</strong> Compressing a model via quantization or pruning reduces its memory footprint and increases inference speed, but often at the cost of task accuracy. This “Compression Tax” must be evaluated to ensure the model remains functional for its intended use.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="han2016deep"><a href="#ref-han2016deep" role="doc-biblioref"><strong>han2016deep?</strong></a></span></p>
+</div>
+</div>
+</div>
+<p>The <strong>Compression Ratio</strong> (<span class="math inline">\(R\)</span>) is the ratio of the original model size to the compressed size:</p>
+<p><span class="math display">\[
+R = \frac{\text{Size}_{\text{original}}}{\text{Size}_{\text{compressed}}}
+\]</span></p>
+<p>For <strong>Quantization</strong>, <span class="math inline">\(R\)</span> is determined by the baseline and target bit-widths:</p>
+<p><span class="math display">\[
+R_{\text{quant}} = \frac{b_{\text{base}}}{b_{\text{target}}}
+\]</span></p>
+<p>where <span class="math inline">\(b_{\text{base}}\)</span> is typically 16 (FP16/BF16), not 32. For example, FP16→INT4 gives <span class="math inline">\(R = 16/4 = 4\times\)</span>.</p>
+<p>For <strong>Pruning</strong>, <span class="math inline">\(R\)</span> is determined by the sparsity ratio (<span class="math inline">\(s\)</span>):</p>
+<p><span class="math display">\[
+R_{\text{pruning}} = \frac{1}{1 - s}
+\]</span></p>
+<p>The estimated accuracy impact (<span class="math inline">\(\Delta A\)</span>) is non-linear and typically follows empirical heuristics derived from benchmark studies (e.g., INT8 quantization often yields &lt;1% drop, while 4-bit quantization can yield 2–5% drop).</p>
+<hr>
+</section>
+<section id="datacenter-sustainability" class="level2">
+<h2 class="anchored" data-anchor-id="datacenter-sustainability">8. Datacenter Sustainability</h2>
+<p><em>Implemented in <a href="api/core.solver.SustainabilityModel.qmd"><code>mlsysim.core.solver.SustainabilityModel</code></a>.</em></p>
+<section id="total-energy" class="level3">
+<h3 class="anchored" data-anchor-id="total-energy">8.1 Total Energy</h3>
+<p><span class="math display">\[
+E = \text{IT\_Power} \times \text{Hours} \times \text{PUE}
+\]</span></p>
+<p>Power Usage Effectiveness (PUE) accounts for cooling and facility overhead. A PUE of 1.0 is theoretical perfect efficiency; hyperscale datacenters typically achieve 1.1–1.4.</p>
+</section>
+<section id="carbon-footprint" class="level3">
+<h3 class="anchored" data-anchor-id="carbon-footprint">8.2 Carbon Footprint</h3>
+<p><span class="math display">\[
+C = E \times \text{Carbon\_Intensity}
+\]</span></p>
+<p>Where <span class="math inline">\(C\)</span> is in <span class="math inline">\(\text{kg CO}_2\text{e}\)</span> and <span class="math inline">\(\text{Carbon\_Intensity}\)</span> is in <span class="math inline">\(\text{g CO}_2\text{e/kWh}\)</span>, sourced from IEA regional grid data. This value varies from ~20 g/kWh (Quebec hydro) to ~820 g/kWh (Poland coal)—a <strong>~41× difference</strong> for identical ML workloads.</p>
+<hr>
+</section>
+</section>
+<section id="total-cost-of-ownership-tco" class="level2">
+<h2 class="anchored" data-anchor-id="total-cost-of-ownership-tco">9. Total Cost of Ownership (TCO)</h2>
+<p><em>Implemented in <a href="api/core.solver.EconomicsModel.qmd"><code>mlsysim.core.solver.EconomicsModel</code></a>.</em></p>
+<p><span class="math display">\[
+\text{TCO} = \text{CapEx}_{\text{amortized}} + \text{OpEx}_{\text{power}} + \text{OpEx}_{\text{networking}} + \text{OpEx}_{\text{labor}}
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(\text{CapEx}_{\text{amortized}} = \text{Hardware\_Cost} / \text{Depreciation\_Years}\)</span></li>
+<li><span class="math inline">\(\text{OpEx}_{\text{power}} = E \times \text{Electricity\_Rate}\)</span></li>
+</ul>
+<hr>
+</section>
+<section id="cluster-reliability-the-young-daly-model" class="level2">
+<h2 class="anchored" data-anchor-id="cluster-reliability-the-young-daly-model">10. Cluster Reliability (The Young-Daly Model)</h2>
+<p><em>Implemented in <a href="api/core.solver.ReliabilityModel.qmd"><code>mlsysim.core.solver.ReliabilityModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>💡 Intuition: The Cost of Checkpointing</strong> When training massive models on thousands of GPUs for months, hardware failures are not a possibility; they are a statistical certainty. If a node fails, the job crashes and you lose all progress since the last checkpoint. You want to save checkpoints frequently to minimize lost work, but writing a 140GB checkpoint to remote storage takes time, pausing the training. The Young-Daly model calculates the optimal balance between <em>time wasted saving checkpoints</em> and <em>time wasted re-computing after a failure</em>.</p>
+<p><strong>📚 Source:</strong> <span class="citation" data-cites="young1974first"><a href="#ref-young1974first" role="doc-biblioref">[10]</a></span> and <span class="citation" data-cites="daly2006higher"><a href="#ref-daly2006higher" role="doc-biblioref">[11]</a></span></p>
+</div>
+</div>
+</div>
+<p>The optimal checkpoint interval <span class="math inline">\(\tau_{\text{opt}}\)</span> is defined by the Mean Time Between Failures (<span class="math inline">\(M\)</span>) and the time it takes to write a single checkpoint (<span class="math inline">\(\delta\)</span>):</p>
+<p><span class="math display">\[
+\tau_{\text{opt}} = \sqrt{2 \times \delta \times M}
+\]</span></p>
+<p>For a cluster, the collective <span class="math inline">\(M\)</span> drops linearly with the number of components. If a single node has an MTBF of 10,000 hours, a cluster of 1,000 nodes will have an MTBF of just 10 hours (<span class="math inline">\(10,000 / 1000\)</span>).</p>
+<hr>
+</section>
+<section id="tail-latency-erlang-c-queueing" class="level2">
+<h2 class="anchored" data-anchor-id="tail-latency-erlang-c-queueing">11. Tail Latency (Erlang-C Queueing)</h2>
+<p><em>Implemented in <a href="api/core.solver.TailLatencyModel.qmd"><code>mlsysim.core.solver.TailLatencyModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Intuition: Why P99 Matters More Than Median</strong> Deploying inference at scale requires not just median performance but P99 tail latency guarantees. As server utilization increases from 80% to 95%, tail latency doesn’t increase linearly — it explodes. This non-linearity surprises engineers accustomed to thinking of “high utilization” as desirable.</p>
+<p><strong>Source:</strong> <span class="citation" data-cites="dean2013tail"><a href="#ref-dean2013tail" role="doc-biblioref">[12]</a></span></p>
+</div>
+</div>
+</div>
+<p>For an inference server farm modeled as an M/M/<span class="math inline">\(c\)</span> queue with <span class="math inline">\(c\)</span> replicas and per-server utilization <span class="math inline">\(\rho = \lambda / (c\mu)\)</span>:</p>
+<p><span class="math display">\[
+\mathbb{P}[\text{wait}] = \frac{(c\rho)^c / c! \cdot (1-\rho)^{-1}}{\sum_{k=0}^{c-1}(c\rho)^k/k! + (c\rho)^c/c! \cdot (1-\rho)^{-1}}
+\]</span></p>
+<p>P99 latency grows non-linearly as <span class="math inline">\(\rho \to 1\)</span>. The TailLatencyModel computes P50 and P99 wait times and SLO violation probability as a function of arrival rate, service latency, and replica count.</p>
+<hr>
+</section>
+<section id="weight-streaming-wafer-scale-inference" class="level2">
+<h2 class="anchored" data-anchor-id="weight-streaming-wafer-scale-inference">12. Weight Streaming (Wafer-Scale Inference)</h2>
+<p><em>Implemented in <a href="api/core.solver.WeightStreamingModel.qmd"><code>mlsysim.core.solver.WeightStreamingModel</code></a>.</em></p>
+<div class="callout callout-style-simple callout-note no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Intuition: Inverting the Memory Wall</strong> Wafer-scale architectures (e.g., Cerebras CS-3) invert the GPU memory wall: activations reside on-wafer in SRAM while model weights stream from external MemoryX nodes. The bottleneck shifts from HBM bandwidth to injection interconnect bandwidth.</p>
+</div>
+</div>
+</div>
+<p>Per-layer execution time is:</p>
+<p><span class="math display">\[
+T_{\text{layer}} = \max\!\left(\frac{|W_{\ell}|}{BW_{\text{inject}}},\; \frac{2P_{\ell} \times B}{\text{Peak} \times \eta}\right)
+\]</span></p>
+<p>where <span class="math inline">\(|W_{\ell}|\)</span> is the layer weight size in bytes, <span class="math inline">\(P_{\ell} = |W_{\ell}| / b_{\text{prec}}\)</span> is the parameter count, and the factor of 2 accounts for the multiply-accumulate FLOPs per parameter.</p>
+<p>The optimal batch size where injection and compute perfectly overlap:</p>
+<p><span class="math display">\[
+B^{*} = \frac{b_{\text{prec}} \times \text{Peak} \times \eta}{2 \times BW_{\text{inject}}}
+\]</span></p>
+<p>Note that <span class="math inline">\(B^*\)</span> depends only on numerical precision, peak compute, and injection bandwidth — it is independent of layer size.</p>
+<hr>
+</section>
+<section id="responsible-engineering-dp-sgd-overhead" class="level2">
+<h2 class="anchored" data-anchor-id="responsible-engineering-dp-sgd-overhead">13. Responsible Engineering (DP-SGD Overhead)</h2>
+<p><em>Implemented in <a href="api/core.solver.ResponsibleEngineeringModel.qmd"><code>mlsysim.core.solver.ResponsibleEngineeringModel</code></a>.</em></p>
+<p>Privacy and fairness guarantees impose measurable computational overhead. Differential privacy via DP-SGD requires per-sample gradient clipping and calibrated noise addition:</p>
+<p><span class="math display">\[
+\sigma \propto \frac{1}{\epsilon}
+\]</span></p>
+<p>The per-step clipping and noise addition incur a training slowdown of approximately 2–10×. Fairness constraints require sufficient representation of minority subgroups, demanding additional data proportional to <span class="math inline">\(O(1/p_{\min})\)</span> where <span class="math inline">\(p_{\min}\)</span> is the smallest subgroup prevalence.</p>
+<hr>
+</section>
+<section id="sensitivity-analysis-binding-constraints" class="level2">
+<h2 class="anchored" data-anchor-id="sensitivity-analysis-binding-constraints">14. Sensitivity Analysis (Binding Constraints)</h2>
+<p><em>Implemented in <a href="./api/core.solver.SensitivitySolver.html"><code>mlsysim.core.solver.SensitivitySolver</code></a>.</em></p>
+<p>The SensitivitySolver identifies the binding constraint by computing partial derivatives of end-to-end latency with respect to each hardware parameter:</p>
+<p><span class="math display">\[
+\frac{\partial T}{\partial BW_{\text{mem}}}, \quad \frac{\partial T}{\partial \text{Peak}_{\text{FLOPS}}}, \quad \frac{\partial T}{\partial BW_{\text{net}}}, \quad \ldots
+\]</span></p>
+<p>The parameter with the largest (most negative) sensitivity is the binding constraint — the single upgrade that would yield the greatest performance improvement. This transforms “where should I invest?” from intuition into calculation.</p>
+<hr>
+</section>
+<section id="inverse-roofline-synthesis" class="level2">
+<h2 class="anchored" data-anchor-id="inverse-roofline-synthesis">15. Inverse Roofline Synthesis</h2>
+<p><em>Implemented in <a href="./api/core.solver.SynthesisSolver.html"><code>mlsysim.core.solver.SynthesisSolver</code></a>.</em></p>
+<p>The SynthesisSolver inverts the analysis: given a workload and a service-level agreement, it derives the minimum hardware specifications required:</p>
+<p><span class="math display">\[
+BW_{\text{required}} = \frac{|W|}{T_{\text{target}}}, \qquad \text{FLOPS}_{\text{required}} = \frac{\text{OPs}}{T_{\text{target}} \times \eta}
+\]</span></p>
+<p>This enables hardware–software co-design: rather than asking “how fast is my system?” the practitioner asks “what system do I need?”</p>
+<hr>
+</section>
+<section id="software-efficiency-wall-3-mfu-decomposition" class="level2">
+<h2 class="anchored" data-anchor-id="software-efficiency-wall-3-mfu-decomposition">16. Software Efficiency (Wall 3: MFU Decomposition)</h2>
+<p><em>Implemented in <a href="api/core.solver.EfficiencyModel.qmd"><code>mlsysim.core.solver.EfficiencyModel</code></a>.</em></p>
+<p>The gap between peak and achieved FLOP/s is captured by the utilization parameter <span class="math inline">\(\eta\)</span>:</p>
+<p><span class="math display">\[
+\eta = \frac{\text{Achieved\_FLOP/s}}{\text{Peak\_FLOP/s}}
+\]</span></p>
+<p>In practice, <span class="math inline">\(\eta\)</span> decomposes into multiplicative factors:</p>
+<p><span class="math display">\[
+\eta = \eta_{\text{occupancy}} \times \eta_{\text{fusion}} \times \eta_{\text{precision}} \times \eta_{\text{memory}}
+\]</span></p>
+<p>where occupancy captures warp-level parallelism, fusion captures kernel launch elimination, precision captures tensor core utilization, and memory captures data reuse. Well-optimized training (Megatron-LM, DeepSpeed) achieves <span class="math inline">\(\eta \approx 0.35\text{–}0.55\)</span>; unoptimized inference may drop below 0.10.</p>
+<hr>
+</section>
+<section id="continuous-batching-wall-5-pagedattention" class="level2">
+<h2 class="anchored" data-anchor-id="continuous-batching-wall-5-pagedattention">17. Continuous Batching (Wall 5: PagedAttention)</h2>
+<p><em>Implemented in <a href="api/core.solver.ContinuousBatchingModel.qmd"><code>mlsysim.core.solver.ContinuousBatchingModel</code></a>.</em></p>
+<p>Static batching wastes memory by pre-allocating contiguous KV-cache for the maximum sequence length. PagedAttention allocates KV-cache in fixed-size pages:</p>
+<p><span class="math display">\[
+\text{KV\_paged} = 2 \times L \times H_{\text{kv}} \times d \times \lceil S/p \rceil \times p \times B \times b
+\]</span></p>
+<p>The memory savings come from eliminating internal fragmentation. The effective batch size <span class="math inline">\(B_{\text{eff}}\)</span> under a memory budget <span class="math inline">\(M_{\text{budget}}\)</span> is:</p>
+<p><span class="math display">\[
+B_{\text{eff}} = \left\lfloor \frac{M_{\text{budget}} - |W|}{2 \times L \times H_{\text{kv}} \times d \times S \times b} \right\rfloor
+\]</span></p>
+<p>where <span class="math inline">\(|W|\)</span> is the model weight footprint. Continuous batching dynamically inserts and removes requests as they complete, keeping <span class="math inline">\(B_{\text{eff}}\)</span> near maximum at all times.</p>
+<hr>
+</section>
+<section id="data-transformation-wall-9-cpu-preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="data-transformation-wall-9-cpu-preprocessing">18. Data Transformation (Wall 9: CPU Preprocessing)</h2>
+<p><em>Implemented in <a href="api/core.solver.TransformationModel.qmd"><code>mlsysim.core.solver.TransformationModel</code></a>.</em></p>
+<p>CPU preprocessing (decode, resize, tokenize, augment) must keep pace with GPU consumption:</p>
+<p><span class="math display">\[
+T_{\text{transform}} = \frac{B}{R_{\text{cpu}}}
+\]</span></p>
+<p>where <span class="math inline">\(B\)</span> is the batch size (in samples) and <span class="math inline">\(R_{\text{cpu}} = N_{\text{workers}} \times r_{\text{worker}}\)</span> is the aggregate CPU preprocessing rate (in samples/s), with <span class="math inline">\(r_{\text{worker}}\)</span> being the per-worker throughput after all transformations (decode, augment, normalize). The pipeline is stalled when:</p>
+<p><span class="math display">\[
+T_{\text{transform}} &gt; T_{\text{compute}}
+\]</span></p>
+<p>Common mitigations: increase <span class="math inline">\(W\)</span> (more workers), cache preprocessed data, or use GPU-accelerated decoding (DALI).</p>
+<hr>
+</section>
+<section id="network-topology-wall-10-bisection-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="network-topology-wall-10-bisection-bandwidth">19. Network Topology (Wall 10: Bisection Bandwidth)</h2>
+<p><em>Implemented in <a href="api/core.solver.TopologyModel.qmd"><code>mlsysim.core.solver.TopologyModel</code></a>.</em></p>
+<p>The effective bandwidth available for collective communication depends on the network topology and its oversubscription ratio:</p>
+<p><span class="math display">\[
+\text{BW}_{\text{eff}} = \frac{\text{BW}_{\text{link}} \times \beta}{\text{oversubscription}}
+\]</span></p>
+<p>where <span class="math inline">\(\beta\)</span> is the bisection bandwidth ratio (1.0 for full bisection in fat-tree topologies, &lt;1.0 for oversubscribed networks). For a <span class="math inline">\(k\)</span>-ary fat-tree with oversubscription ratio <span class="math inline">\(r\)</span>:</p>
+<p><span class="math display">\[
+\text{BW}_{\text{bisection}} = \frac{k^2}{4r} \times \text{BW}_{\text{link}}
+\]</span></p>
+<p>Fat-tree topologies (Leiserson, 1985) provide full bisection bandwidth (<span class="math inline">\(r=1\)</span>), making them ideal for AllReduce-heavy workloads. Dragonfly and torus topologies trade bisection bandwidth for lower cost at scale.</p>
+<hr>
+</section>
+<section id="inference-time-scaling-wall-12-reasoning-compute" class="level2">
+<h2 class="anchored" data-anchor-id="inference-time-scaling-wall-12-reasoning-compute">20. Inference-Time Scaling (Wall 12: Reasoning Compute)</h2>
+<p><em>Implemented in <a href="api/core.solver.InferenceScalingModel.qmd"><code>mlsysim.core.solver.InferenceScalingModel</code></a>.</em></p>
+<p>Chain-of-thought, tree search, and other inference-time scaling strategies multiply the compute cost by the number of reasoning steps <span class="math inline">\(K\)</span>:</p>
+<p><span class="math display">\[
+T_{\text{reasoning}} = K \times T_{\text{step}}
+\]</span></p>
+<p>where <span class="math inline">\(T_{\text{step}}\)</span> is the latency of a single forward pass (from the roofline model). For best-of-<span class="math inline">\(N\)</span> sampling:</p>
+<p><span class="math display">\[
+T_{\text{best-of-N}} = N \times T_{\text{generate}} + T_{\text{verify}}
+\]</span></p>
+<p>The key insight from Snell et al.&nbsp;(2024) is that inference-time compute can substitute for training-time compute: a smaller model with <span class="math inline">\(K\)</span> reasoning steps may match a larger model with a single pass, at the cost of <span class="math inline">\(K\times\)</span> inference latency.</p>
+<hr>
+</section>
+<section id="checkpoint-io-wall-19-mfu-penalty" class="level2">
+<h2 class="anchored" data-anchor-id="checkpoint-io-wall-19-mfu-penalty">21. Checkpoint I/O (Wall 19: MFU Penalty)</h2>
+<p><em>Implemented in <a href="api/core.solver.CheckpointModel.qmd"><code>mlsysim.core.solver.CheckpointModel</code></a>.</em></p>
+<p>Periodic checkpointing imposes an I/O burst that pauses training:</p>
+<p><span class="math display">\[
+\text{MFU\_penalty} = \frac{T_{\text{write}}}{T_{\text{interval}}}
+\]</span></p>
+<p>where <span class="math inline">\(T_{\text{write}} = |W| \times \beta_{\text{opt}} / BW_{\text{storage}}\)</span> is the time to write one checkpoint and <span class="math inline">\(T_{\text{interval}}\)</span> is the checkpoint interval. For mixed-precision Adam with FP16 weights, the checkpoint includes:</p>
+<ul>
+<li>FP16 model weights: 2 bytes/param</li>
+<li>FP32 master weights: 4 bytes/param</li>
+<li>FP32 momentum: 4 bytes/param</li>
+<li>FP32 variance: 4 bytes/param</li>
+</ul>
+<p>Gradients are ephemeral and <strong>not</strong> checkpointed. This totals 14 bytes per parameter, giving <span class="math inline">\(\beta_{\text{opt}} \approx 7\)</span> (ratio of 14 checkpoint bytes to 2 weight bytes):</p>
+<p><span class="math display">\[
+\text{Checkpoint\_Size} = P \times 14 \text{ bytes/param}
+\]</span></p>
+<p>For a 70B model, the checkpoint is <span class="math inline">\(70\text{B} \times 14 \approx 0.98\)</span> TB. The optimal checkpoint interval from the Young-Daly formula (Section 10) balances checkpoint overhead against expected rework from failures.</p>
+<hr>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Limitations of First-Order Models
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>These equations are first-order analytical models. They assume: (1) uniform memory access patterns, (2) no cache effects, (3) no network contention under heavy load, and (4) linear scaling of throughput with batch size. Real systems deviate from these assumptions. MLSys·im predictions are typically accurate within ±20% of measured hardware performance — sufficient for systems intuition and capacity planning, but not a substitute for empirical profiling.</p>
+<p>For a detailed discussion of accuracy, limitations, and when to use MLSys·im vs.&nbsp;empirical profiling, see <a href="./accuracy.html">Accuracy &amp; Validation</a>.</p>
+</div>
+</div>
+
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-williams2009roofline" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">S. Williams, A. Waterman, and D. Patterson, <span>“Roofline: An insightful visual performance model for multicore architectures,”</span> <em>Communications of the ACM</em>, vol. 52, no. 4, pp. 65–76, 2009, doi: <a href="https://doi.org/10.1145/1498765.1498785">10.1145/1498765.1498785</a>.</div>
+</div>
+<div id="ref-narayanan2021efficient" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">D. Narayanan, M. Shoeybi, J. Casper, <em>et al.</em>, <span>“Efficient large-scale language model training on GPU clusters using megatron-LM,”</span> <em>Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC)</em>, 2021.</div>
+</div>
+<div id="ref-shazeer2017outrageously" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">N. Shazeer, A. Mirhoseini, K. Maziarz, <em>et al.</em>, <span>“Outrageously large neural networks: The sparsely-gated mixture-of-experts layer,”</span> <em>arXiv preprint arXiv:1701.06538</em>, 2017.</div>
+</div>
+<div id="ref-zheng2024sglang" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">L. Zheng, L. Yin, Z. Xie, <em>et al.</em>, <span>“<span>SGLang</span>: Efficient execution of structured language model programs,”</span> <em>arXiv preprint arXiv:2312.07104</em>, 2024.</div>
+</div>
+<div id="ref-patel2024splitwise" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">P. Patel <em>et al.</em>, <span>“Splitwise: Efficient generative <span>LLM</span> inference using phase splitting,”</span> in <em>Proceedings of the 51st annual international symposium on computer architecture (ISCA)</em>, 2024. doi: <a href="https://doi.org/10.1109/ISCA59077.2024.00060">10.1109/ISCA59077.2024.00060</a>.</div>
+</div>
+<div id="ref-leviathan2023fast" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline">Y. Leviathan, M. Kalman, and Y. Matias, <span>“Fast inference from transformers via speculative decoding,”</span> in <em>Proceedings of the 40th international conference on machine learning (ICML)</em>, 2023. Available: <a href="https://arxiv.org/abs/2211.17192">https://arxiv.org/abs/2211.17192</a></div>
+</div>
+<div id="ref-mlsysbook2025" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline">V. J. Reddi <em>et al.</em>, <em>Machine learning systems: Principles and practices of engineering artificially intelligent systems</em>. Harvard University, 2025. Available: <a href="https://mlsysbook.ai">https://mlsysbook.ai</a></div>
+</div>
+<div id="ref-hoffmann2022chinchilla" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline">J. Hoffmann, S. Borgeaud, A. Mensch, <em>et al.</em>, <span>“Training compute-optimal large language models,”</span> <em>arXiv preprint arXiv:2203.15556</em>, 2022.</div>
+</div>
+<div id="ref-little1961proof" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline">J. D. C. Little, <span>“A proof for the queuing formula: <span class="math inline">\(L = \lambda W\)</span>,”</span> <em>Operations Research</em>, vol. 9, no. 3, pp. 383–387, 1961, doi: <a href="https://doi.org/10.1287/opre.9.3.383">10.1287/opre.9.3.383</a>.</div>
+</div>
+<div id="ref-young1974first" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[10] </div><div class="csl-right-inline">J. W. Young, <span>“A first order approximation to the optimum checkpoint interval,”</span> <em>Communications of the ACM</em>, vol. 17, no. 9, pp. 530–531, 1974, doi: <a href="https://doi.org/10.1145/361147.361115">10.1145/361147.361115</a>.</div>
+</div>
+<div id="ref-daly2006higher" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[11] </div><div class="csl-right-inline">J. T. Daly, <span>“A higher order estimate of the optimum checkpoint interval for restart dumps,”</span> <em>Future Generation Computer Systems</em>, vol. 22, no. 3, pp. 303–312, 2006, doi: <a href="https://doi.org/10.1016/j.future.2004.11.016">10.1016/j.future.2004.11.016</a>.</div>
+</div>
+<div id="ref-dean2013tail" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[12] </div><div class="csl-right-inline">J. Dean and L. A. Barroso, <span>“The tail at scale,”</span> <em>Communications of the ACM</em>, vol. 56, no. 2, pp. 74–80, 2013, doi: <a href="https://doi.org/10.1145/2408776.2408794">10.1145/2408776.2408794</a>.</div>
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/mlsysim\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./architecture.html" class="pagination-link" aria-label="The 5-Layer Architecture">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">The 5-Layer Architecture</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./accuracy.html" class="pagination-link" aria-label="Model Accuracy &amp; Validation">
+        <span class="nav-page-text">Model Accuracy &amp; Validation</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+<p>Part of the <a href="../">Machine Learning Systems</a> textbook</p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
