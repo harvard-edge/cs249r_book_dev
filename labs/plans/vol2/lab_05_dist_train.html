@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>lab_05_dist_train – Labs</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../assets/images/favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-59ed77f941ff0743e975be82e7d73c6b.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b1a92788e7afe1d837db571c16f54076.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-59ed77f941ff0743e975be82e7d73c6b.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-e4ec8c4df42695b72b900888ca3bc91d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-38fc7ddfbd01e3db73fa73ef4ee2532f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-e4ec8c4df42695b72b900888ca3bc91d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="manifest" href="../../site.webmanifest">
+<link rel="apple-touch-icon" href="../../assets/images/favicon.png">
+<meta name="theme-color" content="#7D3C98">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Labs">
+<meta property="og:image" content="https://mlsysbook.ai/labs/plans/vol2/assets/images/covers/cover-hardcover-book.png">
+<meta property="og:site_name" content="Machine Learning Systems">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Labs">
+<meta name="twitter:image" content="https://mlsysbook.ai/labs/plans/vol2/assets/images/covers/cover-hardcover-book.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-md " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../assets/images/favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../assets/images/favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-labs" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Labs</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-labs">    
+        <li>
+    <a class="dropdown-item" href="../../../book/"><i class="bi bi-book-half" role="img">
+</i> 
+ <span class="dropdown-text">Full Textbook</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../../../vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: At Scale</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../../../tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../../mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSYSIM</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../.././"><i class="bi bi-lightbulb" role="img">
+</i> 
+ <span class="dropdown-text">Labs</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book#support-this-work" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../#subscribe"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <div id="quarto-announcement" data-announcement-id="35fd21b59d31ba39df6cb4ee9927b26e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">b0202939</code> • 2026-03-14 13:12 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🎉 <strong>Happy New Year!</strong> New navbar with dropdown menus. Try them out!<br> 🔮 <strong>Labs:</strong> Interactive ML simulations coming in 2026. <a href="../..">Learn more →</a><br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="https://mlsysbook.ai/book">Explore →</a></p>
+</div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#mission-plan-lab_05_dist_train-volume-2" id="toc-mission-plan-lab_05_dist_train-volume-2" class="nav-link active" data-scroll-target="#mission-plan-lab_05_dist_train-volume-2">Mission Plan: lab_05_dist_train (Volume 2)</a>
+  <ul class="collapse">
+  <li><a href="#chapter-alignment" id="toc-chapter-alignment" class="nav-link" data-scroll-target="#chapter-alignment">1. Chapter Alignment</a></li>
+  <li><a href="#the-two-act-structure-overview" id="toc-the-two-act-structure-overview" class="nav-link" data-scroll-target="#the-two-act-structure-overview">2. The Two-Act Structure Overview</a></li>
+  <li><a href="#act-1-the-communication-wall-calibration-12-minutes" id="toc-act-1-the-communication-wall-calibration-12-minutes" class="nav-link" data-scroll-target="#act-1-the-communication-wall-calibration-12-minutes">3. Act 1: The Communication Wall (Calibration – 12 minutes)</a>
+  <ul class="collapse">
+  <li><a href="#pedagogical-goal" id="toc-pedagogical-goal" class="nav-link" data-scroll-target="#pedagogical-goal">Pedagogical Goal</a></li>
+  <li><a href="#the-lock-structured-prediction" id="toc-the-lock-structured-prediction" class="nav-link" data-scroll-target="#the-lock-structured-prediction">The Lock (Structured Prediction)</a></li>
+  <li><a href="#the-instrument-scaling-efficiency-explorer" id="toc-the-instrument-scaling-efficiency-explorer" class="nav-link" data-scroll-target="#the-instrument-scaling-efficiency-explorer">The Instrument: Scaling Efficiency Explorer</a></li>
+  <li><a href="#the-reveal" id="toc-the-reveal" class="nav-link" data-scroll-target="#the-reveal">The Reveal</a></li>
+  <li><a href="#reflection-structured" id="toc-reflection-structured" class="nav-link" data-scroll-target="#reflection-structured">Reflection (Structured)</a></li>
+  <li><a href="#math-peek-collapsible" id="toc-math-peek-collapsible" class="nav-link" data-scroll-target="#math-peek-collapsible">Math Peek (collapsible)</a></li>
+  </ul></li>
+  <li><a href="#act-2-the-budget-optimal-training-configuration-design-challenge-22-minutes" id="toc-act-2-the-budget-optimal-training-configuration-design-challenge-22-minutes" class="nav-link" data-scroll-target="#act-2-the-budget-optimal-training-configuration-design-challenge-22-minutes">4. Act 2: The Budget-Optimal Training Configuration (Design Challenge – 22 minutes)</a>
+  <ul class="collapse">
+  <li><a href="#pedagogical-goal-1" id="toc-pedagogical-goal-1" class="nav-link" data-scroll-target="#pedagogical-goal-1">Pedagogical Goal</a></li>
+  <li><a href="#the-lock-numeric-prediction" id="toc-the-lock-numeric-prediction" class="nav-link" data-scroll-target="#the-lock-numeric-prediction">The Lock (Numeric Prediction)</a></li>
+  <li><a href="#the-instrument-distributed-training-cost-optimizer" id="toc-the-instrument-distributed-training-cost-optimizer" class="nav-link" data-scroll-target="#the-instrument-distributed-training-cost-optimizer">The Instrument: Distributed Training Cost Optimizer</a></li>
+  <li><a href="#the-scaling-challenge" id="toc-the-scaling-challenge" class="nav-link" data-scroll-target="#the-scaling-challenge">The Scaling Challenge</a></li>
+  <li><a href="#the-failure-state" id="toc-the-failure-state" class="nav-link" data-scroll-target="#the-failure-state">The Failure State</a></li>
+  <li><a href="#structured-reflection" id="toc-structured-reflection" class="nav-link" data-scroll-target="#structured-reflection">Structured Reflection</a></li>
+  <li><a href="#math-peek-collapsible-1" id="toc-math-peek-collapsible-1" class="nav-link" data-scroll-target="#math-peek-collapsible-1">Math Peek (collapsible)</a></li>
+  </ul></li>
+  <li><a href="#visual-layout-specification" id="toc-visual-layout-specification" class="nav-link" data-scroll-target="#visual-layout-specification">5. Visual Layout Specification</a>
+  <ul class="collapse">
+  <li><a href="#act-1" id="toc-act-1" class="nav-link" data-scroll-target="#act-1">Act 1</a></li>
+  <li><a href="#act-2" id="toc-act-2" class="nav-link" data-scroll-target="#act-2">Act 2</a></li>
+  </ul></li>
+  <li><a href="#deployment-context-definitions" id="toc-deployment-context-definitions" class="nav-link" data-scroll-target="#deployment-context-definitions">6. Deployment Context Definitions</a></li>
+  <li><a href="#design-ledger-output" id="toc-design-ledger-output" class="nav-link" data-scroll-target="#design-ledger-output">7. Design Ledger Output</a></li>
+  <li><a href="#traceability-table" id="toc-traceability-table" class="nav-link" data-scroll-target="#traceability-table">8. Traceability Table</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+
+<section id="mission-plan-lab_05_dist_train-volume-2" class="level1">
+<h1>Mission Plan: lab_05_dist_train (Volume 2)</h1>
+<section id="chapter-alignment" class="level2">
+<h2 class="anchored" data-anchor-id="chapter-alignment">1. Chapter Alignment</h2>
+<ul>
+<li><strong>Chapter:</strong> Distributed Training Systems (<code>@sec-distributed-training-systems</code>)</li>
+<li><strong>Core Invariant:</strong> The <strong>Scaling Efficiency Bound</strong> – scaling efficiency degrades as communication overhead grows with device count: <span class="math inline">\(\text{Efficiency}(N) = 1 / (1 + N(T_{\text{comm}} - T_{\text{overlap}}) / T_{\text{compute}})\)</span>. Adding GPUs beyond the Communication Wall yields diminishing or negative returns because synchronization cost eventually dominates compute savings.</li>
+<li><strong>Central Tension:</strong> Students believe that distributed training scales linearly – doubling GPUs halves training time. The chapter’s quantitative analysis demolishes this: scaling GPT-2 from 8 GPUs (intra-node NVLink) to 32 GPUs (inter-node 10GbE) collapses parallel efficiency from 97% to 13% because communication overhead explodes from 5.6 ms to 4,805 ms per step. The bottleneck is not compute but the network between machines. The counterintuitive lesson: 8 GPUs with gradient accumulation outperform 32 GPUs with naive data parallelism at one-seventh the cost.</li>
+<li><strong>Target Duration:</strong> 35–40 minutes (2 acts)</li>
+</ul>
+<hr>
+</section>
+<section id="the-two-act-structure-overview" class="level2">
+<h2 class="anchored" data-anchor-id="the-two-act-structure-overview">2. The Two-Act Structure Overview</h2>
+<p><strong>Act 1 (Calibration, 12 min):</strong> Students confront the Communication Wall directly. They predict the scaling efficiency when moving from 8 intra-node GPUs (NVLink at 900 GB/s) to 32 GPUs across 4 nodes on a commodity 10GbE network (1.25 GB/s). Most students will predict efficiency stays high because “we just added more GPUs.” The instrument reveals that parallel efficiency collapses from 97% to 13% – communication consumes 73% of the step time. This calibrates the student’s intuition: the interconnect, not the GPU count, determines scaling behavior.</p>
+<p><strong>Act 2 (Design Challenge, 22 min):</strong> Students must configure a distributed training system to minimize wall-clock training time for GPT-2 under a fixed dollar budget. They control GPU count, interconnect type (NVLink vs.&nbsp;InfiniBand vs.&nbsp;10GbE), and gradient accumulation steps. The scaling challenge forces them to discover that 8 GPUs with gradient accumulation achieves the same effective batch size as 32 GPUs at 87% lower cost, and to find the exact GPU count where adding more hardware yields negative returns. A pipeline bubble calculator reveals the second tax: when model parallelism becomes necessary, bubble overhead wastes 18–48% of compute depending on the microbatch count.</p>
+<hr>
+</section>
+<section id="act-1-the-communication-wall-calibration-12-minutes" class="level2">
+<h2 class="anchored" data-anchor-id="act-1-the-communication-wall-calibration-12-minutes">3. Act 1: The Communication Wall (Calibration – 12 minutes)</h2>
+<section id="pedagogical-goal" class="level3">
+<h3 class="anchored" data-anchor-id="pedagogical-goal">Pedagogical Goal</h3>
+<p>Students dramatically overestimate the benefit of scaling to more GPUs. The chapter demonstrates that intra-node scaling on NVLink achieves 97% efficiency because gradient synchronization takes only 5.6 ms against 1,800 ms of compute. But crossing the node boundary on a commodity network (10GbE, 1.25 GB/s) inflates communication to 4,805 ms – exceeding the compute time itself. Students who expect “4 nodes = 4x faster” discover that 32 GPUs deliver only 4.2x speedup (13% efficiency) instead of the expected 32x. The physics is the Communication-Computation Ratio: when <span class="math inline">\(T_{\text{comm}} &gt; T_{\text{compute}}\)</span>, the system is communication-bound and adding GPUs makes it worse.</p>
+</section>
+<section id="the-lock-structured-prediction" class="level3">
+<h3 class="anchored" data-anchor-id="the-lock-structured-prediction">The Lock (Structured Prediction)</h3>
+<p>Present a <strong>multiple-choice prediction</strong> before any instruments unlock:</p>
+<blockquote class="blockquote">
+<p>“You are training GPT-2 (1.5B parameters) on 8 H100 GPUs within a single node using NVLink (900 GB/s). Parallel efficiency is 97%. You scale to 32 GPUs across 4 nodes connected by 10 Gigabit Ethernet (1.25 GB/s). What happens to parallel efficiency?”</p>
+</blockquote>
+<p>Options:</p>
+<ul>
+<li><ol type="A">
+<li>Stays above 90% – more GPUs always help</li>
+</ol></li>
+<li><ol start="2" type="A">
+<li>Drops to ~60% – some overhead from the network, but still a net win</li>
+</ol></li>
+<li><strong>C) Drops to ~13% – communication overhead dominates the entire step</strong> (correct)</li>
+<li><ol start="4" type="A">
+<li>Drops to ~40% – the network is slower but parallelism compensates</li>
+</ol></li>
+</ul>
+<p><strong>Why each distractor is plausible:</strong></p>
+<ul>
+<li><strong>A</strong> reflects the naive “more GPUs = more speed” assumption, reinforced by marketing materials</li>
+<li><strong>B</strong> is the “reasonable pessimist” answer – students who know networks are slower but underestimate by how much</li>
+<li><strong>D</strong> is the “split-the-difference” estimate that sounds moderate and safe</li>
+<li><strong>C is correct</strong> because the gradient sync volume (5.6 GB) over 1.25 GB/s takes ~4,480 ms, exceeding the 1,800 ms compute time, making communication 73% of the total step</li>
+</ul>
+</section>
+<section id="the-instrument-scaling-efficiency-explorer" class="level3">
+<h3 class="anchored" data-anchor-id="the-instrument-scaling-efficiency-explorer">The Instrument: Scaling Efficiency Explorer</h3>
+<p>A <strong>dual-panel visualization</strong> with a shared GPU-count x-axis:</p>
+<p><strong>Panel 1: Speedup vs.&nbsp;GPU Count (log-log)</strong></p>
+<ul>
+<li><strong>X-axis:</strong> Number of GPUs (1, 2, 4, 8, 16, 32, 64, 128), log scale</li>
+<li><strong>Y-axis:</strong> Effective Speedup, log scale</li>
+<li><strong>Series:</strong>
+<ul>
+<li>Ideal linear scaling (dashed black line)</li>
+<li>Actual scaling with selected interconnect (solid colored line)</li>
+</ul></li>
+<li><strong>Annotation:</strong> “Communication Wall” arrow at the point where efficiency drops below 50%</li>
+</ul>
+<p><strong>Panel 2: Time Breakdown (stacked bar)</strong></p>
+<ul>
+<li><strong>X-axis:</strong> Number of GPUs (matching Panel 1 selection)</li>
+<li><strong>Y-axis:</strong> Time per step (ms)</li>
+<li><strong>Stacked segments:</strong> Compute (BlueLine #006395), Communication (RedLine #CB202D), Overlap saved (GreenLine #008F45, negative)</li>
+<li><strong>Horizontal reference line:</strong> Single-GPU baseline step time (1,800 ms)</li>
+</ul>
+<p>Controls:</p>
+<ul>
+<li><strong>Interconnect selector</strong> (toggle): NVLink (900 GB/s) / InfiniBand HDR (25 GB/s) / 10GbE (1.25 GB/s)
+<ul>
+<li>Default: NVLink</li>
+</ul></li>
+<li><strong>Model size selector</strong> (dropdown): GPT-2 (1.5B) / BERT-Large (340M) / ResNet-50 (25M)
+<ul>
+<li>Default: GPT-2</li>
+</ul></li>
+<li><strong>Comm-Compute overlap slider</strong>: 0–80% (how much communication is hidden behind compute)
+<ul>
+<li>Default: 0% (no overlap, worst case)</li>
+</ul></li>
+</ul>
+<p>On each control change, both panels update simultaneously. Switching from NVLink to 10GbE with GPT-2 selected produces the dramatic efficiency collapse.</p>
+</section>
+<section id="the-reveal" class="level3">
+<h3 class="anchored" data-anchor-id="the-reveal">The Reveal</h3>
+<p>After the student interacts with at least 2 interconnect settings:</p>
+<blockquote class="blockquote">
+<p>“You predicted [X] efficiency. The actual parallel efficiency for 32 GPUs on 10GbE is <strong>13%</strong>. You were off by [Y] percentage points.”</p>
+<p>“At 32 GPUs on 10GbE, communication takes <strong>4,805 ms</strong> while compute takes <strong>1,800 ms</strong>. The GPUs spend 73% of each step waiting for gradients to arrive. The 720x bandwidth gap between NVLink (900 GB/s) and 10GbE (1.25 GB/s) is the root cause.”</p>
+</blockquote>
+</section>
+<section id="reflection-structured" class="level3">
+<h3 class="anchored" data-anchor-id="reflection-structured">Reflection (Structured)</h3>
+<p>Four-option multiple choice:</p>
+<blockquote class="blockquote">
+<p>“The chapter shows that 8 GPUs on NVLink achieve 97% efficiency while 32 GPUs on 10GbE achieve only 13% efficiency. What is the primary physical cause?”</p>
+</blockquote>
+<ul>
+<li><ol type="A">
+<li>The GPUs on the commodity network are slower processors</li>
+</ol></li>
+<li><ol start="2" type="A">
+<li>The gradient tensors are larger when using more GPUs</li>
+</ol></li>
+<li><strong>C) The inter-node bandwidth (1.25 GB/s) is 720x slower than NVLink (900 GB/s), making gradient synchronization take longer than the computation itself</strong> (correct)</li>
+<li><ol start="4" type="A">
+<li>Amdahl’s Law limits speedup regardless of the network</li>
+</ol></li>
+</ul>
+</section>
+<section id="math-peek-collapsible" class="level3">
+<h3 class="anchored" data-anchor-id="math-peek-collapsible">Math Peek (collapsible)</h3>
+<p><span class="math display">\[T_{\text{step}}(N) = \frac{T_{\text{compute}}}{N} + T_{\text{comm}}(N) - T_{\text{overlap}}\]</span></p>
+<p><span class="math display">\[T_{\text{comm}} = \frac{2(N-1)}{N} \times \frac{M_{\text{bytes}}}{BW_{\text{net}}}\]</span></p>
+<p><span class="math display">\[\text{Efficiency}(N) = \frac{T_{\text{compute}}}{N \times T_{\text{step}}(N)}\]</span></p>
+<blockquote class="blockquote">
+<p>For GPT-2 (1.5B params, 5.6 GB gradient payload) on 10GbE (1.25 GB/s): <span class="math inline">\(T_{\text{comm}} \approx 5.6 / 1.25 \times 1000 \approx 4{,}480\)</span> ms. With <span class="math inline">\(T_{\text{compute}} = 1{,}800\)</span> ms, communication exceeds compute by 2.5x. The chapter’s Scaling32GPU LEGO cell validates this: efficiency is 13% because communication consumes 73% of the total step time.</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="act-2-the-budget-optimal-training-configuration-design-challenge-22-minutes" class="level2">
+<h2 class="anchored" data-anchor-id="act-2-the-budget-optimal-training-configuration-design-challenge-22-minutes">4. Act 2: The Budget-Optimal Training Configuration (Design Challenge – 22 minutes)</h2>
+<section id="pedagogical-goal-1" class="level3">
+<h3 class="anchored" data-anchor-id="pedagogical-goal-1">Pedagogical Goal</h3>
+<p>Students believe the fastest training configuration uses the most GPUs. The chapter’s cost analysis reveals a counterintuitive result: 8 GPUs with gradient accumulation (4 steps) achieves the same effective batch size of 512 as 32 GPUs with naive data parallelism, but costs $422 instead of $3,021 – an 87% savings. The chapter also introduces the pipeline bubble tax: when models require pipeline parallelism, bubble overhead wastes <span class="math inline">\((P-1)/(P-1+M)\)</span> of compute, which is 18% for 8 stages and 32 microbatches but 48% for 16 stages and 16 microbatches. Students must navigate a three-way trade-off: GPU count (throughput vs.&nbsp;communication overhead), gradient accumulation (batch size vs.&nbsp;sync frequency), and pipeline stages (memory capacity vs.&nbsp;bubble waste).</p>
+</section>
+<section id="the-lock-numeric-prediction" class="level3">
+<h3 class="anchored" data-anchor-id="the-lock-numeric-prediction">The Lock (Numeric Prediction)</h3>
+<p>Before instruments unlock:</p>
+<blockquote class="blockquote">
+<p>“You are training GPT-2 on a budget of $500. GPUs cost $16/GPU-hour. An 8-GPU node with NVLink achieves 97% parallel efficiency. A 32-GPU cluster on 10GbE achieves 13% efficiency. Single-GPU training takes 25 hours. What is the minimum wall-clock training time achievable within the $500 budget?”</p>
+</blockquote>
+<p>Students enter a number in hours. Expected range: 1–25 hours.</p>
+<p><strong>Common wrong answers:</strong> Students will enter 0.8–1.5 hours (assuming 32 GPUs at near-linear scaling). The actual answer is approximately <strong>3.3 hours</strong> using the 8-GPU configuration with gradient accumulation, which costs approximately $422. The 32-GPU configuration costs $3,021 (exceeding the budget) because GPUs spend 73% of their time idle waiting for gradients.</p>
+</section>
+<section id="the-instrument-distributed-training-cost-optimizer" class="level3">
+<h3 class="anchored" data-anchor-id="the-instrument-distributed-training-cost-optimizer">The Instrument: Distributed Training Cost Optimizer</h3>
+<p><strong>Primary Chart: Training Time vs.&nbsp;Cost (scatter)</strong></p>
+<ul>
+<li><strong>X-axis:</strong> Total training cost (USD), range $0–$5,000</li>
+<li><strong>Y-axis:</strong> Wall-clock training time (hours), range 0–30</li>
+<li><strong>Data points:</strong> One point per configuration, colored by efficiency regime:
+<ul>
+<li>GreenLine (#008F45): efficiency &gt; 80%</li>
+<li>OrangeLine (#CC5500): efficiency 40–80%</li>
+<li>RedLine (#CB202D): efficiency &lt; 40%</li>
+</ul></li>
+<li><strong>Budget line:</strong> Vertical dashed line at the student’s budget</li>
+<li><strong>Pareto frontier:</strong> Dashed curve connecting optimal configurations</li>
+</ul>
+<p><strong>Secondary Chart: Step Time Breakdown (waterfall)</strong></p>
+<ul>
+<li><strong>X-axis:</strong> Component (Compute, Intra-node Comm, Inter-node Comm, Overlap Savings, Total)</li>
+<li><strong>Y-axis:</strong> Time (ms)</li>
+<li><strong>Updates dynamically</strong> as sliders change</li>
+</ul>
+<p><strong>Tertiary Chart: Pipeline Bubble Gauge</strong></p>
+<ul>
+<li>Circular gauge showing bubble fraction as a percentage</li>
+<li>Green zone: 0–10%, Orange zone: 10–25%, Red zone: 25–50%</li>
+<li>Updates when pipeline stages or microbatch count change</li>
+</ul>
+<p>Controls:</p>
+<ul>
+<li><strong>GPU count slider</strong>: 1, 2, 4, 8, 16, 32, 64
+<ul>
+<li>Default: 8</li>
+<li>Step: powers of 2</li>
+</ul></li>
+<li><strong>Interconnect selector</strong> (toggle): NVLink-only (max 8 GPUs) / InfiniBand HDR (25 GB/s) / 10GbE (1.25 GB/s)
+<ul>
+<li>Default: NVLink-only</li>
+<li>Constraint: selecting NVLink caps GPU count at 8; selecting &gt;8 GPUs forces InfiniBand or 10GbE</li>
+</ul></li>
+<li><strong>Gradient accumulation steps</strong>: 1, 2, 4, 8, 16
+<ul>
+<li>Default: 1</li>
+</ul></li>
+<li><strong>Pipeline stages</strong> (for model parallelism exploration): 1, 2, 4, 8, 16
+<ul>
+<li>Default: 1 (no pipeline parallelism)</li>
+</ul></li>
+<li><strong>Microbatches per stage</strong>: 4, 8, 16, 32, 64
+<ul>
+<li>Default: 32</li>
+</ul></li>
+<li><strong>Budget slider</strong>: $100–$5,000
+<ul>
+<li>Default: $500</li>
+</ul></li>
+</ul>
+</section>
+<section id="the-scaling-challenge" class="level3">
+<h3 class="anchored" data-anchor-id="the-scaling-challenge">The Scaling Challenge</h3>
+<p><strong>“Find the configuration that minimizes training time within a $500 budget and achieves an effective batch size of at least 512.”</strong></p>
+<p>Students must discover:</p>
+<ol type="1">
+<li>32 GPUs on 10GbE exceeds the budget ($3,021) and is infeasible</li>
+<li>8 GPUs with gradient accumulation (4 steps) achieves batch size 512 at $422 in ~3.3 hours</li>
+<li>Adding pipeline stages (when enabled) introduces bubble overhead that further increases cost</li>
+<li>The sweet spot is the highest GPU count where NVLink is available (8), combined with gradient accumulation to achieve the target batch size without crossing node boundaries</li>
+</ol>
+</section>
+<section id="the-failure-state" class="level3">
+<h3 class="anchored" data-anchor-id="the-failure-state">The Failure State</h3>
+<p><strong>Trigger condition:</strong> <code>total_cost &gt; budget</code></p>
+<p><strong>Visual change:</strong> The cost axis point turns RedLine; the budget line pulses; all chart elements beyond the budget dim to 30% opacity.</p>
+<p><strong>Banner text:</strong></p>
+<blockquote class="blockquote">
+<p>“<strong>Budget Exceeded</strong> – Configuration costs $[X] but budget is $[Y]. Reduce GPU count or switch to a cheaper interconnect. The chapter shows that 8 GPUs + gradient accumulation saves 87% vs.&nbsp;naive 32-GPU scaling.”</p>
+</blockquote>
+<p><strong>Second failure state – Pipeline Bubble Overrun:</strong></p>
+<p><strong>Trigger condition:</strong> <code>bubble_fraction &gt; 0.40</code></p>
+<p><strong>Visual change:</strong> Pipeline Bubble Gauge enters red zone; bubble segments in the waterfall chart turn RedLine.</p>
+<p><strong>Banner text:</strong></p>
+<blockquote class="blockquote">
+<p>“<strong>Pipeline Bubble &gt; 40%</strong> – With [P] stages and [M] microbatches, <span class="math inline">\((P-1)/(P-1+M) = [X]\)</span>% of GPU cycles are wasted idle. Increase microbatches to <span class="math inline">\(M \gg P\)</span> or reduce pipeline stages.”</p>
+</blockquote>
+<p>Both failure states are reversible: adjusting sliders immediately recalculates and clears the failure banners.</p>
+</section>
+<section id="structured-reflection" class="level3">
+<h3 class="anchored" data-anchor-id="structured-reflection">Structured Reflection</h3>
+<p>Four-option multiple choice:</p>
+<blockquote class="blockquote">
+<p>“The chapter demonstrates that 8 GPUs with gradient accumulation costs $422 while 32 GPUs costs $3,021 for the same effective batch size. Why is the smaller configuration cheaper despite using fewer GPUs?”</p>
+</blockquote>
+<ul>
+<li><ol type="A">
+<li>The 8-GPU configuration uses less electricity per GPU</li>
+</ol></li>
+<li><ol start="2" type="A">
+<li>Gradient accumulation compresses the gradients, reducing network cost</li>
+</ol></li>
+<li><strong>C) The 8-GPU configuration keeps all communication on NVLink (900 GB/s), reducing overhead to 0.07% vs.&nbsp;73% on 10GbE, so GPU-hours are spent computing rather than waiting</strong> (correct)</li>
+<li><ol start="4" type="A">
+<li>The 32-GPU configuration requires more training epochs to converge</li>
+</ol></li>
+</ul>
+</section>
+<section id="math-peek-collapsible-1" class="level3">
+<h3 class="anchored" data-anchor-id="math-peek-collapsible-1">Math Peek (collapsible)</h3>
+<p><span class="math display">\[\text{Effective Batch Size} = N_{\text{GPUs}} \times B_{\text{local}} \times K_{\text{accum}}\]</span></p>
+<p><span class="math display">\[\text{Comm Overhead (GA)} = \frac{T_{\text{comm}}}{K_{\text{accum}} \times T_{\text{compute}}}\]</span></p>
+<p><span class="math display">\[\text{Bubble Fraction} = \frac{P - 1}{P - 1 + M}\]</span></p>
+<p><span class="math display">\[\text{Cost} = N_{\text{GPUs}} \times T_{\text{wall}} \times \text{Rate}_{\text{USD/GPU-hr}}\]</span></p>
+<blockquote class="blockquote">
+<p>The gradient accumulation insight: synchronizing once every <span class="math inline">\(K\)</span> steps reduces communication overhead by factor <span class="math inline">\(K\)</span>. With <span class="math inline">\(K=4\)</span> and NVLink overhead of 5.6 ms against 1,800 ms compute: overhead <span class="math inline">\(= 5.6 / (4 \times 1800) = 0.08\%\)</span>. The GPUs spend 99.92% of their time computing.</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="visual-layout-specification" class="level2">
+<h2 class="anchored" data-anchor-id="visual-layout-specification">5. Visual Layout Specification</h2>
+<section id="act-1" class="level3">
+<h3 class="anchored" data-anchor-id="act-1">Act 1</h3>
+<ol type="1">
+<li><strong>Scaling Efficiency Plot</strong> (primary, log-log line chart)
+<ul>
+<li>X: Number of GPUs (1–128, log2 scale)</li>
+<li>Y: Effective Speedup (1–128, log2 scale)</li>
+<li>Series: Ideal (dashed black), Actual (solid, color by interconnect)</li>
+<li>Failure annotation: “Communication Wall” arrow where efficiency &lt; 50%</li>
+</ul></li>
+<li><strong>Step Time Breakdown</strong> (stacked bar chart)
+<ul>
+<li>X: GPU count (categorical: 1, 2, 4, 8, 16, 32, 64, 128)</li>
+<li>Y: Time per step (ms), range 0–7,000</li>
+<li>Segments: Compute (BlueLine #006395), Communication (RedLine #CB202D), Overlap (GreenLine #008F45, negative offset)</li>
+<li>Reference line: 1,800 ms (single GPU baseline)</li>
+<li>Failure state: Communication segment turns bright red when it exceeds compute segment</li>
+</ul></li>
+</ol>
+</section>
+<section id="act-2" class="level3">
+<h3 class="anchored" data-anchor-id="act-2">Act 2</h3>
+<ol type="1">
+<li><strong>Training Time vs.&nbsp;Cost</strong> (scatter plot, primary)
+<ul>
+<li>X: Total cost (USD), range $0–$5,000</li>
+<li>Y: Wall-clock time (hours), range 0–30</li>
+<li>Points colored by efficiency regime (Green &gt; 80%, Orange 40–80%, Red &lt; 40%)</li>
+<li>Budget constraint: vertical dashed line</li>
+<li>Pareto frontier: dashed curve</li>
+</ul></li>
+<li><strong>Step Time Waterfall</strong> (waterfall chart)
+<ul>
+<li>X: Components (Compute, Intra-comm, Inter-comm, Overlap, Pipeline Bubble, Total)</li>
+<li>Y: Time (ms)</li>
+<li>Updates on slider change</li>
+</ul></li>
+<li><strong>Pipeline Bubble Gauge</strong> (circular gauge)
+<ul>
+<li>Range: 0–50%</li>
+<li>Zones: Green 0–10%, Orange 10–25%, Red 25–50%</li>
+<li>Label: “Bubble: [X]%”</li>
+<li>Enters failure state when &gt; 40%</li>
+</ul></li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="deployment-context-definitions" class="level2">
+<h2 class="anchored" data-anchor-id="deployment-context-definitions">6. Deployment Context Definitions</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 17%">
+<col style="width: 29%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Context</th>
+<th style="text-align: left;">Device</th>
+<th style="text-align: left;">Interconnect</th>
+<th style="text-align: left;">Key Constraint</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Single-Node (NVLink)</strong></td>
+<td style="text-align: left;">8x H100 (80 GB each) with NVLink (900 GB/s)</td>
+<td style="text-align: left;">Intra-node only</td>
+<td style="text-align: left;">Communication overhead &lt; 1%; memory is the scaling ceiling (model must fit in 8x 80 GB)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Multi-Node (Commodity)</strong></td>
+<td style="text-align: left;">32x H100 across 4 nodes on 10GbE (1.25 GB/s)</td>
+<td style="text-align: left;">Inter-node 10GbE</td>
+<td style="text-align: left;">Communication overhead 73%; bandwidth is the wall; naive scaling wastes 87% of budget</td>
+</tr>
+</tbody>
+</table>
+<p>The two contexts demonstrate that identical GPUs produce radically different scaling behavior depending on the interconnect. The same 5.6 GB gradient payload takes 6 ms on NVLink but 4,480 ms on 10GbE – a 720x difference that transforms a compute-bound job into a communication-bound one. This is the core lesson: distributed training performance is governed by the interconnect, not by the accelerator count.</p>
+<hr>
+</section>
+<section id="design-ledger-output" class="level2">
+<h2 class="anchored" data-anchor-id="design-ledger-output">7. Design Ledger Output</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"chapter"</span><span class="fu">:</span> <span class="st">"v2_05"</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"ch05_v2"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"gpu_count_chosen"</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"interconnect"</span><span class="fu">:</span> <span class="st">"nvlink"</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"gradient_accumulation_steps"</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"effective_batch_size"</span><span class="fu">:</span> <span class="dv">512</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"scaling_efficiency_pct"</span><span class="fu">:</span> <span class="dv">97</span><span class="fu">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"training_cost_usd"</span><span class="fu">:</span> <span class="dv">422</span><span class="fu">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"pipeline_stages"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bubble_fraction_pct"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"comm_compute_ratio"</span><span class="fu">:</span> <span class="fl">0.003</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Downstream consumers:</strong></p>
+<ul>
+<li><strong>Lab V2-06 (Collective Communication):</strong> Reads <code>interconnect</code> and <code>gpu_count_chosen</code> to initialize the AllReduce algorithm comparison with the student’s chosen topology</li>
+<li><strong>Lab V2-07 (Fault Tolerance):</strong> Reads <code>gpu_count_chosen</code> and <code>pipeline_stages</code> to calculate MTBF for the student’s cluster configuration (failure probability scales with node count)</li>
+</ul>
+<hr>
+</section>
+<section id="traceability-table" class="level2">
+<h2 class="anchored" data-anchor-id="traceability-table">8. Traceability Table</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Lab Element</th>
+<th style="text-align: left;">Chapter Section</th>
+<th style="text-align: left;">Exact Claim Being Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">NVLink bandwidth: 900 GB/s</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-multimachine-scaling-fundamentals-ff96</code> (DistTrainConstants, line 105)</td>
+<td style="text-align: left;">“nvlink_h100_gbs = NVLINK_H100_BW.m_as(GB / second)” yielding 900 GB/s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">8-GPU intra-node efficiency: 97%</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (Scaling8GPU LEGO, line 791)</td>
+<td style="text-align: left;">“check(efficiency_8gpu_val &gt; 95, …)” and “NVLink enables efficient scaling within single nodes (97% efficiency)” (line 974)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">32-GPU inter-node efficiency: 13%</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (Scaling32GPU LEGO, line 877)</td>
+<td style="text-align: left;">“check(comm_pct_val &gt; 50, …)” and “Inter-node communication kills efficiency (drops to 13%)” (line 975)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Communication overhead 10–40% for AllReduce</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-distributed-training-efficiency-metrics-9488</code> (line 1069)</td>
+<td style="text-align: left;">“AllReduce operations consume 10–40% of total training time in data parallel systems”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GPT-2 gradient sync size: ~5.6 GB</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (Scaling8GPU LEGO, line 780)</td>
+<td style="text-align: left;">“sync_size_gb = (params_b * BILLION * 4) / BILLION” yielding ~5.6 GB for GPT-2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Gradient accumulation saves 87% cost</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (GradAccumScenario LEGO, line 916)</td>
+<td style="text-align: left;">“Savings: USD [ga_savings_str] ([ga_savings_pct_str]% reduction)”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gradient accumulation comm overhead: ~0.07%</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (GradAccumScenario LEGO, line 958)</td>
+<td style="text-align: left;">“Overhead = 5 ms / (4 x 1800 ms) ~ 0.07%”</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Pipeline bubble fraction: <span class="math inline">\((P-1)/(P-1+M)\)</span></td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-pipeline-parallelism-8748</code> (PipelineBubble LEGO, line 1741)</td>
+<td style="text-align: left;">“bubble_fraction = (p_stages - 1) / (p_stages - 1 + m_microbatches)”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Pipeline bubble 18% at P=8, M=32</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-pipeline-parallelism-8748</code> (PipelineBubble LEGO, line 1744)</td>
+<td style="text-align: left;">“check(17 &lt; bubble_pct &lt; 19, …)” yielding 17.9%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Pipeline bubble 48% at P=16, M=16</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-pipeline-parallelism-8748</code> (definition callout, line 1714)</td>
+<td style="text-align: left;">“with p=16 stages and m=16 micro-batches, 48% of compute is wasted idle”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Scaling efficiency formula: Speedup = N/(1+(N-1)*r)</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-physics-scaling-amdahls-law-communication-4d7f</code> (<strong>?@fig-scaling-tax</strong> code, line 1124)</td>
+<td style="text-align: left;">“speedup = N / (1 + (N - 1) * sc[‘r’])” with r=0.05 (compute-bound) and r=0.50 (bandwidth-bound)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">85–95% efficiency in linear scaling regime (2–32 GPUs)</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-distributed-training-efficiency-metrics-9488</code> (line 1187)</td>
+<td style="text-align: left;">“In the linear scaling regime of 2-32 GPUs, systems typically achieve 85–95% parallel efficiency”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Amdahl’s ceiling at 30% serial fraction: ~3x max speedup</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-distributed-training-fundamentals-97da</code> (definition callout, line 214)</td>
+<td style="text-align: left;">“with 30% of a step’s time spent on synchronization, the theoretical scaling ceiling is 1/0.30 ~ 3x”</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Effective batch size = N x B x K_accum</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (GradAccumScenario, line 919)</td>
+<td style="text-align: left;">“8 GPUs x batch 16 x 4 accumulation steps = 512”</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Single GPU baseline: 25 hours, 1.8s/step</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-data-parallelism-tradeoffs</code> (Scaling8GPU LEGO, lines 770–771)</td>
+<td style="text-align: left;">“single_gpu_step_s = 1.8” and “training_hours_1gpu = 25”</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Distributed step time equation</td>
+<td style="text-align: left;"><code>@sec-distributed-training-systems-systems-physics-scaling-amdahls-law-communication-4d7f</code> (line 1163)</td>
+<td style="text-align: left;">“<span class="math inline">\(T_{\text{step}}(N) = T_{\text{compute}}/N + T_{\text{comm}}(N) - T_{\text{overlap}}\)</span>”</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/labs\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2025 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+<p>Part of the <a href="../book/">Machine Learning Systems</a> textbook</p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-star" role="img" aria-label="Star this repository">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+<script src="assets/scripts/subscribe-modal.js" defer=""></script>
+
+
+
+
+</body></html>
