@@ -253,6 +253,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">joeswagson</span>
     <span class="roles">🧑‍💻 🛠️</span>
   </a>
+  <a href="https://github.com/Roldao-Neto" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/148023227?v=4" alt="Rolds" />
+    <span class="name">Rolds</span>
+    <span class="roles">🪲 🧑‍💻</span>
+  </a>
   <a href="https://github.com/AmirAlasady" class="team-member">
     <img src="https://avatars.githubusercontent.com/AmirAlasady?v=4&s=160" alt="Amir Alasady" />
     <span class="name">Amir Alasady</span>
