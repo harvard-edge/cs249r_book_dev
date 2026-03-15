@@ -1509,16 +1509,16 @@ initSlideViewer('04_losses', '../_static/slides/04_losses.pdf');
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">log_softmax</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute log-softmax with numerical stability.&quot;&quot;&quot;</span>
     <span class="c1"># Step 1: Find max along dimension for numerical stability</span>
-    <span class="n">max_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">x_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Step 2: Subtract max to prevent overflow</span>
-    <span class="n">shifted</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">max_vals</span>
+    <span class="n">shifted</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">x_max</span>
 
     <span class="c1"># Step 3: Compute log(sum(exp(shifted)))</span>
     <span class="n">log_sum_exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">shifted</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-    <span class="c1"># Step 4: Return log_softmax = input - max - log_sum_exp</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="o">-</span> <span class="n">max_vals</span> <span class="o">-</span> <span class="n">log_sum_exp</span>
+    <span class="c1"># Step 4: Return log_softmax = shifted - log_sum_exp</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">shifted</span> <span class="o">-</span> <span class="n">log_sum_exp</span>
 
     <span class="k">return</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
