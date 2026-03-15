@@ -471,7 +471,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="1d66d0f4ddc4f34b1c4e43508fe77821" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">4de23c16</code> • 2026-03-14 19:52 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">53827249</code> • 2026-03-15 10:18 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im:</strong> First-principles ML systems modeling. <a href="getting-started.html">Get started →</a><br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="https://mlsysbook.ai/book">Explore →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1042,7 +1042,7 @@ T_{\text{memory}} = \frac{\text{Bytes}}{\text{Peak BW}}\]</span></p>
 <section id="pick-a-model-and-a-gpu" class="level2">
 <h2 class="anchored" data-anchor-id="pick-a-model-and-a-gpu">2. Pick a Model and a GPU</h2>
 <p>Pull vetted specifications from the <strong>MLSys Zoo</strong> — no need to search datasheets.</p>
-<div id="73e63b85" class="cell" data-execution_count="2">
+<div id="d5de3b88" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.show <span class="im">import</span> table, info</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ResNet-50: 25M parameters, ~4.1 GFLOP per inference (counting multiply-accumulate as 1 FLOP)</span></span>
@@ -1076,7 +1076,7 @@ HBM BW:     2.04 TB/s</code></pre>
 <section id="solve-one-line-one-answer" class="level2">
 <h2 class="anchored" data-anchor-id="solve-one-line-one-answer">3. Solve: One Line, One Answer</h2>
 <p>The <code>Engine.solve</code> method applies the roofline model — it calculates which of the two speed limits you hit first, and returns latency, throughput, and the bottleneck classification.</p>
-<div id="c0e42b1b" class="cell" data-execution_count="3">
+<div id="7e18b57a" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># One line: model + hardware + config → performance prediction</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>profile <span class="op">=</span> Engine.solve(</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>model,</span>
@@ -1090,8 +1090,8 @@ HBM BW:     2.04 TB/s</code></pre>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>     Throughput<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>profile<span class="sc">.</span>throughput<span class="sc">:.0f}</span><span class="ss"> images/sec"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Bottleneck:  Compute
-Latency:     0.041 ms
-Throughput:  24224 / second images/sec</code></pre>
+Latency:     5.04 ms
+Throughput:  198 / second images/sec</code></pre>
 </div>
 </div>
 <p>At batch size 1, ResNet-50 performs ~4.1 GFLOP but must load ~50 MB of weights (25M params × 2 bytes). That gives an arithmetic intensity of ~82 FLOP/byte — close to the A100’s ridge point of ~156 FLOP/byte. At this operating point, the two ceilings are nearly balanced, and the bottleneck label depends on exact assumptions. The important takeaway: <strong>most of the A100’s 312 TFLOP/s is idle</strong> — you need larger batches to exploit it.</p>
@@ -1113,7 +1113,7 @@ Throughput:  24224 / second images/sec</code></pre>
 <section id="sweep-batch-size-watch-the-regime-shift" class="level2">
 <h2 class="anchored" data-anchor-id="sweep-batch-size-watch-the-regime-shift">4. Sweep Batch Size: Watch the Regime Shift</h2>
 <p>Now let’s increase the batch size and see when the bottleneck changes. More images per batch means more computation per weight load — which increases arithmetic intensity.</p>
-<div id="1ec8ce1d" class="cell" data-execution_count="4">
+<div id="e9086a78" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> batch <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">16</span>, <span class="dv">32</span>, <span class="dv">64</span>, <span class="dv">128</span>, <span class="dv">256</span>]:</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> Engine.solve(</span>
@@ -1128,13 +1128,13 @@ Throughput:  24224 / second images/sec</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Batch  Bottleneck        Throughput   Latency
 ─────────────────────────────────────────────
-1         Compute  24224 / second/s  0.041 ms
-4         Compute  33298 / second/s  0.120 ms
-16        Compute  36738 / second/s  0.436 ms
-32        Compute  37382 / second/s  0.856 ms
-64        Compute  37712 / second/s   1.70 ms
-128       Compute  37880 / second/s   3.38 ms
-256       Compute  37964 / second/s   6.74 ms</code></pre>
+1         Compute    198 / second/s   5.04 ms
+4         Compute    781 / second/s   5.12 ms
+16        Compute   2944 / second/s   5.44 ms
+32        Compute   5464 / second/s   5.86 ms
+64        Compute   9556 / second/s   6.70 ms
+128       Compute  15276 / second/s   8.38 ms
+256       Compute  21800 / second/s  11.74 ms</code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">

@@ -471,7 +471,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="1d66d0f4ddc4f34b1c4e43508fe77821" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">4de23c16</code> • 2026-03-14 19:52 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">53827249</code> • 2026-03-15 10:18 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im:</strong> First-principles ML systems modeling. <a href="getting-started.html">Get started →</a><br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="https://mlsysbook.ai/book">Explore →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -950,7 +950,7 @@ window.Quarto = {
 <section id="baseline-serving-single-query-cost" class="level2">
 <h2 class="anchored" data-anchor-id="baseline-serving-single-query-cost">2. Baseline Serving: Single-Query Cost</h2>
 <p>First, establish the baseline: a GPT-4 scale model served on an H100, no reasoning. This gives us the per-query TTFT and ITL that everything else builds on.</p>
-<div id="de3cc04b" class="cell" data-execution_count="2">
+<div id="67e8666a" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Models, Hardware, ServingModel</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.show <span class="im">import</span> table, info</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -975,8 +975,8 @@ window.Quarto = {
 Model:        GPT-4 (1760 gigacount params)
 Hardware:     NVIDIA H100
 TTFT:         14,578.3 ms
-ITL:          1,055.6 ms
-Memory Used:  4117%
+ITL:          1,073.0 ms
+Memory Used:  4138%
 Feasible:     False</code></pre>
 </div>
 </div>
@@ -986,7 +986,7 @@ Feasible:     False</code></pre>
 <section id="cot-sweep-k1-to-k16" class="level2">
 <h2 class="anchored" data-anchor-id="cot-sweep-k1-to-k16">3. CoT Sweep: K=1 to K=16</h2>
 <p>Now sweep reasoning depth using the <code>InferenceScalingModel</code>. Each step generates tokens of intermediate reasoning. Watch how the cost multiplier grows.</p>
-<div id="a0da3a6f" class="cell" data-execution_count="3">
+<div id="b56c15de" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> InferenceScalingModel</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>cot_solver <span class="op">=</span> InferenceScalingModel()</span>
@@ -1016,10 +1016,10 @@ Feasible:     False</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>K   Total Time  Tokens  Energy (J)  Multiplier
 ──────────────────────────────────────────────
-1    67356.0ms      50   47149.2 J        1.0x
-4   225689.1ms     200  157982.4 J        3.4x
-8   436799.9ms     400  305759.9 J        6.5x
-16  859021.5ms     800  601315.1 J       12.8x</code></pre>
+1    68228.6ms      50   47760.0 J        1.0x
+4   229179.3ms     200  160425.5 J        3.4x
+8   443780.4ms     400  310646.3 J        6.5x
+16  872982.4ms     800  611087.7 J       12.8x</code></pre>
 </div>
 </div>
 <p>K=8 does not cost exactly 8x the baseline. The actual multiplier reflects the structure of the cost: one TTFT (fixed) plus K decode phases (scaling). Since TTFT is a small fraction of total time for high K, the multiplier approaches K as K grows.</p>
@@ -1028,7 +1028,7 @@ Feasible:     False</code></pre>
 <section id="the-9m-question-annualized-fleet-cost" class="level2">
 <h2 class="anchored" data-anchor-id="the-9m-question-annualized-fleet-cost">4. The $9M Question: Annualized Fleet Cost</h2>
 <p>Per-query cost is interesting. Fleet-level cost is what matters. Let’s compute the annual infrastructure cost of serving 100 queries per second at K=1 vs.&nbsp;K=8.</p>
-<div id="0684ff00" class="cell" data-execution_count="4">
+<div id="3c2f2e7b" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> EconomicsModel</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.systems.types <span class="im">import</span> Fleet, Node, NetworkFabric</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.core.constants <span class="im">import</span> Q_</span>
@@ -1073,10 +1073,10 @@ Feasible:     False</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>K   Query (ms)  QPS/GPU   GPUs  Annual TCO ($)
 ──────────────────────────────────────────────
-1    67356.0ms     0.01   6736    $217,735,412
-4   225689.1ms     0.00  22576    $729,749,803
-8   436799.9ms     0.00  43680  $1,411,918,470
-16  859021.5ms     0.00  85904  $2,776,772,991</code></pre>
+1    68228.6ms     0.01   6824    $220,579,937
+4   229179.3ms     0.00  22920    $740,869,307
+8   443780.4ms     0.00  44384  $1,434,674,665
+16  872982.4ms     0.00  87304  $2,822,026,788</code></pre>
 </div>
 </div>
 <p>The jump from K=1 to K=8 is not just a latency increase — it propagates through the entire infrastructure stack: more GPUs, more power, more cooling, more network fabric, more capital expenditure.</p>
@@ -1099,7 +1099,7 @@ Feasible:     False</code></pre>
 <h2 class="anchored" data-anchor-id="the-routing-argument">5. The Routing Argument</h2>
 <p>The $9M annual TCO reframes the conversation from model architecture to capital planning. But it also raises an obvious question: must every query pay the full reasoning cost?</p>
 <p>In production, the answer is no — and the optimization is <strong>routing</strong>. Smart routing sends easy queries to a fast, cheap model and only routes hard queries to the expensive reasoning pipeline. Let’s model a 70/30 split.</p>
-<div id="64de11fc" class="cell" data-execution_count="5">
+<div id="187f61df" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario: 70% of queries go to Llama-3 70B (no reasoning, K=1)</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 30% go to GPT-4 with K=8 reasoning</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>model_cheap <span class="op">=</span> Models.Llama3_70B</span>
@@ -1147,9 +1147,9 @@ Feasible:     False</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>Strategy                   GPUs  Annual TCO ($)
 ───────────────────────────────────────────────
-All queries -&gt; GPT-4 K=8  43680  $1,411,918,470
-70/30 routed              13296    $429,781,776
-Savings:  $982,136,694 (70%)</code></pre>
+All queries -&gt; GPT-4 K=8  44384  $1,434,674,665
+70/30 routed              13536    $437,539,570
+Savings:  $997,135,095 (70%)</code></pre>
 </div>
 </div>
 <p>Routing reduces the fleet but does not eliminate the infrastructure commitment. The 30% of queries that still need full reasoning require dedicated GPU capacity, and the routing classifier itself introduces latency and complexity. The $9M is the ceiling; routing contains it but does not make the capital planning question go away.</p>

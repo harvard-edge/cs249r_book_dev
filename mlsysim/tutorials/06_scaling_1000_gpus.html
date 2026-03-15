@@ -471,7 +471,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="1d66d0f4ddc4f34b1c4e43508fe77821" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">4de23c16</code> • 2026-03-14 19:52 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">53827249</code> • 2026-03-15 10:18 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im:</strong> First-principles ML systems modeling. <a href="getting-started.html">Get started →</a><br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="https://mlsysbook.ai/book">Explore →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -952,7 +952,7 @@ window.Quarto = {
 <section id="single-node-baseline" class="level2">
 <h2 class="anchored" data-anchor-id="single-node-baseline">2. Single-Node Baseline</h2>
 <p>Let’s start with the simplest case: 8 GPUs in a single DGX node. No network fabric, no cross-node communication. This is our ceiling for scaling efficiency.</p>
-<div id="7e0991fe" class="cell" data-execution_count="2">
+<div id="67e330cc" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> DistributedModel, Models, Systems</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.systems.types <span class="im">import</span> Fleet, Node, NetworkFabric</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.core.constants <span class="im">import</span> Q_</span>
@@ -982,9 +982,9 @@ window.Quarto = {
 <div class="cell-output cell-output-stdout">
 <pre><code>── Single-Node Baseline ────────────────────
 GPUs:                8
-Compute latency:     108,918.1 ms
+Compute latency:     6,642.8 ms
 Communication:       19.61 ms
-Scaling efficiency:  100.0%</code></pre>
+Scaling efficiency:  99.7%</code></pre>
 </div>
 </div>
 <p>With 8 GPUs on a single node, NVLink provides enough bandwidth that communication overhead is small. This is our baseline — near-perfect scaling.</p>
@@ -1000,7 +1000,7 @@ Scaling efficiency:  100.0%</code></pre>
 <section id="scale-sweep-8-to-1024-gpus" class="level2">
 <h2 class="anchored" data-anchor-id="scale-sweep-8-to-1024-gpus">3. Scale Sweep: 8 to 1024 GPUs</h2>
 <p>Now let’s sweep across cluster sizes. At each scale, we measure communication overhead (AllReduce + pipeline bubbles) as a fraction of total step time.</p>
-<div id="7af964cc" class="cell" data-execution_count="3">
+<div id="621852be" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>gpu_counts <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">32</span>, <span class="dv">64</span>, <span class="dv">128</span>, <span class="dv">256</span>, <span class="dv">512</span>, <span class="dv">1024</span>]</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
@@ -1031,13 +1031,13 @@ Scaling efficiency:  100.0%</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>GPUs  Nodes  Comm (ms)  Bubble (ms)  Efficiency
 ───────────────────────────────────────────────
-8         1       19.6          0.0      100.0%
-32        4       49.0          0.0       99.9%
-64        8       53.9          0.0       99.8%
-128      16      441.3          0.0       98.5%
-256      32      617.8          0.0       97.9%
-512      64      706.1          0.0       97.6%
-1024    128      750.3          0.0       97.5%</code></pre>
+8         1       19.6          0.0       99.7%
+32        4       49.0          0.0       99.3%
+64        8       53.9          0.0       99.2%
+128      16      441.3          0.0       93.8%
+256      32      617.8          0.0       91.5%
+512      64      706.1          0.0       90.4%
+1024    128      750.3          0.0       89.9%</code></pre>
 </div>
 </div>
 <p>Communication overhead grows with GPU count, but scaling efficiency degrades gradually. This is <strong>Amdahl’s Law</strong> in action: if the serial fraction (communication) is <span class="math inline">\(f\)</span>, the maximum speedup at <span class="math inline">\(N\)</span> GPUs is <span class="math inline">\(1 / (f + (1-f)/N)\)</span>. At 1024 GPUs, even a 5% serial fraction caps ideal speedup at ~20×, not 1024×. But if communication were the whole story, large-scale training would be predictable and manageable.</p>
@@ -1048,7 +1048,7 @@ Scaling efficiency:  100.0%</code></pre>
 <section id="the-reliability-reveal" class="level2">
 <h2 class="anchored" data-anchor-id="the-reliability-reveal">4. The Reliability Reveal</h2>
 <p>Let’s now ask a different question: how often does a 512-GPU or 1024-GPU cluster experience a hardware failure? The <code>ReliabilityModel</code> models cluster-level MTBF.</p>
-<div id="971643d3" class="cell" data-execution_count="4">
+<div id="ed84c62b" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> ReliabilityModel</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>rel_solver <span class="op">=</span> ReliabilityModel()</span>
@@ -1093,7 +1093,7 @@ Scaling efficiency:  100.0%</code></pre>
 <section id="the-hidden-cost-communication-vs.-checkpoints" class="level2">
 <h2 class="anchored" data-anchor-id="the-hidden-cost-communication-vs.-checkpoints">5. The Hidden Cost: Communication vs.&nbsp;Checkpoints</h2>
 <p>Now the key comparison. Over a 30-day training run, how much total time is lost to communication overhead vs.&nbsp;checkpoint overhead?</p>
-<div id="d1761b61" class="cell" data-execution_count="5">
+<div id="5607f670" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> CheckpointModel</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>ckpt_solver <span class="op">=</span> CheckpointModel()</span>
@@ -1133,10 +1133,10 @@ Scaling efficiency:  100.0%</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>GPUs  Comm Loss (h)  Ckpt Loss (h)  Ckpt/Comm
 ─────────────────────────────────────────────
-64              1.3            9.5       7.1x
-256            15.0           19.0       1.3x
-512            17.1           26.9       1.6x
-1024           18.1           38.1       2.1x</code></pre>
+64              5.8            9.5       1.6x
+256            61.3           19.0       0.3x
+512            69.2           26.9       0.4x
+1024           73.1           38.1       0.5x</code></pre>
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -1157,7 +1157,7 @@ Scaling efficiency:  100.0%</code></pre>
 <section id="the-checkpoint-size-problem" class="level2">
 <h2 class="anchored" data-anchor-id="the-checkpoint-size-problem">6. The Checkpoint Size Problem</h2>
 <p>The reason checkpoint overhead is so painful is that modern models produce enormous checkpoint files. Let’s quantify the checkpoint size for Llama-3 70B with the Adam optimizer:</p>
-<div id="7bc86c6b" class="cell" data-execution_count="6">
+<div id="654f83df" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ckpt_result <span class="op">=</span> ckpt_solver.solve(</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>model,</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Systems.Nodes.DGX_H100.accelerator,</span>
