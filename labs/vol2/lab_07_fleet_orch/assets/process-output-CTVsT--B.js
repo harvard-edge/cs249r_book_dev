@@ -1,0 +1,1 @@
+import{J as i,Y as m,q as a}from"./cells-fq1RMGX_.js";function e(t){return t.mimetype.startsWith("application/vnd.marimo")||t.mimetype==="text/html"?m(a.asString(t.data)):i(a.asString(t.data))}export{e as t};
