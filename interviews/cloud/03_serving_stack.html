@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>serving_stack – ML Systems Interview Playbook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../cloud/04_production_ops.html" rel="next">
+<link href="../cloud/02_distributed_systems.html" rel="prev">
+<link href="../assets/images/logo.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-418b54166221b0f5da1a301533985205.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-70381dc2c19d32cfbdbec2f8d6f8a8be.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-418b54166221b0f5da1a301533985205.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo light-content">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-interview-playbook" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Interview Playbook</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-interview-playbook">    
+        <li>
+    <a class="dropdown-item" href="../index.html"><i class="bi bi-shield-check" role="img">
+</i> 
+ <span class="dropdown-text">Playbook Hub</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../00_The_Architects_Rubric.html">
+ <span class="dropdown-text">The Architect’s Rubric</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../NUMBERS.html">
+ <span class="dropdown-text">Numbers Cheat Sheet</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../cloud/README.md">
+ <span class="dropdown-text">☁️ Cloud Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../edge/README.md">
+ <span class="dropdown-text">🤖 Edge Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../mobile/README.md">
+ <span class="dropdown-text">📱 Mobile Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tinyml/README.md">
+ <span class="dropdown-text">🔬 TinyML Track</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-read" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Read</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
+        <li>
+    <a class="dropdown-item" href="../book/vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: At Scale</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../book/vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume I PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+</i> 
+ <span class="dropdown-text">Volume I EPUB</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../book/vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume II PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+</i> 
+ <span class="dropdown-text">Volume II EPUB</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-build" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Build</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
+        <li>
+    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·IM</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/"><i class="bi bi-lightbulb" role="img">
+</i> 
+ <span class="dropdown-text">Labs (Coming 2026)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-teach" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Teach</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
+        <li>
+    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+</i> 
+ <span class="dropdown-text">Instructor Hub</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/tree/dev/interviews" target="_blank"><i class="bi bi-mortarboard" role="img">
+</i> 
+ <span class="dropdown-text">Interview Prep</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-community" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Community</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-community">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+</i> 
+ <span class="dropdown-text">Newsletter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../community/"><i class="bi bi-calendar-event" role="img">
+</i> 
+ <span class="dropdown-text">Workshops &amp; Events</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+</i> 
+ <span class="dropdown-text">Outreach</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book#contributors-" target="_blank"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Contributors</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-about" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">About</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+</i> 
+ <span class="dropdown-text">Mission</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-person-lines-fill" role="img">
+</i> 
+ <span class="dropdown-text">Team</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-building" role="img">
+</i> 
+ <span class="dropdown-text">Adopters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-newspaper" role="img">
+</i> 
+ <span class="dropdown-text">Press</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/blob/dev/LICENSE.md" target="_blank"><i class="bi bi-cc-circle" role="img">
+</i> 
+ <span class="dropdown-text">License</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../book/vol1/#subscribe"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../cloud/README.md">☁️ Cloud Track</a></li><li class="breadcrumb-item"><a href="../cloud/03_serving_stack.html">The Serving Stack</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Playbook Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../00_The_Architects_Rubric.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Architect’s Rubric</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../NUMBERS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numbers Cheat Sheet</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../cloud/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">☁️ Cloud Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/01_single_machine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Single Machine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/02_distributed_systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Distributed System</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/03_serving_stack.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">The Serving Stack</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/04_production_ops.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Production System</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/05_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Architecture Debugging</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../edge/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">🤖 Edge Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/01_hardware_platform.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Hardware Platform</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/02_realtime_pipeline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Real-Time Pipeline</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/03_deployed_system.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Deployed System</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Architecture Debugging</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../mobile/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">📱 Mobile Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/01_device_hardware.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Device &amp; SoC</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/02_app_experience.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The App Experience</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/03_ship_and_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ship &amp; Update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Architecture Debugging</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../tinyml/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">🔬 TinyML Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/01_microcontroller.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Microcontroller</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/02_sensing_pipeline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Sensing Pipeline</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/03_deployed_device.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Deployed Device</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visual Architecture Debugging</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-serving-stack" id="toc-the-serving-stack" class="nav-link active" data-scroll-target="#the-serving-stack">The Serving Stack</a>
+  <ul class="collapse">
+  <li><a href="#latency-throughput" id="toc-latency-throughput" class="nav-link" data-scroll-target="#latency-throughput">⏱️ Latency &amp; Throughput</a></li>
+  <li><a href="#batching-scheduling" id="toc-batching-scheduling" class="nav-link" data-scroll-target="#batching-scheduling">🔄 Batching &amp; Scheduling</a></li>
+  <li><a href="#kv-cache-memory-management" id="toc-kv-cache-memory-management" class="nav-link" data-scroll-target="#kv-cache-memory-management">🗂️ KV-Cache &amp; Memory Management</a></li>
+  <li><a href="#serving-architecture" id="toc-serving-architecture" class="nav-link" data-scroll-target="#serving-architecture">🏗️ Serving Architecture</a></li>
+  <li><a href="#advanced-inference" id="toc-advanced-inference" class="nav-link" data-scroll-target="#advanced-inference">🚀 Advanced Inference</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../cloud/README.md">☁️ Cloud Track</a></li><li class="breadcrumb-item"><a href="../cloud/03_serving_stack.html">The Serving Stack</a></li></ol></nav></header>
+
+
+
+
+
+<section id="the-serving-stack" class="level1">
+<h1>The Serving Stack</h1>
+<div data-align="center">
+<p><a href="../README.md">🏠 Home</a> · <a href="../00_The_Architects_Rubric.html">📋 Rubric</a> · <b>☁️ Cloud</b> · <a href="../edge/README.md">🤖 Edge</a> · <a href="../mobile/README.md">📱 Mobile</a> · <a href="../tinyml/README.md">🔬 TinyML</a></p>
+</div>
+<hr>
+<p><em>How you serve models to real users</em></p>
+<p>Latency budgets, batching strategies, KV-cache management, autoscaling, and speculative decoding — surviving real user traffic at scale.</p>
+<blockquote class="blockquote">
+<p><strong><a href="https://github.com/harvard-edge/cs249r_book/edit/dev/interviews/cloud/03_serving_stack.md">➕ Add a Flashcard</a></strong> (Edit in Browser) — see <a href="../README.md#question-format">README</a> for the template.</p>
+</blockquote>
+<hr>
+<section id="latency-throughput" class="level3">
+<h3 class="anchored" data-anchor-id="latency-throughput">⏱️ Latency &amp; Throughput</h3>
+<section id="l3-recall-define" class="level4">
+<h4 class="anchored" data-anchor-id="l3-recall-define">🟢 L3 — Recall &amp; Define</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Serving Inversion</b> · <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We took our highly-optimized training architecture (large batches, deep pipelines) and deployed it directly to serving. Now, user requests are timing out. What fundamental priority did we fail to invert?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “We need to scale up the serving cluster.” More hardware won’t fix a design that optimizes for the wrong metric.</p>
+<p><strong>Realistic Solution:</strong> The shift from maximizing throughput (<span class="math inline">\(T\)</span>) to minimizing latency (<span class="math inline">\(L_{lat}\)</span>). Training maximizes throughput by using massive batches to keep the GPUs at 100% utilization. Serving minimizes latency because a slow response is a broken product. The batch-heavy architectures that saturate accelerators during training are fundamentally ill-suited for the bursty, latency-critical reality of production traffic.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Training batch=256 on H100: 312 TFLOPS × 85% MFU = 265 TFLOPS effective, throughput = 10,000 tokens/sec.&nbsp;Serving batch=1 on same H100: arithmetic intensity drops below ridge point (295 Ops/Byte), becomes memory-bandwidth-bound, effective throughput = 800 tokens/sec but latency = 25ms. The same GPU is 12× more efficient at training but 12× worse at serving — because the optimization target flipped from throughput to latency.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l4-apply-identify" class="level4">
+<h4 class="anchored" data-anchor-id="l4-apply-identify">🔵 L4 — Apply &amp; Identify</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The LLM Metrics</b> · <code>latency</code> <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our users are complaining the LLM feels ‘laggy’, but our monitoring shows ‘Average Latency’ is well under our 2-second SLO. What specific generation metrics are we failing to monitor?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “We should look at P99 latency instead of average.” P99 helps, but you’re still measuring the wrong thing.</p>
+<p><strong>Realistic Solution:</strong> You are measuring the total request time, which masks the user experience. You must split monitoring into Time-To-First-Token (TTFT) and Time-Per-Output-Token (TPOT). TTFT measures the compute-bound prefill phase (when the user is waiting for the bot to start typing). TPOT measures the memory-bandwidth-bound decode phase (the reading speed). A fast TPOT cannot save a slow TTFT.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> If TTFT = 3 seconds and TPOT = 20ms, a 200-token response takes <span class="math inline">\(3 + (200 \times 0.02) = 7\)</span> seconds total. Average latency looks fine across short and long requests, but users experience a 3-second blank screen before any text appears — that <em>feels</em> broken regardless of total latency.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/benchmarking/benchmarking.html">Benchmarking</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Shadow GPU Budget</b> · <code>mlops</code> <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We want to shadow-test a new 70B LLM before replacing our production 13B model. The plan: mirror all production traffic to the new model, compare outputs, then swap. The infrastructure team comes back and says the shadow deployment will cost more than the production deployment itself. Why is shadow-testing an LLM so much more expensive than shadow-testing a traditional ML model, and how do you make it feasible?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Shadow deployment is free — we’re just logging predictions.” This is true for a 100ms classification model. It’s catastrophically wrong for autoregressive LLMs.</p>
+<p><strong>Realistic Solution:</strong> Shadow-testing a 70B LLM is expensive because you must run full autoregressive decoding for every request — not just a single forward pass. A classification model shadow costs one forward pass (~10ms, ~0.1 GPU-second). An LLM shadow costs prefill + N decode steps (~2-5 seconds of GPU time per request). At 1,000 QPS production traffic, the shadow needs 2,000-5,000 GPU-seconds per second of wall time — more GPUs than production itself. The fix: sample shadow traffic (10-20% of requests), use speculative decoding with the production 13B as the draft model, or run shadow only on prefill (compare logits at the first token without full generation).</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Production 13B at 1,000 QPS: ~50 A100s (continuous batching, 20 requests/GPU). Shadow 70B at 1,000 QPS: needs ~200 A100s (5× more params, 4× less efficient batching). Shadow at 10% sampling: 20 A100s — now feasible. Prefill-only shadow (no decode): 5 A100s — cheap enough to run 100%.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Guardrail Latency Tax</b> · <code>security</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “After a prompt injection incident, your team adds a safety classifier that screens every LLM input and output. The classifier is a fine-tuned BERT model that takes 15ms per call. Your LLM’s TTFT was 200ms and TPOT was 25ms. Users now complain the system feels noticeably slower. The PM says ‘15ms is nothing.’ Why is the PM wrong, and how do you fix it without removing the guardrail?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “15ms is only 7.5% of the 200ms TTFT — users won’t notice.” This ignores where the 15ms hits in the pipeline.</p>
+<p><strong>Realistic Solution:</strong> The guardrail runs twice per request (input screening + output screening) and the output screen runs on <em>every generated token</em> in streaming mode, not just once. Input screen adds 15ms to TTFT (200ms → 215ms — barely noticeable). But output screening adds 15ms per token chunk, turning TPOT from 25ms to 40ms — a 60% increase in perceived generation speed. For a 200-token response, total time goes from <span class="math inline">\(200 + (200 \times 25) = 5.2s\)</span> to <span class="math inline">\(215 + (200 \times 40) = 8.2s\)</span> — a 58% regression. The fix: batch output screening (check every 10 tokens instead of every token), run the classifier on a dedicated GPU so it doesn’t contend with the LLM’s KV-cache memory, or use a smaller distilled classifier (2ms instead of 15ms).</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Per-token screening at 25ms TPOT + 15ms guardrail = 40ms effective TPOT. At 200 tokens: 8.0s decode vs 5.0s without guardrail. Batch-10 screening: 25ms TPOT + 1.5ms amortized = 26.5ms effective TPOT. At 200 tokens: 5.3s decode — nearly invisible overhead.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/security_privacy/security_privacy.html">Security and Privacy</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Feature Store Consistency Trap</b> · <code>feature-store</code> <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your team builds a feature store to eliminate training-serving skew. The store materializes 2,000 features into an online Redis cluster and an offline Parquet lake. After launch, you discover that 15% of features have different values between the online and offline paths for the same entity at the same timestamp. Your feature store was supposed to solve this exact problem. What went wrong?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “There’s a bug in the ETL pipeline” or “Redis and Parquet use different serialization.” Both assume a simple data bug — the real issue is architectural: time semantics.</p>
+<p><strong>Realistic Solution:</strong> The online path computes features at <em>request time</em> using the latest state (point-in-time lookup), while the offline path computes features in a batch job that runs hours later using event-time windows. The divergence comes from late-arriving data. A user’s “last-7-day purchase count” computed online at 2:00 PM sees transactions up to 1:59 PM. The offline batch job running at midnight replays the same window but now includes transactions that arrived late (payment processor delays, retry queues). The fix is a <strong>dual-write architecture</strong>: compute features once in a streaming engine (Flink/Spark Streaming), write simultaneously to both online (Redis) and offline (Parquet) stores from the same computation. This guarantees bitwise consistency. Additionally, implement a <strong>feature validation pipeline</strong> that samples 1% of online-served features, replays them offline, and alerts on divergence &gt;0.1%.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 2,000 features × 10M entities = 20B feature values. Redis cluster for online serving: 20B × 8 bytes avg = 160 GB → 3 nodes of r6g.4xlarge (128 GB each) at $1.60/hr = $3,456/month. Parquet offline: 160 GB compressed (~40 GB) on S3 = $0.92/month. The cost asymmetry is 3,750:1, which is why teams are tempted to compute them differently — and that’s where skew creeps in. Streaming dual-write adds ~$800/month in Flink compute but eliminates the 15% skew that was causing a 3% model accuracy drop worth $200k/month in revenue.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l5-analyze-predict" class="level4">
+<h4 class="anchored" data-anchor-id="l5-analyze-predict">🟡 L5 — Analyze &amp; Predict</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 2" align="center"> The Black Friday Collapse</b> · <code>latency</code> <code>queueing</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our GPU serving cluster handles 1,000 QPS at 50ms latency. On Black Friday, traffic spiked 10x to 10,000 QPS. The system didn’t just slow down 10x; it completely collapsed, with latencies hitting 10 seconds and GPUs throwing Out Of Memory errors despite appearing to have free VRAM. Why did the system fail non-linearly, and how does continuous batching on GPUs shift this queueing knee point differently than traditional CPU-based web serving?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The system should degrade linearly — 10x traffic means 10x latency.” Queueing systems don’t work that way, and GPU memory doesn’t degrade gracefully.</p>
+<p><strong>Realistic Solution:</strong> The collapse is caused by the interaction of queueing theory and GPU memory fragmentation. In a CPU web server, as utilization (<span class="math inline">\(\rho\)</span>) passes the “Knee” at ~70%, request queue lengths grow exponentially (per Little’s Law). But in an LLM serving cluster, a traffic spike causes the batch scheduler to accept more concurrent requests. Without PagedAttention, each new request statically allocates maximum potential KV-cache in HBM. The VRAM rapidly fragments. The non-linear collapse happens because the GPU spends cycles swapping KV-cache blocks to CPU RAM or simply OOMs, rather than just queueing. Continuous batching shifts this knee point significantly higher (to <span class="math inline">\(\rho \approx 0.85\)</span>) because it dynamically slots new requests into the batch at the token level, absorbing the burst into the GPU’s compute capacity without requiring new static memory reservations.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> At <span class="math inline">\(\rho = 0.5\)</span> (50% util): avg requests in system ≈ 1. At <span class="math inline">\(\rho = 0.9\)</span> (90% util): avg requests in system ≈ 9. The relationship is <span class="math inline">\(L = \rho/(1-\rho)\)</span>. On a CPU, this just means waiting. On an 80GB H100, if 9 concurrent requests each statically reserve 8GB for a max 8K context window, you need 72GB. You hit the memory wall before you hit the compute wall. Continuous batching + PagedAttention changes the denominator: instead of allocating 8GB per request upfront, it allocates 16MB blocks dynamically. This allows the GPU to sustain the queueing spike by keeping memory utilization proportional to actual tokens generated, not max potential tokens.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Input Chunking Pipeline Bubble</b> · <code>latency</code> <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Users submit 100,000-token documents to your summarization model. To avoid OOMing during the prefill phase, you implement ‘Chunked Prefill’ (breaking the document into 4,000-token blocks). The prefill now succeeds. But users notice that the Time-To-First-Token (TTFT) actually <em>increased</em> compared to when you ran the 100k prompt all at once on a bigger GPU. Why does chunking the prompt slow down the time to first token?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Chunking adds Python looping overhead.” Python overhead is microseconds; the slowdown is seconds.</p>
+<p><strong>Realistic Solution:</strong> You destroyed the <strong>Parallel Math Advantage (Arithmetic Intensity)</strong>.</p>
+<p>Attention and feed-forward layers are matrix multiplications. When you process 100,000 tokens in a single massive batch, you formulate a massive matrix multiplication <code>[100k, hidden_dim] * [hidden_dim, hidden_dim]</code>. GPUs are incredibly efficient at this. The arithmetic intensity is astronomical, pushing the GPU to its absolute theoretical peak TFLOPS (e.g., hitting 900+ TFLOPS on an H100).</p>
+<p>When you chunk the prompt into 25 sequential blocks of 4,000 tokens, you force the GPU to do 25 separate, smaller matrix multiplications.</p>
+<ol type="1">
+<li>The arithmetic intensity drops.</li>
+<li>The GPU must load the <em>entire</em> 140 GB model weights from HBM to the SRAM 25 separate times (once for each chunk).</li>
+</ol>
+<p>Instead of loading the weights once and doing massive math, you load the weights 25 times and do small math. You shifted the workload from compute-bound back toward memory-bandwidth-bound, ruining efficiency.</p>
+<p><strong>The Fix:</strong> Chunked prefill is a memory-saving compromise, not a speedup. To fix the speed, you must use Tensor Parallelism across multiple GPUs to keep the sequence contiguous, or interleave the chunks of different users (continuous batching) to restore the arithmetic intensity.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Single 100k pass: Read 140 GB weights once. Compute 140 TFLOPs. Time = 140T / 900TFLOPS = 0.15s. Chunked 25 passes: Read 140 GB weights 25 times = 3,500 GB of memory traffic. At 3.3 TB/s bandwidth, just <em>loading</em> the weights takes 1.06 seconds. TTFT increases by nearly 7x.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_systems/ml_systems.html">Volume I: ML Systems</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l6-synthesize-derive" class="level4">
+<h4 class="anchored" data-anchor-id="l6-synthesize-derive">🔴 L6+ — Synthesize &amp; Derive</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L6_Staff-red?style=flat-square" alt="Level 4" align="center"> The Continuous Batching Stall</b> · <code>queueing-theory</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You implement continuous batching (iteration-level scheduling) for an LLM endpoint to improve throughput. Under low load, TTFT (Time To First Token) is 100ms. Under high load, your throughput triples, but users start complaining that TTFT spikes to over 4 seconds, even though token generation speed (TPOT) remains fast. What scheduling flaw caused this?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Assuming that because continuous batching optimizes VRAM and throughput, it automatically guarantees low latency for incoming requests.”</p>
+<p><strong>Realistic Solution:</strong> You starved the prefill phase. In LLM serving, a request has two phases: Prefill (processing the prompt, compute-bound) and Decode (generating tokens, memory-bound). With continuous batching, an incoming request is injected into the very next iteration of the running batch. However, the prefill phase for a new prompt requires a massive matrix multiplication that consumes almost all the GPU’s compute. If you inject a new 2,000-token prompt into a running batch, the GPU must pause decoding for everyone else to crunch that prefill. To prevent this, schedulers often limit the prefill chunk size or delay new prefills. If delayed too aggressively under high load, incoming requests wait in the queue for seconds, destroying TTFT.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> A 2000-token prefill on a 70B model requires <code>2 * 70B * 2000 = 280 TFLOPs</code>. An A100 (FP16) does ~312 TFLOPs. That prefill takes almost <code>1 full second</code> of dedicated compute. If 4 users send prompts simultaneously, the 4th user sits in the queue for 3 seconds before their prefill even begins, destroying TTFT, while the active decoders are completely stalled waiting for the prefills to finish.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+</section>
+<section id="batching-scheduling" class="level3">
+<h3 class="anchored" data-anchor-id="batching-scheduling">🔄 Batching &amp; Scheduling</h3>
+<section id="l6-synthesize-derive-1" class="level4">
+<h4 class="anchored" data-anchor-id="l6-synthesize-derive-1">🔴 L6+ — Synthesize &amp; Derive</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> The Underutilized Accelerator</b> · <code>continuous-batching</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You’re optimizing an LLM inference service running on A100 GPUs. You’ve already implemented dynamic batching, where requests are grouped together until the GPU queue is full or a timeout is reached. However, under bursty traffic with highly variable input sequence lengths, you still observe significant GPU underutilization and high tail latencies. What is the fundamental limitation of standard dynamic batching in this scenario, and what advanced technique would you propose to maximize GPU throughput and reduce tail latency?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “We need to use larger batch sizes.” While larger batches increase throughput for homogeneous requests, standard dynamic batching still struggles with variable lengths and bursty traffic, leading to idle GPU cycles and increased tail latency as the system waits for full batches.</p>
+<p><strong>Realistic Solution:</strong> The fundamental limitation of standard dynamic batching is that it processes requests sequentially within a batch and waits for <em>all</em> sequences in a batch to complete before moving to the next. For LLMs, sequences have variable lengths and generate tokens one by one. If one sequence in a batch finishes early, its allocated GPU memory and compute resources remain idle while other, longer sequences in the same batch continue decoding. This leads to <strong>memory fragmentation</strong> and <strong>GPU underutilization</strong> for the entire batch.</p>
+<p>The advanced technique to address this is <strong>Continuous Batching</strong> (or <strong>Iteration-level Batching</strong>), pioneered by systems like vLLM:</p>
+<ol type="1">
+<li><strong>Token-level Scheduling:</strong> Instead of batching entire requests, continuous batching batches <em>individual tokens</em> or <em>decode steps</em>. The scheduler dynamically adds new requests to the GPU’s processing queue as soon as capacity (memory, compute) becomes available, without waiting for the current batch to fully complete.</li>
+<li><strong>PagedAttention Integration:</strong> Coupled with PagedAttention (as discussed in the OOMing Generator question), continuous batching efficiently manages KV cache memory. PagedAttention allows non-contiguous memory allocation for KV caches, enabling the GPU to interleave processing of different sequences and reuse memory more effectively.</li>
+<li><strong>Speculative Decoding:</strong> For very high throughput, combine continuous batching with speculative decoding, where a smaller, faster draft model predicts several future tokens, and the larger model verifies them in parallel.</li>
+<li><strong>Request Coalescing:</strong> Group multiple small, concurrent requests into a single larger request before processing, if their latency budgets allow.</li>
+</ol>
+<p>This approach maximizes GPU utilization by keeping the GPU busy with useful work, significantly reducing the “bubble” time where the GPU is idle waiting for a batch to fill or for long sequences to finish.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> Consider a batch of 4 requests, with sequence lengths <code>[100, 200, 300, 400]</code> tokens.
+<ul>
+<li><strong>Standard Dynamic Batching:</strong> The GPU waits for the 400-token sequence to complete before starting the next batch. The resources for the 100, 200, 300-token sequences are idle after they complete.</li>
+<li><strong>Continuous Batching:</strong> As soon as the 100-token sequence completes, its resources are freed, and a new incoming request (if available) can immediately start processing on those freed resources, interleaving with the remaining 200, 300, 400-token sequences. This can lead to 2-4x higher throughput and lower tail latency compared to standard dynamic batching.</li>
+</ul>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>Key Equation:</strong> <code>GPU_Utilization = (TotalActiveComputeTime / TotalTime) * 100%</code></p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="../book/vol1/llms/continuous-batching">Volume I: Continuous Batching for LLM Inference</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+</section>
+<section id="kv-cache-memory-management" class="level3">
+<h3 class="anchored" data-anchor-id="kv-cache-memory-management">🗂️ KV-Cache &amp; Memory Management</h3>
+<section id="l5-analyze-predict-1" class="level4">
+<h4 class="anchored" data-anchor-id="l5-analyze-predict-1">🟡 L5 — Analyze &amp; Predict</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The OOMing Generator</b> · <code>kv-cache-management</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You’re responsible for deploying a large language model (LLM) on a GPU cluster for real-time inference. Under high concurrent user requests, you observe frequent Out-Of-Memory (OOM) errors on the GPUs, despite the total memory of the model weights fitting comfortably. What is the most likely cause of these OOMs, and what advanced technique would you implement to mitigate this?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model weights are too large, we need model parallelism.” While true for extremely large models, the prompt states weights fit comfortably. The OOMs under <em>concurrent requests</em> point to a per-request memory overhead that scales with the number of users, rather than just the model size itself.</p>
+<p><strong>Realistic Solution:</strong> The most likely cause is the <strong>Key-Value (KV) Cache</strong> for attention mechanisms. During auto-regressive decoding, each generated token requires re-computing attention over all previous tokens. To optimize this, the Keys and Values of the attention mechanism for previous tokens are cached in GPU memory. This KV cache grows with the sequence length for <em>each concurrent request</em>. Under high concurrency, the sum of all individual KV caches quickly exhausts GPU memory.</p>
+<p>The advanced technique to mitigate this is <strong>PagedAttention</strong> (as implemented in vLLM) or similar KV-cache management strategies:</p>
+<ol type="1">
+<li><strong>PagedAttention:</strong> Analogous to virtual memory in operating systems, PagedAttention breaks the KV cache into fixed-size “blocks.” These blocks are non-contiguous in physical GPU memory but are logically contiguous for a sequence. This allows for:
+<ul>
+<li><strong>Efficient Memory Sharing:</strong> Different sequences can share KV cache blocks if they have common prefixes (e.g., in a batch or beam search).</li>
+<li><strong>Reduced Fragmentation:</strong> Memory is allocated in fixed-size pages, reducing fragmentation compared to variable-sized contiguous allocations.</li>
+<li><strong>Dynamic Allocation:</strong> Only allocate KV cache blocks as needed, rather than pre-allocating for the maximum possible sequence length.</li>
+</ul></li>
+<li><strong>KV Cache Compression:</strong> Techniques like quantization or pruning applied to the KV cache itself.</li>
+<li><strong>Offloading:</strong> Moving less frequently accessed parts of the KV cache to CPU memory, though this introduces latency.</li>
+</ol>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> For a 7B LLM (e.g., Llama-2 with 32 layers, 32 heads, 128 head dim, FP16), the KV cache size per token is <code>32 layers * 2 (K+V) * 32 heads * 128 dim * 2 bytes/FP16 = 524 KB</code>. If each request has an average sequence length of 1024 tokens, one request consumes <code>524 KB/token * 1024 tokens ≈ 0.5 GB</code>. With 16 concurrent requests, this is <code>16 * 0.5 GB = 8 GB</code> of KV cache, quickly saturating a 16GB GPU <em>on top of model weights</em>. PagedAttention can reduce this by 2-4x for typical workloads.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>Key Equation:</strong> <code>KV_Cache_Memory_Per_Request = SequenceLength * NumLayers * 2 * NumHeads * HeadDim * BytesPerFloat</code></p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="../book/vol1/llms/kv-cache-optimization">Volume I: KV-Cache Optimization for LLMs</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+</section>
+<section id="serving-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="serving-architecture">🏗️ Serving Architecture</h3>
+<section id="l3-recall-define-1" class="level4">
+<h4 class="anchored" data-anchor-id="l3-recall-define-1">🟢 L3 — Recall &amp; Define</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Serverless Freeze</b> · <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our serverless inference endpoint scales down to 0 replicas to save money. However, the first user request after scaling back up takes 30 seconds to process. What is causing this delay?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model needs to warm up its caches.” There’s no cache warm-up — the delay is purely about data movement.</p>
+<p><strong>Realistic Solution:</strong> Cold Start Latency. The system must provision the container and load the Python runtime, but most importantly, it must transfer the massive model weights (gigabytes of data) from network storage into the GPU’s HBM <em>before</em> the first forward pass can execute. You must use persistent warm replicas or optimized weight loading strategies to fix this.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> A 70B model in FP16 = 140 GB. Network storage throughput (EBS/S3) ≈ 5-10 GB/s. Load time = <span class="math inline">\(140/7.5 \approx 19\)</span> seconds just for weight transfer. Add container startup (~3s) and Python/CUDA init (~5s) = ~27 seconds total cold start.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 3" align="center"> The Streaming vs Batch Inference</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our chatbot returns the full response only after all tokens are generated. Users say it feels ‘broken’ — they stare at a blank screen for 8 seconds. A colleague suggests streaming tokens as they’re generated. Walk me through the latency math and when streaming actually helps vs.&nbsp;hurts.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Streaming always improves the user experience.” Streaming improves <em>perceived</em> latency for long responses but adds per-token SSE/WebSocket overhead and complicates error handling. For short responses (&lt;20 tokens), the overhead can make streaming slower than batch.</p>
+<p><strong>Realistic Solution:</strong> Streaming decouples perceived latency from total latency. The user sees the first token after TTFT (prefill time), then each subsequent token arrives at TPOT intervals. The <em>perceived</em> wait is TTFT (~200ms), not the total generation time. But streaming adds: (1) SSE/WebSocket framing overhead (~0.5ms/token), (2) client-side rendering cost, and (3) inability to retry or filter the full response before sending. For short responses, the total time with streaming overhead can exceed the non-streaming total time.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 200-token response on H100 serving a 13B model:
+<ul>
+<li><strong>Non-streaming:</strong> TTFT = 150ms, TPOT = 30ms/token. User waits: 150 + (200 × 30) = <strong>6,150ms</strong> before seeing anything.</li>
+<li><strong>Streaming:</strong> User sees first token at 150ms. Full response arrives at same 6,150ms total, but perceived wait = <strong>150ms</strong>. That’s a <strong>41× improvement</strong> in perceived responsiveness.</li>
+<li><strong>Short response (10 tokens):</strong> Non-streaming total = 150 + (10 × 30) = 450ms. Streaming: first token at 150ms, but SSE overhead adds ~5ms total. Streaming barely helps — 150ms vs 450ms perceived, but the user reads the full 10-token response in &lt;1 second either way.</li>
+<li><strong>Break-even:</strong> Streaming helps when total generation time &gt; ~1 second (roughly &gt;30 tokens at 30ms/token).</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 3" align="center"> The Embedding Model Serving</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We’re deploying a 335M parameter embedding model (like BGE-large) for our search engine. Unlike LLMs, there’s no autoregressive decode — it’s a single forward pass. The team sized the GPU as if it were an LLM workload and provisioned an H100. Is that the right hardware? What’s the optimal batch size?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Embedding models are small, so any GPU works — just use the cheapest one.” Embedding models are compute-bound (not memory-bandwidth bound like LLM decode), so the optimization strategy is completely different. An H100 is overkill for a single replica but the wrong framing — you should be asking about throughput per dollar.</p>
+<p><strong>Realistic Solution:</strong> Embedding inference is a single forward pass with no autoregressive loop. The workload is compute-bound at moderate batch sizes because the full sequence is processed in parallel (like LLM prefill, not decode). This means: (1) batch size directly increases throughput with near-linear scaling until you hit compute saturation, (2) an A10G ($0.75/hr) at high batch sizes can match H100 throughput-per-dollar because you’re not paying for unused HBM bandwidth, and (3) CPU inference (with ONNX Runtime) is viable for low-QPS workloads.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> BGE-large (335M params, FP16 = 670 MB):
+<ul>
+<li><strong>H100 (990 TFLOPS, $3.50/hr):</strong> At BS=1, 512-token input: 2 × 335M × 512 = 343 GFLOPs. Latency = 343G / 990T = <strong>0.35ms</strong>. Throughput = 2,857 embeddings/sec.&nbsp;Cost = $3.50 / (2,857 × 3,600) = <strong>$0.00000034/embedding</strong>.</li>
+<li><strong>A10G (125 TFLOPS, $0.75/hr):</strong> Same workload: latency = 343G / 125T = <strong>2.7ms</strong> at BS=1. At BS=64: 64 × 343G = 22 TFLOPs, latency = 22T / 125T = <strong>176ms</strong> for 64 embeddings = 2.75ms/embedding. Throughput = 364 embeddings/sec.&nbsp;Cost = $0.75 / (364 × 3,600) = <strong>$0.00000057/embedding</strong>.</li>
+<li><strong>H100 is 1.7× cheaper per embedding</strong> but costs 4.7× more per hour. <strong>A10G wins if you need &lt;400 embeddings/sec.</strong> H100 wins at &gt;1,000 embeddings/sec.</li>
+<li><strong>Optimal batch size on A10G:</strong> Throughput plateaus around BS=128–256 where compute utilization hits ~80%. Beyond that, latency increases linearly with no throughput gain.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/benchmarking/benchmarking.html">Benchmarking</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 3" align="center"> The Warm-up Request Strategy</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We just deployed a new model version. The first inference request takes 12 seconds, but subsequent requests take 200ms. Our health check passed (model loaded successfully), so why is the first real request 60× slower? And how many warm-up requests do we need before routing production traffic?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model needs to ‘warm up’ its internal caches like a CPU cache.” GPU inference doesn’t have the same cache-warming semantics as CPU workloads. The slowdown is from one-time initialization costs that happen on the first forward pass, not cache misses.</p>
+<p><strong>Realistic Solution:</strong> The first-request penalty comes from three sources: (1) <strong>CUDA kernel JIT compilation:</strong> PyTorch/TensorRT compiles and caches GPU kernels on first use. Different input shapes trigger different kernels. (2) <strong>CUDA context and memory pool initialization:</strong> The first <code>cudaMalloc</code> initializes the memory allocator, and the first kernel launch initializes the CUDA context on each GPU. (3) <strong>cuBLAS handle and workspace allocation:</strong> The first GEMM operation allocates cuBLAS workspace buffers. After the first request, all of these are cached. You need warm-up requests that cover all expected input shapes (different sequence lengths, batch sizes) to trigger compilation of all kernel variants.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> First-request breakdown on H100 with a 13B model:
+<ul>
+<li>CUDA context init: <strong>~2 seconds</strong> (one-time per GPU).</li>
+<li>cuBLAS workspace allocation: <strong>~500ms</strong>.</li>
+<li>Kernel JIT compilation (first unique shape): <strong>~3–8 seconds</strong> depending on model complexity and whether using torch.compile or TensorRT.</li>
+<li>Actual inference: <strong>200ms</strong>.</li>
+<li>Total first request: <strong>~6–11 seconds</strong>.</li>
+</ul>
+<strong>Warm-up strategy:</strong> Send 3–5 requests with representative input shapes:
+<ul>
+<li>Short input (128 tokens) — triggers short-sequence kernels.</li>
+<li>Medium input (1024 tokens) — triggers medium-sequence kernels.</li>
+<li>Long input (4096 tokens) — triggers long-sequence kernels.</li>
+<li>Batch of 8 short inputs — triggers batched kernels. Total warm-up time: ~15–30 seconds. After this, all kernel variants are compiled and cached. <strong>Add warm-up to the readiness probe, not the liveness probe</strong> — the pod is alive but not ready until warm-up completes.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Tokenizer Mismatch</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your team fine-tuned a 7B model and deployed it to production. The weights are identical, but the serving cluster is suddenly OOMing under load, and the KV-cache is filling up 30% faster than expected for the exact same text inputs. Why does a tokenizer version mismatch cause a massive GPU memory leak, and how does it destroy your serving economics?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The serving framework must be allocating memory differently” or “There’s a memory leak in the Python code.” Both ignore the relationship between text, tokens, and hardware memory.</p>
+<p><strong>Realistic Solution:</strong> The serving pipeline is using an older or different tokenizer than training. If the training pipeline used <code>tokenizer_v2</code> (which maps “machine learning” → tokens [4521, 3892], 2 tokens) but the serving pipeline loads <code>tokenizer_v1</code> (which maps “machine learning” → [4521, 12, 3892, 44], 4 tokens), the exact same input text produces a longer sequence of token IDs. Because KV-cache memory scales linearly with sequence length, a less efficient tokenizer artificially inflates the memory footprint of every request. The model isn’t just producing worse answers; it’s physically consuming more VRAM per word of text, causing the batch scheduler to OOM or reject requests much earlier than expected.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Typical tokenizer vocabulary: 32,000 tokens. If <code>v1</code> is a naive BPE and <code>v2</code> is highly optimized for your domain, <code>v1</code> might average 1.5 tokens per word while <code>v2</code> averages 1.1 tokens per word. For a 1,000-word prompt: <code>v2</code> = 1,100 tokens. <code>v1</code> = 1,500 tokens. That’s a 36% increase in sequence length. For a 7B model (KV-cache = ~1MB per token), the prompt takes 1.1GB with the correct tokenizer, but 1.5GB with the mismatched one. Across a batch of 64 requests, you’re wasting 25GB of HBM just storing the extra intermediate states of inefficiently tokenized text. This drops your maximum concurrent requests by 30%, forcing you to scale out the GPU cluster to handle the same QPS.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Cold Start Penalty</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your Kubernetes cluster auto-scales model serving pods based on QPS. When traffic spikes, new pods are created, but the first requests to each new pod take 45 seconds instead of the normal 40 ms. Users see timeouts. The pod’s readiness probe passes after 30 seconds. What’s taking so long, and how do you get that 45 seconds down to under 5?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model is being downloaded from S3 — use a faster network” or “Pre-pull the container image.” Both address parts of the problem but miss the dominant cost.</p>
+<p><strong>Realistic Solution:</strong> The 45-second cold start has four sequential phases: (1) <strong>Container pull</strong> (~5 s if image is cached on the node, ~30 s if not — the container image with CUDA runtime and framework is 15–25 GB); (2) <strong>Model weight loading</strong> (~10–15 s — reading 14 GB of FP16 weights from network storage into CPU RAM); (3) <strong>GPU transfer</strong> (~3–5 s — copying 14 GB from CPU RAM to GPU VRAM over PCIe Gen4 at ~25 GB/s effective); (4) <strong>CUDA/cuDNN warmup</strong> (~5–10 s — first inference triggers JIT compilation of CUDA kernels and cuDNN autotuning). The readiness probe passes after phase 3 (model is on GPU), but phase 4 means the first real request still pays the warmup penalty. Fixes: (1) pre-cache container images on all nodes using a DaemonSet; (2) store model weights on local NVMe (7 GB/s read) instead of network storage (1 GB/s); (3) use CUDA graph capture during startup to pre-compile kernels; (4) send synthetic warmup requests before marking the pod as ready. Combined: cold start drops from 45 s to ~4 s (0 s image pull + 2 s NVMe load + 0.6 s GPU transfer + 1.5 s warmup).</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> <strong>Current breakdown:</strong> Image pull (cached): <strong>5 s</strong>. Weight load from NFS (14 GB at 1 GB/s): <strong>14 s</strong>. CPU→GPU transfer (14 GB at 25 GB/s PCIe): <strong>0.56 s</strong>. CUDA warmup (kernel JIT + cuDNN autotune): <strong>8 s</strong>. Readiness probe delay: <strong>2 s</strong>. Total: <strong>~30 s</strong> to ready + <strong>15 s</strong> first-request warmup = <strong>45 s</strong> effective. <strong>Optimized:</strong> Image pre-cached: <strong>0 s</strong>. Weight load from local NVMe (14 GB at 7 GB/s): <strong>2 s</strong>. GPU transfer: <strong>0.56 s</strong>. Pre-compiled CUDA graphs (loaded from cache): <strong>1.5 s</strong>. Warmup requests (3 synthetic): <strong>0.12 s</strong>. Total: <strong>~4.2 s</strong>. At 100 scale-up events/day, saving 41 s each: <strong>4,100 s</strong> of reduced user-facing latency. More importantly: no more timeouts during traffic spikes.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">Volume I: ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Normalization Mismatch</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your image classification model achieves 91% accuracy in the training notebook but only 72% when deployed to a Flask serving endpoint on the same A100 GPU. Same model weights, same test images (you verified by saving the raw bytes). The training team uses PyTorch, the serving team uses ONNX Runtime. What’s the most likely preprocessing bug?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “ONNX Runtime must have a conversion bug” or “The model needs to be re-exported.” ONNX conversion for standard architectures is well-tested and unlikely to cause a 19-point drop. The model is fine — the <em>input</em> is wrong.</p>
+<p><strong>Realistic Solution:</strong> The serving pipeline applies different input normalization than training. The most common variant: the training pipeline normalizes images to [0, 1] range and then applies ImageNet mean/std normalization (<span class="math inline">\(\mu = [0.485, 0.456, 0.406]\)</span>, <span class="math inline">\(\sigma = [0.229, 0.224, 0.225]\)</span>). The serving pipeline either: (1) forgets the mean/std normalization entirely (passes [0, 1] values directly); (2) applies normalization but in the wrong channel order (RGB vs BGR — OpenCV loads BGR by default, PIL loads RGB); or (3) normalizes to [-1, 1] instead of using ImageNet statistics (a common TensorFlow convention applied to a PyTorch-trained model). Any of these produces inputs that are statistically different from what the model saw during training. The model still gets <em>some</em> predictions right (72%) because the spatial structure of the image is preserved — the model can still detect edges and shapes — but the magnitude and distribution of activations are wrong. Fix: extract the exact preprocessing pipeline from the training code (including library-specific defaults) and replicate it byte-for-byte in the serving code. Add an assertion that compares the preprocessed tensor’s mean and std against expected values.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> ImageNet normalization: pixel value 128 (mid-gray) → <span class="math inline">\((128/255 - 0.485) / 0.229 = (0.502 - 0.485) / 0.229 = 0.074\)</span>. Without normalization: the model receives 0.502 instead of 0.074 — a <strong>6.8× magnitude error</strong>. With BGR instead of RGB: the red channel’s mean (0.485) is applied to the blue channel (which has mean 0.406). Error per pixel: <span class="math inline">\((0.406 - 0.485) / 0.229 = -0.345\)</span> systematic bias in the blue channel. Over a 224×224 image: every one of the 50,176 pixels has a ~0.3 bias — the model sees a systematically tinted image. For a model trained on correctly normalized inputs, this is equivalent to adding a colored filter to every image. The 72% accuracy (vs 91%) means the model is robust enough to classify ~79% of “easy” images despite the bias, but fails on the ~21% that require precise color or intensity discrimination.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Volume I: Model Training</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l4-apply-identify-1" class="level4">
+<h4 class="anchored" data-anchor-id="l4-apply-identify-1">🔵 L4 — Apply &amp; Identify</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Pre-computation Trade-off</b> · <code>serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We are deploying a photo classification model. Running it in real-time on user upload costs us $10,000 a month in GPU compute. How do we reduce costs without losing model accuracy?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Quantize the model to INT8 to halve the compute cost.” Quantization helps, but there’s a 10x cheaper architectural change.</p>
+<p><strong>Realistic Solution:</strong> Shift from Dynamic (Real-time) to Static (Batch) inference. The reason batch inference is dramatically cheaper isn’t just about amortizing GPU idle time — it’s about arithmetic intensity. At batch=1, each forward pass loads the full model weights from HBM but performs very little compute per byte moved, placing the workload deep in the memory-bound regime of the Roofline. At batch=256, the same weight load is reused across 256 inputs, pushing arithmetic intensity above the ridge point into the compute-bound regime where the GPU’s ALUs are fully saturated. Run the model periodically (e.g., overnight) on cheap spot instances with large batches, and store results in a fast key-value cache (Redis) for millisecond serving.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Batch=1 inference: arithmetic intensity ~1 Op/Byte (memory-bound, 5% GPU utilization). Batch=256 inference: arithmetic intensity ~200 Ops/Byte (compute-bound, 70% GPU utilization). Same model, same GPU — <strong>14× better utilization</strong> just from batching. Real-time: 1 GPU reserved 24/7 at $2/hr = $1,440/month at ~10% average utilization. Batch: same workload in 2 hours overnight on spot instances at $0.70/hr = $1.40/day = $42/month at 70%+ utilization. That’s a <strong>34× cost reduction</strong>.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The Token Budget Economics</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your company is choosing between H100, A100, and TPU v5e for serving a 70B parameter LLM. The CFO wants a cost-per-million-tokens comparison across these accelerators at realistic batch sizes. Walk me through the napkin math and tell me which hardware wins — and when.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Pick the GPU with the highest FLOPS — H100 always wins.” Raw FLOPS is irrelevant for decode-phase serving, which is memory-bandwidth bound. The cheapest $/token depends on batch size, model size, and whether you’re prefill-bound or decode-bound.</p>
+<p><strong>Realistic Solution:</strong> LLM decode is memory-bandwidth bound: each token requires loading all model weights from HBM once. The metric that matters is $/GB/s of memory bandwidth, not <span class="math inline">\(/TFLOP. At small batch sizes, the accelerator with the best bandwidth-per-dollar wins. At large batch sizes, the workload shifts compute-bound and FLOPS/\)</span> matters more. TPU v5e wins on raw $/token at high batch sizes due to lower per-chip cost; H100 wins on latency-sensitive low-batch workloads due to 3.35 TB/s HBM3 bandwidth.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 70B model in FP16 = 140 GB weights. Each decode token loads 140 GB.
+<ul>
+<li><strong>H100 (80 GB HBM3, 3.35 TB/s):</strong> Decode token = 140 GB / 3.35 TB/s = 42 ms at BS=1. On-demand ~$3.50/hr → $3.50 / (3600s / 0.042s) = $0.000041/token → <strong>$41/M tokens</strong> at BS=1. At BS=32, throughput scales ~25×, cost drops to <strong>~$1.60/M tokens</strong>.</li>
+<li><strong>A100 (80 GB HBM2e, 2.0 TB/s):</strong> Decode token = 140 GB / 2.0 TB/s = 70 ms at BS=1. On-demand ~$2.20/hr → <strong>$43/M tokens</strong> at BS=1. At BS=32, cost drops to <strong>~$2.10/M tokens</strong> (less compute headroom than H100).</li>
+<li><strong>TPU v5e (16 GB HBM, $1.20/chip/hr):</strong> Requires 16-way tensor parallelism to fit 140 GB. Aggregate bandwidth = 16 × 819 GB/s = 13.1 TB/s. Decode = 140 GB / 13.1 TB/s = 10.7 ms at BS=1. Cost = 16 × $1.20 = $19.20/hr → <strong>$57/M tokens</strong> at BS=1. At BS=64, throughput scales, cost drops to <strong>~$2.50/M tokens</strong>.</li>
+</ul>
+<p>H100 wins across the board at these prices ($3.50/hr) because it delivers more bandwidth-per-dollar (957 GB/s per <span class="math inline">\() and more compute-per-dollar (282 TFLOPS/\)</span>) than both the A100 and TPU v5e.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The Inference Server Autoscaling</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our LLM endpoint on Kubernetes has a scale-to-zero policy to save money overnight. But the first morning request takes 45 seconds. The SRE team proposes keeping 1 warm replica 24/7. The finance team says that wastes $2,500/month. Who’s right? Show me the break-even math.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Always keep warm replicas — cold starts are unacceptable.” This ignores workloads with genuinely sparse traffic where paying for 24/7 idle GPUs is pure waste.</p>
+<p><strong>Realistic Solution:</strong> The answer depends on the traffic pattern. For bursty workloads with predictable schedules (e.g., business-hours traffic), use scheduled scaling — spin up replicas 15 minutes before peak and scale to zero overnight. For unpredictable but sparse traffic, use a tiered approach: keep a small quantized model (7B on CPU or A10G) as a “warm fallback” while the full model cold-starts, then route to the full model once it’s ready.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 70B model on 2× H100:
+<ul>
+<li><strong>Cold start breakdown:</strong> Container pull (5s) + weight download from S3 (140 GB / 10 GB/s = 14s) + CUDA context init (3s) + model load to GPU (140 GB / 64 GB/s PCIe = 2.2s) + warmup inference (2s) = <strong>~26 seconds</strong>.</li>
+<li><strong>1 warm replica 24/7:</strong> 2 × $3.50/hr × 730 hr = <strong>$5,110/month</strong>.</li>
+<li><strong>Scale-to-zero, 50 cold starts/day:</strong> 50 × 26s = 1,300s of user-facing delay/day. If each delayed request costs $0.50 in user churn: 50 × $0.50 × 30 = <strong>$750/month in churn cost</strong>.</li>
+<li><strong>Break-even:</strong> Warm replica costs $5,110 vs cold-start churn costs $750. Scale-to-zero wins <strong>unless</strong> cold-start churn exceeds ~$170/day (340 impacted requests/day).</li>
+<li><strong>Hybrid:</strong> Keep 1 A10G ($548/month) running a 7B fallback model. Cold-start the H100s on first request. Users get a fast (if lower-quality) response in 200ms while the full model loads. Total cost: $548/month + near-zero churn.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The Triton Inference Server Ensemble</b> · <code>serving</code> <code>deployment</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We’re deploying a RAG pipeline: text preprocessing (tokenization + embedding lookup) → retrieval model → LLM generation → JSON postprocessing. An engineer wants to chain these as a Triton Inference Server ensemble. Another says ‘just put it all in one Python process.’ Compare the latency and throughput of both approaches.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The ensemble adds network hops between stages, so the monolithic approach is always faster.” Triton ensembles use shared-memory IPC, not network calls, and the pipeline parallelism enables higher throughput.</p>
+<p><strong>Realistic Solution:</strong> A Triton ensemble chains models as a DAG within a single server process, passing tensors via shared memory (zero-copy on GPU). The latency for a single request is slightly higher than monolithic (~1–2ms overhead per stage for scheduling), but throughput is dramatically higher because stages run as a pipeline: while the LLM generates tokens for request N, the preprocessor handles request N+1. The monolithic approach serializes everything, leaving the GPU idle during CPU-bound pre/postprocessing.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> RAG pipeline stages:
+<ul>
+<li>Preprocessing (CPU): 5ms</li>
+<li>Embedding retrieval (GPU): 3ms</li>
+<li>LLM generation (GPU): 200ms</li>
+<li>Postprocessing (CPU): 2ms</li>
+</ul>
+<p><strong>Monolithic (serial):</strong> Total = 5 + 3 + 200 + 2 = <strong>210ms/request</strong>. Throughput = 1000/210 = <strong>4.8 req/s</strong>. GPU utilization = 203/210 = 97% (looks good for single request, but CPU stages block the pipeline).</p>
+<p><strong>Triton ensemble (pipelined):</strong> Single-request latency = 210 + 3ms scheduling overhead = <strong>213ms</strong>. But pipeline throughput: bottleneck = LLM at 200ms → <strong>5.0 req/s per pipeline</strong>. With 4 LLM instances: CPU stages overlap with GPU, throughput = <strong>~19 req/s</strong>. The monolithic approach can’t overlap CPU and GPU stages, capping at 4.8 req/s regardless of GPU count.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The Structured Output Constraint</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our API must return valid JSON for downstream systems. We’re using constrained decoding (grammar-guided generation) to guarantee valid JSON output. The team reports that constrained decoding adds 15ms per token on top of the normal 30ms TPOT. For a 500-token JSON response, that’s 7.5 extra seconds. Is this overhead acceptable, and can we reduce it?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Constrained decoding is always worth the overhead because it guarantees valid output.” For long structured outputs, the cumulative overhead can exceed the cost of simply retrying on parse failure.</p>
+<p><strong>Realistic Solution:</strong> Constrained decoding works by masking invalid tokens at each step according to a grammar (e.g., JSON CFG). The overhead comes from: (1) computing the valid token mask by traversing the grammar state machine against the full vocabulary (~32K–128K tokens), and (2) applying the mask before sampling. The 15ms/token overhead is typical for naive implementations. Optimizations include: pre-computing grammar state transitions into a lookup table, using a compressed vocabulary trie, or using speculative grammar checking (validate only the top-K tokens instead of the full vocabulary). Alternatively, for simple schemas, use structured output mode with retry: generate unconstrained, parse, retry on failure — cheaper if failure rate is &lt;10%.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 500-token JSON response on H100:
+<ul>
+<li><strong>Unconstrained:</strong> 500 × 30ms = <strong>15 seconds</strong>.</li>
+<li><strong>Constrained (naive):</strong> 500 × (30 + 15)ms = <strong>22.5 seconds</strong>. 50% overhead.</li>
+<li><strong>Constrained (optimized, pre-computed masks):</strong> 500 × (30 + 2)ms = <strong>16 seconds</strong>. 7% overhead.</li>
+<li><strong>Retry strategy:</strong> If 5% of unconstrained outputs are invalid JSON, expected cost = 15s × 1.05 = <strong>15.75 seconds</strong> average. Cheaper than even optimized constrained decoding, but with 5% of requests taking 30s (2 attempts).</li>
+<li><strong>Break-even:</strong> Constrained decoding wins when JSON failure rate &gt; overhead%. With optimized masks (7% overhead), constrained wins if failure rate &gt; 7%. With naive masks (50% overhead), retry wins unless failure rate &gt; 50%.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The A/B Testing at Scale</b> · <code>serving</code> <code>mlops</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We want to A/B test our current 13B model against a new 70B model in shadow mode. The product team says ‘just mirror 100% of traffic to both models for a week to gather data.’ Why is this statistically unnecessary but infrastructure-ruinous, and how does the GPU memory asymmetry between these models dictate your A/B testing architecture?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Just spin up enough 70B instances to handle the mirrored traffic.” This ignores the massive non-linear cost of serving a 70B model and the fact that statistical significance requires a fraction of that traffic.</p>
+<p><strong>Realistic Solution:</strong> The infrastructure cost of an A/B test is dominated by hardware provisioning, not the statistical sample size. A 13B model fits on a single A100 (40GB) with room for KV-cache. A 70B model requires tensor parallelism across at least 4× A100s (80GB) or 2× H100s just to fit the weights, plus massive KV-cache overhead. Mirroring 100% of traffic means provisioning a 70B cluster that is 5-8× larger and more expensive than your production 13B cluster, just for a test. Instead, use an asymmetric traffic split (e.g., 95/5) or sample-based shadow routing. You only need to route enough traffic to the 70B model to reach statistical significance, which is typically a few thousand requests.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong>
+<ul>
+<li><strong>Memory Asymmetry:</strong> 13B FP16 = 26GB weights. Fits on 1× A100 (40GB) with 14GB for KV-cache. 70B FP16 = 140GB weights. Requires 2× H100 (80GB) or 4× A100 (40GB). The 70B model requires 4× the GPUs per replica.</li>
+<li><strong>Traffic Mirroring Cost:</strong> If production is 1,000 QPS running on 50× A100s, mirroring 100% to 70B would require ~200-300 GPUs due to lower throughput and higher memory footprint. Cost: ~$500k/week.</li>
+<li><strong>Statistical Reality:</strong> To detect a 3% quality improvement with 80% power, you need ~3,200 samples per arm. At 1,000 QPS, you collect 3,200 samples in 3.2 seconds.</li>
+<li><strong>Optimized Architecture:</strong> Route 99.9% of traffic to 13B, and 0.1% (1 QPS) to a single minimal 70B deployment (2× H100s). You gather the required 3,200 samples in under an hour, costing ~$10 in GPU compute instead of $500k.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/benchmarking/benchmarking.html">Benchmarking</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 4" align="center"> The Rate Limiting Design</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our LLM API rate-limits users to 100 requests per minute. A power user sends 100 requests, each with a 50,000-token prompt and requesting 4,000 output tokens. A casual user sends 100 requests with 100-token prompts and 50 output tokens. Both hit the same rate limit, but one costs 1,000× more GPU time. How do you design a fair rate limiter?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Request-based rate limiting is fine — all requests are equal.” This is the fundamental error. A request with 50K input tokens consumes ~500× more prefill compute and ~80× more decode compute than a 100-token request. Request-count rate limiting lets heavy users subsidize their costs with the same limits as light users.</p>
+<p><strong>Realistic Solution:</strong> Implement token-based rate limiting with separate budgets for input tokens (prefill cost) and output tokens (decode cost). Each user gets a token budget per time window (e.g., 1M input tokens + 100K output tokens per minute). This aligns rate limiting with actual resource consumption. Weight input and output tokens differently because prefill is compute-bound (cheaper per token at high batch sizes) while decode is memory-bandwidth-bound (expensive per token regardless of batch size).</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 70B model on H100:
+<ul>
+<li><strong>Prefill cost per token:</strong> 2 × 70B = 140 GFLOPs per token. At 990 TFLOPS: 0.14ms/token.</li>
+<li><strong>Decode cost per token:</strong> Load 140 GB weights from HBM. At 3.35 TB/s: 42ms/token (at BS=1).</li>
+<li><strong>Power user (50K input + 4K output per request, 100 requests):</strong>
+<ul>
+<li>Prefill: 100 × 50,000 × 0.14ms = <strong>700 seconds</strong> of compute.</li>
+<li>Decode: 100 × 4,000 × 42ms = <strong>16,800 seconds</strong> of compute (at BS=1; batching helps).</li>
+</ul></li>
+<li><strong>Casual user (100 input + 50 output per request, 100 requests):</strong>
+<ul>
+<li>Prefill: 100 × 100 × 0.14ms = <strong>1.4 seconds</strong>.</li>
+<li>Decode: 100 × 50 × 42ms = <strong>210 seconds</strong>.</li>
+</ul></li>
+<li><strong>Cost ratio:</strong> Power user consumes (700 + 16,800) / (1.4 + 210) = <strong>83× more GPU time</strong> for the same number of requests.</li>
+<li><strong>Token-based limit:</strong> Give both users 500K input tokens/min + 50K output tokens/min. Power user can send ~10 requests. Casual user can send all 100. Fair.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Structured Output Parsing Tax</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You need your LLM to output strict JSON. You implement a constrained decoding wrapper (like Guidance or Outlines) that forces the model to only select tokens valid under your JSON schema. The outputs are now perfect JSON, but the Time-Per-Output-Token (TPOT) doubled. What is the CPU doing that takes so much time?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model has to think harder to generate JSON.” The model is doing the exact same neural network math. The delay is outside the model.</p>
+<p><strong>Realistic Solution:</strong> You are paying the <strong>Vocabulary Masking Overhead</strong>.</p>
+<p>Constrained decoding works by intercepting the logits (the probabilities for all 32,000+ words in the vocabulary) right before sampling. The CPU must evaluate the current state of the JSON string against a complex Regular Expression or Context-Free Grammar.</p>
+<p>For every single token generated, the CPU must loop through all 32,000 vocabulary words, check if adding that word violates the JSON schema, and if so, force its probability to zero (masking).</p>
+<p>If this masking logic is written in pure Python or uses inefficient regex state machines, checking 32,000 strings takes 20-30 milliseconds. If the GPU only takes 15ms to do the forward pass, you have effectively bottlenecked your trillion-dollar GPU behind a slow Python text-parsing script.</p>
+<p><strong>The Fix:</strong></p>
+<ol type="1">
+<li>Use pre-compiled FSMs (Finite State Machines) written in C++/Rust (like the latest versions of Outlines).</li>
+<li>Push the masking logic down to the GPU as a custom CUDA kernel so the logits never have to be copied back to the CPU for evaluation.</li>
+</ol>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> GPU forward pass: 15ms. Logit transfer to CPU (32k floats): 1ms. Python Regex over 32k strings: 25ms. Total TPOT = 41ms. The CPU parsing text took nearly double the time it took the GPU to run 70 billion parameters.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_systems/ml_systems.html">Volume I: ML Systems</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Continuous Batching Scheduler</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We serve a 13B model with static batching: we collect 32 requests, run them together, and return all results when the longest sequence finishes. Average latency is 4 seconds, but P99 is 12 seconds. The team wants to try vLLM’s continuous batching. Explain the systems mechanism and quantify the improvement.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Continuous batching just means we use a bigger batch size, so throughput goes up.” This misses the fundamental scheduling innovation — it’s not about batch <em>size</em>, it’s about batch <em>dynamics</em>.</p>
+<p><strong>Realistic Solution:</strong> In static batching, all requests in a batch must wait for the longest sequence to finish generating. If 31 requests finish in 2 seconds but one request generates a 500-token response taking 10 seconds, all 31 completed requests sit in memory waiting — wasting both GPU cycles (padding with no-ops) and user time. Continuous batching (also called iteration-level scheduling) operates at the granularity of individual decode steps. After each token generation step, the scheduler can: (1) evict completed requests immediately (freeing their KV-cache memory); (2) admit new requests from the queue into the freed slots. The GPU is never idle and never wasting cycles on completed requests. The result: short requests return immediately upon completion (latency improvement), and the freed memory slots are instantly reused for new requests (throughput improvement).</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> <strong>Static batching (batch=32):</strong> Sequence lengths vary: 20% generate 50 tokens (~1 s), 60% generate 200 tokens (~4 s), 20% generate 500 tokens (~10 s). All 32 requests wait for the slowest: <strong>10 s</strong> per batch. Throughput: 32 requests / 10 s = <strong>3.2 req/s</strong>. GPU utilization: after 1 s, 6 requests are done but still occupying slots → 19% waste. After 4 s, 26 requests done → 81% waste. Average utilization: ~<strong>40%</strong>. <strong>Continuous batching:</strong> Short requests (50 tokens) complete in <strong>1 s</strong> and exit immediately. Their slots are filled by new requests from the queue. Medium requests complete in <strong>4 s</strong>. Long requests complete in <strong>10 s</strong>. Average latency: $0.2 + 0.6 + 0.2 = $ <strong>4.6 s</strong> (vs 10 s static). But crucially, the GPU processes new requests in freed slots: effective throughput ≈ 32 slots × continuous fill ≈ <strong>7-8 req/s</strong> — a <strong>2-2.5× throughput improvement</strong>. P99 drops from 12 s to ~10 s (the inherent generation time), and P50 drops from 4 s to ~2 s.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The GC Pause Latency Spike</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your Python-based inference server on an A100 serves a 7B model with P50 latency of 40 ms. But every ~30 seconds, a burst of requests hits P99 latency of 800 ms — 20× the normal. The GPU utilization trace shows brief drops to 0% that correlate exactly with the spikes. The model and batch size haven’t changed. What’s stealing 760 ms from your GPU?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The GPU is overheating and throttling” or “There’s network congestion from other services.” Thermal throttling is gradual (not a sharp 0% drop), and network issues wouldn’t zero out GPU utilization.</p>
+<p><strong>Realistic Solution:</strong> This is a CPython garbage collector (GC) stop-the-world pause. Python’s cyclic GC (triggered by <code>gc.collect()</code> or automatically when the generation-2 threshold is reached) freezes <em>all</em> Python threads while it traces object references. During this pause, no new CUDA kernels can be launched because the Python threads that submit them are frozen. The GPU drains its kernel queue in ~1–2 ms and then sits idle until the GC completes. With a large Python heap (serving frameworks maintain request queues, tokenizer caches, and KV-cache metadata as Python objects), a gen-2 collection can take 500–800 ms. The ~30-second interval matches the default gen-2 threshold: after 10 gen-1 collections (each triggered by ~700 allocations), a gen-2 sweep runs. Fix: (1) disable automatic GC (<code>gc.disable()</code>) and run <code>gc.collect()</code> explicitly during low-traffic windows; (2) reduce Python-side object churn by pre-allocating buffers; (3) move the hot path to C++/Rust (like vLLM’s C++ scheduler) so the GC has fewer objects to trace.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Python heap for a serving process: ~2–4 GB of Python objects (request metadata, tokenizer vocab, batch scheduler state). Gen-2 GC traces all objects: at ~5M objects, tracing at ~8M objects/s takes <strong>625 ms</strong>. During this pause: GPU kernel queue depth ≈ 20 kernels × 0.05 ms each = drains in <strong>1 ms</strong>. GPU sits idle for remaining <strong>624 ms</strong>. Requests arriving during the pause queue up: at 100 req/s, ~62 requests are delayed. Each sees an additional 624 ms latency → P99 spike. After disabling auto-GC and running manual collection every 60 s during a scheduled 50 ms micro-pause (by reducing heap to &lt;500K objects via C++ offload): GC time drops to <strong>12 ms</strong>, P99 drops to <strong>52 ms</strong>.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The TensorRT Incompatibility</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Friday evening, the ops team updates the NVIDIA driver from 535.104 to 545.23 across your serving fleet for a security patch. Monday morning, all TensorRT inference engines fail to load with <code>INVALID_CONFIG</code> errors. The model files haven’t changed. Rolling back the driver fixes it. How can a driver update break a model file, and what’s the correct deployment practice?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “TensorRT models are hardware-independent — a driver update shouldn’t affect them” or “Just rebuild the TensorRT engines on the new driver.” The first is wrong; the second is the fix but misses <em>why</em> and how to prevent recurrence.</p>
+<p><strong>Realistic Solution:</strong> TensorRT engines are <em>not</em> portable across driver versions. When you build a TensorRT engine, the builder selects specific kernel implementations (called “tactics”) from cuDNN and cuBLAS based on the current GPU architecture <em>and</em> the installed library versions. These tactics are compiled into the serialized engine file as binary GPU code (SASS). A driver update changes the cuDNN/cuBLAS libraries bundled with the driver, which may deprecate or rename tactics that the engine references. When the engine tries to load a tactic that no longer exists in the new driver’s library, it fails with <code>INVALID_CONFIG</code>. This is by design — TensorRT trades portability for performance by baking in hardware-specific optimizations. The correct practice: (1) pin the driver version in your container image, not the host; (2) store TensorRT engines with metadata (driver version, CUDA version, GPU architecture) and rebuild automatically when any component changes; (3) maintain a CI pipeline that rebuilds engines on driver update and validates accuracy before fleet rollout.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> TensorRT engine build time for a 13B model: <strong>15–45 minutes</strong> (profiling thousands of tactic combinations). Engine file size: <strong>~28 GB</strong> (2× the FP16 weights due to embedded tactic metadata and workspace allocations). Rebuilding across a 100-GPU fleet: if engines are built per-GPU, that’s 100 × 30 min = <strong>50 GPU-hours</strong> of downtime. With a centralized build (one engine per GPU architecture, copied to all): 30 min build + 5 min distribution = <strong>35 minutes</strong> total downtime. The Friday driver update without engine rebuild caused <strong>~60 hours</strong> of serving downtime (Friday 6 PM to Monday 8 AM). At $0.50/request and 1000 req/s: lost revenue = $0.50 × 1000 × 60 × 3600 = <strong>$108M</strong> — a catastrophic incident from a “routine” update. Prevention: driver updates go through a staging environment that automatically rebuilds TensorRT engines and runs accuracy validation before promoting to production.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The BatchNorm Drift</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your image classification model (ResNet-50 on A100) was deployed 6 months ago with 94% accuracy. Without any model updates, accuracy has gradually degraded to 87%. The model weights are identical to deployment day — you verified the checkpoint hash. The training team says the model is fine. What’s silently changing?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model must have been accidentally updated” or “This is just random variance in the test set.” The checkpoint hash verification rules out the first, and a 7-point drop over 6 months is a systematic trend, not noise.</p>
+<p><strong>Realistic Solution:</strong> This is data distribution drift interacting with Batch Normalization’s frozen statistics. During training, BatchNorm layers compute running mean (<span class="math inline">\(\mu\)</span>) and running variance (<span class="math inline">\(\sigma^2\)</span>) from the training data. At inference time, these frozen statistics are used to normalize inputs: <span class="math inline">\(\hat{x} = (x - \mu_{\text{train}}) / \sigma_{\text{train}}\)</span>. If the production data distribution shifts over time (lighting conditions change seasonally, camera firmware updates alter preprocessing, new product categories are added), the true mean and variance diverge from the frozen statistics. The normalization now <em>distorts</em> the data instead of normalizing it — pushing activations into regions the downstream layers never saw during training. The gradual 7-point drop over 6 months matches a slow seasonal drift (e.g., winter lighting vs summer lighting for a retail image classifier). Fix: (1) implement periodic BatchNorm recalibration — run a forward pass over recent production data with BatchNorm in training mode to update running statistics, then freeze again; (2) replace BatchNorm with LayerNorm or GroupNorm, which compute statistics per-sample and are immune to distribution drift; (3) deploy a data drift monitor that tracks input feature statistics and alerts when they diverge from training distribution.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> ResNet-50 has 53 BatchNorm layers. Training data mean pixel value: <span class="math inline">\(\mu_{\text{train}} = 0.485\)</span> (ImageNet). After 6 months of drift (new camera firmware increases brightness): <span class="math inline">\(\mu_{\text{prod}} = 0.52\)</span>. Shift = <span class="math inline">\(0.035\)</span>. BatchNorm normalizes: <span class="math inline">\(\hat{x} = (0.52 - 0.485) / 0.229 = 0.153\)</span> — the network sees a constant bias of 0.153 added to every activation. Through 53 layers with ReLU, this bias compounds: early layers clip negative activations that should have been positive (or vice versa), changing ~<strong>3–8% of activation signs</strong> per layer. By the final layer, the cumulative effect shifts the feature representation enough to flip predictions for <strong>7% of samples</strong> — matching the 94% → 87% accuracy drop. BatchNorm recalibration: forward pass of 10,000 production images through ResNet-50 on A100: <span class="math inline">\(10000 \times 8\text{ GFLOPs} = 80\text{ TFLOPs}\)</span>. At 989 TFLOPS: <strong>0.08 seconds</strong>. Running this weekly costs essentially nothing and prevents the drift.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Volume I: Model Training</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The One-Replica Meltdown</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You have 8 replicas of a 7B model behind an L7 load balancer, each on its own A100. Monitoring shows total QPS is normal, but P99 latency spiked from 80 ms to 2.4 seconds. Seven replicas report healthy latency. One replica’s average latency is 18 seconds. The load balancer is configured for round-robin. Why is one slow replica destroying the P99 for the entire fleet?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Round-robin distributes traffic evenly, so the slow replica only affects 1/8 of requests — P99 should only increase slightly.” This misunderstands how percentiles work with heterogeneous backends.</p>
+<p><strong>Realistic Solution:</strong> Round-robin sends exactly 1/8 of all requests to the slow replica. P99 means 1% of requests exceed the threshold. If 12.5% of requests (those hitting the slow replica) have 18-second latency, then <em>all</em> of those requests are in the worst 12.5% — far exceeding the 1% P99 threshold. The P99 is entirely determined by the slow replica. Worse, the slow replica creates <em>cascading</em> damage: (1) clients waiting 18 seconds for the slow replica hold open HTTP connections, consuming connection pool slots on the load balancer; (2) if clients have a 5-second timeout and retry, the retried request has a 1/8 chance of hitting the slow replica again, amplifying load; (3) the slow replica’s request queue grows, making each subsequent request even slower (queuing theory: latency → ∞ as utilization → 1). Fix: (1) switch from round-robin to least-connections or latency-weighted routing — the slow replica naturally receives fewer requests; (2) implement health-check-based ejection: if a replica’s P50 exceeds 2× the fleet median, remove it from the pool; (3) add client-side hedging: send the request to 2 replicas simultaneously and take the first response.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 8 replicas, round-robin, total 1000 QPS → 125 QPS per replica. 7 healthy replicas: latency ~40 ms (P50), ~80 ms (P99). 1 slow replica: latency ~18 s. <strong>P99 calculation:</strong> Sort all 1000 requests by latency. The slowest 1% = 10 requests. The slow replica handles 125 requests — <em>all</em> 125 are slower than any healthy replica’s request. P99 = the 10th-slowest request, which is from the slow replica: <strong>~18 s</strong>. Even P87.5 is terrible: the 125th-slowest request is still from the slow replica. <strong>With least-connections routing:</strong> The slow replica accumulates connections (each held for 18 s). At steady state: slow replica has <span class="math inline">\(125 \times 18 = 2250\)</span> open connections. Healthy replicas have <span class="math inline">\(125 \times 0.04 = 5\)</span> each. Least-connections routes new requests to healthy replicas (5 connections) instead of the slow one (2250). The slow replica effectively drains to ~1 QPS. P99 drops back to <strong>~80 ms</strong> because &lt;0.1% of traffic hits the slow replica.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">Volume I: ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The CPU Preprocessing Bottleneck</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your LLM serving endpoint on an H100 should deliver 40 tokens/s for a 13B model (bandwidth-bound: 26 GB weights / 3.35 TB/s ≈ 7.8 ms/token → 128 tokens/s theoretical). But you’re measuring only 15 tokens/s. <code>nvidia-smi</code> shows GPU utilization flickering between 0% and 95% in a sawtooth pattern. CPU utilization is pegged at 100% on one core. Where’s the bottleneck?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The model is too large for the GPU — we need tensor parallelism” or “The batch size is too small.” The model fits fine (26 GB on 80 GB), and the sawtooth GPU pattern reveals the real issue.</p>
+<p><strong>Realistic Solution:</strong> The sawtooth pattern (0% → 95% → 0% → 95%) means the GPU is alternating between waiting for input and processing it. The CPU is the bottleneck — specifically, the tokenizer and/or detokenizer running in Python on a single core. The Python GIL ensures only one thread executes Python bytecode at a time. The serving pipeline is: (1) CPU tokenizes input (Python, single-threaded) → (2) GPU runs model forward pass → (3) CPU detokenizes output token (Python, single-threaded) → (4) CPU samples next token → repeat. If tokenization + detokenization + sampling takes 50 ms on CPU, but the GPU forward pass takes only 7.8 ms, the GPU is idle for <span class="math inline">\(50 / (50 + 7.8) = 87\%\)</span> of the time. Effective throughput: <span class="math inline">\(1000 / (50 + 7.8) = 17.3\)</span> tokens/s — matching the observed 15 tokens/s (with overhead). Fix: (1) use a Rust/C++ tokenizer (HuggingFace <code>tokenizers</code> library) that’s 10–50× faster than pure Python; (2) batch tokenization — tokenize multiple requests simultaneously; (3) move sampling to GPU (<code>torch.multinomial</code> on CUDA); (4) use a C++ serving runtime (TensorRT-LLM, vLLM’s C++ backend) that eliminates the Python hot path.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> <strong>CPU tokenizer (Python <code>transformers</code>):</strong> Tokenizing 512 tokens: ~<strong>25 ms</strong> (pure Python, regex-heavy). Detokenizing 1 token: ~<strong>0.5 ms</strong>. Sampling (Python <code>torch.multinomial</code> on CPU): ~<strong>2 ms</strong> (includes GPU→CPU transfer of logits). Total CPU per token: <strong>~27.5 ms</strong>. GPU forward pass: <strong>7.8 ms</strong>. Pipeline: <span class="math inline">\(27.5 + 7.8 = 35.3\)</span> ms/token → <strong>28.3 tokens/s</strong> theoretical, ~<strong>15 tokens/s</strong> with Python overhead and GIL contention. <strong>After optimization:</strong> Rust tokenizer: <strong>0.5 ms</strong> (50× faster). GPU-side sampling: <strong>0.1 ms</strong> (no transfer). Detokenize: <strong>0.05 ms</strong> (Rust). Total CPU per token: <strong>0.65 ms</strong>. Pipeline: <span class="math inline">\(0.65 + 7.8 = 8.45\)</span> ms/token → <strong>118 tokens/s</strong> — a <strong>7.9× improvement</strong>, now approaching the GPU’s theoretical bandwidth limit.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The GIL Bottleneck</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your inference server runs 4 model replicas on 4 A100 GPUs within a single Python process using threads. Each replica should handle 100 req/s (400 req/s total). But total throughput plateaus at 110 req/s regardless of how many replicas you add. <code>nvidia-smi</code> shows all 4 GPUs at ~25% utilization. Adding a 5th replica doesn’t increase throughput at all. What’s the ceiling?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The network or storage is the bottleneck” or “We need to increase the batch size.” Network and storage are fine (the server isn’t even close to saturating them), and batch size doesn’t help when the GPUs are underutilized.</p>
+<p><strong>Realistic Solution:</strong> The Python Global Interpreter Lock (GIL) is the ceiling. CPython allows only one thread to execute Python bytecode at a time. While CUDA kernel launches release the GIL (allowing GPU work to proceed in parallel), the Python-side preprocessing (tokenization, tensor construction, result postprocessing) for each request requires holding the GIL. With 4 threads competing for the GIL, each thread gets ~25% of the CPU time for its Python work — explaining the ~25% GPU utilization (each GPU is starved of new work 75% of the time). The total throughput is bounded by how fast a single CPU core can execute the Python preprocessing pipeline: if preprocessing takes 9 ms per request, the GIL-limited throughput is <span class="math inline">\(1000 / 9 \approx 111\)</span> req/s — matching the observed 110 req/s. Adding more replicas just adds more threads competing for the same GIL. Fix: (1) use multiprocessing instead of threading — each process has its own GIL; (2) use a C++ serving runtime (Triton Inference Server, TensorRT-LLM) that bypasses the GIL entirely; (3) minimize Python-side work by moving tokenization and postprocessing to compiled extensions.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Per-request Python work: tokenization (3 ms) + tensor creation (2 ms) + result decoding (1 ms) + HTTP response (1 ms) = <strong>7 ms</strong> of GIL-holding time. GPU forward pass: <strong>10 ms</strong> (releases GIL). <strong>Single thread:</strong> 1 request every <span class="math inline">\(7 + 10 = 17\)</span> ms → <strong>59 req/s</strong>. GPU utilization: <span class="math inline">\(10/17 = 59\%\)</span>. <strong>4 threads (GIL-limited):</strong> GIL serializes the 7 ms Python portions. Total GIL demand: <span class="math inline">\(4 \times 7 = 28\)</span> ms per 17 ms window — GIL is <strong>oversubscribed by 1.65×</strong>. Effective throughput: $1000 / 7 = $ <strong>143 req/s</strong> theoretical GIL limit, but with GIL acquisition overhead (~2 ms per context switch × 4 threads): effective = <strong>~110 req/s</strong>. Each GPU gets <span class="math inline">\(110/4 = 27.5\)</span> req/s × 10 ms = 275 ms of work per second → <strong>27.5% utilization</strong>. <strong>Multiprocessing fix (4 processes):</strong> Each process has its own GIL. Per-process throughput: 59 req/s. Total: $4 = $ <strong>236 req/s</strong> — a <strong>2.1× improvement</strong>. GPU utilization rises to 59% each.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l5-analyze-predict-2" class="level4">
+<h4 class="anchored" data-anchor-id="l5-analyze-predict-2">🟡 L5 — Analyze &amp; Predict</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 5" align="center"> The Multi-Tenant GPU Sharing Problem</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You manage an inference platform serving 7 different small models (each &lt;10GB). Your finance team wants to consolidate them onto a single A100-80GB using MIG (Multi-Instance GPU) to save costs. Each MIG slice gets 1/7th of the GPU: ~11 GB memory, ~45 TFLOPS. After deployment, two of the seven models have 3x worse tail latency than on dedicated GPUs. What went wrong?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “MIG provides perfect isolation, so each model should perform as if it has a dedicated 1/7th GPU.” MIG isolates compute and memory capacity, but not all resources.</p>
+<p><strong>Realistic Solution:</strong> MIG does not isolate the shared L2 cache or the memory bandwidth. The A100’s 40 MB L2 cache is shared across all MIG instances. Two of the seven models are memory-bandwidth-bound (low arithmetic intensity), and they’re now competing for the same 2 TB/s of HBM bandwidth. With 7 tenants, each effectively gets ~285 GB/s — far less than the 2 TB/s they had on a dedicated GPU. The compute-bound models are fine because their bottleneck (Tensor Cores) is properly partitioned.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Dedicated A100 per model: <span class="math inline">\(2,000 \text{ GB/s}\)</span> bandwidth, <span class="math inline">\(312 \text{ TFLOPS}\)</span>. Cost: 7 × $2.50/hr = $17.50/hr. MIG 1g.10gb slice: <span class="math inline">\(2,000 / 7 \approx 285 \text{ GB/s}\)</span> effective bandwidth (shared), <span class="math inline">\(312/7 \approx 45 \text{ TFLOPS}\)</span> (isolated). Cost: 1 × $2.50/hr = $2.50/hr. For a memory-bound model with <span class="math inline">\(I = 5\)</span> Ops/Byte: dedicated throughput = <span class="math inline">\(\min(312\text{T}, 2000 \times 5) = 312\text{ TFLOPS}\)</span>. MIG throughput = <span class="math inline">\(\min(45\text{T}, 285 \times 5) = 45\text{ TFLOPS}\)</span> — a 7× slowdown, not the expected 7× from compute partitioning alone. Effective cost: $2.50/hr but 7× slower = $2.50 × 7 = $17.50/hr equivalent. No savings for bandwidth-bound models.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_systems/ml_systems.html">Volume I: ML Systems</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 5" align="center"> The Request Routing Strategy</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our LLM API serves both autocomplete requests (~10 output tokens, 50ms SLA) and document summarization requests (~10,000 output tokens, no strict SLA). Both hit the same pool of 8× H100 GPUs. Autocomplete users are furious — P99 latency is 4 seconds instead of 50ms. The summarization users are fine. What’s happening and how do you fix it?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Add more GPUs to handle the load.” The problem isn’t capacity — it’s mixing workloads with incompatible SLA profiles in the same scheduling queue.</p>
+<p><strong>Realistic Solution:</strong> Head-of-line blocking from mixed request lengths. With continuous batching, a 10,000-token summarization request occupies a batch slot for ~400 seconds (at 25 tokens/sec). During that time, the scheduler must run prefill for incoming autocomplete requests, but the long requests consume KV-cache memory, reducing the maximum batch size. Worse, if the batch is full of long-running decodes, new short requests queue behind prefill scheduling delays. The fix is workload-aware routing: separate GPU pools (or priority lanes) for latency-sensitive short requests vs throughput-oriented long requests. Short-request GPUs run with small max-sequence-length and aggressive preemption; long-request GPUs optimize for throughput with large batches.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 8× H100 shared pool, continuous batching, max batch = 32.
+<ul>
+<li>Long requests: 10,000 tokens × 40ms/token = 400s each. 20 concurrent long requests fill 20/32 batch slots.</li>
+<li>Short requests: 10 tokens × 40ms/token = 0.4s each. Only 12 batch slots remain.</li>
+<li>But each long request’s KV-cache: 10,000 tokens × 131 KB = 1.3 GB. 20 requests = 26 GB of KV-cache, leaving only 54 GB for weights + short request KV-cache on an 80 GB GPU.</li>
+<li>With dedicated pools: 2 GPUs for short requests (batch=32, all slots turn over in &lt;1s, P99 TTFT &lt; 50ms) and 6 GPUs for long requests (optimized for throughput). Short-request P99 drops from 4s to <strong>40ms</strong>.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 5" align="center"> The Output Token Length Prediction</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our vLLM scheduler pre-allocates KV-cache memory for each request based on <code>max_tokens</code>. Most requests use only 10% of their allocation, wasting 90% of VRAM. But if we reduce <code>max_tokens</code>, long requests get preempted mid-generation. How do you solve this without wasting memory or killing long requests?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Set <code>max_tokens</code> to the average output length.” This causes half of all requests to be preempted, which is worse than over-allocation because preemption means re-computing the entire KV-cache from scratch.</p>
+<p><strong>Realistic Solution:</strong> Predict the output length per-request using a lightweight classifier (or heuristic based on prompt structure), then allocate KV-cache accordingly with a safety margin. Requests that exceed their prediction are handled via PagedAttention’s dynamic allocation — pages are added on-demand rather than pre-allocated. The predictor doesn’t need to be perfect; even a coarse bucketing (short: &lt;50 tokens, medium: 50–500, long: &gt;500) reduces waste by 60–70%.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> 70B model on H100-80GB, 50 concurrent requests:
+<ul>
+<li><strong>Over-allocation (max_tokens=4096):</strong> KV-cache per request = 4,096 × 640 KB = 2.6 GB. 50 requests = 130 GB → exceeds 80 GB VRAM. Can only serve <strong>30 concurrent requests</strong>.</li>
+<li><strong>Tight allocation (max_tokens=200):</strong> KV-cache per request = 200 × 640 KB = 128 MB. 50 requests = 6.4 GB. Fits easily, but 15% of requests exceed 200 tokens and get preempted.</li>
+<li><strong>Preemption cost:</strong> Re-prefill a 2,000-token prompt = 283ms of wasted compute per preemption. At 150 preemptions/minute: 150 × 283ms = <strong>42.5 GPU-seconds/minute wasted</strong>.</li>
+<li><strong>With prediction + PagedAttention:</strong> Allocate predicted length + 20% buffer. Average allocation = 300 tokens × 640 KB = 192 MB. 50 requests = 9.6 GB. Requests that exceed prediction grow dynamically via page allocation. Preemption rate drops from 15% to &lt;1%. <strong>Net: 3× more concurrent requests than over-allocation, &lt;1% preemption rate.</strong></li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 5" align="center"> The SLA Violation Cascade</b> · <code>serving</code> <code>monitoring</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our LLM API has a 2-second P99 SLA. Last Tuesday, a single user sent a 32,000-token prompt that took 10 seconds to prefill. In the next 30 seconds, 100 requests violated their SLA. Explain the cascade mechanism and design a system that prevents one bad request from taking down the fleet.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Rate-limit users who send long prompts.” Rate limiting prevents abuse but doesn’t prevent the cascade once a long request is admitted — the damage happens during prefill, before you can react.</p>
+<p><strong>Realistic Solution:</strong> The cascade works through three mechanisms: (1) <strong>Prefill starvation:</strong> The 10-second prefill monopolizes GPU compute, blocking all decode iterations for concurrent requests. (2) <strong>Queue buildup:</strong> During the 10-second stall, new requests accumulate in the queue at the arrival rate. (3) <strong>Batch bloat:</strong> When the prefill finishes, the scheduler tries to drain the queue by admitting many requests at once, causing KV-cache memory pressure and further slowdowns. The fix requires admission control at multiple levels: max prompt length enforcement, chunked prefill (split long prefills into 512-token chunks interleaved with decode iterations), and request-level timeout with graceful preemption.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> Normal operation: 100 QPS, 200ms TTFT, 30ms TPOT, 100-token avg response = 3.2s avg latency. P99 &lt; 2s for short requests.
+<ul>
+<li><strong>The cascade:</strong> 32K-token prefill on 70B model: 2 × 70B × 32,000 = 4,480 TFLOPs. On H100 (990 TFLOPS): <strong>4.5 seconds</strong> of pure compute. During this time, 100 QPS × 4.5s = <strong>450 requests queue up</strong>.</li>
+<li><strong>Drain phase:</strong> 450 queued requests all start prefill. Even with continuous batching, prefilling 450 requests (avg 500 tokens each) takes: 450 × 500 × 140 GFLOPS / 990 TFLOPS = <strong>~32 seconds</strong> to clear the backlog. Every request admitted during the drain phase also violates SLA.</li>
+<li><strong>With chunked prefill (512-token chunks):</strong> The 32K prompt is split into 63 chunks. Each chunk takes 72ms. Between chunks, the scheduler runs 1 decode iteration for all active requests (~5ms). Total prefill time increases to 63 × (72 + 5) = <strong>4.9s</strong>, but no decode request is stalled for more than 72ms. <strong>Zero cascade.</strong></li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 5" align="center"> The Serverless Inference Trade-off</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We’re choosing between AWS SageMaker Serverless (pay-per-invocation, scales to zero) and a dedicated <code>ml.g5.2xlarge</code> instance (1× A10G, $1.52/hr always-on) for serving a 7B model. Our traffic is bursty: 500 QPS during business hours (10 hrs/day), near-zero overnight. Find the break-even point and tell me which option wins.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Serverless always wins for bursty traffic because you don’t pay for idle time.” Serverless has per-invocation costs that scale linearly with QPS, while dedicated instances have fixed costs that become cheaper per-request at high utilization.</p>
+<p><strong>Realistic Solution:</strong> The break-even depends on three factors: (1) the per-invocation cost of serverless (compute time × price per GB-second), (2) the cold-start penalty and its frequency, and (3) the utilization-adjusted cost of dedicated instances. For bursty workloads, the optimal strategy is often a hybrid: dedicated instances sized for the base load with serverless overflow for spikes.</p>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong>
+<ul>
+<li><strong>Dedicated (ml.g5.2xlarge, 1× A10G):</strong> $1.52/hr × 24 hr × 30 days = <strong>$1,094/month</strong>. Throughput: ~50 tokens/sec for 7B model. At 500 QPS with 100-token responses: need 500 × 100 / 50 = 1,000 instances during peak. That’s $1,094 × 1,000 = <strong>$1.09M/month</strong>. Clearly need fewer instances with batching — at BS=32, throughput ≈ 800 tok/s per instance, need ~63 instances = <strong>$68,922/month</strong>.</li>
+<li><strong>Serverless (SageMaker Serverless):</strong> ~$0.0001 per invocation + $0.00003/sec compute. Per request (200ms inference): $0.0001 + 0.2 × $0.00003 = <strong>$0.000106/request</strong>. At 500 QPS × 10 hr/day × 30 days: 500 × 36,000 × 30 = 540M requests. Cost = 540M × $0.000106 = <strong>$57,240/month</strong>. Plus cold starts: ~5% of requests hit cold start (3s penalty), adding latency but no extra cost.</li>
+<li><strong>Break-even:</strong> Serverless &lt; dedicated when: $0.000106 × QPS × 3,600 &lt; $1.52/hr per instance. Per instance: QPS &lt; 1.52 / (0.000106 × 3,600) = <strong>~4 QPS per instance</strong>. Above 4 QPS sustained per instance, dedicated wins.</li>
+<li><strong>Hybrid:</strong> 40 dedicated instances for base load ($43,776/month) + serverless for overflow spikes. Saves ~20% vs pure dedicated during off-peak.</li>
+</ul>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Continuous Batching Starvation</b> · <code>serving</code> <code>scheduling</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You implement Continuous Batching (iteration-level scheduling) for your LLM server. It successfully groups users together to maximize GPU utilization. However, you notice that users asking for very short, 10-token answers are experiencing incredibly long wait times, even though their requests require very little compute. How did your batching algorithm starve the easy requests?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The GPU prioritizes larger matrix math.” The GPU doesn’t prioritize anything; the software scheduler does.</p>
+<p><strong>Realistic Solution:</strong> You caused <strong>Head-of-Line Blocking via First-Come-First-Served (FCFS) Scheduling</strong>.</p>
+<p>If a user asks for a 2,000-token story, their request enters the batch. The batch size is capped by the GPU’s KV-cache capacity (e.g., max 32 concurrent sequences). Because generating 2,000 tokens takes a long time, that user occupies 1 of the 32 slots for several seconds.</p>
+<p>If 32 users ask for long stories, the batch becomes completely full. When User 33 arrives and asks a simple question requiring a 10-token response, the Continuous Batching scheduler cannot let them in because there is no KV-cache memory available. User 33 must wait entirely for one of the long stories to finish generating all 2,000 tokens before a slot frees up.</p>
+<p><strong>The Fix:</strong> You must implement <strong>Preemption and Fair-Share Scheduling</strong>. The scheduler should detect long-running requests, temporarily evict/preempt them (saving their KV-cache to CPU RAM or recomputing it later), inject the short requests into the batch to clear them out quickly, and then resume the long requests.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 32 users request 2,000 tokens at 20ms/token = 40 seconds to finish. User 33 requests 10 tokens (0.2 seconds of work). User 33 waits 40 seconds to get 0.2 seconds of compute. This ruins P99 latency metrics.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume I: Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The LLM Canary Trap</b> · <code>canary-deployment</code> <code>llm-serving</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You’re deploying a fine-tuned 70B LLM to replace your production 13B model. You set up a standard canary: route 5% of traffic to the new model, monitor error rate and latency for 30 minutes, then promote. After full rollout, users report the new model occasionally hallucinates wildly long, repetitive outputs. Your canary detected no latency or error spikes. Why do standard infra metrics miss LLM quality regressions, and how could you have used the GPU’s KV-cache memory profile as a hardware-level canary signal?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The canary window was too short — extend it to 24 hours.” More time helps, but the fundamental problem is that LLM failures are not captured by traditional canary metrics.</p>
+<p><strong>Realistic Solution:</strong> Traditional canary metrics (latency, error rate, throughput) measure <em>infrastructure health</em>, not <em>output quality</em>. A model that suddenly starts outputting repetitive garbage (“I am an AI, I am an AI…”) will still return HTTP 200s and keep the GPU busy. However, LLM quality regressions often manifest as changes in generation length (verbosity or truncation). You can use the GPU’s KV-cache memory allocation as a proxy metric for output behavior. If the new model is hallucinating longer responses, the average KV-cache blocks allocated per request will spike. If it’s failing to reason and returning short “I don’t know” answers, the KV-cache allocation will drop. Monitoring the physical memory footprint provides a real-time, hardware-level signal of behavioral changes before users complain.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Baseline model generates 200 tokens/request average. Canary model has a repetition bug and generates 800 tokens/request. Latency might look okay if the batch scheduler just drops throughput to compensate. But KV-cache memory tells the truth: Baseline uses 200 tokens × 1MB/token (for a large batch) = 200MB per request. Canary uses 800MB per request. By monitoring <code>vllm:gpu_cache_usage_perc</code>, you would see the canary instances hitting 90% KV-cache saturation 4× faster than the baseline instances, instantly flagging a behavioral shift.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Multi-Model Serving Platform</b> · <code>serving</code> <code>economics</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your company runs 12 different LLMs in production (ranging from 1B to 70B parameters) serving 50,000 QPS total across all models. Currently each model has its own dedicated GPU pool. The CFO says GPU costs are $2M/month. Design a multi-model serving platform that cuts costs by at least 40% without violating per-model latency SLAs.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Just put all models on the same GPUs and multiplex.” Naive co-location causes memory fragmentation and SLA violations because large models evict small ones from VRAM.</p>
+<p><strong>Realistic Solution:</strong> A multi-model platform needs three architectural layers: (1) <strong>Model tiering</strong> — group models by size and latency SLA. Tier 1 (1B–7B, &lt;100ms): always resident in VRAM, share GPUs via MPS or time-slicing. Tier 2 (13B–30B, &lt;500ms): resident on dedicated GPUs with overflow to CPU offload. Tier 3 (70B, &lt;2s): tensor-parallel across multi-GPU, dedicated but right-sized. (2) <strong>Predictive autoscaling</strong> — use traffic forecasting (not reactive scaling) to pre-warm models 10 minutes before demand spikes. (3) <strong>KV-cache sharing</strong> — for models serving similar prompts (e.g., system prompts), cache the KV-state of common prefixes across requests.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Current: 12 models × dedicated pools. Typical utilization: 30% (peak-provisioned). Monthly cost: $2M. Optimized: Tier 1 (8 small models): consolidate from 40 GPUs to 15 (shared, 80% util). Savings: 25 GPUs × $2/hr × 720 = $36k/mo. Tier 2 (3 mid models): right-size from 60 GPUs to 35 with autoscaling. Savings: $36k/mo. Tier 3 (1 large model): reduce from 80 GPUs to 50 with continuous batching + PagedAttention. Savings: $43k/mo. Prefix caching saves ~20% of KV-cache memory across all tiers → another 15% GPU reduction: $60k/mo. <strong>Total savings: $175k/mo (8.75%)</strong> — wait, that’s not 40%. The real lever: <strong>spot instances for Tier 1</strong> (stateless, fast restart) saves 65% on those GPUs: $200k/mo. Plus <strong>quantizing Tier 2 to INT8</strong> halves their GPU count: $180k/mo. <strong>Revised total: $850k/mo savings (42.5%).</strong></p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 2" align="center"> The Speculative Decoding Speedup</b> · <code>serving</code> <code>latency</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Our 70B model serves chat completions with a P50 time-to-first-token of 200 ms and a P50 inter-token latency of 45 ms on H100. Product wants 2× faster decoding without changing the model. Someone suggests speculative decoding with a 1B draft model. Walk me through the systems math — when does this help, and when does it backfire?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The draft model is 70× smaller, so it generates tokens 70× faster, and we just verify them in parallel — easy 5-10× speedup.” This ignores the acceptance rate, the memory overhead of running two models, and the verification cost.</p>
+<p><strong>Realistic Solution:</strong> Speculative decoding works in three steps: (1) the draft model generates <span class="math inline">\(K\)</span> candidate tokens autoregressively (cheap, ~1 ms/token for a 1B model); (2) the target 70B model verifies all <span class="math inline">\(K\)</span> tokens in a single forward pass (parallel verification — same cost as generating 1 token, since decode is memory-bandwidth-bound and the extra compute for <span class="math inline">\(K\)</span> tokens is negligible); (3) the target accepts the first <span class="math inline">\(n \leq K\)</span> tokens where the draft model’s distribution matches, and resamples the <span class="math inline">\((n+1)\)</span>-th token. The speedup depends critically on the <strong>acceptance rate</strong> <span class="math inline">\(\alpha\)</span> — the probability the draft model’s token matches the target’s. If <span class="math inline">\(\alpha = 0.8\)</span> and <span class="math inline">\(K = 5\)</span>, the expected accepted tokens per verification step is <span class="math inline">\(\sum_{i=0}^{K} \alpha^i \approx 1/(1-\alpha) = 5\)</span> tokens per target forward pass (in the limit). But you also pay for the draft model’s memory and compute. If the draft model’s memory displaces KV-cache space, your maximum batch size drops, reducing throughput even as per-request latency improves.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> <strong>Without speculation:</strong> 70B decode = 45 ms/token (bandwidth-bound: 140 GB weights / 3.35 TB/s ≈ 42 ms + overhead). <strong>With speculation (K=5, α=0.8):</strong> Draft generates 5 tokens: 5 × 1 ms = <strong>5 ms</strong>. Target verifies: <strong>45 ms</strong> (one forward pass). Expected accepted tokens: <span class="math inline">\(1/(1-0.8) = 5\)</span> tokens. Effective per-token latency: $(5 + 45) / 5 = $ <strong>10 ms/token</strong> — a <strong>4.5× speedup</strong>. Memory cost: 1B draft model = 2 GB + its KV-cache ≈ 2.5 GB. On 80 GB H100 with 70B model (140 GB sharded TP=2 → 70 GB/GPU), free memory drops from 10 GB to 7.5 GB — <strong>max batch drops from ~9 to ~7 requests</strong>. <strong>When it backfires:</strong> If <span class="math inline">\(\alpha\)</span> drops to 0.4 (e.g., code generation where the draft model is weak), expected accepted = <span class="math inline">\(1/0.6 \approx 1.67\)</span> tokens per step. Effective latency: $(5 + 45) / 1.67 = $ <strong>30 ms/token</strong> — only 1.5× speedup, and you’ve lost 25% of your batch capacity for it.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_compression/model_compression.html">Volume I: Model Compression</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 2" align="center"> The KV-Cache OOM Attack</b> · <code>serving</code> <code>incident-response</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your LLM serving endpoint supports 32k context. On Monday, your cluster starts OOM-killing pods every few minutes. The traffic volume hasn’t increased, but you notice a handful of users sending prompts that are exactly 32,000 tokens — the maximum. Before Monday, average prompt length was 500 tokens. How does a 64× increase in prompt length from a few users crash the entire cluster, and what’s your emergency response?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Just reject prompts over a certain length” or “Add more GPUs to handle the load.” Rejecting long prompts breaks legitimate use cases, and adding GPUs doesn’t help if the scheduling algorithm is the problem.</p>
+<p><strong>Realistic Solution:</strong> The KV-cache memory for a single request scales linearly with sequence length. A 32k-token request consumes 64× the KV-cache of a 500-token request. If the scheduler admits requests based on <em>count</em> (e.g., “batch up to 32 requests”) rather than <em>memory</em>, a few 32k requests can exhaust the entire KV-cache budget that normally serves hundreds of short requests. This is effectively a resource exhaustion attack — intentional or not. The cluster crashes because: (1) the scheduler admits 32 requests including several 32k-token ones; (2) KV-cache allocation exceeds VRAM; (3) the CUDA OOM kills the serving process; (4) Kubernetes restarts the pod, which immediately admits the same queued requests and crashes again (crash loop). Emergency response: (1) implement admission control based on <em>memory budget</em>, not request count — estimate KV-cache cost before admitting: <span class="math inline">\(\text{KV\_bytes} = 2 \times L \times H \times d_h \times S \times 2\)</span>; (2) set per-user rate limits on total token throughput, not just request count; (3) implement preemption — if a new request would cause OOM, preempt (pause and swap to CPU) the lowest-priority in-flight request.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 7B model on A100 80 GB. Weights = 14 GB. Free for KV-cache = 66 GB. KV-cache per token per request (32 layers, 32 heads, d=128, FP16): $2 = $ <strong>524 KB/token</strong>. At 500-token avg: <strong>262 MB/request</strong>. Batch of 32 normal requests: $32 = $ <strong>8.4 GB</strong> — fits easily. At 32k tokens: <strong>16.8 GB/request</strong>. Just 4 adversarial requests: $4 = $ <strong>67.2 GB</strong> — exceeds the 66 GB budget → <strong>OOM</strong>. Those 4 requests consume more memory than 256 normal requests. Memory-aware scheduling: admit requests until <span class="math inline">\(\sum_i \text{KV}(S_i) \leq 66\text{ GB}\)</span>. This limits concurrent 32k requests to 3, while allowing 250+ concurrent 500-token requests. PagedAttention (vLLM) helps by allocating KV-cache in 4 KB pages on-demand rather than pre-allocating for max length, reducing waste from requests that don’t use their full context window.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: Frameworks</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l6-synthesize-derive-2" class="level4">
+<h4 class="anchored" data-anchor-id="l6-synthesize-derive-2">🔴 L6+ — Synthesize &amp; Derive</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 3" align="center"> The Batching Dilemma</b> · <code>serving</code> <code>batching</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “We use static batching for our LLM API. If a request generating 5 tokens is batched with a request generating 500 tokens, the 5-token request sits in VRAM until the 500-token request finishes. How do we fix this idle capacity?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Set a maximum generation length to keep batch members similar.” This caps functionality and still wastes compute on padding.</p>
+<p><strong>Realistic Solution:</strong> Implement Continuous (or In-Flight) Batching. Instead of waiting for all requests in a batch to finish, continuous batching operates at the iteration level. As soon as the 5-token request finishes and emits its <code>&lt;EOS&gt;</code> token, it is immediately evicted from the batch, and a new request from the queue is slotted in for the very next forward pass.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Static batch of 8 requests: shortest = 5 tokens, longest = 500 tokens. Wasted compute = 7 requests × (500 - avg_length) × cost_per_token. With continuous batching, the 5-token request is done in 5 iterations and replaced — the slot processes ~100 different short requests in the time the long request takes, increasing effective throughput by 2-4×.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> The Speculative Decoding Accept Rate Crash</b> · <code>serving</code> <code>algorithms</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You implement Speculative Decoding to speed up an LLM. You use a 1B draft model to guess 5 tokens, and a 70B target model to verify them in a single pass. On standard English text, it yields a 2.5x speedup. When you deploy it to your coding assistant API, the overall throughput actually <em>drops</em> by 15% compared to not using Speculative Decoding at all. Why did the optimization become a penalty?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Code is harder to generate.” It is, but that alone doesn’t explain why a speedup technique becomes an active <em>penalty</em>.</p>
+<p><strong>Realistic Solution:</strong> You suffered a <strong>Catastrophic Draft Acceptance Rate Drop</strong>.</p>
+<p>Speculative Decoding works by gambling: the draft model is fast, and the target model verifies its guesses in parallel. If the target model agrees with the draft model, you get 5 tokens for the price of 1.</p>
+<p>However, the target model’s verification pass requires reading the KV-cache and processing all 5 draft tokens. If the draft model guesses <em>wrong</em> on the very first token, the target model rejects the entire draft sequence. You spent compute running the draft model, and you spent compute running the target model to verify a 5-token sequence, but you only got 1 valid token out of it.</p>
+<p>Your 1B draft model was trained on general English, so it guessed English well. But on complex, highly structured programming languages (Python, C++), the 1B model was completely lost. Its guess-acceptance rate dropped from 70% to near 0%.</p>
+<p>Because you constantly paid the overhead of running the draft model and evaluating longer target sequences without getting any parallel tokens accepted, the net throughput was worse than just running the 70B model autoregressively.</p>
+<p><strong>The Fix:</strong> Speculative Decoding is entirely reliant on the Draft/Target alignment. You must either fine-tune the 1B draft model specifically on your domain (code), use a smaller draft model to reduce overhead, or dynamically disable Speculative Decoding if the rolling acceptance rate drops below the break-even mathematical threshold.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Break-even Acceptance Rate. If draft takes 5ms, and target takes 20ms per pass. Standard (1 token): 20ms. Speculative (5 tokens, 0% accept): 5ms (draft) + 20ms (eval) = 25ms to get 1 token. (25% slower). Speculative (5 tokens, 100% accept): 5ms + 20ms = 25ms to get 5 tokens = 5ms per token. (400% faster).</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume I: Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+</section>
+<section id="advanced-inference" class="level3">
+<h3 class="anchored" data-anchor-id="advanced-inference">🚀 Advanced Inference</h3>
+<section id="l4-apply-identify-2" class="level4">
+<h4 class="anchored" data-anchor-id="l4-apply-identify-2">🔵 L4 — Apply &amp; Identify</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The KV-Cache Context Explosion</b> · <code>attention-mechanisms</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are serving a Llama-3 8B model. At a batch size of 1 with a 1,000-token prompt, inference requires roughly 16GB of VRAM. A customer wants you to increase the context window to 128,000 tokens for document summarization. Your PM assumes it will just take a bit more memory and asks you to deploy it on a 24GB RTX 4090. Why is this physically impossible?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Forgetting that the KV-Cache grows linearly with sequence length, and assuming model weights are the only significant memory consumer.”</p>
+<p><strong>Realistic Solution:</strong> You hit the KV-Cache memory wall. While the model weights for an 8B model (at 16-bit precision) consume about 16GB of VRAM regardless of the prompt size, the Key-Value (KV) cache does not. To avoid recomputing attention for past tokens, autoregressive generation stores the K and V vectors for every single token in the context window. At 128,000 tokens, the physical memory required just to store the state of the conversation dwarfs the size of the model itself.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> For Llama-3 8B (32 layers, 8 KV heads, 128 head dim, 2 bytes per param): <code>Memory per token = 2 (K&amp;V) * 32 layers * 8 heads * 128 dim * 2 bytes = ~131 KB per token</code>. <code>1,000 tokens * 131 KB = ~130 MB</code> (Fits easily in a 4090). <code>128,000 tokens * 131 KB = ~16.7 GB</code>. <code>16GB (weights) + 16.7GB (KV Cache) = 32.7 GB</code>. It physically cannot fit into a 24GB GPU.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Inference Cost Attribution Puzzle</b> · <code>cost-attribution</code> <code>inference</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your platform serves 5 different LLMs on a shared pool of 64 A100 GPUs using vLLM with continuous batching. The finance team wants to charge each product team for their inference costs. Your colleague proposes: ‘Divide total GPU cost by total requests, charge per request.’ The search team (short prompts, 50-token outputs) and the content team (long prompts, 2,000-token outputs) both object. Design a fair cost attribution model.”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Charge per request” or “Charge per token.” Per-request ignores the 40× difference in compute between a 50-token and 2,000-token generation. Per-token ignores that prefill and decode have different costs.</p>
+<p><strong>Realistic Solution:</strong> Fair cost attribution must reflect actual GPU resource consumption, which has two distinct phases: (1) <strong>Prefill cost</strong> — proportional to input tokens (compute-bound, scales as O(n²) for attention), and (2) <strong>Decode cost</strong> — proportional to output tokens (memory-bandwidth-bound, scales linearly but occupies KV-cache memory for the entire generation duration). The correct model charges: <code>cost = α × input_tokens + β × output_tokens + γ × generation_time_ms</code>. The α term captures prefill compute, β captures decode compute, and γ captures KV-cache memory occupancy (a long-running generation blocks memory that could serve other requests). Calibrate α, β, γ by profiling each model: measure GPU-seconds consumed per input token (prefill) and per output token (decode) at representative batch sizes. For continuous batching, the γ term is critical — a request generating 2,000 tokens at 40ms/token occupies KV-cache for 80 seconds, blocking ~2 GB of GPU memory that could serve 20 short requests.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 64 A100s at $2/hr = $128/hr total. Search team: 10,000 req/hr × 500 input + 50 output tokens. Content team: 1,000 req/hr × 2,000 input + 2,000 output tokens. Per-request billing: search pays 10/11 × $128 = $116/hr, content pays $12/hr. Per-token billing: search = 5.5M tokens, content = 4M tokens → search pays $74, content pays $54. Per-GPU-second billing (actual resource use): search prefill ≈ 0.5s/req × 10k = 5,000 GPU-sec, content prefill ≈ 4s/req × 1k = 4,000 GPU-sec, content decode ≈ 80s/req × 1k = 80,000 GPU-sec.&nbsp;Content uses 94% of decode resources → fair charge ≈ $108/hr. The naive per-request model undercharges content by 9×.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
+</details>
+</section>
+<section id="l5-analyze-predict-3" class="level4">
+<h4 class="anchored" data-anchor-id="l5-analyze-predict-3">🟡 L5 — Analyze &amp; Predict</h4>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-gold?style=flat-square" alt="Level 3" align="center"> The Speculative Memory Trade-off</b> · <code>speculative-decoding</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “You implement speculative decoding for a 70B parameter LLM using a 1.5B draft model. On a single A100 (80GB), generation speed increases by 2.5x. You deploy this to production, but under heavy concurrent load (batch size 64), the speculative decoding actually makes generation <em>slower</em> than standard autoregressive decoding. Why?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Assuming speculative decoding always provides a speedup because it reduces the number of forward passes of the large model.”</p>
+<p><strong>Realistic Solution:</strong> Speculative decoding trades spare compute (ALU cycles) for memory bandwidth. At batch size 1, LLM inference is severely memory-bandwidth bound, so the A100’s ALUs are mostly idle. Using those idle ALUs to run a small draft model and verify multiple tokens in one memory sweep of the 70B model is a massive win. However, at batch size 64, the arithmetic intensity of the workload increases significantly. The system becomes compute-bound. Now, running the draft model steals precious ALU cycles away from the main model’s generation, and the overhead of verifying rejected tokens actually reduces overall throughput.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> A 70B model at BS=1 has an arithmetic intensity of <code>~2 FLOPs/byte</code>. The A100 is memory bound up to <code>156 FLOPs/byte</code>. But at BS=64, intensity jumps to <code>128 FLOPs/byte</code>, nearing the compute roofline. The draft model requires <code>1.5B * 2 = 3 GFLOPs</code> per token. At BS=64, that’s 192 GFLOPs of pure overhead per speculative step that is now eating into a fully saturated compute pipeline.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
+</details>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Serverless Freeze</b> · <code>serverless-inference</code>
+</summary>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your team is exploring serverless functions (e.g., AWS Lambda, Google Cloud Functions) for an on-demand, low-volume ML inference endpoint to minimize operational overhead and cost. However, initial tests reveal significant ‘cold start’ latencies, sometimes exceeding 5 seconds, which is unacceptable for the user experience. What are the main contributors to serverless cold starts for ML workloads, and what strategies would you employ to bring them within an acceptable range?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Serverless is just too slow for ML, we need dedicated instances.” While dedicated instances avoid cold starts, this misses the point of optimizing serverless, which offers significant cost and operational benefits for bursty or low-volume workloads if cold starts can be managed.</p>
+<p><strong>Realistic Solution:</strong> Serverless cold starts for ML workloads are primarily due to:</p>
+<ol type="1">
+<li><strong>Container Image Download:</strong> Large model artifacts and dependencies increase the time to download the container image to a new execution environment.</li>
+<li><strong>Runtime Initialization:</strong> Spinning up the language runtime (Python, Java), loading frameworks (TensorFlow, PyTorch), and initializing the serving environment.</li>
+<li><strong>Model Loading:</strong> Loading the model weights from disk (or S3) into GPU/CPU memory. This is often the largest contributor for ML.</li>
+</ol>
+<p>Strategies to mitigate cold starts:</p>
+<ol type="1">
+<li><strong>Provisioned Concurrency:</strong> Pre-warm a specified number of execution environments, ensuring they are always ready. This is the most direct solution but incurs continuous cost.</li>
+<li><strong>Container Image Optimization:</strong>
+<ul>
+<li><strong>Multi-stage Builds:</strong> Create lean production images with only necessary runtime dependencies.</li>
+<li><strong>Smaller Base Images:</strong> Use <code>alpine</code> or <code>distroless</code> for minimal footprint.</li>
+<li><strong>Dependency Pruning:</strong> Remove development tools, cached packages.</li>
+</ul></li>
+<li><strong>Lazy Loading of Model Weights:</strong> Load model weights only when the first inference request arrives, or use a custom runtime that initializes the model outside the main handler.</li>
+<li><strong>Model Splitting/Distillation:</strong> Reduce the model size itself through techniques like knowledge distillation or pruning, leading to faster download and load times.</li>
+<li><strong>Pre-computation/Caching:</strong> For inputs with high locality, pre-compute embeddings or intermediate features and cache them in a low-latency store (e.g., Redis).</li>
+<li><strong>“Keep-alive” Pings:</strong> For non-critical workloads, periodically invoke the function to keep instances warm (though this is a hack and adds cost).</li>
+</ol>
+<blockquote class="blockquote">
+<strong>Napkin Math:</strong> A typical serverless cold start:
+<ul>
+<li>Image download (500MB on 100Mbps): <code>~4 seconds</code></li>
+<li>Runtime init (Python, TF/PyTorch): <code>~1-2 seconds</code></li>
+<li>Model load (200MB model into memory): <code>~0.5-1 second</code> Total: <code>~5.5-7 seconds</code>. With provisioned concurrency, this can drop to <code>~&lt;100ms</code> for subsequent requests, at the cost of continuous billing for the pre-warmed instances.</li>
+</ul>
+</blockquote>
+<blockquote class="blockquote">
+<p><strong>Key Equation:</strong> <code>ColdStartTime = ImageDownloadTime + RuntimeInitTime + ModelLoadTime</code></p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="../book/vol1/mlops/serverless-inference">Volume I: Serverless Inference Challenges and Solutions</a></p>
+</details></li>
+</ul>
+</details>
+
+
+</section>
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/interviews\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../cloud/02_distributed_systems.html" class="pagination-link" aria-label="The Distributed System">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">The Distributed System</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../cloud/04_production_ops.html" class="pagination-link" aria-label="The Production System">
+        <span class="nav-page-text">The Production System</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+<p>Part of the <a href="https://mlsysbook.ai">Machine Learning Systems</a> textbook</p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
