@@ -318,6 +318,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Aditya Mulik</span>
     <span class="roles">✍️</span>
   </a>
+  <a href="https://github.com/asgalon" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/45242704?v=4" alt="asgalon" />
+    <span class="name">asgalon</span>
+    <span class="roles">✍️</span>
+  </a>
 </div>
 ```
 
