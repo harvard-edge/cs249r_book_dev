@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>visual_debugging – ML Systems Interview Playbook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../cloud/06_advanced_systems.html" rel="next">
+<link href="../cloud/04_data_and_mlops.html" rel="prev">
+<link href="../assets/images/logo.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d9e86b441bef308f68fb49eb837b1d4d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-1e6e87d6e978751cfd1c6a75bf5f7b70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-d9e86b441bef308f68fb49eb837b1d4d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo light-content">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-interview-playbook" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Interview Playbook</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-interview-playbook">    
+        <li>
+    <a class="dropdown-item" href="../index.html"><i class="bi bi-shield-check" role="img">
+</i> 
+ <span class="dropdown-text">Playbook Hub</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../00_The_Architects_Rubric.html">
+ <span class="dropdown-text">The Architect’s Rubric</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../NUMBERS.html">
+ <span class="dropdown-text">Numbers Cheat Sheet</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../cloud/README.md">
+ <span class="dropdown-text">☁️ Cloud Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../edge/README.md">
+ <span class="dropdown-text">🤖 Edge Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../mobile/README.md">
+ <span class="dropdown-text">📱 Mobile Track</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tinyml/README.md">
+ <span class="dropdown-text">🔬 TinyML Track</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-read" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Read</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
+        <li>
+    <a class="dropdown-item" href="../book/vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: At Scale</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../book/vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume I PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+</i> 
+ <span class="dropdown-text">Volume I EPUB</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../book/vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume II PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../book/vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+</i> 
+ <span class="dropdown-text">Volume II EPUB</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-build" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Build</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
+        <li>
+    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·IM</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/"><i class="bi bi-lightbulb" role="img">
+</i> 
+ <span class="dropdown-text">Labs (Coming 2026)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-teach" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Teach</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
+        <li>
+    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+</i> 
+ <span class="dropdown-text">Instructor Hub</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/tree/dev/interviews" target="_blank"><i class="bi bi-mortarboard" role="img">
+</i> 
+ <span class="dropdown-text">Interview Prep</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-community" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Community</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-community">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+</i> 
+ <span class="dropdown-text">Newsletter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../community/"><i class="bi bi-calendar-event" role="img">
+</i> 
+ <span class="dropdown-text">Workshops &amp; Events</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+</i> 
+ <span class="dropdown-text">Outreach</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book#contributors-" target="_blank"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Contributors</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-about" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">About</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+</i> 
+ <span class="dropdown-text">Mission</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-person-lines-fill" role="img">
+</i> 
+ <span class="dropdown-text">Team</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-building" role="img">
+</i> 
+ <span class="dropdown-text">Adopters</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../about/"><i class="bi bi-newspaper" role="img">
+</i> 
+ <span class="dropdown-text">Press</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/blob/dev/LICENSE.md" target="_blank"><i class="bi bi-cc-circle" role="img">
+</i> 
+ <span class="dropdown-text">License</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../book/vol1/#subscribe"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../cloud/README.md">☁️ Cloud Track</a></li><li class="breadcrumb-item"><a href="../cloud/05_visual_debugging.html">Round 5: Visual Architecture Debugging 🖼️</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Playbook Home</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../00_The_Architects_Rubric.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Architect’s Rubric</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../NUMBERS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Numbers Cheat Sheet</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../cloud/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">☁️ Cloud Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/01_compute_and_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 1: Single-Node Systems &amp; Silicon Physics 🧱</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/02_network_and_distributed.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 2: Distributed AI Infrastructure 🚀</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/03_inference_and_serving.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 3: Production ML Systems Design ⚡</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/04_data_and_mlops.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 4: ML Operations &amp; Economics 💼</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/05_visual_debugging.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Round 5: Visual Architecture Debugging 🖼️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../cloud/06_advanced_systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 6: Advanced Systems &amp; Cross-Cutting Concerns ⚙️</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../edge/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">🤖 Edge Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/01_systems_and_real_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 1: Edge Systems &amp; Real-Time Physics 🤖</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/02_compute_and_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 2: Constraints &amp; Trade-offs ⚖️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/03_data_and_deployment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 3: Operations &amp; Deployment 🚀</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 4: Visual Architecture Debugging 🖼️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../edge/05_heterogeneous_and_advanced.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 5: Advanced Edge Systems 🔬</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../mobile/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">📱 Mobile Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/01_systems_and_soc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 1: Mobile Systems &amp; On-Device Inference 📱</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/02_compute_and_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 2: Mobile Constraints — Architecture, Precision &amp; Power ⚖️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/03_data_and_deployment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 3: Operations &amp; Deployment 🚀</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 4: Visual Architecture Debugging 🖼️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../mobile/05_advanced_systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 5: Advanced Mobile Systems 🔬</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../tinyml/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">🔬 TinyML Track</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/01_micro_architectures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 1: TinyML Systems — Inference at the Edge of Physics 🔬</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/02_compute_and_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 2: Constraints &amp; Trade-offs ⚖️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/03_data_and_deployment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 3: Operations &amp; Deployment 🚀</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/04_visual_debugging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 4: Visual Architecture Debugging 🖼️</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tinyml/05_advanced_systems.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Round 5: Advanced TinyML Systems 🔬</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#round-5-visual-architecture-debugging" id="toc-round-5-visual-architecture-debugging" class="nav-link active" data-scroll-target="#round-5-visual-architecture-debugging">Round 5: Visual Architecture Debugging 🖼️</a>
+  <ul class="collapse">
+  <li><a href="#challenge-1-the-infinite-scale-dataloader-data-pipeline" id="toc-challenge-1-the-infinite-scale-dataloader-data-pipeline" class="nav-link" data-scroll-target="#challenge-1-the-infinite-scale-dataloader-data-pipeline">🛑 Challenge 1: The “Infinite Scale” Dataloader · <code>data-pipeline</code></a>
+  <ul class="collapse">
+  <li><a href="#the-transformation-wall-cpu-starvation" id="toc-the-transformation-wall-cpu-starvation" class="nav-link" data-scroll-target="#the-transformation-wall-cpu-starvation">The Transformation Wall (CPU Starvation)</a></li>
+  </ul></li>
+  <li><a href="#challenge-2-the-cost-optimized-training-cluster-network" id="toc-challenge-2-the-cost-optimized-training-cluster-network" class="nav-link" data-scroll-target="#challenge-2-the-cost-optimized-training-cluster-network">🛑 Challenge 2: The “Cost-Optimized” Training Cluster · <code>network</code></a>
+  <ul class="collapse">
+  <li><a href="#the-communication-wall-amdahls-law" id="toc-the-communication-wall-amdahls-law" class="nav-link" data-scroll-target="#the-communication-wall-amdahls-law">The Communication Wall (Amdahl’s Law)</a></li>
+  </ul></li>
+  <li><a href="#challenge-3-the-simple-llm-serving-stack-serving-kv-cache" id="toc-challenge-3-the-simple-llm-serving-stack-serving-kv-cache" class="nav-link" data-scroll-target="#challenge-3-the-simple-llm-serving-stack-serving-kv-cache">🛑 Challenge 3: The “Simple” LLM Serving Stack · <code>serving</code> <code>kv-cache</code></a>
+  <ul class="collapse">
+  <li><a href="#the-prefill-decode-interference" id="toc-the-prefill-decode-interference" class="nav-link" data-scroll-target="#the-prefill-decode-interference">The Prefill-Decode Interference</a></li>
+  </ul></li>
+  <li><a href="#challenge-4-the-efficient-pipeline-parallelism-parallelism" id="toc-challenge-4-the-efficient-pipeline-parallelism-parallelism" class="nav-link" data-scroll-target="#challenge-4-the-efficient-pipeline-parallelism-parallelism">🛑 Challenge 4: The “Efficient” Pipeline Parallelism · <code>parallelism</code></a>
+  <ul class="collapse">
+  <li><a href="#the-pipeline-bubble" id="toc-the-pipeline-bubble" class="nav-link" data-scroll-target="#the-pipeline-bubble">The Pipeline Bubble</a></li>
+  </ul></li>
+  <li><a href="#challenge-5-the-scalable-feature-store-mlops-hardware-bottleneck" id="toc-challenge-5-the-scalable-feature-store-mlops-hardware-bottleneck" class="nav-link" data-scroll-target="#challenge-5-the-scalable-feature-store-mlops-hardware-bottleneck">🛑 Challenge 5: The “Scalable” Feature Store · <code>mlops</code> <code>hardware-bottleneck</code></a>
+  <ul class="collapse">
+  <li><a href="#the-cpu-gpu-data-transfer-bottleneck" id="toc-the-cpu-gpu-data-transfer-bottleneck" class="nav-link" data-scroll-target="#the-cpu-gpu-data-transfer-bottleneck">The CPU-GPU Data Transfer Bottleneck</a></li>
+  </ul></li>
+  <li><a href="#challenge-6-the-lossless-kv-cache-kv-cache-memory" id="toc-challenge-6-the-lossless-kv-cache-kv-cache-memory" class="nav-link" data-scroll-target="#challenge-6-the-lossless-kv-cache-kv-cache-memory">🛑 Challenge 6: The “Lossless” KV-Cache · <code>kv-cache</code> <code>memory</code></a>
+  <ul class="collapse">
+  <li><a href="#kv-cache-memory-fragmentation" id="toc-kv-cache-memory-fragmentation" class="nav-link" data-scroll-target="#kv-cache-memory-fragmentation">KV-Cache Memory Fragmentation</a></li>
+  </ul></li>
+  <li><a href="#challenge-7-the-redundant-data-parallelism-parallelism-memory" id="toc-challenge-7-the-redundant-data-parallelism-parallelism-memory" class="nav-link" data-scroll-target="#challenge-7-the-redundant-data-parallelism-parallelism-memory">🛑 Challenge 7: The “Redundant” Data Parallelism · <code>parallelism</code> <code>memory</code></a>
+  <ul class="collapse">
+  <li><a href="#the-optimizer-state-explosion" id="toc-the-optimizer-state-explosion" class="nav-link" data-scroll-target="#the-optimizer-state-explosion">The Optimizer State Explosion</a></li>
+  </ul></li>
+  <li><a href="#challenge-8-the-centralized-checkpoint-storm-fault-tolerance-storage" id="toc-challenge-8-the-centralized-checkpoint-storm-fault-tolerance-storage" class="nav-link" data-scroll-target="#challenge-8-the-centralized-checkpoint-storm-fault-tolerance-storage">🛑 Challenge 8: The “Centralized” Checkpoint Storm · <code>fault-tolerance</code> <code>storage</code></a>
+  <ul class="collapse">
+  <li><a href="#the-metadata-and-bandwidth-choke" id="toc-the-metadata-and-bandwidth-choke" class="nav-link" data-scroll-target="#the-metadata-and-bandwidth-choke">The Metadata and Bandwidth Choke</a></li>
+  </ul></li>
+  <li><a href="#challenge-9-the-disaggregated-bottleneck-serving-network" id="toc-challenge-9-the-disaggregated-bottleneck-serving-network" class="nav-link" data-scroll-target="#challenge-9-the-disaggregated-bottleneck-serving-network">🛑 Challenge 9: The “Disaggregated” Bottleneck · <code>serving</code> <code>network</code></a>
+  <ul class="collapse">
+  <li><a href="#the-kv-cache-network-transfer-wall" id="toc-the-kv-cache-network-transfer-wall" class="nav-link" data-scroll-target="#the-kv-cache-network-transfer-wall">The KV-Cache Network Transfer Wall</a></li>
+  </ul></li>
+  <li><a href="#challenge-10-the-unbalanced-moe-router-architecture-parallelism" id="toc-challenge-10-the-unbalanced-moe-router-architecture-parallelism" class="nav-link" data-scroll-target="#challenge-10-the-unbalanced-moe-router-architecture-parallelism">🛑 Challenge 10: The “Unbalanced” MoE Router · <code>architecture</code> <code>parallelism</code></a>
+  <ul class="collapse">
+  <li><a href="#the-expert-capacity-drop" id="toc-the-expert-capacity-drop" class="nav-link" data-scroll-target="#the-expert-capacity-drop">The Expert Capacity Drop</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../cloud/README.md">☁️ Cloud Track</a></li><li class="breadcrumb-item"><a href="../cloud/05_visual_debugging.html">Round 5: Visual Architecture Debugging 🖼️</a></li></ol></nav></header>
+
+
+
+
+
+<section id="round-5-visual-architecture-debugging" class="level1">
+<h1>Round 5: Visual Architecture Debugging 🖼️</h1>
+<div data-align="center">
+<p><a href="../README.md">🏠 Home</a> · <a href="../00_The_Architects_Rubric.html">📋 Rubric</a> · <a href="../cloud/01_compute_and_memory.html">🧱 1. Compute &amp; Memory</a> · <a href="../cloud/02_network_and_distributed.html">🚀 2. Network &amp; Distributed</a> · <a href="../cloud/03_inference_and_serving.html">⚡ 3. Inference &amp; Serving</a> · <a href="../cloud/04_data_and_mlops.html">💼 4. Data &amp; MLOps</a> · <a href="../cloud/05_visual_debugging.html">🖼️ 5. Visual Debugging</a> · <a href="../cloud/06_advanced_systems.html">⚙️ 6. Advanced Systems</a></p>
+</div>
+<hr>
+<p>The ultimate test of an AI Systems Engineer is not reciting formulas, but spotting the bottlenecks in a proposed architecture diagram <em>before</em> it gets built.</p>
+<p>In this round, you are presented with systems designs that look plausible on paper but violate the fundamental physics of AI computation. Each challenge follows the same structure: <strong>The Scenario</strong> sets the context, a <strong>diagram</strong> shows the proposed architecture, and <strong>The Question</strong> asks you to find the flaw. Try to answer before clicking “Reveal the Bottleneck.”</p>
+<blockquote class="blockquote">
+<p><strong><a href="https://github.com/harvard-edge/cs249r_book/edit/dev/interviews/cloud/05_visual_debugging.md">➕ Add a Visual Challenge</a></strong> (Edit in Browser) — see <a href="../README.md#question-format">README</a> for the template.</p>
+</blockquote>
+<hr>
+<section id="challenge-1-the-infinite-scale-dataloader-data-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-1-the-infinite-scale-dataloader-data-pipeline">🛑 Challenge 1: The “Infinite Scale” Dataloader · <code>data-pipeline</code></h2>
+<p><strong>The Scenario:</strong> The team is training a ResNet-50 model on a cluster of 8x H100s. To ensure the GPUs are never starved for data, the junior engineer designed this high-throughput ingestion pipeline.</p>
+<pre class="mermaid"><code>flowchart TD
+    Storage[(AWS S3
+Raw JPEG Dataset)] --&gt;|100 Gbps| CPU[CPU Host
+32 Cores]
+
+    subgraph "Data Preprocessing Loop"
+        CPU --&gt;|1. Decode JPEG| RAM[System RAM]
+        RAM --&gt;|2. Resize &amp; Crop| RAM
+        RAM --&gt;|3. Data Augmentation| RAM
+    end
+
+    RAM --&gt;|PCIe Gen5| GPU_Cluster{8x H100 GPUs
+Training Loop}
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class CPU error;</code></pre>
+<p><strong>The Question:</strong> This pipeline looks like it has plenty of bandwidth at every stage. But the GPUs are sitting at 0% utilization most of the time. One component in this diagram is the bottleneck — which one, and why?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-transformation-wall-cpu-starvation" class="level3">
+<h3 class="anchored" data-anchor-id="the-transformation-wall-cpu-starvation">The Transformation Wall (CPU Starvation)</h3>
+<p><strong>Common Mistake:</strong> “The 100 Gbps network link to S3 is the bottleneck” or “PCIe is too slow.” Both links are fast enough — the chokepoint is compute, not bandwidth.</p>
+<p>The bottleneck is the <strong>CPU Host</strong>. While the 100 Gbps network link and PCIe Gen5 bus are extremely fast, decoding and augmenting JPEGs on 32 CPU cores is painfully slow compared to the consumption rate of 8x H100s.</p>
+<p>The GPUs will finish their matrix multiplication in 5ms, and then sit completely idle (0% utilization) while waiting for the CPU to finish processing the next batch.</p>
+<p><strong>The Fix:</strong> You must bypass the CPU. Use GPU-accelerated libraries (like NVIDIA DALI) to move the JPEG decoding and augmentation directly onto the GPUs, utilizing their spare ALU capacity during the data loading phase.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a>
+</section></details>
+<hr>
+</section>
+</section>
+<section id="challenge-2-the-cost-optimized-training-cluster-network" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-2-the-cost-optimized-training-cluster-network">🛑 Challenge 2: The “Cost-Optimized” Training Cluster · <code>network</code></h2>
+<p><strong>The Scenario:</strong> A startup is trying to pre-train a 70B parameter LLM. To save money, the CTO purchased 512 cheaper GPUs without high-speed interconnects and wired them together using standard enterprise networking.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph "Rack A (256 GPUs)"
+        NodeA1[Node 1] --- SwitchA[Top of Rack Switch]
+        NodeA2[Node 2] --- SwitchA
+    end
+
+    subgraph "Rack B (256 GPUs)"
+        NodeB1[Node 3] --- SwitchB[Top of Rack Switch]
+        NodeB2[Node 4] --- SwitchB
+    end
+
+    SwitchA &lt;--&gt;|10 Gbps Ethernet| CoreSwitch((Core Switch))
+    SwitchB &lt;--&gt;|10 Gbps Ethernet| CoreSwitch
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class CoreSwitch error;</code></pre>
+<p><strong>The Question:</strong> The CTO claims this cluster will train the 70B model at 512× the speed of a single GPU. What fundamental networking constraint makes this architecture dead on arrival?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-communication-wall-amdahls-law" class="level3">
+<h3 class="anchored" data-anchor-id="the-communication-wall-amdahls-law">The Communication Wall (Amdahl’s Law)</h3>
+<p><strong>Common Mistake:</strong> “512 GPUs should give ~512× speedup with Data Parallelism” or “10 Gbps is plenty for gradient sync.” Both underestimate the volume of data that must cross the network every training step.</p>
+<p>This cluster will experience <strong>near-zero scaling efficiency</strong>. To train a 70B model using Data Parallelism, all 512 GPUs must synchronize their gradients via an AllReduce operation at the end of <em>every single training step</em>.</p>
+<p>This requires moving hundreds of gigabytes of data across the network simultaneously. The 10 Gbps Ethernet uplinks to the Core Switch will instantly choke, turning a matrix-multiplication workload into a pure network-wait workload.</p>
+<p><strong>The Fix:</strong> Training large models requires specialized topologies. You need a non-blocking Fat-Tree (Clos) topology with InfiniBand (200-400 Gbps) between racks, and NVLink (900 GB/s) within the nodes. Without high <strong>Bisection Bandwidth</strong>, adding more GPUs actively degrades throughput.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/network_architectures/network_architectures.html">Network Architectures</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-3-the-simple-llm-serving-stack-serving-kv-cache" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-3-the-simple-llm-serving-stack-serving-kv-cache">🛑 Challenge 3: The “Simple” LLM Serving Stack · <code>serving</code> <code>kv-cache</code></h2>
+<p><strong>The Scenario:</strong> The team is deploying a 70B LLM chatbot. The architect proposes a clean, straightforward serving pipeline where all requests flow through a single model pool.</p>
+<pre class="mermaid"><code>flowchart LR
+    Users([1M Users]) --&gt;|HTTPS| LB[Load Balancer]
+    LB --&gt; Pool{GPU Pool
+8x H100
+70B Model}
+    Pool --&gt;|Tokens| Users
+
+    subgraph "Request Lifecycle"
+        direction TB
+        Prefill[Prefill Phase
+Compute-Bound] --&gt; Decode[Decode Phase
+Memory-BW Bound]
+    end
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class Pool error;</code></pre>
+<p><strong>The Question:</strong> Users report that their token stream randomly freezes mid-conversation, even though the cluster isn’t at full capacity. The diagram shows two phases with fundamentally different resource profiles sharing the same hardware. What is causing the interference, and how do you isolate it?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-prefill-decode-interference" class="level3">
+<h3 class="anchored" data-anchor-id="the-prefill-decode-interference">The Prefill-Decode Interference</h3>
+<p><strong>Common Mistake:</strong> “Add more GPUs to the pool” or “Rate-limit long prompts.” More hardware doesn’t fix resource contention, and rate-limiting punishes users instead of fixing the architecture.</p>
+<p>The single GPU pool is the problem. <strong>Prefill</strong> (processing the user’s prompt) is compute-bound and monopolizes the ALUs. <strong>Decode</strong> (generating tokens one at a time) is memory-bandwidth bound and needs the HBM bus.</p>
+<p>When a user sends a long prompt, the prefill phase seizes the GPU’s compute units, causing all concurrent decode requests to stall. Users mid-conversation see their token stream freeze every time someone else sends a long prompt.</p>
+<p><strong>The Fix:</strong> Disaggregated Serving. Split Prefill and Decode onto separate GPU clusters. Prefill nodes compute the KV-Cache and transmit it over the network to dedicated Decode nodes. This isolates the two fundamentally different workload profiles.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-4-the-efficient-pipeline-parallelism-parallelism" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-4-the-efficient-pipeline-parallelism-parallelism">🛑 Challenge 4: The “Efficient” Pipeline Parallelism · <code>parallelism</code></h2>
+<p><strong>The Scenario:</strong> The team partitions a 96-layer Transformer across 8 GPUs using Pipeline Parallelism. They assign 12 layers per GPU and send one batch at a time through the pipeline.</p>
+<pre class="mermaid"><code>flowchart LR
+    Batch[Global Batch] --&gt; GPU0[GPU 0
+Layers 1-12]
+    GPU0 --&gt;|Activations| GPU1[GPU 1
+Layers 13-24]
+    GPU1 --&gt;|Activations| GPU2[GPU 2
+Layers 25-36]
+    GPU2 --&gt;|...| GPU7[GPU 7
+Layers 85-96]
+    GPU7 --&gt;|Loss| Backward[Backward Pass]
+
+    classDef idle fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+    classDef active fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class GPU0,GPU1,GPU2 idle;
+    class GPU7 active;
+    class Batch error;</code></pre>
+<p><strong>The Question:</strong> The profiler shows GPUs 0–6 are idle most of the time while GPU 7 does all the work. The team is paying for 8 GPUs but getting the throughput of 1. What is the utilization of this pipeline, and how do you fix it without changing the model or the hardware?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-pipeline-bubble" class="level3">
+<h3 class="anchored" data-anchor-id="the-pipeline-bubble">The Pipeline Bubble</h3>
+<p><strong>Common Mistake:</strong> “Switch to Data Parallelism.” DP won’t work if the model doesn’t fit on a single GPU — that’s why they used Pipeline Parallelism in the first place.</p>
+<p>With a single batch flowing through 8 stages, <strong>only 1 GPU is active at any given time</strong>. The other 7 sit completely idle, waiting for activations from the previous stage. This means your utilization is <span class="math inline">\(1/P = 1/8 = 12.5\%\)</span>. You paid for 8 GPUs but are using 1.</p>
+<p>The pipeline bubble fraction is <span class="math inline">\((P-1)/M\)</span> where <span class="math inline">\(P\)</span> is the number of stages and <span class="math inline">\(M\)</span> is the number of microbatches. With <span class="math inline">\(M=1\)</span>, the bubble is <span class="math inline">\((8-1)/1 = 87.5\%\)</span> wasted compute.</p>
+<p><strong>The Fix:</strong> Split the global batch into many microbatches (<span class="math inline">\(M \gg P\)</span>). With <span class="math inline">\(M=32\)</span> microbatches, GPU 0 processes microbatch 2 while GPU 1 processes microbatch 1. The bubble shrinks to <span class="math inline">\((8-1)/32 = 21.9\%\)</span>. Techniques like 1F1B (one forward, one backward) scheduling further reduce peak memory.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-5-the-scalable-feature-store-mlops-hardware-bottleneck" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-5-the-scalable-feature-store-mlops-hardware-bottleneck">🛑 Challenge 5: The “Scalable” Feature Store · <code>mlops</code> <code>hardware-bottleneck</code></h2>
+<p><strong>The Scenario:</strong> The ML platform team built a feature store for their real-time recommendation system. Features are computed in a batch Spark job (CPU) and served from Redis. The model runs on an NVIDIA T4 GPU. The architecture looks clean — until Black Friday.</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph "Batch Pipeline (Daily)"
+        Spark[Spark Job (CPU)] --&gt;|Write| Redis[(Redis
+Feature Cache)]
+    end
+
+    subgraph "Serving Path (Real-time)"
+        Request([User Request]) --&gt; API[Model Server (CPU)]
+        API --&gt;|Feature Lookup| Redis
+        API --&gt;|Preprocess to Tensor| CPU_RAM[CPU RAM]
+        CPU_RAM --&gt;|PCIe Transfer| GPU_VRAM[GPU VRAM]
+        GPU_VRAM --&gt;|Predict| Response([Response])
+    end
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class CPU_RAM,GPU_VRAM error;</code></pre>
+<p><strong>The Question:</strong> During the traffic spike, the model’s latency jumps from 20ms to 500ms, but the GPU utilization is only 15%. Where in this diagram is the silent killer hiding, and why does the hardware architecture cause this latency spike?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-cpu-gpu-data-transfer-bottleneck" class="level3">
+<h3 class="anchored" data-anchor-id="the-cpu-gpu-data-transfer-bottleneck">The CPU-GPU Data Transfer Bottleneck</h3>
+<p><strong>Common Mistake:</strong> “The GPU is too slow, we need to upgrade to an A10G.” The GPU is only at 15% utilization — it’s starving for data, not compute.</p>
+<p>The diagram hides a hardware-level silent killer: <strong>PCIe transfer overhead and CPU-bound preprocessing</strong>. The Spark job computes raw features, but the Model Server (running on CPU) must deserialize them from Redis, convert them into PyTorch tensors, and send them over the PCIe bus to the GPU for every single request.</p>
+<p>During a traffic spike, the CPU becomes 100% saturated doing data serialization and tensor formatting. The PCIe bus is flooded with small, unbatched memory transfers (host-to-device). The GPU spends 85% of its time waiting for the CPU to hand it the next tensor.</p>
+<p><strong>The Fix:</strong> Move the final feature preprocessing steps (like embedding lookups or tensor formatting) directly onto the GPU using NVIDIA Triton or DALI, and batch the requests on the CPU <em>before</em> the PCIe transfer so you send one large contiguous block of memory rather than thousands of tiny ones.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-6-the-lossless-kv-cache-kv-cache-memory" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-6-the-lossless-kv-cache-kv-cache-memory">🛑 Challenge 6: The “Lossless” KV-Cache · <code>kv-cache</code> <code>memory</code></h2>
+<p><strong>The Scenario:</strong> The serving team allocates VRAM for the KV-cache by reserving the maximum sequence length (8192 tokens) for every concurrent request. They have 80 GB of VRAM and the model weights take 40 GB, leaving 40 GB for the cache.</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph "80 GB VRAM"
+        Weights[Model Weights
+40 GB — Fixed]
+        subgraph "KV-Cache Allocation (40 GB)"
+            Req1[Request 1
+Reserved: 8192 tokens
+Actual: 47 tokens]
+            Req2[Request 2
+Reserved: 8192 tokens
+Actual: 2031 tokens]
+            Req3[Request 3
+Reserved: 8192 tokens
+Actual: 512 tokens]
+            Req4["Request 4
+❌ OOM — No Space"]
+        end
+    end
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    classDef waste fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+    class Req4 error;
+    class Req1,Req3 waste;</code></pre>
+<p><strong>The Question:</strong> The system has 40 GB of free VRAM but can only serve 3 concurrent requests before hitting OOM. Request 1 is using only 47 tokens. Look at the allocation pattern — what percentage of memory is being wasted, and what OS concept from the 1960s solves this?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="kv-cache-memory-fragmentation" class="level3">
+<h3 class="anchored" data-anchor-id="kv-cache-memory-fragmentation">KV-Cache Memory Fragmentation</h3>
+<p><strong>Common Mistake:</strong> “There must be a memory leak in the serving framework.” It’s not a leak — the allocation is working exactly as designed. The design itself is the problem.</p>
+<p>The system reserves 8192 tokens worth of VRAM per request regardless of actual usage. Request 1 uses only 47 tokens but holds memory for 8192 — <strong>wasting 99.4% of its allocation</strong>. After just 3 requests, the system reports OOM despite having enough physical memory for dozens of short conversations.</p>
+<p>This is the same problem that plagued early operating systems before virtual memory: contiguous allocation with massive internal fragmentation.</p>
+<p><strong>The Fix:</strong> PagedAttention (as implemented in vLLM). Instead of contiguous pre-allocation, map virtual KV-cache blocks to non-contiguous physical blocks on demand — exactly like OS virtual memory paging. This eliminates fragmentation, enabling 2-4x more concurrent requests with the same hardware.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Frameworks</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-7-the-redundant-data-parallelism-parallelism-memory" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-7-the-redundant-data-parallelism-parallelism-memory">🛑 Challenge 7: The “Redundant” Data Parallelism · <code>parallelism</code> <code>memory</code></h2>
+<p><strong>The Scenario:</strong> The team is training a 30B parameter model using standard Data Parallelism (DDP) across 4 nodes, each with 80 GB VRAM. The model weights in FP16 are 60 GB, which fits in each GPU’s memory.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph "Node 1 (80 GB VRAM)"
+        W1[Model Weights — 60 GB]
+        O1[Adam Optimizer — ???]
+        G1[Gradients — ???]
+    end
+    subgraph "Node 2 (80 GB VRAM)"
+        W2[Model Weights — 60 GB]
+        O2[Adam Optimizer — ???]
+        G2[Gradients — ???]
+    end
+    subgraph "Node 3 (80 GB VRAM)"
+        W3[Model Weights — 60 GB]
+        O3[Adam Optimizer — ???]
+        G3[Gradients — ???]
+    end
+    subgraph "Node 4 (80 GB VRAM)"
+        W4[Model Weights — 60 GB]
+        O4[Adam Optimizer — ???]
+        G4[Gradients — ???]
+    end
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class O1,O2,O3,O4 error;</code></pre>
+<p><strong>The Question:</strong> The diagram shows 60 GB of weights fitting comfortably in 80 GB of VRAM. But the system OOMs on the very first training step. The boxes marked “???” are the clue. Calculate the actual memory required per GPU, and explain why every node holds a redundant copy of the problem.</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-optimizer-state-explosion" class="level3">
+<h3 class="anchored" data-anchor-id="the-optimizer-state-explosion">The Optimizer State Explosion</h3>
+<p><strong>Common Mistake:</strong> “60 GB fits in 80 GB, so the batch size must be too large.” Batch size matters, but even with batch size 1, this system OOMs — the hidden cost is the optimizer, not the data.</p>
+<p>The diagram shows 60 GB of weights fitting in 80 GB — looks fine, right? But it hides the <strong>Optimizer State</strong>. Adam stores two additional tensors per parameter (first and second moments), each in FP32. The full memory per GPU is:</p>
+<ul>
+<li>Weights (FP16): 60 GB</li>
+<li>Gradients (FP16): 60 GB</li>
+<li>Adam moments (FP32): 120 GB (2 × 60 GB in FP32)</li>
+<li>FP32 master weights: 120 GB</li>
+</ul>
+<p><strong>Total: ~360 GB per GPU.</strong> The system OOMs instantly on step 1 — and every GPU holds an identical redundant copy of the optimizer state.</p>
+<p><strong>The Fix:</strong> ZeRO (Zero Redundancy Optimizer) or FSDP. Instead of replicating the full optimizer state on every GPU, shard it across all workers. ZeRO Stage 3 shards weights, gradients, and optimizer states, reducing per-GPU memory from 360 GB to ~90 GB across 4 nodes.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-8-the-centralized-checkpoint-storm-fault-tolerance-storage" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-8-the-centralized-checkpoint-storm-fault-tolerance-storage">🛑 Challenge 8: The “Centralized” Checkpoint Storm · <code>fault-tolerance</code> <code>storage</code></h2>
+<p><strong>The Scenario:</strong> You are training a 175B parameter model using 3D parallelism across 1,024 GPUs. To ensure no data is lost during preemptions, the infrastructure team configures synchronous checkpointing every 500 steps directly to a central enterprise NFS server.</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph "Training Cluster (1,024 GPUs)"
+        Node1[Node 1&lt;br&gt;8x H100]
+        Node2[Node 2&lt;br&gt;8x H100]
+        Node128[Node 128&lt;br&gt;8x H100]
+    end
+
+    Storage[(Enterprise NFS Server&lt;br&gt;Bandwidth: 10 GB/s)]
+
+    Node1 --&gt;|Sync Write| Storage
+    Node2 --&gt;|Sync Write| Storage
+    Node128 --&gt;|Sync Write| Storage
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class Storage error;</code></pre>
+<p><strong>The Question:</strong> The GPUs are spending 30% of their total time idle, waiting for checkpoints to finish. Looking at the diagram, why is the checkpointing taking so long, and how do you redesign this architecture to keep the GPUs computing?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-metadata-and-bandwidth-choke" class="level3">
+<h3 class="anchored" data-anchor-id="the-metadata-and-bandwidth-choke">The Metadata and Bandwidth Choke</h3>
+<p><strong>Common Mistake:</strong> “The NFS server just needs a 100 GB/s link.” Bandwidth is a problem, but upgrading the link won’t solve the metadata storm of thousands of concurrent file handles.</p>
+<p>A 175B model requires saving roughly 2.8 TB of state (weights, gradients, optimizer moments in FP32). When 128 nodes simultaneously open files and push data to a single NFS server, two things happen: 1. <strong>Bandwidth limitation:</strong> 2.8 TB / 10 GB/s = 280 seconds (nearly 5 minutes) of pure transfer time per checkpoint. 2. <strong>The Metadata Storm:</strong> 1,024 GPUs simultaneously requesting file handles and inode locks overwhelms the NFS master node’s single-threaded metadata manager, causing severe timeouts and stragglers.</p>
+<p><strong>The Fix:</strong> Implement <strong>Asynchronous, Two-Tier Checkpointing</strong>. 1. Have each node write its checkpoint shard synchronously to its <em>local</em> NVMe SSD (typically 3-7 GB/s per node). 128 nodes × 3 GB/s = 384 GB/s aggregate bandwidth. The 2.8 TB checkpoint writes locally in under <strong>10 seconds</strong>. 2. Once written to local NVMe, the GPUs immediately resume training. 3. A background CPU process slowly uploads the local SSD checkpoints to the central object storage without blocking the GPUs.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/fault_tolerance/fault_tolerance.html">Volume II: Fault Tolerance</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-9-the-disaggregated-bottleneck-serving-network" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-9-the-disaggregated-bottleneck-serving-network">🛑 Challenge 9: The “Disaggregated” Bottleneck · <code>serving</code> <code>network</code></h2>
+<p><strong>The Scenario:</strong> To solve prefill-decode interference, the team implements Disaggregated Serving for their 70B model. Prefill nodes process the prompts and send the computed KV-cache over the network to Decode nodes for token generation.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph "Prefill Tier"
+        GPU_P[H100 GPU&lt;br&gt;Processes Prompt]
+        RAM_P[Host RAM]
+    end
+
+    subgraph "Decode Tier"
+        GPU_D[H100 GPU&lt;br&gt;Generates Tokens]
+        RAM_D[Host RAM]
+    end
+
+    GPU_P --&gt;|PCIe Gen5| RAM_P
+    RAM_P --&gt;|10 GbE Network| RAM_D
+    RAM_D --&gt;|PCIe Gen5| GPU_D
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class RAM_P,RAM_D error;
+    style RAM_P stroke:#d32f2f,stroke-width:2px</code></pre>
+<p><strong>The Question:</strong> The prefill nodes are processing 32k-token prompts perfectly, but the decode nodes are stalling for seconds before they can start generating the first token. What is the physical bottleneck in this transfer architecture?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-kv-cache-network-transfer-wall" class="level3">
+<h3 class="anchored" data-anchor-id="the-kv-cache-network-transfer-wall">The KV-Cache Network Transfer Wall</h3>
+<p><strong>Common Mistake:</strong> “Disaggregated serving is always faster because it isolates compute from memory bandwidth.” This assumes the transfer of the intermediate state (the KV-cache) is free.</p>
+<p>The bottleneck is the <strong>10 GbE (Gigabit Ethernet) Network</strong> and the <strong>Host RAM bounce</strong>. For a 70B model with a 32,000 token prompt, the KV-cache is massive. At 128 head dimension, 64 layers, and FP16, the KV-cache for 32k tokens is roughly <strong>8.4 GB per request</strong>.</p>
+<p>A 10 GbE network provides a theoretical maximum of 1.25 GB/s. Transferring an 8.4 GB KV-cache for a single user takes <strong>~7 seconds</strong> of pure network transmission time. The user experiences a 7-second Time-To-First-Token (TTFT) stall entirely due to network transfer. Furthermore, copying data through Host RAM adds PCIe contention and CPU overhead.</p>
+<p><strong>The Fix:</strong> Disaggregated serving requires data-center scale networking. You must upgrade the inter-tier links to 200 Gbps or 400 Gbps InfiniBand/RoCE (giving 25-50 GB/s), which reduces the transfer time from 7 seconds to under 200 milliseconds. Additionally, you must bypass the CPU RAM entirely by using <strong>GPUDirect RDMA</strong> to transfer the KV-cache directly from the Prefill GPU’s HBM to the Decode GPU’s HBM.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume II: Model Serving</a>
+</section></details>
+<hr>
+</section>
+
+<section id="challenge-10-the-unbalanced-moe-router-architecture-parallelism" class="level2">
+<h2 class="anchored" data-anchor-id="challenge-10-the-unbalanced-moe-router-architecture-parallelism">🛑 Challenge 10: The “Unbalanced” MoE Router · <code>architecture</code> <code>parallelism</code></h2>
+<p><strong>The Scenario:</strong> You deploy a Mixture-of-Experts (MoE) model with 8 experts distributed across 8 GPUs. A router network assigns each token to the single best expert. During a highly specialized coding task, the pipeline grinds to a halt.</p>
+<pre class="mermaid"><code>flowchart TD
+    Tokens[Batch of Tokens] --&gt; Router[MoE Router]
+    Router --&gt;|3%| E1[Expert 1 GPU]
+    Router --&gt;|90%| E2[Expert 2 GPU&lt;br&gt;Code/Logic]
+    Router --&gt;|2%| E3[Expert 3 GPU]
+    Router --&gt;|...| EN[Other Experts]
+
+    classDef error fill:#ffe0e0,stroke:#d32f2f,stroke-width:2px;
+    class E2 error;</code></pre>
+<p><strong>The Question:</strong> The diagram shows the token distribution during this specific task. Why does this distribution cause the entire 8-GPU cluster to run at 12.5% utilization?</p>
+<details>
+<summary>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+</summary>
+<section id="the-expert-capacity-drop" class="level3">
+<h3 class="anchored" data-anchor-id="the-expert-capacity-drop">The Expert Capacity Drop</h3>
+<p><strong>Common Mistake:</strong> “Just add more GPUs for Expert 2.” You can’t dynamically clone model weights to new GPUs at the microsecond timescale of a forward pass without massive overhead.</p>
+<p>MoE models rely on the assumption that tokens will be roughly evenly distributed across experts. Because standard neural networks operate on fixed-size tensors, the framework pre-allocates a fixed <strong>Expert Capacity</strong> (e.g., maximum N tokens per expert per batch).</p>
+<p>When 90% of the tokens are routed to Expert 2 (which often happens when prompts are highly domain-specific, like pure code or math): 1. Expert 2 hits its capacity limit and either <strong>drops tokens</strong> (destroying generation quality) or forces the system to serialize execution (destroying throughput). 2. The other 7 GPUs sit completely idle, waiting for Expert 2 to finish its massive workload before the pipeline can proceed to the next layer.</p>
+<p><strong>The Fix:</strong> Implement <strong>Capacity Routing with Token Dropping / Auxiliary Loss</strong>, and <strong>Expert Replication</strong>. Train the model with a load-balancing auxiliary loss to penalize the router for sending too many tokens to one expert. In deployment, if certain experts are known to be consistently “hot” (like a coding expert), replicate that specific expert’s weights across multiple GPUs, or use <strong>Expert Parallelism</strong> paired with Tensor Parallelism to distribute the hot expert’s compute.</p>
+<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/distributed_training/distributed_training.html">Volume II: Distributed Training</a>
+</section></details>
+
+
+</section>
+
+
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/interviews\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../cloud/04_data_and_mlops.html" class="pagination-link" aria-label="Round 4: ML Operations &amp; Economics 💼">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Round 4: ML Operations &amp; Economics 💼</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../cloud/06_advanced_systems.html" class="pagination-link" aria-label="Round 6: Advanced Systems &amp; Cross-Cutting Concerns ⚙️">
+        <span class="nav-page-text">Round 6: Advanced Systems &amp; Cross-Cutting Concerns ⚙️</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+<p>Part of the <a href="https://mlsysbook.ai">Machine Learning Systems</a> textbook</p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
