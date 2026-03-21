@@ -772,137 +772,424 @@ window.Quarto = {
 <hr>
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Transformation Wall</b> · <code>data-pipeline</code>
 </summary>
 <section id="the-transformation-wall-cpu-starvation" class="level3">
 <h3 class="anchored" data-anchor-id="the-transformation-wall-cpu-starvation">The Transformation Wall (CPU Starvation)</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef memory fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef storage fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    S3[("S3 Object Storage&lt;br/&gt;(Training Data)")]:::storage
+    Net{"100 Gbps&lt;br/&gt;Network"}
+    CPU["CPU HOST&lt;br/&gt;(32 Cores Saturated)"]:::bottleneck
+    PCIe{"PCIe Gen5&lt;br/&gt;(64 GB/s)"}
+    GPU["8x H100 Cluster&lt;br/&gt;(Waiting for Data)"]:::compute
+
+    S3 --&gt; Net
+    Net --&gt; CPU
+    CPU --&gt;|Bottleneck: JPEG Decode| PCIe
+    PCIe --&gt;|Starvation: 0% Util| GPU</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are training a vision model on high-resolution medical images. <code>nvidia-smi</code> shows GPU utilization fluctuating violently between 0% and 100%. Based on the diagram above, what is the most likely bottleneck?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The 100 Gbps network link to S3 is the bottleneck” or “PCIe is too slow.” Both links are fast enough — the chokepoint is compute, not bandwidth.</p>
-<p>The bottleneck is the <strong>CPU Host</strong>. While the 100 Gbps network link and PCIe Gen5 bus are extremely fast, decoding and augmenting JPEGs on 32 CPU cores is painfully slow compared to the consumption rate of 8x H100s.</p>
-<p>The GPUs will finish their matrix multiplication in 5ms, and then sit completely idle (0% utilization) while waiting for the CPU to finish processing the next batch.</p>
-<p><strong>The Fix:</strong> You must bypass the CPU. Use GPU-accelerated libraries (like NVIDIA DALI) to move the JPEG decoding and augmentation directly onto the GPUs, utilizing their spare ALU capacity during the data loading phase.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a>
+<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>CPU Host</strong>. While the 100 Gbps network link and PCIe Gen5 bus are extremely fast, decoding and augmenting JPEGs on 32 CPU cores is painfully slow compared to the consumption rate of 8x H100s. The GPUs will finish their matrix multiplication in 5ms, and then sit completely idle (0% utilization) while waiting for the CPU to finish processing the next batch. You must bypass the CPU. Use GPU-accelerated libraries (like NVIDIA DALI) to move the JPEG decoding and augmentation directly onto the GPUs, utilizing their spare ALU capacity during the data loading phase.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> An H100 processes a ResNet-50 forward pass in ~2ms. JPEG decoding + augmentation on CPU takes ~30ms per image. With a batch of 64 images and 8 CPU workers, preprocessing takes (64 * 30ms) / 8 = 240ms. The GPU finishes in 2ms and waits 238ms (99% idle time).</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a></p>
+</details></li>
+</ul>
 </section></details>
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Optimizer Explosion</b> · <code>training</code> <code>memory</code>
 </summary>
 </details></section>
 <section id="the-optimizer-state-explosion" class="level3">
 <h3 class="anchored" data-anchor-id="the-optimizer-state-explosion">The Optimizer State Explosion</h3>
-<p><strong>Common Mistake:</strong> “60 GB fits in 80 GB, so the batch size must be too large.” Batch size matters, but even with batch size 1, this system OOMs — the hidden cost is the optimizer, not the data.</p>
-<p>The diagram shows 60 GB of weights fitting in 80 GB — looks fine, right? But it hides the <strong>Optimizer State</strong>. Adam stores two additional tensors per parameter (first and second moments), each in FP32. The full memory per GPU is:</p>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef memory fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "GPU Memory (80GB VRAM)"
+        direction TB
+        Weights["Weights (FP16)&lt;br/&gt;60 GB"]:::memory
+        Gradients["Gradients (FP16)&lt;br/&gt;60 GB"]:::memory
+        subgraph "Hidden Optimizer State (Adam)"
+            direction LR
+            M1["Moment 1 (FP32)&lt;br/&gt;120 GB"]:::bottleneck
+            M2["Moment 2 (FP32)&lt;br/&gt;120 GB"]:::bottleneck
+        end
+        Master["Master Weights (FP32)&lt;br/&gt;120 GB"]:::bottleneck
+    end
+
+    Total["Total Demand: 480 GB"] -- "OOM 🔥" --&gt; GPU["H100 (80GB)"]</code></pre>
 <ul>
-<li>Weights (FP16): 60 GB</li>
-<li>Gradients (FP16): 60 GB</li>
-<li>Adam moments (FP32): 120 GB (2 × 60 GB in FP32)</li>
-<li>FP32 master weights: 120 GB</li>
+<li><p><strong>Interviewer:</strong> “You are training a 30B parameter model. You calculate that the weights only take up 60 GB, which fits easily into an 80 GB H100. However, the system OOMs (Out-of-Memory) instantly on the first step. Based on the diagram, what is the hidden memory tax you missed?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “60 GB fits in 80 GB, so the batch size must be too large.” Batch size matters, but even with batch size 1, this system OOMs — the hidden cost is the optimizer, not the data.</p>
+<p><strong>Realistic Solution:</strong> The system OOMs because of the <strong>Optimizer State</strong>. Adam stores two additional tensors per parameter (first and second moments), plus master weights, all in FP32. ZeRO (Zero Redundancy Optimizer) or FSDP is the fix. Instead of replicating the full optimizer state on every GPU, shard it across all workers. ZeRO Stage 3 shards weights, gradients, and optimizer states, reducing per-GPU memory from 480 GB to ~120 GB across 4 nodes.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> For a 30B parameter model: Weights (FP16) = 60 GB. Gradients (FP16) = 60 GB. Adam moments (FP32) = 240 GB (2 × 120 GB). Master weights (FP32) = 120 GB. Total: 480 GB per GPU.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a></p>
+</details></li>
 </ul>
-<p><strong>Total: ~360 GB per GPU.</strong> The system OOMs instantly on step 1 — and every GPU holds an identical redundant copy of the optimizer state.</p>
-<p><strong>The Fix:</strong> ZeRO (Zero Redundancy Optimizer) or FSDP. Instead of replicating the full optimizer state on every GPU, shard it across all workers. ZeRO Stage 3 shards weights, gradients, and optimizer states, reducing per-GPU memory from 360 GB to ~90 GB across 4 nodes.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Communication Wall</b> · <code>network</code> <code>training</code>
 </summary>
 </details></section>
 <section id="the-communication-wall-amdahls-law" class="level3">
 <h3 class="anchored" data-anchor-id="the-communication-wall-amdahls-law">The Communication Wall (Amdahl’s Law)</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef network fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Rack 1 (64 GPUs)"
+        G1["Data Parallel&lt;br/&gt;Gradients"]:::compute
+    end
+    subgraph "Rack 2 (64 GPUs)"
+        G2["Data Parallel&lt;br/&gt;Gradients"]:::compute
+    end
+
+    Switch["Core Switch"]:::network
+    Link1["10 GbE Link"]:::bottleneck
+    Link2["10 GbE Link"]:::bottleneck
+
+    G1 &lt;--&gt; Link1 &lt;--&gt; Switch
+    G2 &lt;--&gt; Link2 &lt;--&gt; Switch
+
+    Note["🚨 70B Model AllReduce&lt;br/&gt;140GB per step over 1.25GB/s link&lt;br/&gt;Wait time: 112 seconds per step"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “We have a 512-GPU cluster connected via 10 Gbps Ethernet. We are training a 70B parameter model using standard Data Parallelism. Despite having 512 GPUs, our training speed is barely faster than a single machine. Based on the network diagram, why has our scaling efficiency collapsed?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “512 GPUs should give ~512× speedup with Data Parallelism” or “10 Gbps is plenty for gradient sync.” Both underestimate the volume of data that must cross the network every training step.</p>
-<p>This cluster will experience <strong>near-zero scaling efficiency</strong>. To train a 70B model using Data Parallelism, all 512 GPUs must synchronize their gradients via an AllReduce operation at the end of <em>every single training step</em>.</p>
-<p>This requires moving hundreds of gigabytes of data across the network simultaneously. The 10 Gbps Ethernet uplinks to the Core Switch will instantly choke, turning a matrix-multiplication workload into a pure network-wait workload.</p>
-<p><strong>The Fix:</strong> Training large models requires specialized topologies. You need a non-blocking Fat-Tree (Clos) topology with InfiniBand (200-400 Gbps) between racks, and NVLink (900 GB/s) within the nodes. Without high <strong>Bisection Bandwidth</strong>, adding more GPUs actively degrades throughput.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/network_architectures/network_architectures.html">Network Architectures</a>
+<p><strong>Realistic Solution:</strong> This cluster will experience <strong>near-zero scaling efficiency</strong>. To train a 70B model using Data Parallelism, all 512 GPUs must synchronize their gradients via an AllReduce operation at the end of <em>every single training step</em>. This requires moving hundreds of gigabytes of data across the network simultaneously. The 10 Gbps Ethernet uplinks to the Core Switch will instantly choke, turning a matrix-multiplication workload into a pure network-wait workload. Training large models requires specialized topologies like a non-blocking Fat-Tree (Clos) with InfiniBand (200-400 Gbps) and NVLink (900 GB/s) within nodes.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> A 70B model has ~140 GB of gradients (FP16). Over a 10 Gbps (1.25 GB/s) link, a single AllReduce sync would take ~112 seconds. If your forward/backward pass takes 2 seconds, you spend 98% of your time waiting for the network.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/network_architectures/network_architectures.html">Network Architectures</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Pipeline Bubble</b> · <code>training</code> <code>parallelism</code>
 </summary>
 </details></section>
 <section id="the-pipeline-bubble" class="level3">
 <h3 class="anchored" data-anchor-id="the-pipeline-bubble">The Pipeline Bubble</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef active fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef idle fill:#f3f4f6,stroke:#94a3b8,stroke-width:1px,color:#64748b
+    classDef bubble fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Time T=1"
+        G1_1["GPU 0: Stage 1&lt;br/&gt;(COMPUTING)"]:::active
+        G2_1["GPU 1: Stage 2&lt;br/&gt;(IDLE)"]:::idle
+        G3_1["GPU 2: Stage 3&lt;br/&gt;(IDLE)"]:::idle
+    end
+
+    subgraph "Time T=2"
+        G1_2["GPU 0: Stage 1&lt;br/&gt;(IDLE)"]:::bubble
+        G2_2["GPU 1: Stage 2&lt;br/&gt;(COMPUTING)"]:::active
+        G3_2["GPU 2: Stage 3&lt;br/&gt;(IDLE)"]:::idle
+    end
+
+    subgraph "Time T=3"
+        G1_3["GPU 0: Stage 1&lt;br/&gt;(IDLE)"]:::bubble
+        G2_3["GPU 1: Stage 2&lt;br/&gt;(IDLE)"]:::bubble
+        G3_3["GPU 2: Stage 3&lt;br/&gt;(COMPUTING)"]:::active
+    end
+
+    G1_1 -- "Activation" --&gt; G2_2
+    G2_2 -- "Activation" --&gt; G3_3</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are using Pipeline Parallelism across 8 GPUs to train a large model. However, you notice your total TFLOPS utilization is only ~12%. Based on the timing diagram, what is the architectural flaw causing this low occupancy?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “Switch to Data Parallelism.” DP won’t work if the model doesn’t fit on a single GPU — that’s why they used Pipeline Parallelism in the first place.</p>
-<p>With a single batch flowing through 8 stages, <strong>only 1 GPU is active at any given time</strong>. The other 7 sit completely idle, waiting for activations from the previous stage. This means your utilization is <span class="math inline">\(1/P = 1/8 = 12.5\%\)</span>. You paid for 8 GPUs but are using 1.</p>
-<p>The pipeline bubble fraction is <span class="math inline">\((P-1)/M\)</span> where <span class="math inline">\(P\)</span> is the number of stages and <span class="math inline">\(M\)</span> is the number of microbatches. With <span class="math inline">\(M=1\)</span>, the bubble is <span class="math inline">\((8-1)/1 = 87.5\%\)</span> wasted compute.</p>
-<p><strong>The Fix:</strong> Split the global batch into many microbatches (<span class="math inline">\(M \gg P\)</span>). With <span class="math inline">\(M=32\)</span> microbatches, GPU 0 processes microbatch 2 while GPU 1 processes microbatch 1. The bubble shrinks to <span class="math inline">\((8-1)/32 = 21.9\%\)</span>. Techniques like 1F1B (one forward, one backward) scheduling further reduce peak memory.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a>
+<p><strong>Realistic Solution:</strong> With a single batch flowing through 8 stages, <strong>only 1 GPU is active at any given time</strong>. The other 7 sit completely idle, waiting for activations from the previous stage. The fix is to split the global batch into many microbatches (<span class="math inline">\(M \gg P\)</span>). With <span class="math inline">\(M=32\)</span> microbatches, GPU 0 processes microbatch 2 while GPU 1 processes microbatch 1, filling the bubbles.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> The pipeline bubble fraction is <span class="math inline">\((P-1)/M\)</span> where <span class="math inline">\(P\)</span> is stages and <span class="math inline">\(M\)</span> is microbatches. With <span class="math inline">\(M=1\)</span>, the bubble is <span class="math inline">\((8-1)/1 = 87.5\%\)</span> wasted compute. With <span class="math inline">\(M=32\)</span>, the bubble shrinks to <span class="math inline">\((8-1)/32 = 21.9\%\)</span>.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Memory Copy Wall</b> · <code>data-pipeline</code> <code>serving</code>
 </summary>
 </details></section>
 <section id="the-cpu-gpu-data-transfer-bottleneck" class="level3">
 <h3 class="anchored" data-anchor-id="the-cpu-gpu-data-transfer-bottleneck">The CPU-GPU Data Transfer Bottleneck</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef memory fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    Redis[("Redis&lt;br/&gt;(Raw Features)")]:::memory
+    CPU["Model Server (CPU)&lt;br/&gt;(Busy: Serialization)"]:::bottleneck
+    Bus["PCIe Gen4 x16&lt;br/&gt;(Overhead: Tiny Transfers)"]:::bottleneck
+    GPU["A100 GPU&lt;br/&gt;(Idle: Waiting for Tensors)"]:::compute
+
+    Redis --&gt;|Fetch| CPU
+    CPU --&gt;|Host-to-Device| Bus
+    Bus --&gt;|15% GPU Util| GPU</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are deploying a recommendation model. Your A100 GPU utilization is stuck at 15% during peak traffic. You check your code and find that the CPU is busy serializing features from Redis before sending them to the GPU. Based on the diagram, what is the ‘silent killer’ limiting your throughput?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The GPU is too slow, we need to upgrade to an A10G.” The GPU is only at 15% utilization — it’s starving for data, not compute.</p>
-<p>The diagram hides a hardware-level silent killer: <strong>PCIe transfer overhead and CPU-bound preprocessing</strong>. The Spark job computes raw features, but the Model Server (running on CPU) must deserialize them from Redis, convert them into PyTorch tensors, and send them over the PCIe bus to the GPU for every single request.</p>
-<p>During a traffic spike, the CPU becomes 100% saturated doing data serialization and tensor formatting. The PCIe bus is flooded with small, unbatched memory transfers (host-to-device). The GPU spends 85% of its time waiting for the CPU to hand it the next tensor.</p>
-<p><strong>The Fix:</strong> Move the final feature preprocessing steps (like embedding lookups or tensor formatting) directly onto the GPU using NVIDIA Triton or DALI, and batch the requests on the CPU <em>before</em> the PCIe transfer so you send one large contiguous block of memory rather than thousands of tiny ones.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a>
+<p><strong>Realistic Solution:</strong> The bottleneck is <strong>PCIe transfer overhead and CPU-bound preprocessing</strong>. During traffic spikes, the CPU becomes 100% saturated doing data serialization and tensor formatting. The PCIe bus is flooded with small, unbatched memory transfers. You must move feature preprocessing (embedding lookups, formatting) directly onto the GPU using NVIDIA Triton or DALI, and batch requests on the CPU <em>before</em> the PCIe transfer to send large contiguous blocks.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> PCIe Gen4 x16 provides ~31.5 GB/s. A 1080p frame is ~6 MB. At 30 FPS, that’s only 180 MB/s. The ‘Wall’ isn’t bandwidth; it’s the latency of thousands of small <code>cudaMemcpy</code> calls.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Resource Contention Stutter</b> · <code>serving</code> <code>latency</code>
 </summary>
 </details></section>
 <section id="the-prefill-decode-interference" class="level3">
 <h3 class="anchored" data-anchor-id="the-prefill-decode-interference">The Prefill-Decode Interference</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    User1["User A: (Long Prompt)"]
+    User2["User B: (Generating...)"]
+
+    subgraph "Single GPU Pool"
+        H100["H100 GPU ALUs"]:::bottleneck
+        Prefill["Prefill Task&lt;br/&gt;(Compute-Bound)"]:::bottleneck
+        Decode["Decode Task&lt;br/&gt;(Wait: Resource Locked)"]:::bottleneck
+    end
+
+    User1 --&gt; Prefill
+    User2 -.-&gt; Decode
+    Prefill -- "Locks ALUs" --&gt; H100
+    Decode -- "STALLED" --&gt; User2</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Users of your LLM service complain that generation intermittently freezes for several seconds. You notice this happens whenever a new user submits a very long prompt. Based on the diagram, why can’t your GPUs handle both tasks simultaneously?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “Add more GPUs to the pool” or “Rate-limit long prompts.” More hardware doesn’t fix resource contention, and rate-limiting punishes users instead of fixing the architecture.</p>
-<p>The single GPU pool is the problem. <strong>Prefill</strong> (processing the user’s prompt) is compute-bound and monopolizes the ALUs. <strong>Decode</strong> (generating tokens one at a time) is memory-bandwidth bound and needs the HBM bus.</p>
-<p>When a user sends a long prompt, the prefill phase seizes the GPU’s compute units, causing all concurrent decode requests to stall. Users mid-conversation see their token stream freeze every time someone else sends a long prompt.</p>
-<p><strong>The Fix:</strong> Disaggregated Serving. Split Prefill and Decode onto separate GPU clusters. Prefill nodes compute the KV-Cache and transmit it over the network to dedicated Decode nodes. This isolates the two fundamentally different workload profiles.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a>
+<p><strong>Realistic Solution:</strong> The single GPU pool is the problem. <strong>Prefill</strong> is compute-bound and monopolizes the ALUs, while <strong>Decode</strong> is memory-bandwidth bound. When a long prompt arrives, prefill seizes the compute units, causing concurrent decode requests to stall. The fix is <strong>Disaggregated Serving</strong>: split Prefill and Decode onto separate GPU clusters to isolate these different workload profiles.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Prefill compute scales with <span class="math inline">\(O(N^2)\)</span>, Decode with <span class="math inline">\(O(N)\)</span>. A 4k token prefill can take 200ms, during which 10 decode tokens <em>should</em> have been generated. The freeze is the cost of compute-lock.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Memory Swiss Cheese</b> · <code>serving</code> <code>memory</code>
 </summary>
 </details></section>
 <section id="kv-cache-memory-fragmentation" class="level3">
 <h3 class="anchored" data-anchor-id="kv-cache-memory-fragmentation">KV-Cache Memory Fragmentation</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef used fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef wasted fill:#fee2e2,stroke:#dc2626,stroke-width:1px,color:#991b1b
+    classDef empty fill:#f3f4f6,stroke:#94a3b8,stroke-width:1px,color:#64748b
+
+    subgraph "VRAM (Fixed Alloc: 8192 Tokens/Req)"
+        R1_Used["Req 1: Used&lt;br/&gt;(47 tokens)"]:::used
+        R1_Waste["Req 1: WASTED&lt;br/&gt;(8145 tokens)"]:::wasted
+
+        R2_Used["Req 2: Used&lt;br/&gt;(120 tokens)"]:::used
+        R2_Waste["Req 2: WASTED&lt;br/&gt;(8072 tokens)"]:::wasted
+
+        R3_Used["Req 3: Used&lt;br/&gt;(10 tokens)"]:::used
+        R3_Waste["Req 3: WASTED&lt;br/&gt;(8182 tokens)"]:::wasted
+
+        OOM["OUT OF MEMORY"]:::wasted
+    end
+
+    R1_Used --- R1_Waste
+    R1_Waste --- R2_Used
+    R2_Used --- R2_Waste
+    R2_Waste --- R3_Used
+    R3_Used --- R3_Waste
+    R3_Waste --- OOM</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your LLM serving system reports ‘Out of Memory’ after serving only 3 concurrent users, even though each user has only generated a few dozen tokens. Based on the memory map, why is your VRAM already exhausted?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “There must be a memory leak in the serving framework.” It’s not a leak — the allocation is working exactly as designed. The design itself is the problem.</p>
-<p>The system reserves 8192 tokens worth of VRAM per request regardless of actual usage. Request 1 uses only 47 tokens but holds memory for 8192 — <strong>wasting 99.4% of its allocation</strong>. After just 3 requests, the system reports OOM despite having enough physical memory for dozens of short conversations.</p>
-<p>This is the same problem that plagued early operating systems before virtual memory: contiguous allocation with massive internal fragmentation.</p>
-<p><strong>The Fix:</strong> PagedAttention (as implemented in vLLM). Instead of contiguous pre-allocation, map virtual KV-cache blocks to non-contiguous physical blocks on demand — exactly like OS virtual memory paging. This eliminates fragmentation, enabling 2-4x more concurrent requests with the same hardware.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Frameworks</a>
+<p><strong>Realistic Solution:</strong> The system uses contiguous pre-allocation, reserving 8192 tokens worth of VRAM per request regardless of usage. Request 1 uses only 47 tokens but holds memory for 8192, <strong>wasting 99.4% of its allocation</strong>. This is internal fragmentation. The fix is <strong>PagedAttention</strong>: map virtual KV-cache blocks to non-contiguous physical blocks on demand, exactly like OS virtual memory paging.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> With FP16 and GQA, 8192 tokens take ~2GB. If you have 80GB VRAM, you <em>should</em> fit 40 users. But if you pre-allocate contiguous blocks and users only use 50 tokens, you still hit OOM at user 40 despite only using 0.5% of the capacity.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Frameworks</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Checkpoint Traffic Jam</b> · <code>storage</code> <code>training</code>
 </summary>
 </details></section>
 <section id="the-metadata-and-bandwidth-choke" class="level3">
 <h3 class="anchored" data-anchor-id="the-metadata-and-bandwidth-choke">The Metadata and Bandwidth Choke</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "1,024 GPU Fleet"
+        G1["GPU 0"]:::compute
+        G2["GPU 1"]:::compute
+        GN["GPU 1023"]:::compute
+    end
+
+    subgraph "Storage Choke"
+        NFS["Central NFS Server&lt;br/&gt;(10 GB/s)"]:::bottleneck
+        Meta["Metadata Manager&lt;br/&gt;(Single Threaded)"]:::bottleneck
+    end
+
+    G1 --&gt;|Write| Meta
+    G2 --&gt;|Write| Meta
+    GN --&gt;|Write| Meta
+    Meta --&gt;|Lock/Open| NFS
+
+    Note["🚨 2.8 TB Checkpoint&lt;br/&gt;1,024 concurrent file handles&lt;br/&gt;Transfer time: 280s (at max BW)"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Every time your 1,024-GPU cluster attempts to save a checkpoint to the central NFS, the system hangs for 10 minutes and often triggers ‘File Timeout’ errors. Based on the storage diagram, what two physical bottlenecks are you hitting?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The NFS server just needs a 100 GB/s link.” Bandwidth is a problem, but upgrading the link won’t solve the metadata storm of thousands of concurrent file handles.</p>
-<p>A 175B model requires saving roughly 2.8 TB of state (weights, gradients, optimizer moments in FP32). When 128 nodes simultaneously open files and push data to a single NFS server, two things happen: 1. <strong>Bandwidth limitation:</strong> 2.8 TB / 10 GB/s = 280 seconds (nearly 5 minutes) of pure transfer time per checkpoint. 2. <strong>The Metadata Storm:</strong> 1,024 GPUs simultaneously requesting file handles and inode locks overwhelms the NFS master node’s single-threaded metadata manager, causing severe timeouts and stragglers.</p>
-<p><strong>The Fix:</strong> Implement <strong>Asynchronous, Two-Tier Checkpointing</strong>. 1. Have each node write its checkpoint shard synchronously to its <em>local</em> NVMe SSD (typically 3-7 GB/s per node). 128 nodes × 3 GB/s = 384 GB/s aggregate bandwidth. The 2.8 TB checkpoint writes locally in under <strong>10 seconds</strong>. 2. Once written to local NVMe, the GPUs immediately resume training. 3. A background CPU process slowly uploads the local SSD checkpoints to the central object storage without blocking the GPUs.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/fault_tolerance/fault_tolerance.html">Volume II: Fault Tolerance</a>
+<p><strong>Realistic Solution:</strong> You are hitting both a <strong>Bandwidth Wall</strong> and a <strong>Metadata Storm</strong>. 2.8 TB over 10 GB/s takes ~280s just for data transfer. Simultaneously, 1,024 GPUs requesting inode locks overwhelms the single-threaded metadata manager. The fix is <strong>Asynchronous, Two-Tier Checkpointing</strong>: write shards to <em>local</em> NVMe SSDs first (taking &lt;10s), then have a background process trickle them to central storage.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 1,024 nodes × 3 GB/s (local NVMe) = 3,072 GB/s aggregate bandwidth. A 2.8 TB checkpoint writes locally in ~1 second. Compare this to the 280 seconds over the shared NFS.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/fault_tolerance/fault_tolerance.html">Volume II: Fault Tolerance</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Expert Bottleneck</b> · <code>training</code> <code>parallelism</code>
 </summary>
 </details></section>
 <section id="the-expert-capacity-drop" class="level3">
 <h3 class="anchored" data-anchor-id="the-expert-capacity-drop">The Expert Capacity Drop</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef idle fill:#f3f4f6,stroke:#94a3b8,stroke-width:1px,color:#64748b
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    Router["MoE Router"]
+
+    subgraph "GPU Cluster (Experts)"
+        G1["GPU 0: Expert 1&lt;br/&gt;(IDLE)"]:::idle
+        G2["GPU 1: Expert 2&lt;br/&gt;(OVERLOADED)"]:::bottleneck
+        G3["GPU 2: Expert 3&lt;br/&gt;(IDLE)"]:::idle
+    end
+
+    Router --&gt;|10% Tokens| G1
+    Router --&gt;|90% Tokens| G2
+    Router --&gt;|0% Tokens| G3
+
+    Note["🚨 Skewed Routing (e.g. Pure Code Prompt)&lt;br/&gt;Expert 2 hits Capacity Limit&lt;br/&gt;System serializes → 12.5% Util"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are training a Mixture-of-Experts (MoE) model. During a fine-tuning run on Python code, you notice your training throughput drops by 8x. Based on the router diagram, what is causing the massive compute starvation on the other GPUs?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “Just add more GPUs for Expert 2.” You can’t dynamically clone model weights to new GPUs at the microsecond timescale of a forward pass without massive overhead.</p>
-<p>MoE models rely on the assumption that tokens will be roughly evenly distributed across experts. Because standard neural networks operate on fixed-size tensors, the framework pre-allocates a fixed <strong>Expert Capacity</strong> (e.g., maximum N tokens per expert per batch).</p>
-<p>When 90% of the tokens are routed to Expert 2 (which often happens when prompts are highly domain-specific, like pure code or math): 1. Expert 2 hits its capacity limit and either <strong>drops tokens</strong> (destroying generation quality) or forces the system to serialize execution (destroying throughput). 2. The other 7 GPUs sit completely idle, waiting for Expert 2 to finish its massive workload before the pipeline can proceed to the next layer.</p>
-<p><strong>The Fix:</strong> Implement <strong>Capacity Routing with Token Dropping / Auxiliary Loss</strong>, and <strong>Expert Replication</strong>. Train the model with a load-balancing auxiliary loss to penalize the router for sending too many tokens to one expert. In deployment, if certain experts are known to be consistently “hot” (like a coding expert), replicate that specific expert’s weights across multiple GPUs, or use <strong>Expert Parallelism</strong> paired with Tensor Parallelism to distribute the hot expert’s compute.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/distributed_training/distributed_training.html">Volume II: Distributed Training</a>
+<p><strong>Realistic Solution:</strong> Expert 2 has hit its <strong>Capacity Limit</strong>. In MoE, frameworks pre-allocate a fixed capacity per expert. When a prompt is domain-specific (like code), the router sends nearly all tokens to one expert. That expert becomes a bottleneck, forcing the system to either drop tokens or serialize execution, leaving the other expert GPUs idle. The fix is <strong>Expert Replication</strong> (cloning hot experts) or using an <strong>Auxiliary Load-Balancing Loss</strong> during training.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> If 8 experts each have a capacity of <span class="math inline">\(C\)</span> tokens, but one expert receives <span class="math inline">\(8C\)</span> tokens, that expert takes 8x longer to compute while the other 7 GPUs sit at 0% utilization for 87.5% of the step time.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/distributed_training/distributed_training.html">Volume II: Distributed Training</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> The KV-Cache Network Wall</b> · <code>network</code> <code>serving</code>
 </summary>
 </details></section>
 <section id="the-kv-cache-network-transfer-wall" class="level3">
 <h3 class="anchored" data-anchor-id="the-kv-cache-network-transfer-wall">The KV-Cache Network Transfer Wall</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Prefill Tier"
+        G1["H100 (Prefill)"]:::compute
+    end
+
+    subgraph "Network Wall"
+        Net["10 GbE Ethernet&lt;br/&gt;(1.25 GB/s)"]:::bottleneck
+    end
+
+    subgraph "Decode Tier"
+        G2["H100 (Decode)"]:::compute
+    end
+
+    G1 --&gt;|8.4 GB KV-Cache| Net
+    Net --&gt;|"STALL: 7 Seconds"| G2
+
+    Note["🚨 Disaggregated Serving Bottleneck&lt;br/&gt;70B Model @ 32k Tokens&lt;br/&gt;Transfer time destroys TTFT SLO"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You implement Disaggregated Serving to separate Prefill and Decode tasks for a 70B LLM. However, for users with long prompts (32k tokens), the Time-to-First-Token (TTFT) increases by 7 seconds. Based on the diagram, what physical link is destroying your latency gain?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “Disaggregated serving is always faster because it isolates compute from memory bandwidth.” This assumes the transfer of the intermediate state (the KV-cache) is free.</p>
-<p>The bottleneck is the <strong>10 GbE (Gigabit Ethernet) Network</strong> and the <strong>Host RAM bounce</strong>. For a 70B model with a 32,000 token prompt, the KV-cache is massive. At 128 head dimension, 64 layers, and FP16, the KV-cache for 32k tokens is roughly <strong>8.4 GB per request</strong>.</p>
-<p>A 10 GbE network provides a theoretical maximum of 1.25 GB/s. Transferring an 8.4 GB KV-cache for a single user takes <strong>~7 seconds</strong> of pure network transmission time. The user experiences a 7-second Time-To-First-Token (TTFT) stall entirely due to network transfer. Furthermore, copying data through Host RAM adds PCIe contention and CPU overhead.</p>
-<p><strong>The Fix:</strong> Disaggregated serving requires data-center scale networking. You must upgrade the inter-tier links to 200 Gbps or 400 Gbps InfiniBand/RoCE (giving 25-50 GB/s), which reduces the transfer time from 7 seconds to under 200 milliseconds. Additionally, you must bypass the CPU RAM entirely by using <strong>GPUDirect RDMA</strong> to transfer the KV-cache directly from the Prefill GPU’s HBM to the Decode GPU’s HBM.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume II: Model Serving</a>
+<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>10 GbE Network</strong>. For a 70B model with a 32k token prompt, the KV-cache is massive (~8.4 GB). Over a 1.25 GB/s link, transferring this state takes ~7 seconds. Disaggregated serving requires <strong>InfiniBand/RoCE (200-400 Gbps)</strong> and <strong>GPUDirect RDMA</strong> to move the KV-cache directly between GPU HBMs, bypassing the slow CPU RAM and standard Ethernet.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 32,000 tokens × 8 KV heads × 128 dim × 2 layers × 2 bytes (FP16) ≈ 8.4 GB. Time = <span class="math inline">\(8.4 \text{ GB} / 1.25 \text{ GB/s} \approx 6.7 \text{ seconds}\)</span>.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume II: Model Serving</a></p>
+</details></li>
+</ul>
 
 
 

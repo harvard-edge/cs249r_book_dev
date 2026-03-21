@@ -77,6 +77,35 @@ ul.task-list li input[type="checkbox"] {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -713,6 +742,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#quadruplicated-weights" id="toc-quadruplicated-weights" class="nav-link" data-scroll-target="#quadruplicated-weights">Quadruplicated Weights</a></li>
   <li><a href="#streaming-raw-results-over-cellular" id="toc-streaming-raw-results-over-cellular" class="nav-link" data-scroll-target="#streaming-raw-results-over-cellular">Streaming Raw Results Over Cellular</a></li>
   <li><a href="#thermal-design-for-lab-not-field" id="toc-thermal-design-for-lab-not-field" class="nav-link" data-scroll-target="#thermal-design-for-lab-not-field">Thermal Design for Lab, Not Field</a></li>
+  <li><a href="#the-rolling-shutter-effect" id="toc-the-rolling-shutter-effect" class="nav-link" data-scroll-target="#the-rolling-shutter-effect">The Rolling Shutter Effect</a></li>
   <li><a href="#the-unbounded-producer-consumer-queue" id="toc-the-unbounded-producer-consumer-queue" class="nav-link" data-scroll-target="#the-unbounded-producer-consumer-queue">The Unbounded Producer-Consumer Queue</a></li>
   <li><a href="#the-cpu-memory-copy-wall" id="toc-the-cpu-memory-copy-wall" class="nav-link" data-scroll-target="#the-cpu-memory-copy-wall">The CPU Memory Copy Wall</a></li>
   <li><a href="#the-synchronization-barrier-stalls-the-fast-sensor" id="toc-the-synchronization-barrier-stalls-the-fast-sensor" class="nav-link" data-scroll-target="#the-synchronization-barrier-stalls-the-fast-sensor">The Synchronization Barrier Stalls the Fast Sensor</a></li>
@@ -743,146 +773,458 @@ ul.task-list li input[type="checkbox"] {
 <hr>
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Update Blind Spot</b> · <code>ml-ops</code> <code>reliability</code>
 </summary>
 <section id="blind-spot-no-rollback" class="level3">
 <h3 class="anchored" data-anchor-id="blind-spot-no-rollback">Blind Spot + No Rollback</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef safe fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef danger fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+    classDef process fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937
+
+    T1["Step 1: System Running&lt;br/&gt;(v1.0 active)"]:::safe
+    T2["Step 2: Start Update&lt;br/&gt;(DELETE v1.0)"]:::process
+    T3["Step 3: 45s WINDOW&lt;br/&gt;(Downloading v1.1)"]:::danger
+    T4["Step 4: Load v1.1&lt;br/&gt;(VALIDATING)"]:::process
+    T5["Step 5: System Resumes&lt;br/&gt;(v1.1 active)"]:::safe
+
+    T1 --&gt; T2
+    T2 --&gt; T3
+    T3 --&gt; T4
+    T4 --&gt; T5
+
+    Note["🚨 CRITICAL VULNERABILITY&lt;br/&gt;45s Window: Zero Detections&lt;br/&gt;Fail path: System Bricked if v1.1 Corrupt"]:::danger
+    T3 --- Note</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “A security camera system performs firmware updates by deleting the old model, downloading the new one, and then loading it. This process takes 45 seconds. Based on the timeline diagram, what is the primary security flaw in this design?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “45 seconds of downtime is acceptable for a software update.” For a security camera, 45 seconds of blindness is an exploitable window. For a safety system, it’s unacceptable.</p>
-<p><strong>Flaw 1: Inference gap.</strong> Steps 2-6 create a 45-second window where the camera produces no detections. An intruder who knows the update schedule has a guaranteed blind spot. For safety-critical systems (autonomous vehicles, industrial monitoring), any inference gap violates the safety contract.</p>
-<p><strong>Flaw 2: No rollback path.</strong> Step 3 deletes the old model <em>before</em> the new model is validated. If the download was corrupted, or the new model fails validation, or power is lost during step 4, the device has <em>no model at all</em> — it’s bricked.</p>
-<p><strong>The Fix:</strong> A/B partitioning with hot-swap. Keep two model slots. Download the new model to the inactive slot <em>while the active model continues serving</em>. Validate the new model by running test inference on a reference image. Only then atomically swap the active pointer. Zero downtime, instant rollback.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">Volume I: ML Operations</a>
+<p><strong>Realistic Solution:</strong> You have an <strong>Inference Gap</strong> and <strong>No Rollback Path</strong>. Step 3 creates a 45-second blind spot where no detections occur. Deleting the old model before validating the new one risks bricking the device if the download is corrupted. The fix is <strong>A/B Partitioning with Hot-Swap</strong>: download to an inactive slot while the active model continues serving, then atomically swap pointers after validation.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> In a 45-second blind spot, a person walking at 1.5 m/s can travel nearly 70 meters—plenty of time to cross a secure area undetected.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
 </section></details>
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Memory Copy Ceiling</b> · <code>frameworks</code> <code>latency</code>
 </summary>
 </details></section>
 <section id="the-host-device-memory-bounce" class="level3">
 <h3 class="anchored" data-anchor-id="the-host-device-memory-bounce">The Host-Device Memory Bounce</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef host fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    GPU1["Detection Model&lt;br/&gt;(GPU)"]:::compute
+    CPU1["Host RAM&lt;br/&gt;(CPU Copy)"]:::bottleneck
+    GPU2["Depth Model&lt;br/&gt;(GPU)"]:::compute
+    CPU2["Host RAM&lt;br/&gt;(CPU Copy)"]:::bottleneck
+    GPU3["Segmentation Model&lt;br/&gt;(GPU)"]:::compute
+
+    GPU1 --&gt;|cudaMemcpy D2H| CPU1
+    CPU1 --&gt;|cudaMemcpy H2D| GPU2
+    GPU2 --&gt;|cudaMemcpy D2H| CPU2
+    CPU2 --&gt;|cudaMemcpy H2D| GPU3
+
+    Note["🚨 SYNC OVERHEAD&lt;br/&gt;12ms wasted in copies&lt;br/&gt;GPU sits idle during transfers"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your multi-model vision pipeline is missing its 33ms frame deadline (30 FPS). You check the compute time for each model and it only adds up to 41ms total. Based on the memory flow diagram, where are the ‘missing’ milliseconds being spent?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The models are too slow — use smaller models.” The models themselves only take 41ms of compute. The missing time is in data movement.</p>
-<p>The pipeline copies data from GPU → CPU → GPU between every model (<code>cudaMemcpy D→H→D</code>). Each round-trip takes 2-4ms for a 1080p tensor, and there are 3 such copies. Worse, <code>cudaMemcpy</code> is synchronous by default — the GPU sits completely idle during each transfer, creating bubbles.</p>
-<p><strong>The Fix:</strong> Keep all tensors on the GPU. Use CUDA unified memory or explicit device-to-device transfers. Detection’s output tensor becomes Depth’s input tensor <em>without ever touching the CPU</em>. Preprocessing should also move to the GPU (NVIDIA DALI or custom CUDA kernels). This eliminates ~12ms of memory copies and GPU idle time, bringing the pipeline to ~43ms → 23 FPS. Add frame pipelining (overlap frame N’s depth with frame N+1’s detection) to reach 30+ FPS.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: ML Frameworks</a>
+<p><strong>Realistic Solution:</strong> You are suffering from <strong>Sync Overruns via Memory Bouncing</strong>. The pipeline copies data from GPU to CPU and back between every model. Each round-trip takes 2-4ms, and worse, <code>cudaMemcpy</code> is synchronous, meaning the GPU sits idle during the transfer. The fix is to keep all tensors on the GPU using <strong>Unified Memory</strong> or explicit device-to-device transfers, and moving preprocessing to the GPU (e.g., NVIDIA DALI).</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 3 transfers × 4ms/transfer = 12ms of pure overhead. Total time = 41ms (compute) + 12ms (overhead) = 53ms. Eliminating the bounce saves 12ms, bringing you to 41ms (still needs pipelining to hit 33ms).</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">ML Frameworks</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Model Cloning Waste</b> · <code>serving</code> <code>memory</code>
 </summary>
 </details></section>
 <section id="quadruplicated-weights" class="level3">
 <h3 class="anchored" data-anchor-id="quadruplicated-weights">Quadruplicated Weights</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef weight fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "VRAM (Current: 408 MB)"
+        direction LR
+        W1["Weights 1&lt;br/&gt;(22 MB)"]:::bottleneck
+        W2["Weights 2&lt;br/&gt;(22 MB)"]:::bottleneck
+        W3["Weights 3&lt;br/&gt;(22 MB)"]:::bottleneck
+        W4["Weights 4&lt;br/&gt;(22 MB)"]:::bottleneck
+        Act["Activations&lt;br/&gt;(320 MB)"]
+    end
+
+    Cam1["Cam 1"] --&gt; W1
+    Cam2["Cam 2"] --&gt; W2
+    Cam3["Cam 3"] --&gt; W3
+    Cam4["Cam 4"] --&gt; W4
+
+    Note["🚨 REDUNDANCY ERROR&lt;br/&gt;Identical YOLOv8-S weights loaded 4x&lt;br/&gt;Wasted Memory: 66 MB"]</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are deploying a 4-camera monitoring system on a Jetson Orin. Each camera uses the same YOLOv8-S model. Based on the VRAM allocation diagram, why is your system using 16% more memory than it needs to?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “4 cameras need 4 model instances.” The cameras need 4 inference passes, but NOT 4 copies of the weights.</p>
-<p>All four instances load identical YOLOv8-S weights — 22 MB × 4 = 88 MB of duplicated weights in GPU memory. Since the weights are read-only during inference, a single copy serves all four cameras. Load the weights once (22 MB) and run 4 inference passes with different input tensors. Memory drops from 408 MB to 22 + (4 × 80) = 342 MB — a 16% reduction. More importantly, <strong>batch the 4 camera inputs</strong> into a single inference call: batch size 4 with shared weights. On the Orin NX, batched inference is 2-3× more efficient than 4 sequential calls because it amortizes kernel launch overhead and improves GPU occupancy. Expected FPS per camera: 25-30 (up from 12).</p>
-<p><strong>The Fix:</strong> Single model instance, batch size 4. If the cameras have different resolutions or FOVs, use dynamic batching with padding. Memory: 22 MB weights + 320 MB activations (batched) = 342 MB. Throughput: ~28 FPS per camera.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume I: Model Serving</a>
+<p><strong>Realistic Solution:</strong> You have <strong>Redundant Weight Loading</strong>. Since model weights are read-only, a single 22 MB copy can serve all 4 cameras. Load the weights once and run 4 inference passes with different input tensors. More importantly, <strong>batch the 4 camera inputs</strong> into a single call (batch size 4) to improve GPU occupancy and amortize kernel launch overhead.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> Current: 4 × 22 MB = 88 MB. Optimized: 1 × 22 MB = 22 MB. Savings = 66 MB. On an 8GB Jetson, 66MB seems small, but it represents the difference between fitting a background OS and hitting a swap-file crash.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Model Serving</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Bandwidth Bankruptcy</b> · <code>ml-ops</code> <code>economics</code>
 </summary>
 </details></section>
 <section id="streaming-raw-results-over-cellular" class="level3">
 <h3 class="anchored" data-anchor-id="streaming-raw-results-over-cellular">Streaming Raw Results Over Cellular</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef device fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef cloud fill:#f3f4f6,stroke:#4b5563,stroke-width:2px,color:#1f2937
+    classDef cost fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Edge Fleet (10,000 Nodes)"
+        D1["Camera 1"]:::device
+        D2["Camera 2"]:::device
+        DN["Camera 10,000"]:::device
+    end
+
+    subgraph "Cellular Uplink"
+        Pipe["43 TB / Month Total"]:::cost
+    end
+
+    Cloud["Central Dashboard"]:::cloud
+
+    D1 --&gt; Pipe
+    D2 --&gt; Pipe
+    DN --&gt; Pipe
+    Pipe --&gt; Cloud
+
+    Note["🚨 ECONOMIC COLLAPSE&lt;br/&gt;$43,000/mo Cellular Bill&lt;br/&gt;99% redundant data streamed"]:::cost</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You have a fleet of 10,000 edge cameras streaming all detection results back to a central cloud dashboard over 4G/5G. Your first monthly bill arrives and it is $43,000. Based on the data flow diagram, what is the ‘economic bottleneck’ in your architecture?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “We need all the data for proper monitoring.” You need operational <em>visibility</em>, not raw data. 99% of the frames contain nothing interesting.</p>
-<p>10,000 cameras × 4.3 GB/month × $1/GB cellular = $43,000/month (the $430K figure assumes higher per-GB rates or includes the data plan). Either way, streaming every detection result is economically insane.</p>
-<p><strong>The Fix:</strong> Edge-side aggregation. On each device, compute hourly statistics: detection counts by class, confidence histograms, latency percentiles, thermal state. Upload only the aggregates (~50 KB/day) plus a small sample of anomalous frames (~500 KB/day). Total: ~550 KB/day × 30 days = 16.5 MB/month per device. At $0.01/MB: $0.165/device/month × 10,000 = <strong>$1,650/month</strong> — a 260× reduction. You lose per-frame granularity but gain the same operational insights (drift detection, anomaly alerts, fleet health) at sustainable cost.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">Volume I: ML Operations</a>
+<p><strong>Realistic Solution:</strong> You are suffering from <strong>Raw Data Incontinence</strong>. Streaming every frame result over cellular is economically non-viable. The fix is <strong>Edge-Side Aggregation</strong>: compute hourly statistics (counts, confidence, latency) locally and upload only the aggregates (~50 KB/day) plus small anomalous samples. This reduces the bill by &gt;250× while maintaining the same operational insights.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 10,000 cameras × 4.3 GB/month = 43 TB. At $1/GB cellular, that’s $43,000. Aggregated data: 10,000 cameras × 16 MB/month = 160 GB. Total cost: ~$1,650.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/ml_ops/ml_ops.html">ML Operations</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Sealed Oven Trap</b> · <code>hardware</code> <code>power-thermal</code>
 </summary>
 </details></section>
 <section id="thermal-design-for-lab-not-field" class="level3">
 <h3 class="anchored" data-anchor-id="thermal-design-for-lab-not-field">Thermal Design for Lab, Not Field</h3>
-<p><strong>Common Mistake:</strong> “Add a bigger fan.” The enclosure is sealed (IP67) — there’s no airflow path for a fan.</p>
-<p>Three design changes:</p>
-<p><strong>(1) Reduce power mode from the start.</strong> Run at 15W instead of 25W. At 15W with a 2°C/W heatsink: ΔT = 30°C. Junction = 45 + 30 = 75°C — below the 80°C throttle threshold. Sustained 20 FPS instead of 30→12→shutdown. Predictable is better than fast-then-dead.</p>
-<p><strong>(2) Thermal path to enclosure.</strong> Replace the small heatsink + trapped air gap with a direct thermal path: copper heat pipe from SoC to the aluminum enclosure wall, with thermal interface material (TIM) at both junctions. The enclosure becomes the heatsink. Thermal resistance: ~1°C/W (vs 5°C/W with air gap). At 25W: ΔT = 25°C. Junction = 45 + 25 = 70°C — safe at full power.</p>
-<p><strong>(3) Solar shield.</strong> A white-painted sun shade above the enclosure reduces solar load by 60%. Effective ambient drops from 45°C + 15°C solar load = 60°C to 45°C + 6°C = 51°C. Combined with the thermal path: junction = 51 + 25 = 76°C — sustainable at full power.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/hw_acceleration/hw_acceleration.html">Volume I: HW Acceleration</a>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef safe fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef warning fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef danger fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+
+    Ambient["Ambient: 45°C + Sun Load"]:::warning
+
+    subgraph "IP67 Sealed Enclosure"
+        Sink["Internal Heatsink"]
+        Air["Trapped Air Gap"]:::danger
+        SoC["NVIDIA Orin SoC"]:::danger
+    end
+
+    Ambient -- "Heat In" --&gt; SoC
+    SoC -- "No Path Out" --&gt; SoC
+
+    Status["🚨 JUNCTION: 105°C&lt;br/&gt;Status: THERMAL SHUTDOWN&lt;br/&gt;(Throttle: 30 FPS -&gt; 12 FPS -&gt; DEAD)"]:::danger
+    SoC --- Status</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your outdoor perception system works perfectly in the lab but shuts down after 10 minutes of operation in the field during a summer day. You added a fan inside the case, but it didn’t help. Based on the thermal diagram, what is the physical flaw in your cooling strategy?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “Add a bigger fan.” The enclosure is sealed (IP67) — there’s no airflow path, so a fan just stirs hot air.</p>
+<p><strong>Realistic Solution:</strong> You have a <strong>Thermal Discontinuity</strong>. The trapped air gap between the SoC and the enclosure wall acts as an insulator. The fix is a <strong>Direct Thermal Path</strong>: use a copper heat pipe or a thick thermal block to connect the SoC heatsink directly to the aluminum enclosure wall. The enclosure becomes the heatsink. Combined with a white solar shield to reduce solar load, the junction temperature can be kept below the throttle threshold.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> At 25W with a 5°C/W air-gap resistance, <span class="math inline">\(\Delta T = 125^\circ\text{C}\)</span>. With a direct path (1°C/W), <span class="math inline">\(\Delta T = 25^\circ\text{C}\)</span>. That 100-degree difference is the gap between a running system and a melted one.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/hw_acceleration/hw_acceleration.html">Hardware Acceleration</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
 <b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Rolling Shutter Tear</b> · <code>sensor-physics</code>
 </summary>
+</details></section>
+<section id="the-rolling-shutter-effect" class="level3">
+<h3 class="anchored" data-anchor-id="the-rolling-shutter-effect">The Rolling Shutter Effect</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef safe fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef danger fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Sensor Exposure Timeline"
+        R1["Row 1: Exposed @ T=0ms"]:::safe
+        R2["Row 540: Exposed @ T=4ms"]
+        R3["Row 1080: Exposed @ T=8ms"]:::danger
+    end
+
+    Motion["Robot Rotation:&lt;br/&gt;90 deg/sec"]
+
+    R1 --&gt;|"World Pos: 0°"| Out1["Feature A (Top)"]
+    R3 --&gt;|"World Pos: 0.72°"| Out2["Feature A (Bottom)"]
+
+    Note["🚨 GEOMETRIC DISTORTION&lt;br/&gt;Vertical lines become diagonal&lt;br/&gt;Convolutions fail to recognize shear"]:::danger</code></pre>
 <ul>
-<li><p><strong>Interviewer:</strong> “You deploy a high-speed robotics perception model that runs at 120 FPS. The object detection model’s accuracy drops from 95% on a stationary dataset to 40% when the robot is spinning quickly, even though motion blur is minimal and the frame rate is maintained. What physical sensor phenomenon is destroying your feature maps?”</p>
+<li><p><strong>Interviewer:</strong> “You deploy a high-speed robotics perception model that runs at 120 FPS. The object detection model’s accuracy drops from 95% on a stationary dataset to 40% when the robot is spinning quickly, even though motion blur is minimal. Based on the exposure diagram, what physical phenomenon is destroying your accuracy?”</p>
 <details>
 <summary>
 <p><b>🔍 Reveal Answer</b></p>
 </summary>
-<p><strong>Common Mistake:</strong> “Blaming the neural network’s generalization ability, or assuming the frames just need standard ‘motion blur’ augmentation during training.”</p>
-<p><strong>Realistic Solution:</strong> You are suffering from the ‘Rolling Shutter’ effect. CMOS sensors do not capture the entire image instantly like a global shutter. They expose and read the sensor line-by-line from top to bottom. If the robot spins rapidly, by the time the sensor reads the bottom row of pixels, the physical world has moved significantly compared to when it read the top row. The resulting image is physically sheared and distorted (straight vertical lines become diagonal). Your convolutions, trained on orthogonal data, completely fail to recognize these geometrically sheared objects.</p>
+<p><strong>Common Mistake:</strong> “Blaming the neural network’s generalization ability, or assuming the frames just need standard ‘motion blur’ augmentation.”</p>
+<p><strong>Realistic Solution:</strong> You are suffering from the <strong>Rolling Shutter Effect</strong>. CMOS sensors read line-by-line. If the robot spins rapidly, the bottom of the frame captures the world at a different point in time (and space) than the top. The resulting image is physically sheared. Your convolutions, trained on orthogonal data, fail to recognize these distorted features. The fix is using a <strong>Global Shutter</strong> sensor or augmenting the training set with explicit geometric shear transforms.</p>
 <blockquote class="blockquote">
-<p><strong>Napkin Math:</strong> If a 1080p CMOS sensor takes <code>8 milliseconds</code> to read out all 1080 lines, and your robot is spinning at <code>90 degrees per second</code> (0.09 deg/ms). During that single frame readout, the camera has rotated <code>8ms * 0.09 deg/ms = 0.72 degrees</code>. That is enough physical shear to distort bounding box features beyond recognition, regardless of your inference speed.</p>
+<p><strong>Napkin Math:</strong> If a 1080p sensor takes 8ms to read out, and your robot spins at 90 deg/sec (0.09 deg/ms), the camera rotates 0.72 degrees during a single frame. This is enough shear to shift features by dozens of pixels.</p>
 </blockquote>
-<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Volume I: Data Engineering</a></p>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a></p>
 </details></li>
 </ul>
-</details>
+
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Memory Pressure Leak</b> · <code>latency</code> <code>benchmarking</code>
 </summary>
 </details></section>
 <section id="the-unbounded-producer-consumer-queue" class="level3">
 <h3 class="anchored" data-anchor-id="the-unbounded-producer-consumer-queue">The Unbounded Producer-Consumer Queue</h3>
-<p><strong>Common Mistake:</strong> “The heatsink isn’t big enough.” A bigger heatsink delays the throttling, but the software architecture is still fundamentally flawed and will crash in extreme environments.</p>
-<p>The system crashes because the <strong>Producer (Camera)</strong> and <strong>Consumer (NPU)</strong> are decoupled, and the Consumer’s speed is physically changing while the Producer’s speed is constant. 1. The camera generates frames at a rigid 30 FPS (one every 33ms). 2. As the device heats up, DVFS (Dynamic Voltage and Frequency Scaling) lowers the NPU clock speed to reduce heat. Inference time lengthens from 25ms to 50ms, then 100ms. 3. Because 100ms &gt; 33ms, the NPU cannot process frames as fast as the camera generates them. 4. The frames pile up in the Queue. Memory runs out, triggering an OOM crash.</p>
-<p><strong>The Fix:</strong> You must implement <strong>Backpressure or Frame Dropping</strong>. If the queue size exceeds a threshold (e.g., 2 frames), the system must actively drop new incoming frames. Alternatively, the application must monitor the NPU’s operating frequency and dynamically step down the camera’s framerate (to 15 FPS) or switch to a lighter model (adaptive quality) when thermal throttling engages.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/benchmarking/benchmarking.html">Volume I: Benchmarking</a>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef device fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef queue fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    Cam["Camera&lt;br/&gt;(Fixed: 33ms/frame)"]:::device
+
+    subgraph "DRAM"
+        Queue["Buffer Queue&lt;br/&gt;(GROWING)"]:::queue
+    end
+
+    NPU["Edge NPU&lt;br/&gt;(Throttled: 100ms/frame)"]:::bottleneck
+
+    Cam --&gt;|30 FPS| Queue
+    Queue --&gt;|10 FPS| NPU
+
+    Note["🚨 MEMORY LEAK BY DESIGN&lt;br/&gt;Arrival (30) &gt; Service (10)&lt;br/&gt;Queue grows until OOM Crash"]:::queue</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your autonomous monitoring system crashes with an ‘Out of Memory’ error after 30 minutes of operation in a hot environment. You check your code and find no traditional memory leaks. Based on the producer-consumer diagram, why is your memory usage increasing over time?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The heatsink isn’t big enough.” A bigger heatsink delays the throttling, but the software architecture is still fundamentally flawed.</p>
+<p><strong>Realistic Solution:</strong> The system crashes because the <strong>Producer (Camera)</strong> and <strong>Consumer (NPU)</strong> are decoupled without backpressure. As the device heats up, thermal throttling slows the NPU (from 25ms to 100ms per frame). Since the camera stays at a rigid 30 FPS, frames pile up in the queue until the device hits an OOM. The fix is <strong>Backpressure or Frame Dropping</strong>: actively drop new frames or step down the camera framerate when thermal throttling engages.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> At 30 FPS arrival and 10 FPS service, you leak 20 frames/sec.&nbsp;At 24 MB per 4K frame, you are ‘leaking’ 480 MB of RAM every second. An 8GB Jetson will OOM in under 20 seconds once throttling hits.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/benchmarking/benchmarking.html">Benchmarking</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Memory Copy Choke</b> · <code>data-engineering</code>
 </summary>
 </details></section>
 <section id="the-cpu-memory-copy-wall" class="level3">
 <h3 class="anchored" data-anchor-id="the-cpu-memory-copy-wall">The CPU Memory Copy Wall</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef compute fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef memory fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    USB["4K Camera&lt;br/&gt;(USB UVC)"]
+    KBuf["Kernel Buffer&lt;br/&gt;(24 MB)"]:::memory
+    AppBuf["App Buffer&lt;br/&gt;(24 MB)"]:::memory
+    NPU["NPU Buffer&lt;br/&gt;(24 MB)"]:::memory
+
+    CPU["CPU HOST&lt;br/&gt;(Busy: memcpy)"]:::bottleneck
+
+    USB --&gt; KBuf
+    KBuf --&gt;|memcpy| CPU
+    CPU --&gt;|memcpy| AppBuf
+    AppBuf --&gt;|memcpy| CPU
+    CPU --&gt;|memcpy| NPU
+    NPU --&gt;|"Starved"| Accel["Edge NPU"]
+
+    Note["🚨 MEMORY BANDWIDTH CHOKE&lt;br/&gt;1.4 GB/s of CPU copies&lt;br/&gt;CPU @ 100% Util"]:::bottleneck</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You are processing 4K video on an ARM-based edge device. You notice that the CPU utilization is at 100%, and the NPU is mostly idle, even though the model is highly optimized. Based on the data path diagram, what is the ‘silent’ task consuming all your CPU cycles?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The NPU must be struggling with 4K resolution.” The NPU is fine; it’s waiting for the CPU to hand it the data.</p>
-<p>The bottleneck is the <strong>CPU memcpy</strong> between memory spaces. A 4K uncompressed frame is roughly 24 MB. The standard Linux USB video class (UVC) driver writes the frame into a kernel-space USB buffer. The application then uses the CPU to explicitly copy that 24 MB frame into an application-space buffer, and potentially a third time into an NPU-aligned tensor buffer.</p>
-<p>At 30 FPS, the CPU is forced to copy 720 MB/s to 1.4 GB/s of data across RAM boundaries. ARM CPUs on edge devices lack the memory bandwidth to do this efficiently while managing the OS, resulting in 100% CPU utilization and starved accelerators.</p>
-<p><strong>The Fix:</strong> Implement a true <strong>Zero-Copy DMA Pipeline</strong>. Use frameworks like V4L2 with <code>USERPTR</code> or <code>DMABUF</code> sharing, combined with NVIDIA’s Argus or GStreamer hardware pipelines. The USB controller’s DMA engine should write the incoming pixels directly into a physically contiguous memory block that the NPU can read instantly, bypassing the CPU entirely.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Volume I: Data Engineering</a>
+<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>CPU memcpy</strong> between memory spaces. A 4K frame is ~24 MB. Standard Linux drivers often force multiple copies between kernel-space, application-space, and NPU-space. At 30 FPS, the CPU is forced to move ~1.4 GB/s across RAM boundaries, saturating the bus. The fix is a <strong>Zero-Copy DMA Pipeline</strong> (e.g., using <code>dmabuf</code>), allowing the NPU to read directly from the camera buffer.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 30 FPS × 24 MB/frame × 2 copies = 1.44 GB/s. For a low-power ARM CPU, this can consume 100% of available memory bandwidth and compute cycles.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Slow Sensor Stall</b> · <code>data-engineering</code> <code>sensor-fusion</code>
 </summary>
 </details></section>
 <section id="the-synchronization-barrier-stalls-the-fast-sensor" class="level3">
 <h3 class="anchored" data-anchor-id="the-synchronization-barrier-stalls-the-fast-sensor">The Synchronization Barrier Stalls the Fast Sensor</h3>
-<p><strong>Common Mistake:</strong> “The LiDAR is the bottleneck — buy a 30 Hz LiDAR.” A faster LiDAR helps but costs $5,000+ more and doesn’t solve the fundamental architecture issue.</p>
-<p>The synchronization barrier forces the camera to wait for the LiDAR. 20 out of every 30 camera frames are discarded — 67% of the visual information is thrown away. The pipeline’s output rate is locked to the slowest sensor.</p>
-<p><strong>The Fix:</strong> Asynchronous fusion with temporal interpolation. Run camera-only 2D detection at 30 FPS (no waiting). Run LiDAR 3D processing at 10 Hz independently. Between LiDAR sweeps, project the 2D camera detections into 3D using the <em>most recent</em> LiDAR depth map + ego-motion compensation from the IMU. This gives 30 Hz 3D detections: 10 Hz are “full fusion” (camera + fresh LiDAR), and 20 Hz are “interpolated fusion” (camera + stale LiDAR + IMU correction). At highway speed, the gap between detections drops from 100ms (3m) to 33ms (1m).</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Volume I: Data Engineering</a>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef fast fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef slow fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef barrier fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    Cam["Camera Stream&lt;br/&gt;(30 FPS)"]:::fast
+    Lidar["LiDAR Stream&lt;br/&gt;(10 Hz)"]:::slow
+    Sync[["Sync Barrier&lt;br/&gt;(Wait for both)"]]:::barrier
+    NPU["Fusion Model"]:::fast
+
+    Cam --&gt; Sync
+    Lidar --&gt; Sync
+    Sync --&gt;|"10 Hz (Slowed)"| NPU
+
+    Note["🚨 INFORMATION LOSS&lt;br/&gt;20/30 Camera Frames Dropped&lt;br/&gt;System latency: 100ms per detection"]:::barrier</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “You have a 30 FPS camera and a 10 Hz LiDAR. After fusing the sensors, your autonomous vehicle’s detection rate drops to 10 FPS, causing jerky braking. Based on the synchronization diagram, why is your high-speed camera being throttled?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
+<p><strong>Common Mistake:</strong> “The LiDAR is the bottleneck — buy a 30 Hz LiDAR.” A faster LiDAR helps but doesn’t solve the fundamental architecture issue.</p>
+<p><strong>Realistic Solution:</strong> You have a <strong>Synchronous Fusion Barrier</strong>. Naively waiting for both sensors forces the entire pipeline to the rate of the slowest component, discarding 67% of visual information. The fix is <strong>Asynchronous Fusion</strong>: run camera detections at 30 FPS and LiDAR at 10 Hz independently, then project the 2D detections into 3D using the most recent LiDAR depth map + temporal interpolation.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> At 60 mph (27 m/s), a 10 Hz rate means the car travels 2.7 meters between detections. At 30 Hz, the gap drops to 0.9 meters. In an emergency, that 1.8-meter difference is life or death.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/data_engineering/data_engineering.html">Data Engineering</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Sequential Serializer</b> · <code>frameworks</code> <code>parallelism</code>
 </summary>
 </details></section>
 <section id="wasted-gpu-parallelism" class="level3">
 <h3 class="anchored" data-anchor-id="wasted-gpu-parallelism">Wasted GPU Parallelism</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph LR
+    classDef active fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef idle fill:#f3f4f6,stroke:#94a3b8,stroke-width:1px,color:#64748b
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    subgraph "Current: Sequential Timeline (45ms)"
+        T1["Detection&lt;br/&gt;(18ms)"]:::active
+        T2["Segmentation&lt;br/&gt;(12ms)"]:::active
+        T3["Pose&lt;br/&gt;(15ms)"]:::active
+        T1 --&gt; T2 --&gt; T3
+    end
+
+    subgraph "GPU Core Utilization"
+        direction TB
+        subgraph "During 5ms Classification"
+            U1["Classification&lt;br/&gt;(30% Util)"]:::active
+            U2["IDLE CAPACITY&lt;br/&gt;(70% Util)"]:::idle
+        end
+    end
+
+    Note["🚨 SCHEDULING GAP&lt;br/&gt;Small kernels run alone&lt;br/&gt;Timeline exceeds 33ms budget"]:::bottleneck</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “Your vision pipeline runs three models sequentially, taking 45ms total and missing your 30 FPS target. You notice that during the classification phase, the GPU is only at 30% utilization. Based on the utilization diagram, how would you ‘collapse’ this timeline to fit the 33ms budget?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “Run all models sequentially — the GPU can only do one thing at a time.” Modern GPUs support concurrent kernel execution via CUDA streams.</p>
-<p>Classification uses only 30% of the GPU — it’s a small model that doesn’t saturate the compute units. The remaining 70% of the GPU is idle during those 5ms. Using CUDA Multi-Process Service (MPS) or multiple CUDA streams, you can overlap classification with the beginning of pose estimation. Better yet, overlap classification with segmentation (both together use ~130% of a single GPU’s resources, but with proper stream scheduling, they share the SMs efficiently).</p>
-<p><strong>The Fix:</strong> Use CUDA streams to overlap small models with large ones. Run classification concurrently with segmentation (12ms for both, since classification finishes in 5ms within the 12ms segmentation window). Then run pose estimation. New timeline: Detection (18ms) → Segmentation + Classification (12ms) → Pose (15ms) = <strong>45ms</strong>. Still over budget. Next: overlap detection’s NMS (CPU, 2ms) with segmentation’s first layers (GPU). And run pose estimation at half rate (every other frame, using temporal interpolation). Effective: 18ms + 12ms + 7.5ms (amortized pose) = <strong>37.5ms</strong>. With the stream overlaps: ~33ms. Meets budget.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">Volume I: ML Frameworks</a>
+<p><strong>Realistic Solution:</strong> You have <strong>Under-utilized Kernel Concurrency</strong>. Small models like classification don’t saturate the GPU’s compute units (SMs). The fix is to use <strong>CUDA Streams</strong> or <strong>MPS</strong> to overlap the execution of smaller kernels with larger ones (e.g., running classification concurrently with segmentation). By overlapping these tasks, the total timeline can be compressed from 45ms to ~33ms.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> If Classification (5ms) uses 30% of the GPU and Segmentation (12ms) uses 60%, running them concurrently takes only 12ms instead of 17ms, saving 5ms of idle pipeline time.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/frameworks/frameworks.html">ML Frameworks</a></p>
+</details></li>
+</ul>
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> 🚨 Reveal the Bottleneck</b>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Bus Priority Trap</b> · <code>hardware</code> <code>memory</code>
 </summary>
 </details></section>
 <section id="shared-memory-bus-contention" class="level3">
 <h3 class="anchored" data-anchor-id="shared-memory-bus-contention">Shared Memory Bus Contention</h3>
+<pre class="mermaid"><code>%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'monospace', 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff'}}}%%
+graph TD
+    classDef device fill:#e0f2fe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef memory fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#9a3412
+    classDef bottleneck fill:#fee2e2,stroke:#dc2626,stroke-width:4px,color:#991b1b,stroke-dasharray: 5 5
+
+    ISP["ISP&lt;br/&gt;(4x 1080p Writes)"]:::device
+    NPU["Edge NPU&lt;br/&gt;(Weight/Act Fetches)"]:::device
+
+    subgraph "Shared SoC Logic"
+        Bus[["Shared LPDDR5 Bus&lt;br/&gt;(ARB: ISP Priority)"]]:::bottleneck
+    end
+
+    RAM[("System RAM")]:::memory
+
+    ISP --&gt;|High Priority| Bus
+    NPU --&gt;|Low Priority| Bus
+    Bus --&gt; RAM
+
+    Note["🚨 RESOURCE CONTENTION&lt;br/&gt;ISP burst writes saturate the bus&lt;br/&gt;NPU latency: 10ms -&gt; 45ms jitter"]:::bottleneck</code></pre>
+<ul>
+<li><p><strong>Interviewer:</strong> “On your SoC, the NPU inference latency fluctuates wildly between 10ms and 45ms, even though no other ML models are running. You notice the jitter increases when more cameras are active. Based on the SoC architecture diagram, what physical component is causing the NPU to stall?”</p>
+<details>
+<summary>
+<p><b>🔍 Reveal Answer</b></p>
+</summary>
 <p><strong>Common Mistake:</strong> “The NPU is context switching between 4 camera streams.” While batching helps, the primary issue is resource contention underneath the accelerators.</p>
-<p>The hidden bottleneck is the <strong>Shared LPDDR5 RAM Bus</strong>. In a System-on-Chip (SoC), the ISP (Image Signal Processor) and the NPU do not have independent paths to memory; they share the same physical memory controller and bus.</p>
-<p>Processing four 1080p streams simultaneously places a massive, continuous write burden on the RAM. When the NPU attempts to read its weights and activations for inference, its memory requests are queued behind the ISP’s aggressive, high-priority DMA writes. The NPU’s compute units starve while waiting for data. The latency variance (10ms to 45ms) depends entirely on whether the NPU’s memory fetches collide with the ISP’s burst writes.</p>
-<p><strong>The Fix:</strong> 1. <strong>Temporal staggering:</strong> Do not trigger all 4 cameras simultaneously. Fire them sequentially (e.g., 8ms apart) to smooth out the ISP’s memory bandwidth spikes. 2. <strong>Quality reduction:</strong> Reduce the input resolution or switch from 16-bit RGB to 8-bit YUV formats if the model can tolerate it, halving the ISP’s bandwidth footprint.</p>
-<strong>📖 Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/hw_acceleration/hw_acceleration.html">Volume I: HW Acceleration</a>
+<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>Shared LPDDR5 Memory Bus</strong>. In an SoC, the ISP and NPU share the same physical memory controller. ISP writes (from cameras) are typically higher priority to prevent frame drops. The NPU’s memory fetches for weights and activations get queued behind the ISP’s burst writes, causing massive latency jitter. The fix is <strong>Temporal Staggering</strong> (sequentializing camera triggers) or reducing input precision/resolution to lower the bandwidth footprint.</p>
+<blockquote class="blockquote">
+<p><strong>Napkin Math:</strong> 4x 1080p streams at 60 FPS = 497 million pixels/sec.&nbsp;At 16-bit YUV, that’s nearly 1 GB/s of continuous, high-priority write traffic saturating the shared bus arbitration logic.</p>
+</blockquote>
+<p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/hw_acceleration/hw_acceleration.html">Hardware Acceleration</a></p>
+</details></li>
+</ul>
 
 
 
