@@ -810,7 +810,7 @@ graph LR
 </section></details>
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Optimizer Explosion</b> · <code>training</code> <code>memory</code>
+<b><img src="https://img.shields.io/badge/Level-L3_Junior-brightgreen?style=flat-square" alt="Level 1" align="center"> The Optimizer Explosion</b> · <code>data-parallelism</code> <code>memory-hierarchy</code>
 </summary>
 </details></section>
 <section id="the-optimizer-state-explosion" class="level3">
@@ -851,7 +851,7 @@ graph TD
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Communication Wall</b> · <code>network</code> <code>training</code>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Communication Wall</b> · <code>interconnect</code> <code>data-parallelism</code>
 </summary>
 </details></section>
 <section id="the-communication-wall-amdahls-law" class="level3">
@@ -894,7 +894,7 @@ graph TD
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Pipeline Bubble</b> · <code>training</code> <code>parallelism</code>
+<b><img src="https://img.shields.io/badge/Level-L4_Mid-blue?style=flat-square" alt="Level 2" align="center"> The Pipeline Bubble</b> · <code>data-parallelism</code> <code>data-parallelism</code>
 </summary>
 </details></section>
 <section id="the-pipeline-bubble" class="level3">
@@ -934,7 +934,7 @@ graph LR
 <p><strong>Common Mistake:</strong> “Switch to Data Parallelism.” DP won’t work if the model doesn’t fit on a single GPU — that’s why they used Pipeline Parallelism in the first place.</p>
 <p><strong>Realistic Solution:</strong> With a single batch flowing through 8 stages, <strong>only 1 GPU is active at any given time</strong>. The other 7 sit completely idle, waiting for activations from the previous stage. The fix is to split the global batch into many microbatches (<span class="math inline">\(M \gg P\)</span>). With <span class="math inline">\(M=32\)</span> microbatches, GPU 0 processes microbatch 2 while GPU 1 processes microbatch 1, filling the bubbles.</p>
 <blockquote class="blockquote">
-<p><strong>Napkin Math:</strong> The pipeline bubble fraction is <span class="math inline">\((P-1)/M\)</span> where <span class="math inline">\(P\)</span> is stages and <span class="math inline">\(M\)</span> is microbatches. With <span class="math inline">\(M=1\)</span>, the bubble is <span class="math inline">\((8-1)/1 = 87.5\%\)</span> wasted compute. With <span class="math inline">\(M=32\)</span>, the bubble shrinks to <span class="math inline">\((8-1)/32 = 21.9\%\)</span>.</p>
+<p><strong>Napkin Math:</strong> The pipeline bubble fraction is <span class="math inline">\((P-1)/(P+M-1)\)</span> where <span class="math inline">\(P\)</span> is stages and <span class="math inline">\(M\)</span> is microbatches. With <span class="math inline">\(M=1\)</span>, the bubble is <span class="math inline">\((8-1)/(8+1-1) = 87.5\%\)</span> wasted compute. With <span class="math inline">\(M=32\)</span>, the bubble shrinks to <span class="math inline">\((8-1)/(8+32-1) = 7/39 = 17.9\%\)</span>.</p>
 </blockquote>
 <p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/training/training.html">Training</a></p>
 </details></li>
@@ -1018,7 +1018,7 @@ graph TD
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Memory Swiss Cheese</b> · <code>serving</code> <code>memory</code>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Memory Swiss Cheese</b> · <code>serving</code> <code>memory-hierarchy</code>
 </summary>
 </details></section>
 <section id="kv-cache-memory-fragmentation" class="level3">
@@ -1065,7 +1065,7 @@ graph LR
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Checkpoint Traffic Jam</b> · <code>storage</code> <code>training</code>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Checkpoint Traffic Jam</b> · <code>persistent-storage</code> <code>data-parallelism</code>
 </summary>
 </details></section>
 <section id="the-metadata-and-bandwidth-choke" class="level3">
@@ -1109,7 +1109,7 @@ graph TD
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Expert Bottleneck</b> · <code>training</code> <code>parallelism</code>
+<b><img src="https://img.shields.io/badge/Level-L5_Senior-yellow?style=flat-square" alt="Level 3" align="center"> The Expert Bottleneck</b> · <code>data-parallelism</code> <code>data-parallelism</code>
 </summary>
 </details></section>
 <section id="the-expert-capacity-drop" class="level3">
@@ -1150,7 +1150,7 @@ graph TD
 
 <details>
 <summary>
-<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> The KV-Cache Network Wall</b> · <code>network</code> <code>serving</code>
+<b><img src="https://img.shields.io/badge/Level-L6+_Principal-red?style=flat-square" alt="Level 4" align="center"> The KV-Cache Network Wall</b> · <code>interconnect</code> <code>serving</code>
 </summary>
 </details></section>
 <section id="the-kv-cache-network-transfer-wall" class="level3">
@@ -1172,20 +1172,20 @@ graph LR
         G2["H100 (Decode)"]:::compute
     end
 
-    G1 --&gt;|8.4 GB KV-Cache| Net
-    Net --&gt;|"STALL: 7 Seconds"| G2
+    G1 --&gt;|10.5 GB KV-Cache| Net
+    Net --&gt;|"STALL: 8.4 Seconds"| G2
 
     Note["🚨 Disaggregated Serving Bottleneck&lt;br/&gt;70B Model @ 32k Tokens&lt;br/&gt;Transfer time destroys TTFT SLO"]</code></pre>
 <ul>
-<li><p><strong>Interviewer:</strong> “You implement Disaggregated Serving to separate Prefill and Decode tasks for a 70B LLM. However, for users with long prompts (32k tokens), the Time-to-First-Token (TTFT) increases by 7 seconds. Based on the diagram, what physical link is destroying your latency gain?”</p>
+<li><p><strong>Interviewer:</strong> “You implement Disaggregated Serving to separate Prefill and Decode tasks for a 70B LLM. However, for users with long prompts (32k tokens), the Time-to-First-Token (TTFT) increases by over 8 seconds. Based on the diagram, what physical link is destroying your latency gain?”</p>
 <details>
 <summary>
 <p><b>🔍 Reveal Answer</b></p>
 </summary>
 <p><strong>Common Mistake:</strong> “Disaggregated serving is always faster because it isolates compute from memory bandwidth.” This assumes the transfer of the intermediate state (the KV-cache) is free.</p>
-<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>10 GbE Network</strong>. For a 70B model with a 32k token prompt, the KV-cache is massive (~8.4 GB). Over a 1.25 GB/s link, transferring this state takes ~7 seconds. Disaggregated serving requires <strong>InfiniBand/RoCE (200-400 Gbps)</strong> and <strong>GPUDirect RDMA</strong> to move the KV-cache directly between GPU HBMs, bypassing the slow CPU RAM and standard Ethernet.</p>
+<p><strong>Realistic Solution:</strong> The bottleneck is the <strong>10 GbE Network</strong>. For a 70B model with a 32k token prompt, the KV-cache is massive (~10.5 GB). Over a 1.25 GB/s link, transferring this state takes ~8.4 seconds. Disaggregated serving requires <strong>InfiniBand/RoCE (200-400 Gbps)</strong> and <strong>GPUDirect RDMA</strong> to move the KV-cache directly between GPU HBMs, bypassing the slow CPU RAM and standard Ethernet.</p>
 <blockquote class="blockquote">
-<p><strong>Napkin Math:</strong> 32,000 tokens × 8 KV heads × 128 dim × 2 layers × 2 bytes (FP16) ≈ 8.4 GB. Time = <span class="math inline">\(8.4 \text{ GB} / 1.25 \text{ GB/s} \approx 6.7 \text{ seconds}\)</span>.</p>
+<p><strong>Napkin Math:</strong> 2 (K&amp;V) × 80 layers × 8 KV-heads (GQA) × 128 dim × 32,000 tokens × 2 bytes (FP16) ≈ 10.5 GB. Time = <span class="math inline">\(10.5 \text{ GB} / 1.25 \text{ GB/s} \approx 8.4 \text{ seconds}\)</span>.</p>
 </blockquote>
 <p>📖 <strong>Deep Dive:</strong> <a href="https://harvard-edge.github.io/cs249r_book_dev/contents/model_serving/model_serving.html">Volume II: Model Serving</a></p>
 </details></li>
