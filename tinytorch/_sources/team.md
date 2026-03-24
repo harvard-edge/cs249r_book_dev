@@ -258,6 +258,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Rolds</span>
     <span class="roles">🪲 🧑‍💻</span>
   </a>
+  <a href="https://github.com/asgalon" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/45242704?v=4" alt="asgalon" />
+    <span class="name">asgalon</span>
+    <span class="roles">🧑‍💻 ✍️</span>
+  </a>
   <a href="https://github.com/AmirAlasady" class="team-member">
     <img src="https://avatars.githubusercontent.com/AmirAlasady?v=4&s=160" alt="Amir Alasady" />
     <span class="name">Amir Alasady</span>
@@ -316,11 +321,6 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
   <a href="https://github.com/adityamulik" class="team-member">
     <img src="https://avatars.githubusercontent.com/u/10626835?v=4" alt="Aditya Mulik" />
     <span class="name">Aditya Mulik</span>
-    <span class="roles">✍️</span>
-  </a>
-  <a href="https://github.com/asgalon" class="team-member">
-    <img src="https://avatars.githubusercontent.com/u/45242704?v=4" alt="asgalon" />
-    <span class="name">asgalon</span>
     <span class="roles">✍️</span>
   </a>
 </div>

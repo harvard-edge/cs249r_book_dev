@@ -1733,7 +1733,7 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <h3>Why Attention Matters at Scale<a class="headerlink" href="#why-attention-matters-at-scale" title="Link to this heading">#</a></h3>
 <p>To appreciate why attention research is crucial, consider the scaling characteristics of modern language models:</p>
 <ul class="simple">
-<li><p><strong>GPT-3</strong> (96 layers, 2048 context): ~<span class="pasted-text">1.5 GB</span> just for attention matrices during forward pass, <span class="pasted-text">~7.5 GB</span> with gradients during training</p></li>
+<li><p><strong>GPT-3</strong> (96 layers, 2048 context): ~<span class="pasted-text">1.5 GB</span> just for attention matrices during forward pass, <span class="pasted-text">~6.0 GB</span> with gradients during training</p></li>
 <li><p><strong>GPT-4</strong> (estimated 120 layers, 32K context): Would require <span class="pasted-text">~480 GB</span> for attention alone without optimization, exceeding single-GPU memory</p></li>
 <li><p><strong>Long-context models</strong> (100K+ tokens): Attention becomes computationally prohibitive without algorithmic improvements</p></li>
 </ul>
@@ -1867,8 +1867,6 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p><strong>Backward pass (training) additional memory:</strong></p>
 <ul class="simple">
 <li><p>Gradient of attention weights: n² values</p></li>
-<li><p>Gradient of Q, K, V: 3 × (n × d) values</p></li>
-<li><p>Intermediate gradients from softmax: n² values</p></li>
 </ul>
 <p><strong>With Adam optimizer (standard for transformers):</strong></p>
 <ul class="simple">
@@ -1878,14 +1876,14 @@ Your TinyTorch</label><div class="sd-tab-content docutils">
 <p><strong>Total multiplier for attention matrix alone:</strong></p>
 <ul class="simple">
 <li><p>Forward: 1× (attention weights)</p></li>
-<li><p>Backward: +2× (gradients)</p></li>
+<li><p>Backward: +1× (gradients)</p></li>
 <li><p>Optimizer: +2× (Adam state)</p></li>
-<li><p><strong>Total: <span class="pasted-text">5</span>× inference memory</strong></p></li>
+<li><p><strong>Total: <span class="pasted-text">4</span>× inference memory</strong></p></li>
 </ul>
 <p><strong>For GPT-3 scale (96 layers, 2048 context):</strong></p>
 <ul class="simple">
 <li><p>Inference: 96 × <span class="pasted-text">16 MB</span> = <span class="pasted-text">1.5 GB</span></p></li>
-<li><p>Training: 96 × <span class="pasted-text">16 MB</span> × <span class="pasted-text">5</span> = <strong><span class="pasted-text">7.5 GB</span></strong> just for attention gradients and optimizer state!</p></li>
+<li><p>Training: 96 × <span class="pasted-text">16 MB</span> × <span class="pasted-text">4</span> = <strong><span class="pasted-text">6.0 GB</span></strong> just for attention gradients and optimizer state!</p></li>
 </ul>
 <p>This excludes Q/K/V matrices, feed-forward networks, embeddings, and activations from other layers. Full GPT-3 training requires 350+ GB.</p>
 </div>
