@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2026-04-01">
+<meta name="description" content="A 3-minute calculation with mlsysim that answers the question every ML engineer asks.">
 
-<title>models – MLSys·IM - Machine Learning Systems</title>
+<title>How Much Memory Does Llama-3 70B Actually Need? – MLSys·IM - Machine Learning Systems</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,6 +25,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -32,8 +69,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../api/systems.html" rel="next">
-<link href="../api/hardware.html" rel="prev">
 <link href="../logo.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -532,7 +567,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/index.html">API Reference</a></li><li class="breadcrumb-item"><a href="../api/models.html">Models</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">How Much Memory Does Llama-3 70B Actually Need?</li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -854,7 +889,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/models.html" class="sidebar-item-text sidebar-link active">
+  <a href="../api/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Models</span></a>
   </div>
 </li>
@@ -917,22 +952,161 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mlsysim.models" id="toc-mlsysim.models" class="nav-link active" data-scroll-target="#mlsysim.models">models</a></li>
+  <li><a href="#how-much-memory-does-llama-3-70b-actually-need" id="toc-how-much-memory-does-llama-3-70b-actually-need" class="nav-link active" data-scroll-target="#how-much-memory-does-llama-3-70b-actually-need">How Much Memory Does Llama-3 70B Actually Need?</a>
+  <ul>
+  <li><a href="#the-weights" id="toc-the-weights" class="nav-link" data-scroll-target="#the-weights">The Weights</a></li>
+  <li><a href="#the-kv-cache-the-hidden-memory-consumer" id="toc-the-kv-cache-the-hidden-memory-consumer" class="nav-link" data-scroll-target="#the-kv-cache-the-hidden-memory-consumer">The KV Cache (The Hidden Memory Consumer)</a></li>
+  <li><a href="#the-full-picture" id="toc-the-full-picture" class="nav-link" data-scroll-target="#the-full-picture">The Full Picture</a></li>
+  <li><a href="#what-to-do-about-it" id="toc-what-to-do-about-it" class="nav-link" data-scroll-target="#what-to-do-about-it">What To Do About It</a></li>
+  <li><a href="#try-it-yourself" id="toc-try-it-yourself" class="nav-link" data-scroll-target="#try-it-yourself">Try It Yourself</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/index.html">API Reference</a></li><li class="breadcrumb-item"><a href="../api/models.html">Models</a></li></ol></nav></header>
+<main class="content" id="quarto-document-content">
 
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">How Much Memory Does Llama-3 70B Actually Need?</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">serving</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">llm</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A 3-minute calculation with mlsysim that answers the question every ML engineer asks.
+  </div>
+</div>
 
 
+<div class="quarto-title-meta">
 
-<section id="mlsysim.models" class="level1">
-<h1>models</h1>
-<p><code>models</code></p>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 1, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
 
 
+</header>
+
+
+<section id="how-much-memory-does-llama-3-70b-actually-need" class="level1">
+<h1>How Much Memory Does Llama-3 70B Actually Need?</h1>
+<p>Every ML engineer eventually asks: <em>“Can I serve Llama-3 70B on my hardware?”</em></p>
+<p>The answer depends on three things: <strong>precision</strong>, <strong>KV cache</strong>, and <strong>batch size</strong>. Let’s calculate it in 30 seconds.</p>
+<section id="the-weights" class="level2">
+<h2 class="anchored" data-anchor-id="the-weights">The Weights</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> mlsysim</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>llama70b <span class="op">=</span> mlsysim.Models.Language.Llama3_70B</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># FP16: 2 bytes per parameter</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>fp16_size <span class="op">=</span> llama70b.size_in_bytes()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"FP16 weights: </span><span class="sc">{</span>fp16_size<span class="sc">.</span>to(<span class="st">'GB'</span>)<span class="sc">:.1f}</span><span class="ss">"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># → 140.0 GB</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># INT4: 0.5 bytes per parameter</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>int4_size <span class="op">=</span> llama70b.size_in_bytes(mlsysim.ureg(<span class="st">"0.5 byte"</span>))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"INT4 weights: </span><span class="sc">{</span>int4_size<span class="sc">.</span>to(<span class="st">'GB'</span>)<span class="sc">:.1f}</span><span class="ss">"</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># → 35.0 GB</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Result:</strong> 140 GB in FP16, 35 GB in INT4.</p>
+<p>An H100 has 80 GB. So Llama-3 70B in FP16 <strong>does not fit on one GPU</strong>. You need either tensor parallelism (TP=2) or quantization to INT4.</p>
+</section>
+<section id="the-kv-cache-the-hidden-memory-consumer" class="level2">
+<h2 class="anchored" data-anchor-id="the-kv-cache-the-hidden-memory-consumer">The KV Cache (The Hidden Memory Consumer)</h2>
+<p>Weights are only half the story. Each active request needs a KV cache:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.core.formulas <span class="im">import</span> calc_kv_cache_size</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Llama-3 70B: 80 layers, 8 KV heads (GQA), 128 dim per head</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>kv_per_request <span class="op">=</span> calc_kv_cache_size(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    n_layers<span class="op">=</span><span class="dv">80</span>, n_heads<span class="op">=</span><span class="dv">8</span>, head_dim<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">4096</span>, batch_size<span class="op">=</span><span class="dv">1</span>, bytes_per_elem<span class="op">=</span><span class="dv">2</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"KV cache per request (4K context): </span><span class="sc">{</span>kv_per_request<span class="sc">.</span>to(<span class="st">'MB'</span>)<span class="sc">:.0f}</span><span class="ss">"</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># → 160 MB per request</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>At 160 MB per request, an 80 GB GPU serving INT4 Llama-3 70B has: - 35 GB for weights - 45 GB remaining for KV cache - <strong>45,000 MB / 160 MB ≈ 280 concurrent requests max</strong></p>
+<p>But at 32K context? KV cache is 1.28 GB per request → only <strong>35 requests</strong>.</p>
+</section>
+<section id="the-full-picture" class="level2">
+<h2 class="anchored" data-anchor-id="the-full-picture">The Full Picture</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.core.solver <span class="im">import</span> ServingModel</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> ServingModel().solve(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    mlsysim.Models.Language.Llama3_70B,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    mlsysim.Hardware.Cloud.H100,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">4096</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    precision<span class="op">=</span><span class="st">"fp16"</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Feasible: </span><span class="sc">{</span>result<span class="sc">.</span>feasible<span class="sc">}</span><span class="ss">"</span>)        <span class="co"># → False (doesn't fit!)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Memory util: </span><span class="sc">{</span>result<span class="sc">.</span>memory_utilization<span class="sc">:.1%}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>The punchline:</strong> A “70B model” doesn’t just need 140 GB. It needs 140 GB + (KV cache × concurrent requests). At production batch sizes, the KV cache can consume MORE memory than the weights.</p>
+</section>
+<section id="what-to-do-about-it" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-do-about-it">What To Do About It</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 38%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Strategy</th>
+<th>Memory Impact</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>INT4 quantization</td>
+<td>4× smaller weights</td>
+<td>~2-5% accuracy loss</td>
+</tr>
+<tr class="even">
+<td>GQA (already in Llama-3)</td>
+<td>8× smaller KV cache</td>
+<td>None (architectural)</td>
+</tr>
+<tr class="odd">
+<td>KV cache INT8</td>
+<td>2× smaller KV cache</td>
+<td>Negligible quality loss</td>
+</tr>
+<tr class="even">
+<td>Tensor parallelism (TP=2)</td>
+<td>Split across 2 GPUs</td>
+<td>Adds NVLink communication</td>
+</tr>
+<tr class="odd">
+<td>PagedAttention (vLLM)</td>
+<td>Eliminates KV fragmentation</td>
+<td>~20-40% more concurrent requests</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="try-it-yourself" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-yourself">Try It Yourself</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install mlsysim</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> serve Llama3_70B H100 <span class="at">--seq-len</span> 4096 <span class="at">--batch-size</span> 1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+<p><em>This analysis was computed with <a href="https://mlsysbook.ai/mlsysim">mlsysim</a>, a first-principles analytical calculator for ML systems. All constants are traceable to hardware datasheets.</em></p>
+
+
+</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
@@ -1349,18 +1523,6 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
-<nav class="page-navigation">
-  <div class="nav-page nav-page-previous">
-      <a href="../api/hardware.html" class="pagination-link" aria-label="Hardware">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Hardware</span>
-      </a>          
-  </div>
-  <div class="nav-page nav-page-next">
-      <a href="../api/systems.html" class="pagination-link" aria-label="Systems">
-        <span class="nav-page-text">Systems</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
-  </div>
-</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
