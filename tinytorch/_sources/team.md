@@ -343,6 +343,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Farhan Asghar</span>
     <span class="roles">✍️</span>
   </a>
+  <a href="https://github.com/Shashank-Tripathi-07" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/178375647?v=4" alt="Rocky" />
+    <span class="name">Rocky</span>
+    <span class="roles">🧑‍💻</span>
+  </a>
 </div>
 ```
 

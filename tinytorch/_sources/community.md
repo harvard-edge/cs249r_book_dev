@@ -5,14 +5,14 @@
 **See yourself on the TinyTorch Globe!** Create an account and join the global community to track your progress and connect with other builders.
 
 <p align="center">
-<img src="_static/images/diagram_tiny-commununity.png" alt="TinyTorch Community Ecosystem" width="100%">
+<img src="_static/images/diagram_tiny-community.png" alt="TinyTorch Community Ecosystem" width="100%">
 </p>
 
 **Learn together, build together, grow together.**
 
 TinyTorch is more than a course—it's a growing community of students, educators, and ML engineers learning systems engineering from first principles.
 
-## Community Dashboard (Available Now )
+## Community Dashboard (Available Now)
 
 Join the global TinyTorch community and see your progress:
 
