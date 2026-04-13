@@ -233,6 +233,11 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
     <span class="name">Pratham Chaudhary</span>
     <span class="roles">🪲 🧑‍💻 ✍️</span>
   </a>
+  <a href="https://github.com/farhan523" class="team-member">
+    <img src="https://avatars.githubusercontent.com/u/62025759?v=4" alt="Farhan Asghar" />
+    <span class="name">Farhan Asghar</span>
+    <span class="roles">🪲 🧑‍💻 ✍️</span>
+  </a>
   <a href="https://github.com/karthikdani" class="team-member">
     <img src="https://avatars.githubusercontent.com/karthikdani?v=4&s=160" alt="Karthik Dani" />
     <span class="name">Karthik Dani</span>
@@ -336,11 +341,6 @@ TinyTorch is built by a passionate community dedicated to making ML systems educ
   <a href="https://github.com/harishb00" class="team-member">
     <img src="https://avatars.githubusercontent.com/u/43300971?v=4" alt="Harish" />
     <span class="name">Harish</span>
-    <span class="roles">✍️</span>
-  </a>
-  <a href="https://github.com/farhan523" class="team-member">
-    <img src="https://avatars.githubusercontent.com/u/62025759?v=4" alt="Farhan Asghar" />
-    <span class="name">Farhan Asghar</span>
     <span class="roles">✍️</span>
   </a>
   <a href="https://github.com/Shashank-Tripathi-07" class="team-member">
