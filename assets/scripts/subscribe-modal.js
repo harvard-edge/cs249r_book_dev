@@ -1,6 +1,24 @@
 /**
  * Subscribe Modal Component
- * Elegant popup subscription form for ML Systems Textbook
+ * Elegant popup subscription form for ML Systems Textbook.
+ *
+ * CANONICAL SOURCE. After editing this file, run:
+ *
+ *   bash shared/scripts/sync-mirrors.sh
+ *
+ * to propagate changes to the per-subsite mirrors. The sync script is
+ * authoritative; the mirror list lives there. CI runs `--check` to catch
+ * drift in pull requests.
+ *
+ * Why mirrors instead of symlinks? Quarto's resource-copy step preserves
+ * symlinks rather than dereferencing them, which breaks both local builds
+ * (`AlreadyExists` on the second pass) and gh-pages deploys (the symlink
+ * target falls outside the build output).
+ *
+ * Intentional non-mirrors (different content per subsite, keep in sync
+ * manually if behaviour needs to align):
+ *   tinytorch/site-quarto/assets/scripts/subscribe-modal.js  (TinyTorch-branded)
+ *   tinytorch/site/_static/subscribe-modal.js                (legacy Sphinx site)
  */
 
 (function() {
@@ -14,10 +32,8 @@
           <button class="modal-close" data-close-modal aria-label="Close">&times;</button>
           <div class="modal-content">
             <div class="modal-header">
-              <div class="modal-badges">
-                <span class="modal-badge">📚 MLSysBook</span>
-                <span class="modal-badge-plus">+</span>
-                <span class="modal-badge">🔥 TinyTorch</span>
+              <div class="modal-brand-row">
+                <span class="modal-brand-item">📚 MLSysBook</span>
               </div>
               <h2 class="modal-title">Stay in the Loop</h2>
               <p class="modal-subtitle">Get updates on new chapters, hands-on labs, and ML systems resources.</p>
@@ -58,7 +74,11 @@
                 <label for="modal-organization">Organization <span class="optional-label">(optional)</span></label>
                 <input type="text" id="modal-organization" name="metadata__organization" placeholder="University or company">
               </div>
-              <input type="hidden" name="tag" value="mlsysbook-textbook">
+              <div class="form-group">
+                <label for="modal-motivation">What brings you here? <span class="optional-label">(optional)</span></label>
+                <textarea id="modal-motivation" name="metadata__motivation" rows="2" placeholder="e.g., teaching a course, learning ML systems, building edge devices..."></textarea>
+              </div>
+              <input type="hidden" name="tag" value="mlsysbook-site">
               <button type="submit" class="btn btn-primary subscribe-btn">Subscribe</button>
               <p class="form-note">No spam, ever. Unsubscribe anytime.</p>
             </form>
@@ -77,7 +97,7 @@
   function createModalCSS() {
     const style = document.createElement('style');
     style.textContent = `
-      /* Modal Overlay and Container - matching ReOrg style */
+      /* Modal Overlay and Container */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -86,7 +106,7 @@
         bottom: 0;
         background: rgba(15, 23, 42, 0.6);
         backdrop-filter: blur(4px);
-        z-index: 1000;
+        z-index: 10001;
         align-items: center;
         justify-content: center;
         padding: 1rem;
@@ -99,11 +119,11 @@
       }
 
       @keyframes slideUp {
-        from { 
+        from {
           opacity: 0;
           transform: translateY(20px) scale(0.98);
         }
-        to { 
+        to {
           opacity: 1;
           transform: translateY(0) scale(1);
         }
@@ -111,8 +131,8 @@
 
       .modal-container {
         background: white;
-        border-radius: 20px;
-        max-width: 500px;
+        border-radius: 16px;
+        max-width: 440px;
         width: 100%;
         max-height: 90vh;
         overflow-y: auto;
@@ -149,50 +169,56 @@
       }
 
       .modal-content {
-        padding: 2.5rem;
+        padding: 2rem 2.5rem 2.5rem 2.5rem;
       }
 
       .modal-header {
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
-      .modal-badges {
-        display: flex;
+      .modal-brand-row {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
       }
 
-      .modal-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        padding: 0.5rem 0.875rem;
-        background: #f1f5f9;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #334155;
+      .modal-brand-item {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        background: #f3f4f6;
+        padding: 0.3rem 0.6rem;
+        border-radius: 5px;
+        white-space: nowrap;
       }
 
-      .modal-badge-plus {
-        color: #94a3b8;
-        font-size: 1rem;
+      .modal-brand-plus {
+        font-size: 0.9rem;
+        font-weight: 300;
+        color: #9ca3af;
       }
 
       .modal-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: #0f172a;
-        margin-bottom: 0.5rem;
+        margin: 0 0 0.4rem 0;
+        line-height: 1.2;
+        width: 100%;
       }
 
       .modal-subtitle {
-        font-size: 1rem;
-        color: #475569;
+        font-size: 0.9rem;
+        color: #64748b;
         margin: 0;
+        line-height: 1.5;
+        max-width: 320px;
       }
 
       /* Form Styles */
@@ -205,7 +231,16 @@
       .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
+      }
+
+      .form-row .form-group {
+        min-width: 0;
+      }
+
+      .form-row .form-group input {
+        width: 100%;
+        box-sizing: border-box;
       }
 
       .form-group {
@@ -226,7 +261,8 @@
       }
 
       .form-group input[type="text"],
-      .form-group input[type="email"] {
+      .form-group input[type="email"],
+      .form-group textarea {
         padding: 0.875rem 1rem;
         border: 1px solid #cbd5e1;
         border-radius: 8px;
@@ -236,19 +272,26 @@
         font-family: inherit;
       }
 
+      .form-group textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+
       .form-group input[type="text"]:focus,
-      .form-group input[type="email"]:focus {
+      .form-group input[type="email"]:focus,
+      .form-group textarea:focus {
         outline: none;
         border-color: #3b82f6;
         background: white;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
       }
 
-      .form-group input::placeholder {
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
         color: #94a3b8;
       }
 
-      /* Role Options - compact style like ReOrg */
+      /* Role Options - compact style */
       .role-options {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -382,6 +425,15 @@
         color: #f1f5f9;
       }
 
+      body.quarto-dark .modal-brand-item {
+        background: #334155;
+        color: #e2e8f0;
+      }
+
+      body.quarto-dark .modal-brand-plus {
+        color: #64748b;
+      }
+
       body.quarto-dark .modal-title,
       body.quarto-dark .form-group label,
       body.quarto-dark .subscribe-success h3 {
@@ -393,17 +445,9 @@
         color: #cbd5e1;
       }
 
-      body.quarto-dark .modal-badge {
-        background: #334155;
-        color: #e2e8f0;
-      }
-
-      body.quarto-dark .modal-badge-plus {
-        color: #64748b;
-      }
-
       body.quarto-dark .form-group input[type="text"],
-      body.quarto-dark .form-group input[type="email"] {
+      body.quarto-dark .form-group input[type="email"],
+      body.quarto-dark .form-group textarea {
         background: #0f172a;
         border-color: #334155;
         color: #f1f5f9;
@@ -457,7 +501,7 @@
     window.openModal = function() {
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      
+
       // Focus first input
       setTimeout(() => {
         const firstInput = document.getElementById('modal-first-name');
@@ -469,7 +513,7 @@
     window.closeModal = function() {
       modal.style.display = 'none';
       document.body.style.overflow = '';
-      
+
       // Reset form after closing
       setTimeout(() => {
         form.style.display = 'flex';
@@ -504,21 +548,51 @@
       setTimeout(() => {
         form.style.display = 'none';
         success.style.display = 'block';
-        
+
         // Close modal after 5 seconds
         setTimeout(closeModal, 5000);
       }, 100);
     });
 
+    // Check if URL has #subscribe hash on page load - auto-open modal
+    if (window.location.hash === '#subscribe') {
+      // Small delay to ensure page is fully loaded
+      setTimeout(() => {
+        openModal();
+      }, 300);
+    }
+
+    // Also listen for hash changes (e.g., user clicks back/forward)
+    window.addEventListener('hashchange', function() {
+      if (window.location.hash === '#subscribe') {
+        openModal();
+      }
+    });
+
     // Intercept navbar subscribe link
     setTimeout(() => {
-      const navSubscribeLink = document.querySelector('a[href*="buttondown.email/mlsysbook"]');
-      if (navSubscribeLink) {
-        navSubscribeLink.addEventListener('click', function(e) {
-          e.preventDefault();
-          openModal();
-        });
-      }
+      // Look for subscribe links in navbar
+      const subscribeSelectors = [
+        'a[href*="buttondown.email/mlsysbook"]',
+        'a[href="#subscribe"]',
+        'a[href*="subscribe"]',
+        '#navbar-subscribe-btn',
+        '.subscribe-link'
+      ];
+
+      subscribeSelectors.forEach(selector => {
+        try {
+          const links = document.querySelectorAll(selector);
+          links.forEach(link => {
+            link.addEventListener('click', function(e) {
+              e.preventDefault();
+              openModal();
+            });
+          });
+        } catch (err) {
+          // Selector not supported, continue
+        }
+      });
     }, 1000);
   }
 
@@ -529,4 +603,3 @@
     initModal();
   }
 })();
-
