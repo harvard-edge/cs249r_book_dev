@@ -76,6 +76,52 @@ ul.task-list li input[type="checkbox"] {
 <!-- Shared head includes — MLSysBook ecosystem -->
 
 <!--
+  theme-persist (inline, sync) — applies stored color-scheme before first paint.
+  Inlined deliberately: runs before any other <script>, no extra round-trip,
+  and avoids per-subsite asset path differences. Canonical source:
+  shared/scripts/theme-persist.js (kept identical for documentation/testability).
+  If you change one, mirror the change to the other.
+-->
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'quarto-color-scheme';
+  function preferredScheme() {
+    try {
+      var stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === 'dark' || stored === 'light') return stored;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  function apply(scheme) {
+    var html = document.documentElement;
+    if (!html) return;
+    html.setAttribute('data-bs-theme', scheme);
+    html.setAttribute('data-quarto-color-scheme', scheme);
+    html.style.colorScheme = scheme;
+  }
+  apply(preferredScheme());
+  window.addEventListener('storage', function (ev) {
+    if (ev.key !== STORAGE_KEY) return;
+    var next = ev.newValue;
+    if (next !== 'dark' && next !== 'light') return;
+    apply(next);
+  });
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (ev) {
+        try { if (window.localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+        apply(ev.matches ? 'dark' : 'light');
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<!--
   Build-stamp styling. Tiny, neutral, dark-mode aware. The actual stamp text
   is injected by shared/scripts/inject-build-stamp.sh into footer markup
   containing the literal `<!-- MLSB_BUILD_STAMP --><meta property="og:title" content="Team – TinyTorch">
@@ -604,7 +650,7 @@ ul.task-list li input[type="checkbox"] {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="ae43ba08c50a933cf289d4d864649c98" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">8f09e80c</code> • 2026-04-19 16:54 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">51934307</code> • 2026-04-20 09:43 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🔥 <strong>TinyTorch:</strong> Build your own ML framework from scratch. Classroom ready 2026.<br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="../book/vol1/">Explore →</a><br> 📦 <strong>Hardware Kits:</strong> Arduino, Seeed &amp; Raspberry Pi labs. <a href="../kits">Explore →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
