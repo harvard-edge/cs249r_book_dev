@@ -112,6 +112,52 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- Shared head includes — MLSysBook ecosystem -->
 
 <!--
+  theme-persist (inline, sync) — applies stored color-scheme before first paint.
+  Inlined deliberately: runs before any other <script>, no extra round-trip,
+  and avoids per-subsite asset path differences. Canonical source:
+  shared/scripts/theme-persist.js (kept identical for documentation/testability).
+  If you change one, mirror the change to the other.
+-->
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'quarto-color-scheme';
+  function preferredScheme() {
+    try {
+      var stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === 'dark' || stored === 'light') return stored;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  function apply(scheme) {
+    var html = document.documentElement;
+    if (!html) return;
+    html.setAttribute('data-bs-theme', scheme);
+    html.setAttribute('data-quarto-color-scheme', scheme);
+    html.style.colorScheme = scheme;
+  }
+  apply(preferredScheme());
+  window.addEventListener('storage', function (ev) {
+    if (ev.key !== STORAGE_KEY) return;
+    var next = ev.newValue;
+    if (next !== 'dark' && next !== 'light') return;
+    apply(next);
+  });
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (ev) {
+        try { if (window.localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+        apply(ev.matches ? 'dark' : 'light');
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<!--
   Build-stamp styling. Tiny, neutral, dark-mode aware. The actual stamp text
   is injected by shared/scripts/inject-build-stamp.sh into footer markup
   containing the literal `<!-- MLSB_BUILD_STAMP --><meta property="og:title" content="MLSys·im — ML Systems Infrastructure Modeling">
@@ -659,7 +705,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="4b007510504141da230f212bc6be745a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">4495f571</code> • 2026-04-20 09:14 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">152b8630</code> • 2026-04-20 13:05 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im:</strong> First-principles ML systems modeling. <a href="./getting-started.html">Get started →</a><br> 📚 <strong>Textbook:</strong> Read the ML Systems book. <a href="../book">Explore →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1304,7 +1350,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="../slides/vol1/11_hw_acceleration/">Hardware Acceleration</a> and <a href="../slides/vol2/02_compute_infrastructure/">Compute Infrastructure</a> slide decks cover the accelerator landscape and datasheet specs that feed into MLSYSIM’s hardware registry.</p>
+<p>The <a href="../../slides/vol1/11_hw_acceleration/">Hardware Acceleration</a> and <a href="../../slides/vol2/02_compute_infrastructure/">Compute Infrastructure</a> slide decks cover the accelerator landscape and datasheet specs that feed into MLSYSIM’s hardware registry.</p>
 </div>
 </div>
 <section id="step-1-define-constants-in-coreconstants.py" class="level3">
@@ -1378,7 +1424,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="../slides/vol1/06_nn_architectures/">Network Architectures</a> and <a href="../slides/vol1/05_nn_computation/">Neural Network Computation</a> slide decks explain the architectural parameters (layers, heads, hidden dimensions) that define each workload.</p>
+<p>The <a href="../../slides/vol1/06_nn_architectures/">Network Architectures</a> and <a href="../../slides/vol1/05_nn_computation/">Neural Network Computation</a> slide decks explain the architectural parameters (layers, heads, hidden dimensions) that define each workload.</p>
 </div>
 </div>
 <section id="transformer-workloads" class="level3">
@@ -1421,7 +1467,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="../slides/vol2/03_network_fabrics/">Network Fabrics</a> and <a href="../slides/vol2/08_fleet_orchestration/">Fleet Orchestration</a> slide decks explain the network topologies and cluster compositions that MLSYSIM models analytically.</p>
+<p>The <a href="../../slides/vol2/03_network_fabrics/">Network Fabrics</a> and <a href="../../slides/vol2/08_fleet_orchestration/">Fleet Orchestration</a> slide decks explain the network topologies and cluster compositions that MLSYSIM models analytically.</p>
 </div>
 </div>
 <section id="adding-a-fleet-or-fabric-systemsregistry.py" class="level3">
@@ -1467,7 +1513,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="../slides/vol2/15_sustainable_ai/">Sustainable AI</a> slide deck covers PUE, WUE, and carbon intensity – the exact quantities that <code>GridProfile</code> captures.</p>
+<p>The <a href="../../slides/vol2/15_sustainable_ai/">Sustainable AI</a> slide deck covers PUE, WUE, and carbon intensity – the exact quantities that <code>GridProfile</code> captures.</p>
 </div>
 </div>
 <hr>
@@ -1538,39 +1584,39 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Roofline analysis</td>
-<td style="text-align: left;"><a href="../slides/vol1/11_hw_acceleration/">Hardware Acceleration</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/11_hw_acceleration/">Hardware Acceleration</a></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Benchmarking &amp; MFU</td>
-<td style="text-align: left;"><a href="../slides/vol1/12_benchmarking/">Benchmarking</a>, <a href="../slides/vol2/10_performance_engineering/">Performance Engineering</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/12_benchmarking/">Benchmarking</a>, <a href="../../slides/vol2/10_performance_engineering/">Performance Engineering</a></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">LLM serving (TTFT/ITL)</td>
-<td style="text-align: left;"><a href="../slides/vol1/13_model_serving/">Model Serving</a>, <a href="../slides/vol2/09_inference/">Inference at Scale</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/13_model_serving/">Model Serving</a>, <a href="../../slides/vol2/09_inference/">Inference at Scale</a></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Distributed training</td>
-<td style="text-align: left;"><a href="../slides/vol1/08_training/">Model Training</a>, <a href="../slides/vol2/05_distributed_training/">Distributed Training</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/08_training/">Model Training</a>, <a href="../../slides/vol2/05_distributed_training/">Distributed Training</a></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Collective communication</td>
-<td style="text-align: left;"><a href="../slides/vol2/06_collective_communication/">Collective Communication</a></td>
+<td style="text-align: left;"><a href="../../slides/vol2/06_collective_communication/">Collective Communication</a></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Fault tolerance</td>
-<td style="text-align: left;"><a href="../slides/vol2/07_fault_tolerance/">Fault Tolerance</a></td>
+<td style="text-align: left;"><a href="../../slides/vol2/07_fault_tolerance/">Fault Tolerance</a></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Sustainability &amp; carbon</td>
-<td style="text-align: left;"><a href="../slides/vol2/15_sustainable_ai/">Sustainable AI</a></td>
+<td style="text-align: left;"><a href="../../slides/vol2/15_sustainable_ai/">Sustainable AI</a></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Model compression</td>
-<td style="text-align: left;"><a href="../slides/vol1/10_model_compression/">Model Compression</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/10_model_compression/">Model Compression</a></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Network architectures</td>
-<td style="text-align: left;"><a href="../slides/vol1/06_nn_architectures/">Network Architectures</a></td>
+<td style="text-align: left;"><a href="../../slides/vol1/06_nn_architectures/">Network Architectures</a></td>
 </tr>
 </tbody>
 </table>
@@ -1636,7 +1682,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="../slides/vol2/10_performance_engineering/">Performance Engineering</a> and <a href="../slides/vol2/05_distributed_training/">Distributed Training</a> slide decks cover the analytical models (roofline, all-reduce cost, pipeline bubbles) that the solvers implement.</p>
+<p>The <a href="../../slides/vol2/10_performance_engineering/">Performance Engineering</a> and <a href="../../slides/vol2/05_distributed_training/">Distributed Training</a> slide decks cover the analytical models (roofline, all-reduce cost, pipeline bubbles) that the solvers implement.</p>
 </div>
 </div>
 <section id="solver-contribution-checklist" class="level3">
