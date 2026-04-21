@@ -1476,7 +1476,7 @@
     "href": "tutorials/distributed.html#visualizing-3d-parallelism",
     "title": "Distributed Training: 3D Parallelism and Scaling Efficiency",
     "section": "2. Visualizing 3D Parallelism",
-    "text": "2. Visualizing 3D Parallelism\nBefore working through the numbers, consider how 3D parallelism decomposes a training job across a cluster. Each dimension splits work differently and introduces a different type of overhead:\nData Parallelism (DP=4) — each GPU holds a full model copy and processes 1/4 of the batch. After the backward pass, gradients are synchronized via All-Reduce.\n\n\n\n\n\nflowchart LR\n    R1[\"Replica 1&lt;br/&gt;Batch 1/4\"] &lt;-.-&gt;|\"All-Reduce\"| R2[\"Replica 2&lt;br/&gt;Batch 2/4\"]\n    R2 &lt;-.-&gt;|\"All-Reduce\"| R3[\"Replica 3&lt;br/&gt;Batch 3/4\"]\n    R3 &lt;-.-&gt;|\"All-Reduce\"| R4[\"Replica 4&lt;br/&gt;Batch 4/4\"]\n\n\n Data Parallelism: replicate the model, split the batch, synchronize gradients. \n\n\n\nTensor Parallelism (TP=2) — each layer is split across GPUs. Requires fast interconnect (NVLink).\n\n\n\n\n\nflowchart LR\n    G1[\"GPU 0&lt;br/&gt;Left half of each layer\"] &lt;--&gt;|\"All-Gather&lt;br/&gt;(NVLink)\"| G2[\"GPU 1&lt;br/&gt;Right half of each layer\"]\n\n\n Tensor Parallelism: split each layer across GPUs, communicate via NVLink. \n\n\n\nPipeline Parallelism (PP=4) — model layers are partitioned across stages. Activations flow forward; gradients flow backward.\n\n\n\n\n\nflowchart LR\n    S1[\"Stage 1&lt;br/&gt;Layers 1–20\"] --&gt; S2[\"Stage 2&lt;br/&gt;Layers 21–40\"]\n    S2 --&gt; S3[\"Stage 3&lt;br/&gt;Layers 41–60\"]\n    S3 --&gt; S4[\"Stage 4&lt;br/&gt;Layers 61–80\"]\n\n\n Pipeline Parallelism: partition layers across stages, activations flow forward. \n\n\n\n\nThe key insight: **DP** uses inter-node bandwidth (network fabric), **TP** uses intra-node bandwidth (NVLink), and **PP** introduces idle time (pipeline bubbles). The optimal configuration balances all three overheads.\n\n---\n\n## 3. Baseline: Pure Data Parallelism\n\nStart with the simplest configuration — no model splitting, just replicate the full model\non every GPU and split the batch. The per-GPU compute time is determined by the same\nroofline model you used in the Hello World tutorial. The new element here is **communication\noverhead**: after each training step, all GPUs must synchronize their gradients via the\nnetwork before the next step can begin.\n\n::: {#ba9118ce .cell execution_count=3}\n``` {.python .cell-code}\nsolver = DistributedModel()\n\nresult_dp = solver.solve(\n    model=model,\n    fleet=cluster,\n    batch_size=256,\n    precision=\"fp16\",\n    tp_size=1,   # no tensor parallelism\n    pp_size=1,   # no pipeline parallelism\n)\n\nnode_perf = result_dp.node_profile\nprint(f\"Single-GPU compute time:     {node_perf.latency.to('ms'):~.1f}/step\")\nprint(f\"DP all-reduce overhead:      {result_dp.dp_communication_latency.to('ms'):~.2f}\")\nprint(f\"Pipeline bubble:             {result_dp.pipeline_bubble_latency.to('ms'):~.2f}\")\nprint(f\"\")\nprint(f\"Total step latency:          {result_dp.step_latency_total.to('ms'):~.1f}\")\nprint(f\"Scaling efficiency:          {result_dp.scaling_efficiency:.1%}\")\nprint(f\"Effective throughput:        {result_dp.effective_throughput.magnitude:.0f} samples/s\")\nprint(f\"Parallelism:                 DP={result_dp.parallelism['dp']}  TP={result_dp.parallelism['tp']}  PP={result_dp.parallelism['pp']}\")\n\nSingle-GPU compute time:     2429.3 ms/step\nDP all-reduce overhead:      3287.98 ms\nPipeline bubble:             0.00 ms\n\nTotal step latency:          5717.3 ms\nScaling efficiency:          42.5%\nEffective throughput:        45 samples/s\nParallelism:                 DP=256  TP=1  PP=1\n\n:::\n\n\n\n\n\n\nNoteWhat does scaling efficiency mean?\n\n\n\nIf scaling efficiency is 80%, then your 256-GPU cluster is delivering the equivalent of about 205 fully-utilized GPUs. The other ~51 GPUs worth of compute is being spent on communication overhead. This is the communication tax of distributed training.\nThe tax is paid in ring all-reduce: after the backward pass, every GPU must synchronize gradients with every other GPU. The time to do this grows with model size and shrinks with network bandwidth."
+    "text": "2. Visualizing 3D Parallelism\nBefore working through the numbers, consider how 3D parallelism decomposes a training job across a cluster. Each dimension splits work differently and introduces a different type of overhead:\nData Parallelism (DP=4) — each GPU holds a full model copy and processes 1/4 of the batch. After the backward pass, gradients are synchronized via All-Reduce.\n\n\n\n\n\nflowchart LR\n    R1[\"Replica 1&lt;br/&gt;Batch 1/4\"] &lt;-.-&gt;|\"All-Reduce\"| R2[\"Replica 2&lt;br/&gt;Batch 2/4\"]\n    R2 &lt;-.-&gt;|\"All-Reduce\"| R3[\"Replica 3&lt;br/&gt;Batch 3/4\"]\n    R3 &lt;-.-&gt;|\"All-Reduce\"| R4[\"Replica 4&lt;br/&gt;Batch 4/4\"]\n\n\n Data Parallelism: replicate the model, split the batch, synchronize gradients. \n\n\n\nTensor Parallelism (TP=2) — each layer is split across GPUs. Requires fast interconnect (NVLink).\n\n\n\n\n\nflowchart LR\n    G1[\"GPU 0&lt;br/&gt;Left half of each layer\"] &lt;--&gt;|\"All-Gather&lt;br/&gt;(NVLink)\"| G2[\"GPU 1&lt;br/&gt;Right half of each layer\"]\n\n\n Tensor Parallelism: split each layer across GPUs, communicate via NVLink. \n\n\n\nPipeline Parallelism (PP=4) — model layers are partitioned across stages. Activations flow forward; gradients flow backward.\n\n\n\n\n\nflowchart LR\n    S1[\"Stage 1&lt;br/&gt;Layers 1–20\"] --&gt; S2[\"Stage 2&lt;br/&gt;Layers 21–40\"]\n    S2 --&gt; S3[\"Stage 3&lt;br/&gt;Layers 41–60\"]\n    S3 --&gt; S4[\"Stage 4&lt;br/&gt;Layers 61–80\"]\n\n\n Pipeline Parallelism: partition layers across stages, activations flow forward. \n\n\n\n\nThe key insight: **DP** uses inter-node bandwidth (network fabric), **TP** uses intra-node bandwidth (NVLink), and **PP** introduces idle time (pipeline bubbles). The optimal configuration balances all three overheads.\n\n---\n\n## 3. Baseline: Pure Data Parallelism\n\nStart with the simplest configuration — no model splitting, just replicate the full model\non every GPU and split the batch. The per-GPU compute time is determined by the same\nroofline model you used in the Hello World tutorial. The new element here is **communication\noverhead**: after each training step, all GPUs must synchronize their gradients via the\nnetwork before the next step can begin.\n\n::: {#7a095b42 .cell execution_count=3}\n``` {.python .cell-code}\nsolver = DistributedModel()\n\nresult_dp = solver.solve(\n    model=model,\n    fleet=cluster,\n    batch_size=256,\n    precision=\"fp16\",\n    tp_size=1,   # no tensor parallelism\n    pp_size=1,   # no pipeline parallelism\n)\n\nnode_perf = result_dp.node_profile\nprint(f\"Single-GPU compute time:     {node_perf.latency.to('ms'):~.1f}/step\")\nprint(f\"DP all-reduce overhead:      {result_dp.dp_communication_latency.to('ms'):~.2f}\")\nprint(f\"Pipeline bubble:             {result_dp.pipeline_bubble_latency.to('ms'):~.2f}\")\nprint(f\"\")\nprint(f\"Total step latency:          {result_dp.step_latency_total.to('ms'):~.1f}\")\nprint(f\"Scaling efficiency:          {result_dp.scaling_efficiency:.1%}\")\nprint(f\"Effective throughput:        {result_dp.effective_throughput.magnitude:.0f} samples/s\")\nprint(f\"Parallelism:                 DP={result_dp.parallelism['dp']}  TP={result_dp.parallelism['tp']}  PP={result_dp.parallelism['pp']}\")\n\nSingle-GPU compute time:     2429.3 ms/step\nDP all-reduce overhead:      3287.98 ms\nPipeline bubble:             0.00 ms\n\nTotal step latency:          5717.3 ms\nScaling efficiency:          42.5%\nEffective throughput:        45 samples/s\nParallelism:                 DP=256  TP=1  PP=1\n\n:::\n\n\n\n\n\n\nNoteWhat does scaling efficiency mean?\n\n\n\nIf scaling efficiency is 80%, then your 256-GPU cluster is delivering the equivalent of about 205 fully-utilized GPUs. The other ~51 GPUs worth of compute is being spent on communication overhead. This is the communication tax of distributed training.\nThe tax is paid in ring all-reduce: after the backward pass, every GPU must synchronize gradients with every other GPU. The time to do this grows with model size and shrinks with network bandwidth."
   },
   {
     "objectID": "tutorials/distributed.html#ring-all-reduce-the-network-tax",
@@ -2331,6 +2331,654 @@
     ]
   },
   {
+    "objectID": "api-stability.html",
+    "href": "api-stability.html",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "Applies to: mlsysim v0.1.x\n\nThis document defines which parts of the mlsysim API are stable, which are experimental, and what guarantees you can rely on when building on top of the simulator.\n\n\n\nmlsysim follows Semantic Versioning with one important caveat: we are pre-1.0. Under semver, this means:\n\n\n\n\n\n\n\nVersion bump\nWhat it means\n\n\n\n\n0.1.x -&gt; 0.1.y (patch)\nBug fixes only. No API changes. Safe to upgrade.\n\n\n0.1.x -&gt; 0.2.0 (minor)\nBreaking changes allowed. Read the changelog before upgrading.\n\n\n1.0.0\nFull stability guarantee begins. Breaking changes require a major bump.\n\n\n\nIn practice: if you pin to mlsysim ~= 0.1.0 (any 0.1.x), your code will not break. If you upgrade to 0.2.0, expect to update imports and possibly adjust call signatures.\n\n\n\n\nThese interfaces are locked for the entire 0.1.x series. Bug fixes may change return values (e.g., correcting a formula), but signatures and field names will not change.\n\n\nfrom mlsysim import Engine\n\nresult = Engine.solve(\n    model=...,        # ModelSpec or registry name\n    hardware=...,     # HardwareSpec or registry name\n    batch_size=32,    # int\n    precision=\"fp16\", # str: \"fp32\", \"fp16\", \"bf16\", \"int8\", \"int4\"\n    efficiency=0.45,  # float: 0.0-1.0\n)\nAll five parameters to Engine.solve() are stable. Their names, types, and positions will not change.\n\n\n\nfrom mlsysim import Hardware\n\ngpu = Hardware.H100_SXM        # All current entries are stable\ngpu = Hardware.A100_80GB\ngpu = Hardware.RTX_4090\n# ... every entry shipping in 0.1.0\nNew entries may be added in patch releases, but existing entries will not be removed or renamed.\n\n\n\nfrom mlsysim import Models\n\nmodel = Models.LLAMA3_70B      # All current entries are stable\nmodel = Models.GPT2\n# ... every entry shipping in 0.1.0\nSame guarantee as Hardware: additions are allowed, removals are not.\n\n\n\nfrom mlsysim import Scenarios\nAll scenarios shipping in 0.1.0 are stable. Their names, parameters, and behavior are fixed for the 0.1.x series.\n\n\n\nThe following fields on the result object returned by Engine.solve() are stable:\n\n\n\nField\nType\nDescription\n\n\n\n\nlatency\npint.Quantity\nWall-clock time for one forward pass\n\n\nthroughput\npint.Quantity\nTokens/sec or samples/sec\n\n\nbottleneck\nstr\n\"compute\" or \"memory\"\n\n\nmfu\nfloat\nModel FLOPs Utilization (0.0-1.0)\n\n\nfeasible\nbool\nWhether the workload fits in memory\n\n\nenergy\npint.Quantity\nEnergy consumption per forward pass\n\n\n\n\n\n\nfrom mlsysim import ureg\nThe Pint unit registry instance is stable. All quantities returned by the engine use this registry.\n\n\n\n\n\nThese interfaces work today but are not yet finalized. Use them freely for exploration, but do not build production tooling against them without pinning to an exact version.\n\n\nfrom mlsysim.solvers import ForwardModel, DistributedModel, ServingModel\nThe solver class hierarchy, their constructors, and their method signatures may change. The Engine.solve() facade insulates you from these changes – prefer it over direct solver instantiation.\n\n\n\nEngine.solve(..., is_training=True)  # experimental\nThe is_training flag will likely be replaced by separate Engine.train() and Engine.infer() methods in v0.2.0, or by a more expressive workload specification.\n\n\n\nThe API for composing multiple solver stages into a pipeline (e.g., prefill + decode, or TP + PP) is experimental. The abstraction is correct but the interface is still being refined.\n\n\n\nThe search/sweep API for exploring hardware-model combinations is experimental. Parameter names and result formats may change.\n\n\n\nAll mlsysim CLI command names, subcommands, and flags are experimental. Shell scripts that call the CLI should pin to an exact version.\n\n\n\nFields on specialized result types (DistributedResult, ServingResult, etc.) beyond the six stable PerformanceProfile fields listed above are experimental. They may be renamed, reorganized, or moved to nested objects.\n\n\n\n\n\nThese interfaces still work in v0.1.x but emit deprecation warnings and will be removed in the next minor release.\n\n\n# Deprecated:\nfrom mlsysim import BaseModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel\nThe top-level BaseModel name was ambiguous (conflicts with Pydantic’s BaseModel in many codebases). It is now an alias that emits a DeprecationWarning.\n\n\n\n# Deprecated:\nfrom mlsysim import ForwardModel, DistributedModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel, DistributedModel\nSolver classes should be imported from mlsysim.solvers, not from the mlsysim top-level namespace. The top-level re-exports will be removed in v0.2.0 to keep the public API surface clean.\n\n\n\n\n\n\nPin your dependency: mlsysim ~= 0.1.0 (allows 0.1.x patches, blocks 0.2.0).\nUse Engine.solve() as your primary interface. It is the most stable entry point.\nAvoid importing from mlsysim.solvers unless you need solver-specific features. The engine facade covers most use cases.\nRun with warnings enabled (python3 -W default) to catch deprecation notices early.\nRead the changelog before any minor version upgrade.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "api-stability.html#versioning-policy",
+    "href": "api-stability.html#versioning-policy",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "mlsysim follows Semantic Versioning with one important caveat: we are pre-1.0. Under semver, this means:\n\n\n\n\n\n\n\nVersion bump\nWhat it means\n\n\n\n\n0.1.x -&gt; 0.1.y (patch)\nBug fixes only. No API changes. Safe to upgrade.\n\n\n0.1.x -&gt; 0.2.0 (minor)\nBreaking changes allowed. Read the changelog before upgrading.\n\n\n1.0.0\nFull stability guarantee begins. Breaking changes require a major bump.\n\n\n\nIn practice: if you pin to mlsysim ~= 0.1.0 (any 0.1.x), your code will not break. If you upgrade to 0.2.0, expect to update imports and possibly adjust call signatures.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "api-stability.html#stable-api-will-not-break-in-v0.1.x",
+    "href": "api-stability.html#stable-api-will-not-break-in-v0.1.x",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "These interfaces are locked for the entire 0.1.x series. Bug fixes may change return values (e.g., correcting a formula), but signatures and field names will not change.\n\n\nfrom mlsysim import Engine\n\nresult = Engine.solve(\n    model=...,        # ModelSpec or registry name\n    hardware=...,     # HardwareSpec or registry name\n    batch_size=32,    # int\n    precision=\"fp16\", # str: \"fp32\", \"fp16\", \"bf16\", \"int8\", \"int4\"\n    efficiency=0.45,  # float: 0.0-1.0\n)\nAll five parameters to Engine.solve() are stable. Their names, types, and positions will not change.\n\n\n\nfrom mlsysim import Hardware\n\ngpu = Hardware.H100_SXM        # All current entries are stable\ngpu = Hardware.A100_80GB\ngpu = Hardware.RTX_4090\n# ... every entry shipping in 0.1.0\nNew entries may be added in patch releases, but existing entries will not be removed or renamed.\n\n\n\nfrom mlsysim import Models\n\nmodel = Models.LLAMA3_70B      # All current entries are stable\nmodel = Models.GPT2\n# ... every entry shipping in 0.1.0\nSame guarantee as Hardware: additions are allowed, removals are not.\n\n\n\nfrom mlsysim import Scenarios\nAll scenarios shipping in 0.1.0 are stable. Their names, parameters, and behavior are fixed for the 0.1.x series.\n\n\n\nThe following fields on the result object returned by Engine.solve() are stable:\n\n\n\nField\nType\nDescription\n\n\n\n\nlatency\npint.Quantity\nWall-clock time for one forward pass\n\n\nthroughput\npint.Quantity\nTokens/sec or samples/sec\n\n\nbottleneck\nstr\n\"compute\" or \"memory\"\n\n\nmfu\nfloat\nModel FLOPs Utilization (0.0-1.0)\n\n\nfeasible\nbool\nWhether the workload fits in memory\n\n\nenergy\npint.Quantity\nEnergy consumption per forward pass\n\n\n\n\n\n\nfrom mlsysim import ureg\nThe Pint unit registry instance is stable. All quantities returned by the engine use this registry.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "api-stability.html#experimental-api-may-change-in-v0.2.0",
+    "href": "api-stability.html#experimental-api-may-change-in-v0.2.0",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "These interfaces work today but are not yet finalized. Use them freely for exploration, but do not build production tooling against them without pinning to an exact version.\n\n\nfrom mlsysim.solvers import ForwardModel, DistributedModel, ServingModel\nThe solver class hierarchy, their constructors, and their method signatures may change. The Engine.solve() facade insulates you from these changes – prefer it over direct solver instantiation.\n\n\n\nEngine.solve(..., is_training=True)  # experimental\nThe is_training flag will likely be replaced by separate Engine.train() and Engine.infer() methods in v0.2.0, or by a more expressive workload specification.\n\n\n\nThe API for composing multiple solver stages into a pipeline (e.g., prefill + decode, or TP + PP) is experimental. The abstraction is correct but the interface is still being refined.\n\n\n\nThe search/sweep API for exploring hardware-model combinations is experimental. Parameter names and result formats may change.\n\n\n\nAll mlsysim CLI command names, subcommands, and flags are experimental. Shell scripts that call the CLI should pin to an exact version.\n\n\n\nFields on specialized result types (DistributedResult, ServingResult, etc.) beyond the six stable PerformanceProfile fields listed above are experimental. They may be renamed, reorganized, or moved to nested objects.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "api-stability.html#deprecated-will-be-removed-in-v0.2.0",
+    "href": "api-stability.html#deprecated-will-be-removed-in-v0.2.0",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "These interfaces still work in v0.1.x but emit deprecation warnings and will be removed in the next minor release.\n\n\n# Deprecated:\nfrom mlsysim import BaseModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel\nThe top-level BaseModel name was ambiguous (conflicts with Pydantic’s BaseModel in many codebases). It is now an alias that emits a DeprecationWarning.\n\n\n\n# Deprecated:\nfrom mlsysim import ForwardModel, DistributedModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel, DistributedModel\nSolver classes should be imported from mlsysim.solvers, not from the mlsysim top-level namespace. The top-level re-exports will be removed in v0.2.0 to keep the public API surface clean.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "api-stability.html#how-to-protect-your-code",
+    "href": "api-stability.html#how-to-protect-your-code",
+    "title": "API Stability Promise",
+    "section": "",
+    "text": "Pin your dependency: mlsysim ~= 0.1.0 (allows 0.1.x patches, blocks 0.2.0).\nUse Engine.solve() as your primary interface. It is the most stable entry point.\nAvoid importing from mlsysim.solvers unless you need solver-specific features. The engine facade covers most use cases.\nRun with warnings enabled (python3 -W default) to catch deprecation notices early.\nRead the changelog before any minor version upgrade.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "API Stability Promise"
+    ]
+  },
+  {
+    "objectID": "models-and-solvers.html",
+    "href": "models-and-solvers.html",
+    "title": "The 3-Tier Resolver Guide",
+    "section": "",
+    "text": "MLSys·im provides 24 specialized resolvers that map to the 22 Systems Walls organized across six domains — Node, Data, Algorithm, Fleet, Ops, and Analysis.\nTo make engineering decisions systematic, we organize these tools into a 3-Tier Architecture:",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "The 3-Tier Resolver Guide"
+    ]
+  },
+  {
+    "objectID": "models-and-solvers.html#analytical-models-the-physics-engine",
+    "href": "models-and-solvers.html#analytical-models-the-physics-engine",
+    "title": "The 3-Tier Resolver Guide",
+    "section": "1. Analytical Models (The Physics Engine)",
+    "text": "1. Analytical Models (The Physics Engine)\nUse these when you want to ask: “What happens if I run this exact setup?”\n\nDomain 1 — Node (Single-Accelerator Resources)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nSingleNodeModel\nmodel, hardware, batch_size\nlatency, throughput, bottleneck\n“Is my model memory-bound?”\n\n\nEfficiencyModel\nmodel, hardware, workload_type\nMFU, achievable FLOPS\n“What MFU will my workload achieve?”\n\n\nServingModel\nmodel, hardware, seq_len\nTTFT, ITL, KV-cache footprint\n“Can I serve this LLM on this GPU?”\n\n\nContinuousBatchingModel\nmodel, hardware, seq_len, max_batch\nthroughput, fragmentation\n“What throughput with PagedAttention?”\n\n\nWeightStreamingModel\nmodel, hardware, seq_len, batch_size\nthroughput, optimal_batch\n“Cerebras wafer-scale inference?”\n\n\nTailLatencyModel\narrival_rate, service_latency, replicas\nP50, P99 wait times\n“Will I meet P99 latency SLAs?”\n\n\n\n\n\nDomain 2 — Data (Movement & Pipelines)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nDataModel\nworkload_data_rate, hardware\nutilization, is_stalled\n“Is my storage/IO the bottleneck?”\n\n\nTransformationModel\nbatch_size, cpu_throughput\ntransform_time, is_bottleneck\n“Is CPU preprocessing starving my GPU?”\n\n\nTopologyModel\nfabric, topology, num_nodes\neffective_bw, bisection_bw\n“What topology should I use?”\n\n\n\n\n\nDomain 3 — Algorithm (Scaling & Compression)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nScalingModel\ncompute_budget\noptimal_params, optimal_tokens\n“What is my optimal model size?”\n\n\nInferenceScalingModel\nmodel, hardware, reasoning_steps\ntotal_reasoning_time\n“How much does CoT reasoning cost?”\n\n\nCompressionModel\nmodel, hardware, method\naccuracy_delta, compression_ratio\n“Is quantization/pruning worth it?”\n\n\n\n\n\nDomain 4 — Fleet (Multi-Node Coordination)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nDistributedModel\nmodel, fleet, tp/pp/dp sizes\nscaling efficiency, comm overhead\n“How many GPUs do I actually need?”\n\n\nReliabilityModel\nfleet, job_duration\nMTBF, failure probability\n“Will my training job complete?”\n\n\nOrchestrationModel\nfleet, arrival_rate, avg_duration\navg_wait_time, utilization\n“How busy is my cluster?”\n\n\n\n\n\nDomain 5 — Ops (Economics, Sustainability & Safety)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nEconomicsModel\nfleet, duration_days, kwh_price\nCapEx, OpEx, total TCO\n“What will this cost over 3 years?”\n\n\nSustainabilityModel\nfleet, duration_days, datacenter\nenergy, carbon (kg CO₂e), water\n“Where should I train to minimize carbon?”\n\n\nCheckpointModel\nmodel, hardware, optimizer\ncheckpoint_size, MFU penalty\n“How much MFU do I lose to checkpoints?”\n\n\nResponsibleEngineeringModel\nbase_training_time, epsilon\ndp_slowdown\n“What is the cost of differential privacy?”",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "The 3-Tier Resolver Guide"
+    ]
+  },
+  {
+    "objectID": "models-and-solvers.html#analysis-solvers-the-math-engine",
+    "href": "models-and-solvers.html#analysis-solvers-the-math-engine",
+    "title": "The 3-Tier Resolver Guide",
+    "section": "2. Analysis Solvers (The Math Engine)",
+    "text": "2. Analysis Solvers (The Math Engine)\nUse these when you want to ask: “What exact number do I need to hit my target?”\n\n\n\nSolver\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nSensitivitySolver\nmodel, hardware, perturbation_pct\nsensitivities, binding_constraint\n“Which parameter should I invest in?”\n\n\nSynthesisSolver\nmodel, target_latency\nrequired_bw, required_flops\n“What hardware do I need for this SLA?”",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "The 3-Tier Resolver Guide"
+    ]
+  },
+  {
+    "objectID": "models-and-solvers.html#design-space-exploration-dse",
+    "href": "models-and-solvers.html#design-space-exploration-dse",
+    "title": "The 3-Tier Resolver Guide",
+    "section": "3. Design Space Exploration (DSE)",
+    "text": "3. Design Space Exploration (DSE)\nUse the DSE Engine when you want to ask: “What is the best possible configuration?” It replaces the old hardcoded optimizers.\n\n\n\nEngine\nKey Inputs\nObjective\nBest For\n\n\n\n\nDSE Engine\nsearch space, objective, constraints\nminimize/maximize\n“What max batch size is safe for my SLA?” or “Where should I build my datacenter?”",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "The 3-Tier Resolver Guide"
+    ]
+  },
+  {
+    "objectID": "models-and-solvers.html#composing-resolvers",
+    "href": "models-and-solvers.html#composing-resolvers",
+    "title": "The 3-Tier Resolver Guide",
+    "section": "Composing Resolvers",
+    "text": "Composing Resolvers\nReal-world questions require chaining multiple tiers. Here are three common patterns:\n\n“Can I serve Llama-70B on 4 H100s within budget?”\nfrom mlsysim import ServingModel, EconomicsModel, Hardware, Models, Systems\n\nserving = ServingModel().solve(\n    model=Models.Language.Llama3_70B,\n    hardware=Hardware.Cloud.H100,\n    seq_len=2048, batch_size=4\n)\nprint(f\"TTFT: {serving.ttft}, ITL: {serving.itl}\")\nprint(f\"KV-Cache: {serving.kv_cache_size}\")\n\n\n“Which parameter matters most for Llama-8B latency?”\nfrom mlsysim import SensitivitySolver, Hardware, Models\n\nsensitivity = SensitivitySolver().solve(\n    model=Models.Language.Llama3_8B,\n    hardware=Hardware.Cloud.H100,\n    batch_size=1, precision=\"fp16\",\n    perturbation_pct=0.10\n)\nprint(f\"Binding constraint: {sensitivity.binding_constraint}\")\nprint(f\"BW sensitivity:     {sensitivity.bw_sensitivity:.3f}\")\nprint(f\"FLOPS sensitivity:  {sensitivity.flops_sensitivity:.3f}\")\n\n\n“What hardware do I need for a 50ms SLA?”\nfrom mlsysim import SynthesisSolver, Models\nfrom mlsysim.core.constants import Q_\n\nsynthesis = SynthesisSolver().solve(\n    model=Models.Language.Llama3_8B,\n    target_latency=Q_(\"50 ms\"),\n    batch_size=1, precision=\"fp16\"\n)\nprint(f\"Required bandwidth: {synthesis.required_bw.to('TB/s'):.2f}\")\nprint(f\"Required FLOPS:     {synthesis.required_flops.to('TFLOPs/s'):.1f}\")",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "The 3-Tier Resolver Guide"
+    ]
+  },
+  {
+    "objectID": "architecture.html",
+    "href": "architecture.html",
+    "title": "The 5-Layer Architecture",
+    "section": "",
+    "text": "MLSYSIM organizes the full ML systems domain into five composable layers. Abstract workload demand (Layer A) is progressively mapped onto concrete hardware supply (Layers B–D) through analytical solvers (Layer E). Each layer corresponds directly to chapters in the Machine Learning Systems textbook and its companion lecture slides.\nUnderstanding this stack is the key to mastering both this library and the textbook it accompanies.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#the-stack-at-a-glance",
+    "href": "architecture.html#the-stack-at-a-glance",
+    "title": "The 5-Layer Architecture",
+    "section": "The Stack at a Glance",
+    "text": "The Stack at a Glance\n\n\n\n\n\n%%{init: {'theme': 'neutral'}}%%\n%%| fig-cap: \"The MLSYSIM 5-Layer Stack. Workloads (demand) are lowered onto Hardware (supply) through Infrastructure and Systems layers. Solvers bridge demand and supply to produce analytical profiles.\"\n%%| fig-width: 100%\nflowchart TB\n    A[\"&lt;b&gt;Layer A · Workloads&lt;/b&gt; — &lt;i&gt;Demand&lt;/i&gt;&lt;br/&gt;TransformerWorkload · CNNWorkload&lt;br/&gt;Parameters · FLOPs · Arithmetic Intensity\"]\n    B[\"&lt;b&gt;Layer B · Hardware&lt;/b&gt; — &lt;i&gt;Silicon&lt;/i&gt;&lt;br/&gt;HardwareNode · ComputeCore · MemoryHierarchy&lt;br/&gt;Peak FLOP/s · Bandwidth · Capacity · TDP\"]\n    C[\"&lt;b&gt;Layer C · Infrastructure&lt;/b&gt; — &lt;i&gt;Environment&lt;/i&gt;&lt;br/&gt;GridProfile · Datacenter&lt;br/&gt;Carbon Intensity · PUE · WUE\"]\n    D[\"&lt;b&gt;Layer D · Systems&lt;/b&gt; — &lt;i&gt;Topology&lt;/i&gt;&lt;br/&gt;Node · Fleet · NetworkFabric&lt;br/&gt;Topology · Accelerators/Node · Fabric BW\"]\n    E[\"&lt;b&gt;Layer E · Solvers&lt;/b&gt; — &lt;i&gt;Analysis&lt;/i&gt;&lt;br/&gt;SingleNode · Distributed · Serving&lt;br/&gt;Economics · Sustainability · Reliability\"]\n    F[\"&lt;b&gt;Results&lt;/b&gt;&lt;br/&gt;PerformanceProfile · Dict[str, Quantity]\"]\n\n    A --&gt; E\n    B --&gt; D\n    C --&gt; D\n    D --&gt; E\n    E --&gt; F\n\n\n\n\n\n\nThe flow reads top-to-bottom: a Workload (what you want to compute) and a System (the hardware, network, and environment you have) feed into a Solver (the analytical engine), which returns quantitative results you can act on.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-layer-a",
+    "href": "architecture.html#sec-layer-a",
+    "title": "The 5-Layer Architecture",
+    "section": "Layer A: Workloads (Demand)",
+    "text": "Layer A: Workloads (Demand)\nA Workload is a hardware-agnostic description of computational demand. The question is not “How fast is Llama-3?” but rather “How many FLOPs and memory bytes does Llama-3 require?”\nMLSYSIM provides two workload types:\n\nTransformerWorkload — LLMs and attention-based models (GPT, Llama, BERT). Defined by parameter count, layer count, hidden dimension, attention heads, and sequence length. Supports KV-cache size estimation for autoregressive inference.\nCNNWorkload — Vision and convolutional models (ResNet, MobileNet, YOLO). Defined by parameter count and total FLOPs per forward pass.\n\nThe crucial step happens when a workload is “lowered” at a specific numerical precision (FP32, FP16, INT8, INT4). This precision lowering determines the Arithmetic Intensity (FLOPs/Byte) — the single ratio that decides whether a model will be compute-bound or memory-bound on any given hardware target.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer A concepts are covered in the following lecture decks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nNN Computation (Vol I, Ch 5)\nThe math behind the model\nFLOPs, parameter counting, activation memory, forward/backward pass cost\n\n\nNN Architectures (Vol I, Ch 6)\nArchitecture as infrastructure\nComputational signatures of CNNs, RNNs, Transformers; quadratic attention scaling\n\n\nModel Compression (Vol I, Ch 10)\nFrom benchmark winner to production model\nPruning, distillation, quantization (FP32 to INT4); precision as a workload knob\n\n\nModel Training (Vol I, Ch 8)\nThe physics of learning\nIron Law of training, memory breakdown (activations, gradients, optimizer states)\n\n\n\n\n\nSee the Model Zoo for vetted workloads spanning language, vision, recommendation, and TinyML models.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-layer-b",
+    "href": "architecture.html#sec-layer-b",
+    "title": "The 5-Layer Architecture",
+    "section": "Layer B: Hardware (Silicon)",
+    "text": "Layer B: Hardware (Silicon)\nA HardwareNode represents a single physical accelerator — an H100 GPU, an Apple M3 chip, a Jetson Orin, or even an ESP32 microcontroller. It provides the raw physical supply:\n\nCompute: Peak throughput (TFLOP/s) across precisions (FP32, FP16, INT8), modeled via ComputeCore.\nMemory: HBM or SRAM capacity and transfer bandwidth (TB/s), modeled via MemoryHierarchy.\nPower: Thermal Design Power (TDP) in watts.\n\nEvery piece of silicon has a ridge point — the ratio of peak compute to memory bandwidth (\\(I^* = \\text{Peak\\_FLOPs} / \\text{BW}\\)). When a workload’s arithmetic intensity falls below this ridge point, the workload is memory-bound: the compute units starve waiting for data. When above, the workload is compute-bound: memory delivers data faster than the cores can consume it.\nThis is the Roofline model — the diagnostic framework at the heart of Layer E’s SingleNodeModel.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer B concepts are covered in the following lecture decks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nHardware Acceleration (Vol I, Ch 11)\nMoving data costs more than computing it\nSystolic arrays, tensor cores, Roofline model, accelerator spectrum (GPU to ASIC)\n\n\nCompute Infrastructure (Vol II, Ch 2)\nThe physics of the ML fleet\nHBM generations, bandwidth hierarchy (HBM to NVLink to InfiniBand), TCO analysis\n\n\nBenchmarking (Vol I, Ch 12)\nMeasuring what matters\nMLPerf, roofline profiling, statistical rigor, the lab-to-production gap\n\n\n\n\n\nSee the Silicon Zoo for 18+ vetted hardware specs from cloud GPUs to microcontrollers.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-layer-c",
+    "href": "architecture.html#sec-layer-c",
+    "title": "The 5-Layer Architecture",
+    "section": "Layer C: Infrastructure (Environment)",
+    "text": "Layer C: Infrastructure (Environment)\nHardware does not run in a vacuum. It runs in datacenters plugged into regional power grids, cooled by air or liquid systems, and constrained by physical energy budgets.\nA GridProfile captures this physical context:\n\nCarbon intensity (g CO₂/kWh) — varies 40x across regions: Quebec’s hydroelectric grid produces ~8 g CO₂/kWh; Poland’s coal-dominated grid produces ~700 g CO₂/kWh.\nPower Usage Effectiveness (PUE) — the ratio of total facility power to IT equipment power. A PUE of 1.1 means 10% overhead for cooling and infrastructure; 1.6 means 60%.\nWater Usage Effectiveness (WUE) — liters of water consumed per kWh, determined by cooling technology (air, liquid, evaporative).\n\nA 1000-watt GPU running identical computations in Quebec versus Poland produces vastly different carbon footprints. This layer makes that difference quantifiable.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer C concepts are covered in the following lecture deck:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nSustainable AI (Vol II, Ch 15)\nEnergy as a first-class engineering constraint\nLifecycle carbon accounting, PUE modeling, carbon-aware scheduling, the 4 Ms framework\n\n\n\n\n\nSee the Infrastructure Zoo for regional grid profiles and datacenter configurations.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-layer-d",
+    "href": "architecture.html#sec-layer-d",
+    "title": "The 5-Layer Architecture",
+    "section": "Layer D: Systems (Topology)",
+    "text": "Layer D: Systems (Topology)\nA single GPU cannot train a 100-billion-parameter model. Layer D composes individual HardwareNodes from Layer B into distributed clusters, connected by the network fabrics that determine communication overhead.\nThree types define a system:\n\nNode — A single compute server grouping accelerators within a physical chassis (e.g., 8x H100 GPUs connected by 900 GB/s NVLink). Includes intra-node bandwidth and NIC count.\nNetworkFabric — The inter-node interconnect: topology (fat-tree, rail-optimized), bandwidth (e.g., 400 Gbps InfiniBand NDR), latency, and oversubscription ratio.\nFleet — A collection of Nodes connected by a NetworkFabric, deployed in a specific Datacenter (Layer C). This is the complete system that solvers operate on.\n\nThe way you structure this system — how many GPUs per node, what fabric connects them, which parallelism strategy you apply — determines your communication overhead and scaling efficiency.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer D concepts span four lecture decks covering the full distributed systems stack:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nNetwork Fabrics (Vol II, Ch 3)\nThe synchronization backbone\n\\(\\alpha\\)-\\(\\beta\\) model, topology (fat-tree, dragonfly), RDMA, congestion control, bisection bandwidth\n\n\nDistributed Training (Vol II, Ch 5)\nThe physics of scaling\nData/tensor/pipeline parallelism, ZeRO/FSDP, Communication-Computation Ratio (CCR), 3D hybrid strategies\n\n\nCollective Communication (Vol II, Ch 6)\nThe traffic patterns of distributed ML\nAllReduce algorithms (ring, tree), gradient compression, hierarchical communication, computation-communication overlap\n\n\nFleet Orchestration (Vol II, Ch 8)\nExtracting useful work from shared infrastructure\nSlurm vs. Kubernetes, topology-aware scheduling, elastic training, multi-tenancy\n\n\n\n\n\nSee the Fleet Zoo for production cluster topologies from 256-GPU research clusters to 8192-GPU frontier fleets.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-layer-e",
+    "href": "architecture.html#sec-layer-e",
+    "title": "The 5-Layer Architecture",
+    "section": "Layer E: Solvers (Analysis)",
+    "text": "Layer E: Solvers (Analysis)\nThe previous four layers are static definitions — nouns. Solvers are the analytical engines — verbs — that bridge demand and supply to answer specific questions.\nEach solver implements closed-form equations from peer-reviewed systems literature. No simulation, no benchmarking, no hardware required.\n\n\n\n\n\n\n\n\n\nSolver\nBridges\nCore Equation\nKey Output\n\n\n\n\nSingleNodeModel\nA \\(\\to\\) B\nRoofline / Iron Law (Williams et al., 2009)\nLatency, throughput, bottleneck classification\n\n\nDistributedModel\nA \\(\\to\\) D\nRing All-Reduce + Pipeline schedules\nScaling efficiency, communication overhead, bubble fraction\n\n\nServingModel\nA \\(\\to\\) B\nPre-fill / Decode phase decomposition\nTTFT, inter-token latency, KV-cache memory\n\n\nEconomicsModel\nD \\(\\to\\) cost\nCapEx + OpEx over time horizon\nTCO in USD, cost per query\n\n\nSustainabilityModel\nD \\(\\to\\) C\nPUE \\(\\times\\) grid carbon intensity\nEnergy (kWh), carbon (kg CO₂e), water (L)\n\n\nReliabilityModel\nD \\(\\to\\) uptime\nYoung-Daly optimal checkpointing\nFleet MTBF, failure probability, checkpoint interval\n\n\n\nSolvers are composable. To answer “What is the most sustainable way to serve Llama-70B?”, chain ServingModel (feasibility and latency) into EconomicsModel (cost) into SustainabilityModel (carbon). Each solver’s typed output feeds naturally into the next.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer E concepts draw from multiple lecture decks that teach the diagnostic and optimization frameworks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nHardware Acceleration (Vol I, Ch 11)\nThe Roofline model\nArithmetic intensity, ridge points, memory-bound vs. compute-bound diagnosis\n\n\nModel Serving (Vol I, Ch 13)\nInverting every training priority\nLatency budgets, queuing theory (Little’s Law), continuous batching, training-serving skew\n\n\nInference at Scale (Vol II, Ch 9)\nWhere ML systems live or die economically\nServing economics, KV-cache bottleneck, batching strategies, autoscaling\n\n\nPerformance Engineering (Vol II, Ch 10)\nMatch the software to the silicon\nOperator fusion, FlashAttention, mixed precision, systematic profiling workflow\n\n\nDistributed Training (Vol II, Ch 5)\nScaling efficiency analysis\nCommunication-Computation Ratio, parallelism strategy selection, scaling laws\n\n\n\n\n\nSee the Solver Guide for a decision guide on choosing the right solver, and Math Foundations for the complete equations.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#progressive-lowering-in-action",
+    "href": "architecture.html#progressive-lowering-in-action",
+    "title": "The 5-Layer Architecture",
+    "section": "Progressive Lowering in Action",
+    "text": "Progressive Lowering in Action\nThe architecture is best understood through a concrete example. Consider the question: “Can I serve Llama-3-70B on a cluster of 4 H100s within a $50K/year budget while minimizing carbon?”\nThis single question touches all five layers:\n1. Layer A — Llama-3-70B workload: 70B parameters, GQA with 8 KV heads,\n             ~140 GB at FP16 precision\n\n2. Layer B — H100 hardware: 990 TFLOP/s (FP16), 3.35 TB/s HBM3,\n             80 GB capacity, 700W TDP\n\n3. Layer C — Infrastructure: choose between Quebec (8 g CO₂/kWh)\n             and US Average (385 g CO₂/kWh)\n\n4. Layer D — System: 1 node × 4 H100s, NVLink 900 GB/s intra-node,\n             tensor parallelism across 4 GPUs\n\n5. Layer E — Chain three solvers:\n             ServingModel  → TTFT, ITL, KV-cache feasibility\n             EconomicsModel → TCO over 1 year\n             SustainabilityModel → carbon footprint by region\nEach layer contributes a different piece of the answer. No single layer is sufficient alone. This is why MLSYSIM separates concerns into five composable layers rather than offering a monolithic “predict performance” function.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#sec-slides-reference",
+    "href": "architecture.html#sec-slides-reference",
+    "title": "The 5-Layer Architecture",
+    "section": "Slide Deck Quick Reference",
+    "text": "Slide Deck Quick Reference\nFor instructors and students using the companion lecture slides, the table below maps every MLSYSIM layer to the relevant slide decks.\n\nVolume I: Foundations\n\n\n\nCh\nDeck\nMLSYSIM Layer(s)\nDownload\n\n\n\n\n5\nNN Computation\nA (Workloads)\nPDF\n\n\n6\nNN Architectures\nA (Workloads)\nPDF\n\n\n8\nModel Training\nA + B + E\nPDF\n\n\n10\nModel Compression\nA (Workloads)\nPDF\n\n\n11\nHardware Acceleration\nB (Hardware) + E (Solvers)\nPDF\n\n\n12\nBenchmarking\nB (Hardware) + E (Solvers)\nPDF\n\n\n13\nModel Serving\nE (Solvers)\nPDF\n\n\n\n\n\nVolume II: At Scale\n\n\n\nCh\nDeck\nMLSYSIM Layer(s)\nDownload\n\n\n\n\n2\nCompute Infrastructure\nB (Hardware)\nPDF\n\n\n3\nNetwork Fabrics\nD (Systems)\nPDF\n\n\n5\nDistributed Training\nD (Systems) + E (Solvers)\nPDF\n\n\n6\nCollective Communication\nD (Systems)\nPDF\n\n\n8\nFleet Orchestration\nD (Systems)\nPDF\n\n\n9\nInference at Scale\nE (Solvers)\nPDF\n\n\n10\nPerformance Engineering\nE (Solvers)\nPDF\n\n\n15\nSustainable AI\nC (Infrastructure)\nPDF",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "architecture.html#where-to-go-next",
+    "href": "architecture.html#where-to-go-next",
+    "title": "The 5-Layer Architecture",
+    "section": "Where to Go Next",
+    "text": "Where to Go Next\n\nGetting Started — Install MLSYSIM and run your first analysis in 5 minutes.\nSolver Guide — Decision guide for choosing the right analytical engine.\nMath Foundations — The closed-form equations behind every solver.\nTutorials — Hands-on notebooks for roofline analysis, distributed training, LLM serving, and sustainability.\nZoo Overview — Browse the registries of vetted models, hardware, fleets, and infrastructure.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "The 5-Layer Architecture"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html",
+    "href": "empirical-calibration.html",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "This document compares mlsysim analytical predictions against published benchmark results for common ML workloads. The goal is to validate that the simulator’s first-principles models produce results in the correct physical range, and to characterize the accuracy envelope that users should expect.\nDate: 2026-04-01 mlsysim version: 0.1.0 Methodology: Each configuration was run through the appropriate solver (SingleNodeModel for training throughput, ServingModel for inference latency, calc_transformer_training_flops for FLOPs estimates). Default efficiency parameters were used (eta=0.10 for training, eta=0.50 for serving) unless otherwise noted.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n#\nConfiguration\nmlsysim Prediction\nPublished Benchmark\nSource\nDelta\n\n\n\n\n1\nResNet-50 A100 bs=256 training (eta=0.10)\n2,499 img/s\n~3,200 img/s\nMLPerf Training v3.0 (single A100-80GB)\n-22%\n\n\n2\nResNet-50 H100 bs=256 training (eta=0.10)\n7,677 img/s\n~5,000 img/s\nMLPerf Training v3.1 (single H100-80GB)\n+54%\n\n\n3\nLlama-3-8B H100 bs=1 decode ITL (eta=0.50)\n5.2 ms\n~5-8 ms\nTensorRT-LLM benchmarks (FP16, H100-80GB)\nwithin range\n\n\n4\nLlama-3-8B H100 bs=32 decode ITL (eta=0.50)\n7.7 ms\n~8-15 ms\nvLLM / TensorRT-LLM batched benchmarks\nwithin range\n\n\n5\nLlama-3-8B H100 bs=1 prefill TTFT (eta=0.50)\n66.5 ms\n~30-80 ms\nTensorRT-LLM benchmarks (seq=2048)\nwithin range\n\n\n6\nGPT-3 175B training FLOPs (6PD rule)\n3.15e23\n3.14e23\nBrown et al. (2020), Table D.1\n+0.3%\n\n\n\n\n\n\n\n\n\nLLM inference latency (Configs 3-5). The decode ITL predictions land squarely within published ranges. This is expected: decode is memory-bandwidth-bound, and the model correctly computes (weights + KV_cache) / bandwidth. The decode ITL is insensitive to the efficiency parameter because compute is not on the critical path – exactly matching the physical regime where auto-regressive decoding is a streaming memory read, not a compute problem.\nTraining FLOPs (Config 6). The 6ND approximation (6 * parameters * tokens) for transformer training FLOPs matches the GPT-3 paper’s reported value to within 0.3%. This validates the fundamental FLOP counting formula.\n\n\n\nCNN training throughput (Configs 1-2). The default efficiency parameter (eta=0.10) produces predictions that bracket reality but don’t hit both targets simultaneously:\n\nA100 prediction is 22% low at eta=0.10. Setting eta=0.13 yields 3,234 img/s, matching the MLPerf benchmark within 1%.\nH100 prediction is 54% high at eta=0.10. Setting eta=0.065 yields 5,070 img/s, matching the MLPerf benchmark within 1%.\n\nThis asymmetry reveals a real insight: the efficiency parameter is not a universal constant. It encodes the gap between peak datasheet FLOP/s and actual sustained throughput, which depends on:\n\nTensor core utilization – ResNet-50 has many small convolutions that may not saturate H100’s larger tensor cores as efficiently as A100’s.\nMemory system pressure – H100’s 3x higher peak FLOP/s amplifies any memory bottleneck (the model uses peak FP16 FLOP/s of 989 TFLOP/s for H100 vs. 312 TFLOP/s for A100, but real ResNet-50 kernels achieve a lower fraction of the H100 peak).\nFramework overhead – Batch normalization layers, data loading, and gradient synchronization are not modeled in the roofline calculation.\n\n\n\n\nThe single-parameter efficiency model works well within a hardware family but does not transfer across hardware generations without re-calibration. This is a known limitation of roofline-based analytical models and is explicitly surfaced to students in the textbook.\n\n\n\n\n\nFor users who need higher accuracy, the following per-configuration efficiency values minimize error against published benchmarks:\n\n\n\n\n\n\n\n\n\n\nConfiguration\nCalibrated eta\nmlsysim Result\nPublished\nError\n\n\n\n\nResNet-50 A100 bs=256 training\n0.13\n3,234 img/s\n~3,200 img/s\n+1%\n\n\nResNet-50 H100 bs=256 training\n0.065\n5,070 img/s\n~5,000 img/s\n+1%\n\n\nLlama-3-8B H100 bs=1 decode\nany (memory-bound)\n5.2 ms\n~5-8 ms\nwithin range\n\n\nLlama-3-8B H100 bs=32 decode\nany (memory-bound)\n7.7 ms\n~8-15 ms\nwithin range\n\n\nGPT-3 training FLOPs\nN/A (closed-form)\n3.15e23\n3.14e23\n+0.3%\n\n\n\n\n\n\n\n\nEfficiency parameter (eta). This is the fraction of peak hardware throughput (FLOP/s or GB/s) that the workload actually achieves. It consolidates all sources of inefficiency: tensor core utilization, memory stalls, kernel launch overhead, data pipeline stalls, and framework overhead. It is NOT the same as MFU (Model FLOPs Utilization), which is defined as observed_throughput / theoretical_peak_throughput.\nPublished benchmarks. We compare against:\n\nMLPerf Training v3.0/v3.1: Industry-standard training benchmarks. Single-accelerator numbers used (not multi-GPU or multi-node). ResNet-50 throughput measured as images/second during convergence training.\nTensorRT-LLM benchmarks: NVIDIA’s optimized inference engine. H100-80GB SXM, FP16 precision, KV-cache enabled.\nvLLM benchmarks: Open-source LLM serving engine. Batched decode latency with PagedAttention.\nBrown et al. (2020): “Language Models are Few-Shot Learners.” Table D.1 reports 3.14e23 FLOP-days for GPT-3 175B training.\n\nDecode ITL is efficiency-insensitive. The serving model correctly identifies decode as memory-bandwidth-bound. The ITL formula is: ITL = (model_weights + KV_cache) / memory_bandwidth + framework_tax. Since this does not involve the compute efficiency parameter, varying eta from 0.3 to 0.8 produces identical ITL values. This matches the physical reality of auto-regressive decoding.\nHardware specs used.\n\nA100-80GB SXM: 312 TFLOP/s FP16, 2,039 GB/s HBM bandwidth\nH100-80GB SXM: 989 TFLOP/s FP16, 3,350 GB/s HBM bandwidth\n\n\n\n\n\n\nimport mlsysim\nfrom mlsysim.core.solver import SingleNodeModel, ServingModel\nfrom mlsysim.core.formulas import calc_transformer_training_flops\n\n# Config 1: ResNet-50 / A100 / training\nr1 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.A100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 A100: {r1.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 2: ResNet-50 / H100 / training\nr2 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.H100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 H100: {r2.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 3: Llama-3-8B / H100 / decode bs=1\nr3 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=1, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=1 ITL: {r3.itl.m_as('ms'):.1f} ms\")\n\n# Config 4: Llama-3-8B / H100 / decode bs=32\nr4 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=32, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=32 ITL: {r4.itl.m_as('ms'):.1f} ms\")\n\n# Config 6: GPT-3 training FLOPs\nflops = calc_transformer_training_flops(175e9, 300e9)\nprint(f\"GPT-3 FLOPs: {flops.to('flop').magnitude:.2e}\")",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html#calibration-table",
+    "href": "empirical-calibration.html#calibration-table",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "#\nConfiguration\nmlsysim Prediction\nPublished Benchmark\nSource\nDelta\n\n\n\n\n1\nResNet-50 A100 bs=256 training (eta=0.10)\n2,499 img/s\n~3,200 img/s\nMLPerf Training v3.0 (single A100-80GB)\n-22%\n\n\n2\nResNet-50 H100 bs=256 training (eta=0.10)\n7,677 img/s\n~5,000 img/s\nMLPerf Training v3.1 (single H100-80GB)\n+54%\n\n\n3\nLlama-3-8B H100 bs=1 decode ITL (eta=0.50)\n5.2 ms\n~5-8 ms\nTensorRT-LLM benchmarks (FP16, H100-80GB)\nwithin range\n\n\n4\nLlama-3-8B H100 bs=32 decode ITL (eta=0.50)\n7.7 ms\n~8-15 ms\nvLLM / TensorRT-LLM batched benchmarks\nwithin range\n\n\n5\nLlama-3-8B H100 bs=1 prefill TTFT (eta=0.50)\n66.5 ms\n~30-80 ms\nTensorRT-LLM benchmarks (seq=2048)\nwithin range\n\n\n6\nGPT-3 175B training FLOPs (6PD rule)\n3.15e23\n3.14e23\nBrown et al. (2020), Table D.1\n+0.3%",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html#analysis",
+    "href": "empirical-calibration.html#analysis",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "LLM inference latency (Configs 3-5). The decode ITL predictions land squarely within published ranges. This is expected: decode is memory-bandwidth-bound, and the model correctly computes (weights + KV_cache) / bandwidth. The decode ITL is insensitive to the efficiency parameter because compute is not on the critical path – exactly matching the physical regime where auto-regressive decoding is a streaming memory read, not a compute problem.\nTraining FLOPs (Config 6). The 6ND approximation (6 * parameters * tokens) for transformer training FLOPs matches the GPT-3 paper’s reported value to within 0.3%. This validates the fundamental FLOP counting formula.\n\n\n\nCNN training throughput (Configs 1-2). The default efficiency parameter (eta=0.10) produces predictions that bracket reality but don’t hit both targets simultaneously:\n\nA100 prediction is 22% low at eta=0.10. Setting eta=0.13 yields 3,234 img/s, matching the MLPerf benchmark within 1%.\nH100 prediction is 54% high at eta=0.10. Setting eta=0.065 yields 5,070 img/s, matching the MLPerf benchmark within 1%.\n\nThis asymmetry reveals a real insight: the efficiency parameter is not a universal constant. It encodes the gap between peak datasheet FLOP/s and actual sustained throughput, which depends on:\n\nTensor core utilization – ResNet-50 has many small convolutions that may not saturate H100’s larger tensor cores as efficiently as A100’s.\nMemory system pressure – H100’s 3x higher peak FLOP/s amplifies any memory bottleneck (the model uses peak FP16 FLOP/s of 989 TFLOP/s for H100 vs. 312 TFLOP/s for A100, but real ResNet-50 kernels achieve a lower fraction of the H100 peak).\nFramework overhead – Batch normalization layers, data loading, and gradient synchronization are not modeled in the roofline calculation.\n\n\n\n\nThe single-parameter efficiency model works well within a hardware family but does not transfer across hardware generations without re-calibration. This is a known limitation of roofline-based analytical models and is explicitly surfaced to students in the textbook.",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html#per-configuration-efficiency-calibration",
+    "href": "empirical-calibration.html#per-configuration-efficiency-calibration",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "For users who need higher accuracy, the following per-configuration efficiency values minimize error against published benchmarks:\n\n\n\n\n\n\n\n\n\n\nConfiguration\nCalibrated eta\nmlsysim Result\nPublished\nError\n\n\n\n\nResNet-50 A100 bs=256 training\n0.13\n3,234 img/s\n~3,200 img/s\n+1%\n\n\nResNet-50 H100 bs=256 training\n0.065\n5,070 img/s\n~5,000 img/s\n+1%\n\n\nLlama-3-8B H100 bs=1 decode\nany (memory-bound)\n5.2 ms\n~5-8 ms\nwithin range\n\n\nLlama-3-8B H100 bs=32 decode\nany (memory-bound)\n7.7 ms\n~8-15 ms\nwithin range\n\n\nGPT-3 training FLOPs\nN/A (closed-form)\n3.15e23\n3.14e23\n+0.3%",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html#methodology-notes",
+    "href": "empirical-calibration.html#methodology-notes",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "Efficiency parameter (eta). This is the fraction of peak hardware throughput (FLOP/s or GB/s) that the workload actually achieves. It consolidates all sources of inefficiency: tensor core utilization, memory stalls, kernel launch overhead, data pipeline stalls, and framework overhead. It is NOT the same as MFU (Model FLOPs Utilization), which is defined as observed_throughput / theoretical_peak_throughput.\nPublished benchmarks. We compare against:\n\nMLPerf Training v3.0/v3.1: Industry-standard training benchmarks. Single-accelerator numbers used (not multi-GPU or multi-node). ResNet-50 throughput measured as images/second during convergence training.\nTensorRT-LLM benchmarks: NVIDIA’s optimized inference engine. H100-80GB SXM, FP16 precision, KV-cache enabled.\nvLLM benchmarks: Open-source LLM serving engine. Batched decode latency with PagedAttention.\nBrown et al. (2020): “Language Models are Few-Shot Learners.” Table D.1 reports 3.14e23 FLOP-days for GPT-3 175B training.\n\nDecode ITL is efficiency-insensitive. The serving model correctly identifies decode as memory-bandwidth-bound. The ITL formula is: ITL = (model_weights + KV_cache) / memory_bandwidth + framework_tax. Since this does not involve the compute efficiency parameter, varying eta from 0.3 to 0.8 produces identical ITL values. This matches the physical reality of auto-regressive decoding.\nHardware specs used.\n\nA100-80GB SXM: 312 TFLOP/s FP16, 2,039 GB/s HBM bandwidth\nH100-80GB SXM: 989 TFLOP/s FP16, 3,350 GB/s HBM bandwidth",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "empirical-calibration.html#reproducing-these-results",
+    "href": "empirical-calibration.html#reproducing-these-results",
+    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
+    "section": "",
+    "text": "import mlsysim\nfrom mlsysim.core.solver import SingleNodeModel, ServingModel\nfrom mlsysim.core.formulas import calc_transformer_training_flops\n\n# Config 1: ResNet-50 / A100 / training\nr1 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.A100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 A100: {r1.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 2: ResNet-50 / H100 / training\nr2 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.H100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 H100: {r2.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 3: Llama-3-8B / H100 / decode bs=1\nr3 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=1, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=1 ITL: {r3.itl.m_as('ms'):.1f} ms\")\n\n# Config 4: Llama-3-8B / H100 / decode bs=32\nr4 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=32, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=32 ITL: {r4.itl.m_as('ms'):.1f} ms\")\n\n# Config 6: GPT-3 training FLOPs\nflops = calc_transformer_training_flops(175e9, 300e9)\nprint(f\"GPT-3 FLOPs: {flops.to('flop').magnitude:.2e}\")",
+    "crumbs": [
+      "Support",
+      "Concepts",
+      "Empirical Calibration: mlsysim vs. Published Benchmarks"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html",
+    "href": "for-engineers.html",
+    "title": "For Engineers & Researchers",
+    "section": "",
+    "text": "MLSYSIM gives you quick, type-safe analytical estimates for capacity planning, hardware selection, cost modeling, and sustainability analysis – in seconds, from specifications alone. Every equation is grounded in peer-reviewed literature. Every hardware spec comes from a real datasheet.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#why-use-analytical-models",
+    "href": "for-engineers.html#why-use-analytical-models",
+    "title": "For Engineers & Researchers",
+    "section": "Why Use Analytical Models?",
+    "text": "Why Use Analytical Models?\nBefore running expensive benchmarks or provisioning cloud instances, you need directional answers:\n\nWill this model fit in GPU memory? – Check before renting the GPU\nWhat’s the expected TTFT for my LLM? – Estimate before building the serving stack\nHow many H100s do I actually need? – Model scaling efficiency before buying the cluster\nWhat will this cost per year? – TCO analysis before signing the contract\nHow often will my training job crash? – Reliability modeling before committing to a 30-day run\nWhat’s the carbon footprint of this deployment? – Quantify before the sustainability review\n\nMLSYSIM answers these in microseconds using first-order equations. It won’t replace profiling, but it tells you where to start profiling.\n\n\n\n\n\n\nTipTheory Behind the Tools\n\n\n\nEach solver implements equations from the Math Foundations page. For the full conceptual framework, see the companion slide decks linked in the Solver-to-Slides Map below.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#quick-start-roofline-analysis",
+    "href": "for-engineers.html#quick-start-roofline-analysis",
+    "title": "For Engineers & Researchers",
+    "section": "Quick Start: Roofline Analysis",
+    "text": "Quick Start: Roofline Analysis\nThe Engine implements the Roofline Performance Model (Williams et al. 2009) to classify workloads as compute-bound or memory-bound.\nimport mlsysim\nfrom mlsysim import Engine\n\n# Single-node: Is ResNet-50 memory-bound on A100?\nprofile = Engine.solve(\n    model=mlsysim.Models.ResNet50,\n    hardware=mlsysim.Hardware.Cloud.A100,\n    batch_size=1, precision=\"fp16\"\n)\nprint(f\"{profile.bottleneck}, {profile.latency.to('ms'):~.2f}\")\nprint(f\"MFU: {profile.mfu:.1%}, Arithmetic Intensity: {profile.arithmetic_intensity:~.2f}\")\nThe returned PerformanceProfile gives you latency, throughput, bottleneck classification, Model FLOPs Utilization (MFU), arithmetic intensity, energy, and a feasibility flag – everything you need for a first-pass hardware assessment.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#llm-serving-analysis",
+    "href": "for-engineers.html#llm-serving-analysis",
+    "title": "For Engineers & Researchers",
+    "section": "LLM Serving Analysis",
+    "text": "LLM Serving Analysis\nThe ServingModel models the two-phase LLM inference lifecycle: compute-bound pre-fill and memory-bound decoding.\nimport mlsysim\nfrom mlsysim import ServingModel\n\nserving = ServingModel()\nresult = serving.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    hardware=mlsysim.Hardware.Cloud.H100,\n    seq_len=4096, batch_size=1\n)\nprint(f\"TTFT:       {result['ttft'].to('ms'):~.1f}\")\nprint(f\"ITL:        {result['itl'].to('ms'):~.2f}\")\nprint(f\"KV-cache:   {result['kv_cache_size'].to('GB'):~.1f}\")\nprint(f\"Feasible:   {result['feasible']}\")\nprint(f\"Mem util:   {result['memory_utilization']:.0%}\")\nThe feasibility check tells you immediately whether the model plus its KV-cache fit in device memory – before you discover the OOM at 3 AM in production.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#hardware-sweep-pattern",
+    "href": "for-engineers.html#hardware-sweep-pattern",
+    "title": "For Engineers & Researchers",
+    "section": "Hardware Sweep Pattern",
+    "text": "Hardware Sweep Pattern\nCompare devices programmatically instead of reading datasheets:\nimport mlsysim\nfrom mlsysim import Engine\n\nmodel = mlsysim.Models.ResNet50\n\nfor hw in [mlsysim.Hardware.Cloud.H100,\n           mlsysim.Hardware.Cloud.A100,\n           mlsysim.Hardware.Cloud.T4,\n           mlsysim.Hardware.Edge.JetsonAGX]:\n    p = Engine.solve(model=model, hardware=hw, batch_size=32, precision=\"fp16\")\n    print(f\"{hw.name:20s}  {p.bottleneck:16s}  {p.latency.to('ms'):&gt;8.2f~}  {p.throughput:&gt;8.0f} img/s\")",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#distributed-training-analysis",
+    "href": "for-engineers.html#distributed-training-analysis",
+    "title": "For Engineers & Researchers",
+    "section": "Distributed Training Analysis",
+    "text": "Distributed Training Analysis\nThe DistributedModel models 3D parallelism (data, tensor, pipeline) with communication overhead from ring all-reduce and pipeline bubbles.\nimport mlsysim\nfrom mlsysim import DistributedModel\n\ndist = DistributedModel()\nresult = dist.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    fleet=mlsysim.Systems.Clusters.H100_64,\n    batch_size=512, precision=\"fp16\",\n    tp_size=8, pp_size=4, microbatch_count=16\n)\nprint(f\"Scaling efficiency:  {result['scaling_efficiency']:.1%}\")\nprint(f\"DP all-reduce:       {result['dp_communication_latency'].to('ms'):~.1f}\")\nprint(f\"TP overhead:         {result['tp_communication_latency'].to('ms'):~.1f}\")\nprint(f\"Pipeline bubble:     {result['bubble_fraction']:.1%}\")\nprint(f\"Step latency:        {result['step_latency_total'].to('ms'):~.1f}\")\nTune tp_size, pp_size, and microbatch_count to find the parallelism configuration that maximizes scaling efficiency for your cluster topology.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#composing-solvers-for-real-questions",
+    "href": "for-engineers.html#composing-solvers-for-real-questions",
+    "title": "For Engineers & Researchers",
+    "section": "Composing Solvers for Real Questions",
+    "text": "Composing Solvers for Real Questions\nThe six solvers are designed to chain. Here are three common engineering workflows.\n\n“Can I serve Llama-70B on H100s within budget?”\nimport mlsysim\nfrom mlsysim import ServingModel, EconomicsModel\n\n# Step 1: Does it fit and what's the latency?\nserving = ServingModel()\nresult = serving.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    hardware=mlsysim.Hardware.Cloud.H100,\n    seq_len=4096, batch_size=1\n)\n\n# Step 2: What does that fleet cost?\necon = EconomicsModel()\ncost = econ.solve(\n    fleet=mlsysim.Systems.Clusters.H100_8,\n    duration_days=365,\n    kwh_price=0.08\n)\nprint(f\"Annual TCO: ${cost['tco_usd']:,.0f}\")\nprint(f\"  CapEx:    ${cost['capex_usd']:,.0f}\")\nprint(f\"  OpEx:     ${cost['total_opex_usd']:,.0f}\")\n\n\n“Where should I train to minimize carbon?”\nimport mlsysim\nfrom mlsysim import SustainabilityModel\n\nsustain = SustainabilityModel()\nfor grid in [mlsysim.Infra.Grids.Quebec, mlsysim.Infra.Grids.US_Average,\n             mlsysim.Infra.Grids.Poland]:\n    r = sustain.solve(\n        fleet=mlsysim.Systems.Clusters.H100_256,\n        duration_days=30,\n        datacenter=grid\n    )\n    print(f\"{grid.name:12s}  {r['carbon_footprint_kg'].to('metric_ton'):&gt;8.1f~}  \"\n          f\"PUE={r['pue']:.2f}  Water={r['water_usage_liters']:,.0f} L\")\nFor the theory behind PUE, carbon intensity, and the energy hierarchy, see the Sustainable AI slide deck.\n\n\n“How reliable is a 30-day training run on 256 GPUs?”\nimport mlsysim\nfrom mlsysim import ReliabilityModel\n\nrel = ReliabilityModel()\nresult = rel.solve(\n    fleet=mlsysim.Systems.Clusters.H100_256,\n    job_duration_hours=720,       # 30 days\n    checkpoint_time_s=120.0       # 2 minutes per checkpoint\n)\nprint(f\"Fleet MTBF:              {result['fleet_mtbf'].to('hour'):~.1f}\")\nprint(f\"P(failure before done):  {result['failure_probability']:.1%}\")\nprint(f\"Optimal ckpt interval:   {result['optimal_checkpoint_interval'].to('minute'):~.1f}\")\nprint(f\"Expected failures:       {result['expected_failures']:.1f}\")\nThis solver implements the Young-Daly checkpoint model – essential for capacity planning on long training jobs.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#writing-custom-solvers",
+    "href": "for-engineers.html#writing-custom-solvers",
+    "title": "For Engineers & Researchers",
+    "section": "Writing Custom Solvers",
+    "text": "Writing Custom Solvers\nFollow the built-in solver pattern to create your own analysis:\nfrom mlsysim.hardware.types import HardwareNode\n\nclass PowerEfficiencyModel:\n    def solve(self, hardware: HardwareNode) -&gt; dict:\n        flops_per_watt = hardware.compute.peak_flops / hardware.tdp\n        return {\n            \"device\": hardware.name,\n            \"flops_per_watt\": flops_per_watt.to(\"TFLOPs/s/kW\"),\n        }\nSee Writing a Custom Solver for the full guide.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#type-safety",
+    "href": "for-engineers.html#type-safety",
+    "title": "For Engineers & Researchers",
+    "section": "Type Safety",
+    "text": "Type Safety\nAll quantities are pint.Quantity objects. Unit conversions are explicit, and dimensional errors are caught at runtime:\nhw = mlsysim.Hardware.Cloud.A100\nhw.compute.peak_flops.to(\"TFLOPs/s\")   # → 312.0 TFLOPs/s\nhw.memory.bandwidth.to(\"TB/s\")          # → 2.0 TB/s\nhw.memory.bandwidth.to(\"FLOP/s\")        # → DimensionalityError ✓\nThis means you can chain computations across solvers without worrying about unit mismatches – pint catches them for you.",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#solver-to-slides-map",
+    "href": "for-engineers.html#solver-to-slides-map",
+    "title": "For Engineers & Researchers",
+    "section": "Solver-to-Slides Map",
+    "text": "Solver-to-Slides Map\nEach MLSYSIM solver maps to specific chapters and slide decks from the Machine Learning Systems textbook. Use these for the full theoretical grounding behind each solver.\n\n\n\n\n\n\n\n\nMLSYSIM Solver\nWhat It Models\nSlide Deck\n\n\n\n\nEngine / SingleNodeModel\nRoofline analysis, compute vs. memory bottleneck\nHardware Acceleration (Vol I, Ch 11)\n\n\nServingModel\nTTFT, ITL, KV-cache memory\nModel Serving (Vol I, Ch 13) and Inference at Scale (Vol II, Ch 9)\n\n\nDistributedModel\n3D parallelism, all-reduce, pipeline bubbles\nDistributed Training (Vol II, Ch 5) and Collective Communication (Vol II, Ch 6)\n\n\nEconomicsModel\nCapEx, OpEx, total cost of ownership\nCompute Infrastructure (Vol II, Ch 2)\n\n\nSustainabilityModel\nEnergy, carbon footprint, water usage\nSustainable AI (Vol II, Ch 15)\n\n\nReliabilityModel\nMTBF, Young-Daly checkpointing\nFault Tolerance (Vol II, Ch 7)\n\n\n\n\n\nVolume I: Foundations (17 decks, 570 slides)\nBrowse Vol I Decks | Download All (PDF)\n\nVolume II: At Scale (18 decks, 529 slides)\nBrowse Vol II Decks | Download All (PDF)",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "for-engineers.html#next-steps",
+    "href": "for-engineers.html#next-steps",
+    "title": "For Engineers & Researchers",
+    "section": "Next Steps",
+    "text": "Next Steps\n\nGetting Started – Install and run your first analysis\nSolver Guide – Which solver for which question\nMLSys Zoo – Browse all available hardware, model, and infrastructure specs\nAPI Reference – Full programmatic API documentation\nAccuracy & Validation – How analytical bounds compare to empirical measurements\nMath Foundations – The equations behind every solver\nAll Slide Decks – 35 Beamer decks with speaker notes and active learning exercises",
+    "crumbs": [
+      "Support",
+      "For Your Role",
+      "For Engineers & Researchers"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html",
+    "href": "cli-reference.html",
+    "title": "CLI Reference",
+    "section": "",
+    "text": "MLSys·im ships an agent-ready CLI built on Typer and Rich. It follows the 3-Tier Command Mapping: eval maps to Models, optimize maps to Optimizers, and zoo maps to the registries.",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#quick-examples",
+    "href": "cli-reference.html#quick-examples",
+    "title": "CLI Reference",
+    "section": "Quick Examples",
+    "text": "Quick Examples\n# What's in the Zoo?\nmlsysim zoo hardware\nmlsysim zoo models\n\n# Single-node roofline: is Llama-3 8B memory-bound on H100?\nmlsysim eval Llama3_8B H100\n\n# Same thing, but with batch size 32 and fp8 precision\nmlsysim eval Llama3_8B H100 --batch-size 32 --precision fp8\n\n# Full cluster evaluation from a YAML spec\nmlsysim eval cluster.yaml\n\n# Machine-readable JSON for CI/CD pipelines\nmlsysim eval Llama3_8B H100 -o json\n\n# Export JSON Schema for IDE autocompletion\nmlsysim schema --type hardware &gt; hardware.schema.json",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#exit-codes",
+    "href": "cli-reference.html#exit-codes",
+    "title": "CLI Reference",
+    "section": "Exit Codes",
+    "text": "Exit Codes\nThe CLI uses semantic exit codes so scripts and CI pipelines can react programmatically:\n\n\n\n\n\n\n\n\nCode\nMeaning\nExample\n\n\n\n\n0\nSuccess\nAnalysis completed, all assertions passed\n\n\n1\nBad input\nUnknown model name, malformed YAML, missing required flag\n\n\n2\nPhysics violation\nOOM — model does not fit in memory at the given precision\n\n\n3\nSLA violation\nA constraints.assert check in the YAML failed\n\n\n\nmlsysim eval Llama3_70B T4 --batch-size 1\n# Exit code 2: OOM — 140 GB model weights exceed 16 GB T4 memory\necho $?  # → 2",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#global-options",
+    "href": "cli-reference.html#global-options",
+    "title": "CLI Reference",
+    "section": "Global Options",
+    "text": "Global Options\nmlsysim [OPTIONS] COMMAND [ARGS]...\n\n\n\n\n\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n-o, --output\nOutput format: text, json, markdown\ntext\n\n\n--install-completion\nInstall shell completion (bash, zsh, fish)\n—\n\n\n--show-completion\nPrint completion script to stdout\n—\n\n\n--help\nShow help and exit\n—",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#mlsysim-zoo",
+    "href": "cli-reference.html#mlsysim-zoo",
+    "title": "CLI Reference",
+    "section": "mlsysim zoo",
+    "text": "mlsysim zoo\nExplore the built-in registries (the MLSys Zoo).\nmlsysim zoo [CATEGORY]\nArguments:\n\n\n\nArgument\nDescription\n\n\n\n\nCATEGORY\nhardware or models\n\n\n\nExamples:\n# List all hardware in the Zoo with specs\nmlsysim zoo hardware\n\n# List all models with parameter counts and FLOPs\nmlsysim zoo models\n\n# JSON output for scripting\nmlsysim zoo hardware -o json",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#mlsysim-eval",
+    "href": "cli-reference.html#mlsysim-eval",
+    "title": "CLI Reference",
+    "section": "mlsysim eval",
+    "text": "mlsysim eval\nEvaluate the analytical physics of an ML system. This is the primary command — it runs the roofline analysis and returns bottleneck, latency, throughput, and memory usage.\nmlsysim eval [OPTIONS] TARGET [HARDWARE]\nArguments:\n\n\n\n\n\n\n\n\nArgument\nDescription\nRequired\n\n\n\n\nTARGET\nModel name (e.g., Llama3_8B) or path to mlsys.yaml\nYes\n\n\nHARDWARE\nHardware name (e.g., H100) — required when TARGET is a model name\nConditional\n\n\n\nOptions:\n\n\n\n\n\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n-b, --batch-size\nBatch size\n1\n\n\n-p, --precision\nNumerical precision: fp32, fp16, fp8, int8, int4\nfp16\n\n\n-e, --efficiency\nModel FLOPs Utilization (0.0–1.0)\n0.5\n\n\n\nExamples:\n# Quick check: is ResNet-50 memory-bound on A100?\nmlsysim eval ResNet50 A100\n\n# LLM inference at batch 1 (typical serving scenario)\nmlsysim eval Llama3_8B H100 --batch-size 1 --precision fp16\n\n# Quantized inference\nmlsysim eval Llama3_8B H100 --batch-size 32 --precision int8 --efficiency 0.35\n\n# Full cluster evaluation with SLA assertions\nmlsysim eval cluster.yaml\n\n# JSON for CI/CD — fails with exit code 3 if SLA assertions fail\nmlsysim eval cluster.yaml -o json\n\nYAML Cluster Evaluation\nWhen TARGET is a YAML file, eval runs the full 3-lens scorecard (Feasibility, Performance, Macro) including distributed training, economics, and sustainability analysis.\nversion: \"1.0\"\nworkload:\n  name: \"Llama3_70B\"\n  batch_size: 4096\nhardware:\n  name: \"H100\"\n  nodes: 64\nops:\n  region: \"Quebec\"\n  duration_days: 14.0\nconstraints:\n  assert:\n    - metric: \"performance.latency\"\n      max: 50.0",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#mlsysim-schema",
+    "href": "cli-reference.html#mlsysim-schema",
+    "title": "CLI Reference",
+    "section": "mlsysim schema",
+    "text": "mlsysim schema\nExport JSON Schema for configuration files. Feed these to your IDE for autocompletion or to an LLM agent for structured generation.\nmlsysim schema [OPTIONS]\nOptions:\n\n\n\nFlag\nDescription\n\n\n\n\n--type\nSchema type: hardware, workload, or plan\n\n\n\nExamples:\n# Get the hardware YAML schema for IDE autocompletion\nmlsysim schema --type hardware &gt; hardware.schema.json\n\n# Get the workload schema\nmlsysim schema --type workload &gt; workload.schema.json\n\n# Get the full cluster plan schema (for mlsys.yaml files)\nmlsysim schema --type plan &gt; plan.schema.json",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#mlsysim-optimize",
+    "href": "cli-reference.html#mlsysim-optimize",
+    "title": "CLI Reference",
+    "section": "mlsysim optimize",
+    "text": "mlsysim optimize\nSearch the design space for optimal configurations. Each subcommand maps to an Optimizer in the 3-Tier architecture.\nmlsysim optimize COMMAND [ARGS]...\n\nmlsysim optimize parallelism\nFind the optimal (TP, PP, DP) split to maximize Model FLOPs Utilization.\nmlsysim optimize parallelism CONFIG_FILE\n\n\n\nArgument\nDescription\nRequired\n\n\n\n\nCONFIG_FILE\nPath to mlsys.yaml with fleet definition\nYes\n\n\n\nExample:\n# Find the best parallelism strategy for a 70B model on 256 H100s\nmlsysim optimize parallelism cluster.yaml\n\n\nmlsysim optimize batching\nFind the maximum safe batch size that satisfies a P99 latency SLA.\nmlsysim optimize batching [OPTIONS] CONFIG_FILE\n\n\n\nFlag\nDescription\nRequired\n\n\n\n\n--sla-ms\nP99 latency SLA in milliseconds\nYes\n\n\n--qps\nArrival rate in queries per second\nYes\n\n\n\nExample:\n# Max batch size for 50ms P99 at 100 QPS\nmlsysim optimize batching cluster.yaml --sla-ms 50 --qps 100\n\n\nmlsysim optimize placement\nFind the optimal datacenter region to minimize TCO and carbon footprint.\nmlsysim optimize placement [OPTIONS] CONFIG_FILE\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n--carbon-tax\nCarbon tax penalty in $/ton CO₂\n100.0\n\n\n\nExample:\n# Find cheapest region with $150/ton carbon penalty\nmlsysim optimize placement cluster.yaml --carbon-tax 150",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#mlsysim-audit",
+    "href": "cli-reference.html#mlsysim-audit",
+    "title": "CLI Reference",
+    "section": "mlsysim audit",
+    "text": "mlsysim audit\nProfile a workload against the Iron Law and report which wall binds.\nmlsysim audit [OPTIONS]\n\n\n\nFlag\nDescription\n\n\n\n\n--workload\nWorkload name to audit",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "cli-reference.html#bring-your-own-yaml",
+    "href": "cli-reference.html#bring-your-own-yaml",
+    "title": "CLI Reference",
+    "section": "Bring Your Own YAML",
+    "text": "Bring Your Own YAML\nInstead of using registry names, you can pass custom hardware or workload YAML files directly to eval:\n# Custom chip spec against a Zoo model\nmlsysim eval Llama3_8B ./my_custom_chip.yaml --batch-size 32\n\n# Both custom\nmlsysim eval ./my_model.yaml ./my_chip.yaml\nSee Getting Started — Defining Custom Models for the model definition format.",
+    "crumbs": [
+      "Support",
+      "Get Started",
+      "CLI Reference"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html",
+    "href": "agentic-mcp.html",
+    "title": "Agentic Workflows & MCP",
+    "section": "",
+    "text": "The ultimate vision for mlsysim is not just to educate humans, but to serve as the ground-truth physics engine for autonomous AI systems.\nLarge Language Models (like Claude 3.5 Sonnet, GPT-4o, or Gemini Pro) are excellent at writing code and structuring YAML, but they frequently hallucinate complex math. If you ask an LLM to calculate the Inter-Token Latency of a 70B model on 8x H100s with PagedAttention, it will confidently guess wrong.\nBy wrapping mlsysim in the Model Context Protocol (MCP), you give your agents the ability to dynamically design hardware clusters, run them through a dimensionally strict physics engine, and interpret the precise bottlenecks to iteratively improve the design.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html#using-mlsysim-with-claude-desktop-mcp",
+    "href": "agentic-mcp.html#using-mlsysim-with-claude-desktop-mcp",
+    "title": "Agentic Workflows & MCP",
+    "section": "1. Using MLSys·im with Claude Desktop (MCP)",
+    "text": "1. Using MLSys·im with Claude Desktop (MCP)\nWe provide a production-ready MCP server that exposes the mlsysim engine to Claude Desktop.\n\nSetup\n\nEnsure you have installed mlsysim and the mcp Python package:\npip install mlsysim mcp\nOpen your Claude Desktop configuration file.\n\nmacOS: ~/Library/Application Support/Claude/claude_desktop_config.json\nWindows: %APPDATA%\\Claude\\claude_desktop_config.json\n\nAdd the mlsysim server:\n{\n  \"mcpServers\": {\n    \"mlsysim\": {\n      \"command\": \"python3\",\n      \"args\": [\"-m\", \"mlsysim.examples.mcp_server\"]\n    }\n  }\n}\nRestart Claude Desktop. You will now see a hammer icon 🛠️ indicating the tools are available.\n\n\n\nWhat to ask Claude\nYou can now ask Claude questions that require deep hardware simulation: &gt; “I need to serve Llama-3 70B. Can you use your mlsysim tool to find out if it fits on a single H100? If it doesn’t, design a cluster that does, and tell me the annual TCO.”\nClaude will automatically generate the required YAML schema, call the evaluate_cluster_yaml tool, see the Out-of-Memory (OOM) failure, correct its design to use 2 nodes, and return the final mathematical truth to you.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html#the-agentic-predict-compute-reflect-loop",
+    "href": "agentic-mcp.html#the-agentic-predict-compute-reflect-loop",
+    "title": "Agentic Workflows & MCP",
+    "section": "2. The Agentic “Predict-Compute-Reflect” Loop",
+    "text": "2. The Agentic “Predict-Compute-Reflect” Loop\nIf you are building your own multi-agent system (using LangChain, AutoGen, or raw Gemini APIs), mlsysim’s schema architecture is built specifically for you.\n\nThe Input: Export our schema using mlsysim schema --type plan. Feed this JSON schema directly into your LLM’s system prompt or tool definition. The LLM instantly knows how to structure the request.\nThe Execution: Call mlsysim eval your_file.yaml --output json (or use the Python API).\nThe Feedback: Because mlsysim outputs a strictly-typed, flat JSON dictionary, your agent can easily parse the results. If f_status == \"FAIL\", the agent reads the f_summary (e.g., “OOM: Requires 140 GB but only has 80 GB”) and adjusts its design autonomously.\n\nWe have included a conceptual Python implementation of this loop in our repository at mlsysim/examples/gemini_design_loop.py.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html#exposed-mcp-tools",
+    "href": "agentic-mcp.html#exposed-mcp-tools",
+    "title": "Agentic Workflows & MCP",
+    "section": "3. Exposed MCP Tools",
+    "text": "3. Exposed MCP Tools\nWhen running as an MCP server, mlsysim exposes the following tools to the connected agent:\n\n\n\n\n\n\n\nTool\nDescription\n\n\n\n\nevaluate_cluster_yaml\nEvaluate a YAML cluster specification through the full 3-lens scorecard (Feasibility, Performance, Macro)\n\n\nlist_hardware\nList all hardware in the Zoo with specs\n\n\nlist_models\nList all models in the Zoo with parameter counts\n\n\n\nThe agent can call these tools programmatically. The YAML schema can be exported with:\nmlsysim schema --type plan\nFeed this schema into your agent’s system prompt or tool definition so it knows how to structure valid requests.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html#troubleshooting",
+    "href": "agentic-mcp.html#troubleshooting",
+    "title": "Agentic Workflows & MCP",
+    "section": "4. Troubleshooting",
+    "text": "4. Troubleshooting\n\nClaude doesn’t show the hammer icon:\n\nMake sure you restarted Claude Desktop after editing the config. Check that python3 -m mlsysim.examples.mcp_server runs without errors in your terminal.\n\nAgent gets OOM errors:\n\nThis is expected behavior — it means the model doesn’t fit on the specified hardware. The agent should read the error message and adjust (e.g., add nodes, reduce precision, or pick larger hardware).\n\nAgent hallucinates hardware specs:\n\nRemind the agent to use list_hardware to discover available hardware rather than inventing specs. The llms.txt file at the root of the docs site contains agent-specific guidance.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
+    "objectID": "agentic-mcp.html#why-this-matters",
+    "href": "agentic-mcp.html#why-this-matters",
+    "title": "Agentic Workflows & MCP",
+    "section": "5. Why This Matters",
+    "text": "5. Why This Matters\nThe “academic simulator graveyard” is filled with tools that were too hard for humans to compile and too unstructured for machines to use.\nBy defining mlsysim through strict Pydantic schemas and standardizing the 22 ML Systems Walls, we have created an intermediate representation (IR) that both humans and AI agents can understand. In the near future, you will not manually calculate whether a new model architecture is viable; you will ask your Agentic Architect to run 10,000 simulations against the mlsysim physics engine while you sleep.",
+    "crumbs": [
+      "Support",
+      "Build & Extend",
+      "Agentic Workflows & MCP"
+    ]
+  },
+  {
     "objectID": "glossary.html",
     "href": "glossary.html",
     "title": "Glossary",
@@ -2593,682 +3241,6 @@
       "Concepts",
       "Glossary"
     ]
-  },
-  {
-    "objectID": "agentic-mcp.html",
-    "href": "agentic-mcp.html",
-    "title": "Agentic Workflows & MCP",
-    "section": "",
-    "text": "The ultimate vision for mlsysim is not just to educate humans, but to serve as the ground-truth physics engine for autonomous AI systems.\nLarge Language Models (like Claude 3.5 Sonnet, GPT-4o, or Gemini Pro) are excellent at writing code and structuring YAML, but they frequently hallucinate complex math. If you ask an LLM to calculate the Inter-Token Latency of a 70B model on 8x H100s with PagedAttention, it will confidently guess wrong.\nBy wrapping mlsysim in the Model Context Protocol (MCP), you give your agents the ability to dynamically design hardware clusters, run them through a dimensionally strict physics engine, and interpret the precise bottlenecks to iteratively improve the design.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "agentic-mcp.html#using-mlsysim-with-claude-desktop-mcp",
-    "href": "agentic-mcp.html#using-mlsysim-with-claude-desktop-mcp",
-    "title": "Agentic Workflows & MCP",
-    "section": "1. Using MLSys·im with Claude Desktop (MCP)",
-    "text": "1. Using MLSys·im with Claude Desktop (MCP)\nWe provide a production-ready MCP server that exposes the mlsysim engine to Claude Desktop.\n\nSetup\n\nEnsure you have installed mlsysim and the mcp Python package:\npip install mlsysim mcp\nOpen your Claude Desktop configuration file.\n\nmacOS: ~/Library/Application Support/Claude/claude_desktop_config.json\nWindows: %APPDATA%\\Claude\\claude_desktop_config.json\n\nAdd the mlsysim server:\n{\n  \"mcpServers\": {\n    \"mlsysim\": {\n      \"command\": \"python3\",\n      \"args\": [\"-m\", \"mlsysim.examples.mcp_server\"]\n    }\n  }\n}\nRestart Claude Desktop. You will now see a hammer icon 🛠️ indicating the tools are available.\n\n\n\nWhat to ask Claude\nYou can now ask Claude questions that require deep hardware simulation: &gt; “I need to serve Llama-3 70B. Can you use your mlsysim tool to find out if it fits on a single H100? If it doesn’t, design a cluster that does, and tell me the annual TCO.”\nClaude will automatically generate the required YAML schema, call the evaluate_cluster_yaml tool, see the Out-of-Memory (OOM) failure, correct its design to use 2 nodes, and return the final mathematical truth to you.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "agentic-mcp.html#the-agentic-predict-compute-reflect-loop",
-    "href": "agentic-mcp.html#the-agentic-predict-compute-reflect-loop",
-    "title": "Agentic Workflows & MCP",
-    "section": "2. The Agentic “Predict-Compute-Reflect” Loop",
-    "text": "2. The Agentic “Predict-Compute-Reflect” Loop\nIf you are building your own multi-agent system (using LangChain, AutoGen, or raw Gemini APIs), mlsysim’s schema architecture is built specifically for you.\n\nThe Input: Export our schema using mlsysim schema --type plan. Feed this JSON schema directly into your LLM’s system prompt or tool definition. The LLM instantly knows how to structure the request.\nThe Execution: Call mlsysim eval your_file.yaml --output json (or use the Python API).\nThe Feedback: Because mlsysim outputs a strictly-typed, flat JSON dictionary, your agent can easily parse the results. If f_status == \"FAIL\", the agent reads the f_summary (e.g., “OOM: Requires 140 GB but only has 80 GB”) and adjusts its design autonomously.\n\nWe have included a conceptual Python implementation of this loop in our repository at mlsysim/examples/gemini_design_loop.py.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "agentic-mcp.html#exposed-mcp-tools",
-    "href": "agentic-mcp.html#exposed-mcp-tools",
-    "title": "Agentic Workflows & MCP",
-    "section": "3. Exposed MCP Tools",
-    "text": "3. Exposed MCP Tools\nWhen running as an MCP server, mlsysim exposes the following tools to the connected agent:\n\n\n\n\n\n\n\nTool\nDescription\n\n\n\n\nevaluate_cluster_yaml\nEvaluate a YAML cluster specification through the full 3-lens scorecard (Feasibility, Performance, Macro)\n\n\nlist_hardware\nList all hardware in the Zoo with specs\n\n\nlist_models\nList all models in the Zoo with parameter counts\n\n\n\nThe agent can call these tools programmatically. The YAML schema can be exported with:\nmlsysim schema --type plan\nFeed this schema into your agent’s system prompt or tool definition so it knows how to structure valid requests.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "agentic-mcp.html#troubleshooting",
-    "href": "agentic-mcp.html#troubleshooting",
-    "title": "Agentic Workflows & MCP",
-    "section": "4. Troubleshooting",
-    "text": "4. Troubleshooting\n\nClaude doesn’t show the hammer icon:\n\nMake sure you restarted Claude Desktop after editing the config. Check that python3 -m mlsysim.examples.mcp_server runs without errors in your terminal.\n\nAgent gets OOM errors:\n\nThis is expected behavior — it means the model doesn’t fit on the specified hardware. The agent should read the error message and adjust (e.g., add nodes, reduce precision, or pick larger hardware).\n\nAgent hallucinates hardware specs:\n\nRemind the agent to use list_hardware to discover available hardware rather than inventing specs. The llms.txt file at the root of the docs site contains agent-specific guidance.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "agentic-mcp.html#why-this-matters",
-    "href": "agentic-mcp.html#why-this-matters",
-    "title": "Agentic Workflows & MCP",
-    "section": "5. Why This Matters",
-    "text": "5. Why This Matters\nThe “academic simulator graveyard” is filled with tools that were too hard for humans to compile and too unstructured for machines to use.\nBy defining mlsysim through strict Pydantic schemas and standardizing the 22 ML Systems Walls, we have created an intermediate representation (IR) that both humans and AI agents can understand. In the near future, you will not manually calculate whether a new model architecture is viable; you will ask your Agentic Architect to run 10,000 simulations against the mlsysim physics engine while you sleep.",
-    "crumbs": [
-      "Support",
-      "Build & Extend",
-      "Agentic Workflows & MCP"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html",
-    "href": "cli-reference.html",
-    "title": "CLI Reference",
-    "section": "",
-    "text": "MLSys·im ships an agent-ready CLI built on Typer and Rich. It follows the 3-Tier Command Mapping: eval maps to Models, optimize maps to Optimizers, and zoo maps to the registries.",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#quick-examples",
-    "href": "cli-reference.html#quick-examples",
-    "title": "CLI Reference",
-    "section": "Quick Examples",
-    "text": "Quick Examples\n# What's in the Zoo?\nmlsysim zoo hardware\nmlsysim zoo models\n\n# Single-node roofline: is Llama-3 8B memory-bound on H100?\nmlsysim eval Llama3_8B H100\n\n# Same thing, but with batch size 32 and fp8 precision\nmlsysim eval Llama3_8B H100 --batch-size 32 --precision fp8\n\n# Full cluster evaluation from a YAML spec\nmlsysim eval cluster.yaml\n\n# Machine-readable JSON for CI/CD pipelines\nmlsysim eval Llama3_8B H100 -o json\n\n# Export JSON Schema for IDE autocompletion\nmlsysim schema --type hardware &gt; hardware.schema.json",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#exit-codes",
-    "href": "cli-reference.html#exit-codes",
-    "title": "CLI Reference",
-    "section": "Exit Codes",
-    "text": "Exit Codes\nThe CLI uses semantic exit codes so scripts and CI pipelines can react programmatically:\n\n\n\n\n\n\n\n\nCode\nMeaning\nExample\n\n\n\n\n0\nSuccess\nAnalysis completed, all assertions passed\n\n\n1\nBad input\nUnknown model name, malformed YAML, missing required flag\n\n\n2\nPhysics violation\nOOM — model does not fit in memory at the given precision\n\n\n3\nSLA violation\nA constraints.assert check in the YAML failed\n\n\n\nmlsysim eval Llama3_70B T4 --batch-size 1\n# Exit code 2: OOM — 140 GB model weights exceed 16 GB T4 memory\necho $?  # → 2",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#global-options",
-    "href": "cli-reference.html#global-options",
-    "title": "CLI Reference",
-    "section": "Global Options",
-    "text": "Global Options\nmlsysim [OPTIONS] COMMAND [ARGS]...\n\n\n\n\n\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n-o, --output\nOutput format: text, json, markdown\ntext\n\n\n--install-completion\nInstall shell completion (bash, zsh, fish)\n—\n\n\n--show-completion\nPrint completion script to stdout\n—\n\n\n--help\nShow help and exit\n—",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#mlsysim-zoo",
-    "href": "cli-reference.html#mlsysim-zoo",
-    "title": "CLI Reference",
-    "section": "mlsysim zoo",
-    "text": "mlsysim zoo\nExplore the built-in registries (the MLSys Zoo).\nmlsysim zoo [CATEGORY]\nArguments:\n\n\n\nArgument\nDescription\n\n\n\n\nCATEGORY\nhardware or models\n\n\n\nExamples:\n# List all hardware in the Zoo with specs\nmlsysim zoo hardware\n\n# List all models with parameter counts and FLOPs\nmlsysim zoo models\n\n# JSON output for scripting\nmlsysim zoo hardware -o json",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#mlsysim-eval",
-    "href": "cli-reference.html#mlsysim-eval",
-    "title": "CLI Reference",
-    "section": "mlsysim eval",
-    "text": "mlsysim eval\nEvaluate the analytical physics of an ML system. This is the primary command — it runs the roofline analysis and returns bottleneck, latency, throughput, and memory usage.\nmlsysim eval [OPTIONS] TARGET [HARDWARE]\nArguments:\n\n\n\n\n\n\n\n\nArgument\nDescription\nRequired\n\n\n\n\nTARGET\nModel name (e.g., Llama3_8B) or path to mlsys.yaml\nYes\n\n\nHARDWARE\nHardware name (e.g., H100) — required when TARGET is a model name\nConditional\n\n\n\nOptions:\n\n\n\n\n\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n-b, --batch-size\nBatch size\n1\n\n\n-p, --precision\nNumerical precision: fp32, fp16, fp8, int8, int4\nfp16\n\n\n-e, --efficiency\nModel FLOPs Utilization (0.0–1.0)\n0.5\n\n\n\nExamples:\n# Quick check: is ResNet-50 memory-bound on A100?\nmlsysim eval ResNet50 A100\n\n# LLM inference at batch 1 (typical serving scenario)\nmlsysim eval Llama3_8B H100 --batch-size 1 --precision fp16\n\n# Quantized inference\nmlsysim eval Llama3_8B H100 --batch-size 32 --precision int8 --efficiency 0.35\n\n# Full cluster evaluation with SLA assertions\nmlsysim eval cluster.yaml\n\n# JSON for CI/CD — fails with exit code 3 if SLA assertions fail\nmlsysim eval cluster.yaml -o json\n\nYAML Cluster Evaluation\nWhen TARGET is a YAML file, eval runs the full 3-lens scorecard (Feasibility, Performance, Macro) including distributed training, economics, and sustainability analysis.\nversion: \"1.0\"\nworkload:\n  name: \"Llama3_70B\"\n  batch_size: 4096\nhardware:\n  name: \"H100\"\n  nodes: 64\nops:\n  region: \"Quebec\"\n  duration_days: 14.0\nconstraints:\n  assert:\n    - metric: \"performance.latency\"\n      max: 50.0",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#mlsysim-schema",
-    "href": "cli-reference.html#mlsysim-schema",
-    "title": "CLI Reference",
-    "section": "mlsysim schema",
-    "text": "mlsysim schema\nExport JSON Schema for configuration files. Feed these to your IDE for autocompletion or to an LLM agent for structured generation.\nmlsysim schema [OPTIONS]\nOptions:\n\n\n\nFlag\nDescription\n\n\n\n\n--type\nSchema type: hardware, workload, or plan\n\n\n\nExamples:\n# Get the hardware YAML schema for IDE autocompletion\nmlsysim schema --type hardware &gt; hardware.schema.json\n\n# Get the workload schema\nmlsysim schema --type workload &gt; workload.schema.json\n\n# Get the full cluster plan schema (for mlsys.yaml files)\nmlsysim schema --type plan &gt; plan.schema.json",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#mlsysim-optimize",
-    "href": "cli-reference.html#mlsysim-optimize",
-    "title": "CLI Reference",
-    "section": "mlsysim optimize",
-    "text": "mlsysim optimize\nSearch the design space for optimal configurations. Each subcommand maps to an Optimizer in the 3-Tier architecture.\nmlsysim optimize COMMAND [ARGS]...\n\nmlsysim optimize parallelism\nFind the optimal (TP, PP, DP) split to maximize Model FLOPs Utilization.\nmlsysim optimize parallelism CONFIG_FILE\n\n\n\nArgument\nDescription\nRequired\n\n\n\n\nCONFIG_FILE\nPath to mlsys.yaml with fleet definition\nYes\n\n\n\nExample:\n# Find the best parallelism strategy for a 70B model on 256 H100s\nmlsysim optimize parallelism cluster.yaml\n\n\nmlsysim optimize batching\nFind the maximum safe batch size that satisfies a P99 latency SLA.\nmlsysim optimize batching [OPTIONS] CONFIG_FILE\n\n\n\nFlag\nDescription\nRequired\n\n\n\n\n--sla-ms\nP99 latency SLA in milliseconds\nYes\n\n\n--qps\nArrival rate in queries per second\nYes\n\n\n\nExample:\n# Max batch size for 50ms P99 at 100 QPS\nmlsysim optimize batching cluster.yaml --sla-ms 50 --qps 100\n\n\nmlsysim optimize placement\nFind the optimal datacenter region to minimize TCO and carbon footprint.\nmlsysim optimize placement [OPTIONS] CONFIG_FILE\n\n\n\nFlag\nDescription\nDefault\n\n\n\n\n--carbon-tax\nCarbon tax penalty in $/ton CO₂\n100.0\n\n\n\nExample:\n# Find cheapest region with $150/ton carbon penalty\nmlsysim optimize placement cluster.yaml --carbon-tax 150",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#mlsysim-audit",
-    "href": "cli-reference.html#mlsysim-audit",
-    "title": "CLI Reference",
-    "section": "mlsysim audit",
-    "text": "mlsysim audit\nProfile a workload against the Iron Law and report which wall binds.\nmlsysim audit [OPTIONS]\n\n\n\nFlag\nDescription\n\n\n\n\n--workload\nWorkload name to audit",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "cli-reference.html#bring-your-own-yaml",
-    "href": "cli-reference.html#bring-your-own-yaml",
-    "title": "CLI Reference",
-    "section": "Bring Your Own YAML",
-    "text": "Bring Your Own YAML\nInstead of using registry names, you can pass custom hardware or workload YAML files directly to eval:\n# Custom chip spec against a Zoo model\nmlsysim eval Llama3_8B ./my_custom_chip.yaml --batch-size 32\n\n# Both custom\nmlsysim eval ./my_model.yaml ./my_chip.yaml\nSee Getting Started — Defining Custom Models for the model definition format.",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "CLI Reference"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html",
-    "href": "for-engineers.html",
-    "title": "For Engineers & Researchers",
-    "section": "",
-    "text": "MLSYSIM gives you quick, type-safe analytical estimates for capacity planning, hardware selection, cost modeling, and sustainability analysis – in seconds, from specifications alone. Every equation is grounded in peer-reviewed literature. Every hardware spec comes from a real datasheet.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#why-use-analytical-models",
-    "href": "for-engineers.html#why-use-analytical-models",
-    "title": "For Engineers & Researchers",
-    "section": "Why Use Analytical Models?",
-    "text": "Why Use Analytical Models?\nBefore running expensive benchmarks or provisioning cloud instances, you need directional answers:\n\nWill this model fit in GPU memory? – Check before renting the GPU\nWhat’s the expected TTFT for my LLM? – Estimate before building the serving stack\nHow many H100s do I actually need? – Model scaling efficiency before buying the cluster\nWhat will this cost per year? – TCO analysis before signing the contract\nHow often will my training job crash? – Reliability modeling before committing to a 30-day run\nWhat’s the carbon footprint of this deployment? – Quantify before the sustainability review\n\nMLSYSIM answers these in microseconds using first-order equations. It won’t replace profiling, but it tells you where to start profiling.\n\n\n\n\n\n\nTipTheory Behind the Tools\n\n\n\nEach solver implements equations from the Math Foundations page. For the full conceptual framework, see the companion slide decks linked in the Solver-to-Slides Map below.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#quick-start-roofline-analysis",
-    "href": "for-engineers.html#quick-start-roofline-analysis",
-    "title": "For Engineers & Researchers",
-    "section": "Quick Start: Roofline Analysis",
-    "text": "Quick Start: Roofline Analysis\nThe Engine implements the Roofline Performance Model (Williams et al. 2009) to classify workloads as compute-bound or memory-bound.\nimport mlsysim\nfrom mlsysim import Engine\n\n# Single-node: Is ResNet-50 memory-bound on A100?\nprofile = Engine.solve(\n    model=mlsysim.Models.ResNet50,\n    hardware=mlsysim.Hardware.Cloud.A100,\n    batch_size=1, precision=\"fp16\"\n)\nprint(f\"{profile.bottleneck}, {profile.latency.to('ms'):~.2f}\")\nprint(f\"MFU: {profile.mfu:.1%}, Arithmetic Intensity: {profile.arithmetic_intensity:~.2f}\")\nThe returned PerformanceProfile gives you latency, throughput, bottleneck classification, Model FLOPs Utilization (MFU), arithmetic intensity, energy, and a feasibility flag – everything you need for a first-pass hardware assessment.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#llm-serving-analysis",
-    "href": "for-engineers.html#llm-serving-analysis",
-    "title": "For Engineers & Researchers",
-    "section": "LLM Serving Analysis",
-    "text": "LLM Serving Analysis\nThe ServingModel models the two-phase LLM inference lifecycle: compute-bound pre-fill and memory-bound decoding.\nimport mlsysim\nfrom mlsysim import ServingModel\n\nserving = ServingModel()\nresult = serving.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    hardware=mlsysim.Hardware.Cloud.H100,\n    seq_len=4096, batch_size=1\n)\nprint(f\"TTFT:       {result['ttft'].to('ms'):~.1f}\")\nprint(f\"ITL:        {result['itl'].to('ms'):~.2f}\")\nprint(f\"KV-cache:   {result['kv_cache_size'].to('GB'):~.1f}\")\nprint(f\"Feasible:   {result['feasible']}\")\nprint(f\"Mem util:   {result['memory_utilization']:.0%}\")\nThe feasibility check tells you immediately whether the model plus its KV-cache fit in device memory – before you discover the OOM at 3 AM in production.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#hardware-sweep-pattern",
-    "href": "for-engineers.html#hardware-sweep-pattern",
-    "title": "For Engineers & Researchers",
-    "section": "Hardware Sweep Pattern",
-    "text": "Hardware Sweep Pattern\nCompare devices programmatically instead of reading datasheets:\nimport mlsysim\nfrom mlsysim import Engine\n\nmodel = mlsysim.Models.ResNet50\n\nfor hw in [mlsysim.Hardware.Cloud.H100,\n           mlsysim.Hardware.Cloud.A100,\n           mlsysim.Hardware.Cloud.T4,\n           mlsysim.Hardware.Edge.JetsonAGX]:\n    p = Engine.solve(model=model, hardware=hw, batch_size=32, precision=\"fp16\")\n    print(f\"{hw.name:20s}  {p.bottleneck:16s}  {p.latency.to('ms'):&gt;8.2f~}  {p.throughput:&gt;8.0f} img/s\")",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#distributed-training-analysis",
-    "href": "for-engineers.html#distributed-training-analysis",
-    "title": "For Engineers & Researchers",
-    "section": "Distributed Training Analysis",
-    "text": "Distributed Training Analysis\nThe DistributedModel models 3D parallelism (data, tensor, pipeline) with communication overhead from ring all-reduce and pipeline bubbles.\nimport mlsysim\nfrom mlsysim import DistributedModel\n\ndist = DistributedModel()\nresult = dist.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    fleet=mlsysim.Systems.Clusters.H100_64,\n    batch_size=512, precision=\"fp16\",\n    tp_size=8, pp_size=4, microbatch_count=16\n)\nprint(f\"Scaling efficiency:  {result['scaling_efficiency']:.1%}\")\nprint(f\"DP all-reduce:       {result['dp_communication_latency'].to('ms'):~.1f}\")\nprint(f\"TP overhead:         {result['tp_communication_latency'].to('ms'):~.1f}\")\nprint(f\"Pipeline bubble:     {result['bubble_fraction']:.1%}\")\nprint(f\"Step latency:        {result['step_latency_total'].to('ms'):~.1f}\")\nTune tp_size, pp_size, and microbatch_count to find the parallelism configuration that maximizes scaling efficiency for your cluster topology.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#composing-solvers-for-real-questions",
-    "href": "for-engineers.html#composing-solvers-for-real-questions",
-    "title": "For Engineers & Researchers",
-    "section": "Composing Solvers for Real Questions",
-    "text": "Composing Solvers for Real Questions\nThe six solvers are designed to chain. Here are three common engineering workflows.\n\n“Can I serve Llama-70B on H100s within budget?”\nimport mlsysim\nfrom mlsysim import ServingModel, EconomicsModel\n\n# Step 1: Does it fit and what's the latency?\nserving = ServingModel()\nresult = serving.solve(\n    model=mlsysim.Models.Language.Llama3_70B,\n    hardware=mlsysim.Hardware.Cloud.H100,\n    seq_len=4096, batch_size=1\n)\n\n# Step 2: What does that fleet cost?\necon = EconomicsModel()\ncost = econ.solve(\n    fleet=mlsysim.Systems.Clusters.H100_8,\n    duration_days=365,\n    kwh_price=0.08\n)\nprint(f\"Annual TCO: ${cost['tco_usd']:,.0f}\")\nprint(f\"  CapEx:    ${cost['capex_usd']:,.0f}\")\nprint(f\"  OpEx:     ${cost['total_opex_usd']:,.0f}\")\n\n\n“Where should I train to minimize carbon?”\nimport mlsysim\nfrom mlsysim import SustainabilityModel\n\nsustain = SustainabilityModel()\nfor grid in [mlsysim.Infra.Grids.Quebec, mlsysim.Infra.Grids.US_Average,\n             mlsysim.Infra.Grids.Poland]:\n    r = sustain.solve(\n        fleet=mlsysim.Systems.Clusters.H100_256,\n        duration_days=30,\n        datacenter=grid\n    )\n    print(f\"{grid.name:12s}  {r['carbon_footprint_kg'].to('metric_ton'):&gt;8.1f~}  \"\n          f\"PUE={r['pue']:.2f}  Water={r['water_usage_liters']:,.0f} L\")\nFor the theory behind PUE, carbon intensity, and the energy hierarchy, see the Sustainable AI slide deck.\n\n\n“How reliable is a 30-day training run on 256 GPUs?”\nimport mlsysim\nfrom mlsysim import ReliabilityModel\n\nrel = ReliabilityModel()\nresult = rel.solve(\n    fleet=mlsysim.Systems.Clusters.H100_256,\n    job_duration_hours=720,       # 30 days\n    checkpoint_time_s=120.0       # 2 minutes per checkpoint\n)\nprint(f\"Fleet MTBF:              {result['fleet_mtbf'].to('hour'):~.1f}\")\nprint(f\"P(failure before done):  {result['failure_probability']:.1%}\")\nprint(f\"Optimal ckpt interval:   {result['optimal_checkpoint_interval'].to('minute'):~.1f}\")\nprint(f\"Expected failures:       {result['expected_failures']:.1f}\")\nThis solver implements the Young-Daly checkpoint model – essential for capacity planning on long training jobs.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#writing-custom-solvers",
-    "href": "for-engineers.html#writing-custom-solvers",
-    "title": "For Engineers & Researchers",
-    "section": "Writing Custom Solvers",
-    "text": "Writing Custom Solvers\nFollow the built-in solver pattern to create your own analysis:\nfrom mlsysim.hardware.types import HardwareNode\n\nclass PowerEfficiencyModel:\n    def solve(self, hardware: HardwareNode) -&gt; dict:\n        flops_per_watt = hardware.compute.peak_flops / hardware.tdp\n        return {\n            \"device\": hardware.name,\n            \"flops_per_watt\": flops_per_watt.to(\"TFLOPs/s/kW\"),\n        }\nSee Writing a Custom Solver for the full guide.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#type-safety",
-    "href": "for-engineers.html#type-safety",
-    "title": "For Engineers & Researchers",
-    "section": "Type Safety",
-    "text": "Type Safety\nAll quantities are pint.Quantity objects. Unit conversions are explicit, and dimensional errors are caught at runtime:\nhw = mlsysim.Hardware.Cloud.A100\nhw.compute.peak_flops.to(\"TFLOPs/s\")   # → 312.0 TFLOPs/s\nhw.memory.bandwidth.to(\"TB/s\")          # → 2.0 TB/s\nhw.memory.bandwidth.to(\"FLOP/s\")        # → DimensionalityError ✓\nThis means you can chain computations across solvers without worrying about unit mismatches – pint catches them for you.",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#solver-to-slides-map",
-    "href": "for-engineers.html#solver-to-slides-map",
-    "title": "For Engineers & Researchers",
-    "section": "Solver-to-Slides Map",
-    "text": "Solver-to-Slides Map\nEach MLSYSIM solver maps to specific chapters and slide decks from the Machine Learning Systems textbook. Use these for the full theoretical grounding behind each solver.\n\n\n\n\n\n\n\n\nMLSYSIM Solver\nWhat It Models\nSlide Deck\n\n\n\n\nEngine / SingleNodeModel\nRoofline analysis, compute vs. memory bottleneck\nHardware Acceleration (Vol I, Ch 11)\n\n\nServingModel\nTTFT, ITL, KV-cache memory\nModel Serving (Vol I, Ch 13) and Inference at Scale (Vol II, Ch 9)\n\n\nDistributedModel\n3D parallelism, all-reduce, pipeline bubbles\nDistributed Training (Vol II, Ch 5) and Collective Communication (Vol II, Ch 6)\n\n\nEconomicsModel\nCapEx, OpEx, total cost of ownership\nCompute Infrastructure (Vol II, Ch 2)\n\n\nSustainabilityModel\nEnergy, carbon footprint, water usage\nSustainable AI (Vol II, Ch 15)\n\n\nReliabilityModel\nMTBF, Young-Daly checkpointing\nFault Tolerance (Vol II, Ch 7)\n\n\n\n\n\nVolume I: Foundations (17 decks, 570 slides)\nBrowse Vol I Decks | Download All (PDF)\n\nVolume II: At Scale (18 decks, 529 slides)\nBrowse Vol II Decks | Download All (PDF)",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "for-engineers.html#next-steps",
-    "href": "for-engineers.html#next-steps",
-    "title": "For Engineers & Researchers",
-    "section": "Next Steps",
-    "text": "Next Steps\n\nGetting Started – Install and run your first analysis\nSolver Guide – Which solver for which question\nMLSys Zoo – Browse all available hardware, model, and infrastructure specs\nAPI Reference – Full programmatic API documentation\nAccuracy & Validation – How analytical bounds compare to empirical measurements\nMath Foundations – The equations behind every solver\nAll Slide Decks – 35 Beamer decks with speaker notes and active learning exercises",
-    "crumbs": [
-      "Support",
-      "For Your Role",
-      "For Engineers & Researchers"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html",
-    "href": "empirical-calibration.html",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "This document compares mlsysim analytical predictions against published benchmark results for common ML workloads. The goal is to validate that the simulator’s first-principles models produce results in the correct physical range, and to characterize the accuracy envelope that users should expect.\nDate: 2026-04-01 mlsysim version: 0.1.0 Methodology: Each configuration was run through the appropriate solver (SingleNodeModel for training throughput, ServingModel for inference latency, calc_transformer_training_flops for FLOPs estimates). Default efficiency parameters were used (eta=0.10 for training, eta=0.50 for serving) unless otherwise noted.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n#\nConfiguration\nmlsysim Prediction\nPublished Benchmark\nSource\nDelta\n\n\n\n\n1\nResNet-50 A100 bs=256 training (eta=0.10)\n2,499 img/s\n~3,200 img/s\nMLPerf Training v3.0 (single A100-80GB)\n-22%\n\n\n2\nResNet-50 H100 bs=256 training (eta=0.10)\n7,677 img/s\n~5,000 img/s\nMLPerf Training v3.1 (single H100-80GB)\n+54%\n\n\n3\nLlama-3-8B H100 bs=1 decode ITL (eta=0.50)\n5.2 ms\n~5-8 ms\nTensorRT-LLM benchmarks (FP16, H100-80GB)\nwithin range\n\n\n4\nLlama-3-8B H100 bs=32 decode ITL (eta=0.50)\n7.7 ms\n~8-15 ms\nvLLM / TensorRT-LLM batched benchmarks\nwithin range\n\n\n5\nLlama-3-8B H100 bs=1 prefill TTFT (eta=0.50)\n66.5 ms\n~30-80 ms\nTensorRT-LLM benchmarks (seq=2048)\nwithin range\n\n\n6\nGPT-3 175B training FLOPs (6PD rule)\n3.15e23\n3.14e23\nBrown et al. (2020), Table D.1\n+0.3%\n\n\n\n\n\n\n\n\n\nLLM inference latency (Configs 3-5). The decode ITL predictions land squarely within published ranges. This is expected: decode is memory-bandwidth-bound, and the model correctly computes (weights + KV_cache) / bandwidth. The decode ITL is insensitive to the efficiency parameter because compute is not on the critical path – exactly matching the physical regime where auto-regressive decoding is a streaming memory read, not a compute problem.\nTraining FLOPs (Config 6). The 6ND approximation (6 * parameters * tokens) for transformer training FLOPs matches the GPT-3 paper’s reported value to within 0.3%. This validates the fundamental FLOP counting formula.\n\n\n\nCNN training throughput (Configs 1-2). The default efficiency parameter (eta=0.10) produces predictions that bracket reality but don’t hit both targets simultaneously:\n\nA100 prediction is 22% low at eta=0.10. Setting eta=0.13 yields 3,234 img/s, matching the MLPerf benchmark within 1%.\nH100 prediction is 54% high at eta=0.10. Setting eta=0.065 yields 5,070 img/s, matching the MLPerf benchmark within 1%.\n\nThis asymmetry reveals a real insight: the efficiency parameter is not a universal constant. It encodes the gap between peak datasheet FLOP/s and actual sustained throughput, which depends on:\n\nTensor core utilization – ResNet-50 has many small convolutions that may not saturate H100’s larger tensor cores as efficiently as A100’s.\nMemory system pressure – H100’s 3x higher peak FLOP/s amplifies any memory bottleneck (the model uses peak FP16 FLOP/s of 989 TFLOP/s for H100 vs. 312 TFLOP/s for A100, but real ResNet-50 kernels achieve a lower fraction of the H100 peak).\nFramework overhead – Batch normalization layers, data loading, and gradient synchronization are not modeled in the roofline calculation.\n\n\n\n\nThe single-parameter efficiency model works well within a hardware family but does not transfer across hardware generations without re-calibration. This is a known limitation of roofline-based analytical models and is explicitly surfaced to students in the textbook.\n\n\n\n\n\nFor users who need higher accuracy, the following per-configuration efficiency values minimize error against published benchmarks:\n\n\n\n\n\n\n\n\n\n\nConfiguration\nCalibrated eta\nmlsysim Result\nPublished\nError\n\n\n\n\nResNet-50 A100 bs=256 training\n0.13\n3,234 img/s\n~3,200 img/s\n+1%\n\n\nResNet-50 H100 bs=256 training\n0.065\n5,070 img/s\n~5,000 img/s\n+1%\n\n\nLlama-3-8B H100 bs=1 decode\nany (memory-bound)\n5.2 ms\n~5-8 ms\nwithin range\n\n\nLlama-3-8B H100 bs=32 decode\nany (memory-bound)\n7.7 ms\n~8-15 ms\nwithin range\n\n\nGPT-3 training FLOPs\nN/A (closed-form)\n3.15e23\n3.14e23\n+0.3%\n\n\n\n\n\n\n\n\nEfficiency parameter (eta). This is the fraction of peak hardware throughput (FLOP/s or GB/s) that the workload actually achieves. It consolidates all sources of inefficiency: tensor core utilization, memory stalls, kernel launch overhead, data pipeline stalls, and framework overhead. It is NOT the same as MFU (Model FLOPs Utilization), which is defined as observed_throughput / theoretical_peak_throughput.\nPublished benchmarks. We compare against:\n\nMLPerf Training v3.0/v3.1: Industry-standard training benchmarks. Single-accelerator numbers used (not multi-GPU or multi-node). ResNet-50 throughput measured as images/second during convergence training.\nTensorRT-LLM benchmarks: NVIDIA’s optimized inference engine. H100-80GB SXM, FP16 precision, KV-cache enabled.\nvLLM benchmarks: Open-source LLM serving engine. Batched decode latency with PagedAttention.\nBrown et al. (2020): “Language Models are Few-Shot Learners.” Table D.1 reports 3.14e23 FLOP-days for GPT-3 175B training.\n\nDecode ITL is efficiency-insensitive. The serving model correctly identifies decode as memory-bandwidth-bound. The ITL formula is: ITL = (model_weights + KV_cache) / memory_bandwidth + framework_tax. Since this does not involve the compute efficiency parameter, varying eta from 0.3 to 0.8 produces identical ITL values. This matches the physical reality of auto-regressive decoding.\nHardware specs used.\n\nA100-80GB SXM: 312 TFLOP/s FP16, 2,039 GB/s HBM bandwidth\nH100-80GB SXM: 989 TFLOP/s FP16, 3,350 GB/s HBM bandwidth\n\n\n\n\n\n\nimport mlsysim\nfrom mlsysim.core.solver import SingleNodeModel, ServingModel\nfrom mlsysim.core.formulas import calc_transformer_training_flops\n\n# Config 1: ResNet-50 / A100 / training\nr1 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.A100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 A100: {r1.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 2: ResNet-50 / H100 / training\nr2 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.H100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 H100: {r2.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 3: Llama-3-8B / H100 / decode bs=1\nr3 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=1, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=1 ITL: {r3.itl.m_as('ms'):.1f} ms\")\n\n# Config 4: Llama-3-8B / H100 / decode bs=32\nr4 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=32, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=32 ITL: {r4.itl.m_as('ms'):.1f} ms\")\n\n# Config 6: GPT-3 training FLOPs\nflops = calc_transformer_training_flops(175e9, 300e9)\nprint(f\"GPT-3 FLOPs: {flops.to('flop').magnitude:.2e}\")",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html#calibration-table",
-    "href": "empirical-calibration.html#calibration-table",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "#\nConfiguration\nmlsysim Prediction\nPublished Benchmark\nSource\nDelta\n\n\n\n\n1\nResNet-50 A100 bs=256 training (eta=0.10)\n2,499 img/s\n~3,200 img/s\nMLPerf Training v3.0 (single A100-80GB)\n-22%\n\n\n2\nResNet-50 H100 bs=256 training (eta=0.10)\n7,677 img/s\n~5,000 img/s\nMLPerf Training v3.1 (single H100-80GB)\n+54%\n\n\n3\nLlama-3-8B H100 bs=1 decode ITL (eta=0.50)\n5.2 ms\n~5-8 ms\nTensorRT-LLM benchmarks (FP16, H100-80GB)\nwithin range\n\n\n4\nLlama-3-8B H100 bs=32 decode ITL (eta=0.50)\n7.7 ms\n~8-15 ms\nvLLM / TensorRT-LLM batched benchmarks\nwithin range\n\n\n5\nLlama-3-8B H100 bs=1 prefill TTFT (eta=0.50)\n66.5 ms\n~30-80 ms\nTensorRT-LLM benchmarks (seq=2048)\nwithin range\n\n\n6\nGPT-3 175B training FLOPs (6PD rule)\n3.15e23\n3.14e23\nBrown et al. (2020), Table D.1\n+0.3%",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html#analysis",
-    "href": "empirical-calibration.html#analysis",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "LLM inference latency (Configs 3-5). The decode ITL predictions land squarely within published ranges. This is expected: decode is memory-bandwidth-bound, and the model correctly computes (weights + KV_cache) / bandwidth. The decode ITL is insensitive to the efficiency parameter because compute is not on the critical path – exactly matching the physical regime where auto-regressive decoding is a streaming memory read, not a compute problem.\nTraining FLOPs (Config 6). The 6ND approximation (6 * parameters * tokens) for transformer training FLOPs matches the GPT-3 paper’s reported value to within 0.3%. This validates the fundamental FLOP counting formula.\n\n\n\nCNN training throughput (Configs 1-2). The default efficiency parameter (eta=0.10) produces predictions that bracket reality but don’t hit both targets simultaneously:\n\nA100 prediction is 22% low at eta=0.10. Setting eta=0.13 yields 3,234 img/s, matching the MLPerf benchmark within 1%.\nH100 prediction is 54% high at eta=0.10. Setting eta=0.065 yields 5,070 img/s, matching the MLPerf benchmark within 1%.\n\nThis asymmetry reveals a real insight: the efficiency parameter is not a universal constant. It encodes the gap between peak datasheet FLOP/s and actual sustained throughput, which depends on:\n\nTensor core utilization – ResNet-50 has many small convolutions that may not saturate H100’s larger tensor cores as efficiently as A100’s.\nMemory system pressure – H100’s 3x higher peak FLOP/s amplifies any memory bottleneck (the model uses peak FP16 FLOP/s of 989 TFLOP/s for H100 vs. 312 TFLOP/s for A100, but real ResNet-50 kernels achieve a lower fraction of the H100 peak).\nFramework overhead – Batch normalization layers, data loading, and gradient synchronization are not modeled in the roofline calculation.\n\n\n\n\nThe single-parameter efficiency model works well within a hardware family but does not transfer across hardware generations without re-calibration. This is a known limitation of roofline-based analytical models and is explicitly surfaced to students in the textbook.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html#per-configuration-efficiency-calibration",
-    "href": "empirical-calibration.html#per-configuration-efficiency-calibration",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "For users who need higher accuracy, the following per-configuration efficiency values minimize error against published benchmarks:\n\n\n\n\n\n\n\n\n\n\nConfiguration\nCalibrated eta\nmlsysim Result\nPublished\nError\n\n\n\n\nResNet-50 A100 bs=256 training\n0.13\n3,234 img/s\n~3,200 img/s\n+1%\n\n\nResNet-50 H100 bs=256 training\n0.065\n5,070 img/s\n~5,000 img/s\n+1%\n\n\nLlama-3-8B H100 bs=1 decode\nany (memory-bound)\n5.2 ms\n~5-8 ms\nwithin range\n\n\nLlama-3-8B H100 bs=32 decode\nany (memory-bound)\n7.7 ms\n~8-15 ms\nwithin range\n\n\nGPT-3 training FLOPs\nN/A (closed-form)\n3.15e23\n3.14e23\n+0.3%",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html#methodology-notes",
-    "href": "empirical-calibration.html#methodology-notes",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "Efficiency parameter (eta). This is the fraction of peak hardware throughput (FLOP/s or GB/s) that the workload actually achieves. It consolidates all sources of inefficiency: tensor core utilization, memory stalls, kernel launch overhead, data pipeline stalls, and framework overhead. It is NOT the same as MFU (Model FLOPs Utilization), which is defined as observed_throughput / theoretical_peak_throughput.\nPublished benchmarks. We compare against:\n\nMLPerf Training v3.0/v3.1: Industry-standard training benchmarks. Single-accelerator numbers used (not multi-GPU or multi-node). ResNet-50 throughput measured as images/second during convergence training.\nTensorRT-LLM benchmarks: NVIDIA’s optimized inference engine. H100-80GB SXM, FP16 precision, KV-cache enabled.\nvLLM benchmarks: Open-source LLM serving engine. Batched decode latency with PagedAttention.\nBrown et al. (2020): “Language Models are Few-Shot Learners.” Table D.1 reports 3.14e23 FLOP-days for GPT-3 175B training.\n\nDecode ITL is efficiency-insensitive. The serving model correctly identifies decode as memory-bandwidth-bound. The ITL formula is: ITL = (model_weights + KV_cache) / memory_bandwidth + framework_tax. Since this does not involve the compute efficiency parameter, varying eta from 0.3 to 0.8 produces identical ITL values. This matches the physical reality of auto-regressive decoding.\nHardware specs used.\n\nA100-80GB SXM: 312 TFLOP/s FP16, 2,039 GB/s HBM bandwidth\nH100-80GB SXM: 989 TFLOP/s FP16, 3,350 GB/s HBM bandwidth",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "empirical-calibration.html#reproducing-these-results",
-    "href": "empirical-calibration.html#reproducing-these-results",
-    "title": "Empirical Calibration: mlsysim vs. Published Benchmarks",
-    "section": "",
-    "text": "import mlsysim\nfrom mlsysim.core.solver import SingleNodeModel, ServingModel\nfrom mlsysim.core.formulas import calc_transformer_training_flops\n\n# Config 1: ResNet-50 / A100 / training\nr1 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.A100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 A100: {r1.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 2: ResNet-50 / H100 / training\nr2 = SingleNodeModel().solve(\n    mlsysim.Models.ResNet50, mlsysim.Hardware.H100,\n    batch_size=256, efficiency=0.10, is_training=True\n)\nprint(f\"ResNet-50 H100: {r2.throughput.m_as('1/s'):.0f} img/s\")\n\n# Config 3: Llama-3-8B / H100 / decode bs=1\nr3 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=1, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=1 ITL: {r3.itl.m_as('ms'):.1f} ms\")\n\n# Config 4: Llama-3-8B / H100 / decode bs=32\nr4 = ServingModel().solve(\n    mlsysim.Models.Llama3_8B, mlsysim.Hardware.H100,\n    seq_len=2048, batch_size=32, efficiency=0.50\n)\nprint(f\"Llama-3-8B bs=32 ITL: {r4.itl.m_as('ms'):.1f} ms\")\n\n# Config 6: GPT-3 training FLOPs\nflops = calc_transformer_training_flops(175e9, 300e9)\nprint(f\"GPT-3 FLOPs: {flops.to('flop').magnitude:.2e}\")",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "Empirical Calibration: mlsysim vs. Published Benchmarks"
-    ]
-  },
-  {
-    "objectID": "architecture.html",
-    "href": "architecture.html",
-    "title": "The 5-Layer Architecture",
-    "section": "",
-    "text": "MLSYSIM organizes the full ML systems domain into five composable layers. Abstract workload demand (Layer A) is progressively mapped onto concrete hardware supply (Layers B–D) through analytical solvers (Layer E). Each layer corresponds directly to chapters in the Machine Learning Systems textbook and its companion lecture slides.\nUnderstanding this stack is the key to mastering both this library and the textbook it accompanies.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#the-stack-at-a-glance",
-    "href": "architecture.html#the-stack-at-a-glance",
-    "title": "The 5-Layer Architecture",
-    "section": "The Stack at a Glance",
-    "text": "The Stack at a Glance\n\n\n\n\n\n%%{init: {'theme': 'neutral'}}%%\n%%| fig-cap: \"The MLSYSIM 5-Layer Stack. Workloads (demand) are lowered onto Hardware (supply) through Infrastructure and Systems layers. Solvers bridge demand and supply to produce analytical profiles.\"\n%%| fig-width: 100%\nflowchart TB\n    A[\"&lt;b&gt;Layer A · Workloads&lt;/b&gt; — &lt;i&gt;Demand&lt;/i&gt;&lt;br/&gt;TransformerWorkload · CNNWorkload&lt;br/&gt;Parameters · FLOPs · Arithmetic Intensity\"]\n    B[\"&lt;b&gt;Layer B · Hardware&lt;/b&gt; — &lt;i&gt;Silicon&lt;/i&gt;&lt;br/&gt;HardwareNode · ComputeCore · MemoryHierarchy&lt;br/&gt;Peak FLOP/s · Bandwidth · Capacity · TDP\"]\n    C[\"&lt;b&gt;Layer C · Infrastructure&lt;/b&gt; — &lt;i&gt;Environment&lt;/i&gt;&lt;br/&gt;GridProfile · Datacenter&lt;br/&gt;Carbon Intensity · PUE · WUE\"]\n    D[\"&lt;b&gt;Layer D · Systems&lt;/b&gt; — &lt;i&gt;Topology&lt;/i&gt;&lt;br/&gt;Node · Fleet · NetworkFabric&lt;br/&gt;Topology · Accelerators/Node · Fabric BW\"]\n    E[\"&lt;b&gt;Layer E · Solvers&lt;/b&gt; — &lt;i&gt;Analysis&lt;/i&gt;&lt;br/&gt;SingleNode · Distributed · Serving&lt;br/&gt;Economics · Sustainability · Reliability\"]\n    F[\"&lt;b&gt;Results&lt;/b&gt;&lt;br/&gt;PerformanceProfile · Dict[str, Quantity]\"]\n\n    A --&gt; E\n    B --&gt; D\n    C --&gt; D\n    D --&gt; E\n    E --&gt; F\n\n\n\n\n\n\nThe flow reads top-to-bottom: a Workload (what you want to compute) and a System (the hardware, network, and environment you have) feed into a Solver (the analytical engine), which returns quantitative results you can act on.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-layer-a",
-    "href": "architecture.html#sec-layer-a",
-    "title": "The 5-Layer Architecture",
-    "section": "Layer A: Workloads (Demand)",
-    "text": "Layer A: Workloads (Demand)\nA Workload is a hardware-agnostic description of computational demand. The question is not “How fast is Llama-3?” but rather “How many FLOPs and memory bytes does Llama-3 require?”\nMLSYSIM provides two workload types:\n\nTransformerWorkload — LLMs and attention-based models (GPT, Llama, BERT). Defined by parameter count, layer count, hidden dimension, attention heads, and sequence length. Supports KV-cache size estimation for autoregressive inference.\nCNNWorkload — Vision and convolutional models (ResNet, MobileNet, YOLO). Defined by parameter count and total FLOPs per forward pass.\n\nThe crucial step happens when a workload is “lowered” at a specific numerical precision (FP32, FP16, INT8, INT4). This precision lowering determines the Arithmetic Intensity (FLOPs/Byte) — the single ratio that decides whether a model will be compute-bound or memory-bound on any given hardware target.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer A concepts are covered in the following lecture decks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nNN Computation (Vol I, Ch 5)\nThe math behind the model\nFLOPs, parameter counting, activation memory, forward/backward pass cost\n\n\nNN Architectures (Vol I, Ch 6)\nArchitecture as infrastructure\nComputational signatures of CNNs, RNNs, Transformers; quadratic attention scaling\n\n\nModel Compression (Vol I, Ch 10)\nFrom benchmark winner to production model\nPruning, distillation, quantization (FP32 to INT4); precision as a workload knob\n\n\nModel Training (Vol I, Ch 8)\nThe physics of learning\nIron Law of training, memory breakdown (activations, gradients, optimizer states)\n\n\n\n\n\nSee the Model Zoo for vetted workloads spanning language, vision, recommendation, and TinyML models.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-layer-b",
-    "href": "architecture.html#sec-layer-b",
-    "title": "The 5-Layer Architecture",
-    "section": "Layer B: Hardware (Silicon)",
-    "text": "Layer B: Hardware (Silicon)\nA HardwareNode represents a single physical accelerator — an H100 GPU, an Apple M3 chip, a Jetson Orin, or even an ESP32 microcontroller. It provides the raw physical supply:\n\nCompute: Peak throughput (TFLOP/s) across precisions (FP32, FP16, INT8), modeled via ComputeCore.\nMemory: HBM or SRAM capacity and transfer bandwidth (TB/s), modeled via MemoryHierarchy.\nPower: Thermal Design Power (TDP) in watts.\n\nEvery piece of silicon has a ridge point — the ratio of peak compute to memory bandwidth (\\(I^* = \\text{Peak\\_FLOPs} / \\text{BW}\\)). When a workload’s arithmetic intensity falls below this ridge point, the workload is memory-bound: the compute units starve waiting for data. When above, the workload is compute-bound: memory delivers data faster than the cores can consume it.\nThis is the Roofline model — the diagnostic framework at the heart of Layer E’s SingleNodeModel.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer B concepts are covered in the following lecture decks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nHardware Acceleration (Vol I, Ch 11)\nMoving data costs more than computing it\nSystolic arrays, tensor cores, Roofline model, accelerator spectrum (GPU to ASIC)\n\n\nCompute Infrastructure (Vol II, Ch 2)\nThe physics of the ML fleet\nHBM generations, bandwidth hierarchy (HBM to NVLink to InfiniBand), TCO analysis\n\n\nBenchmarking (Vol I, Ch 12)\nMeasuring what matters\nMLPerf, roofline profiling, statistical rigor, the lab-to-production gap\n\n\n\n\n\nSee the Silicon Zoo for 18+ vetted hardware specs from cloud GPUs to microcontrollers.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-layer-c",
-    "href": "architecture.html#sec-layer-c",
-    "title": "The 5-Layer Architecture",
-    "section": "Layer C: Infrastructure (Environment)",
-    "text": "Layer C: Infrastructure (Environment)\nHardware does not run in a vacuum. It runs in datacenters plugged into regional power grids, cooled by air or liquid systems, and constrained by physical energy budgets.\nA GridProfile captures this physical context:\n\nCarbon intensity (g CO₂/kWh) — varies 40x across regions: Quebec’s hydroelectric grid produces ~8 g CO₂/kWh; Poland’s coal-dominated grid produces ~700 g CO₂/kWh.\nPower Usage Effectiveness (PUE) — the ratio of total facility power to IT equipment power. A PUE of 1.1 means 10% overhead for cooling and infrastructure; 1.6 means 60%.\nWater Usage Effectiveness (WUE) — liters of water consumed per kWh, determined by cooling technology (air, liquid, evaporative).\n\nA 1000-watt GPU running identical computations in Quebec versus Poland produces vastly different carbon footprints. This layer makes that difference quantifiable.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer C concepts are covered in the following lecture deck:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nSustainable AI (Vol II, Ch 15)\nEnergy as a first-class engineering constraint\nLifecycle carbon accounting, PUE modeling, carbon-aware scheduling, the 4 Ms framework\n\n\n\n\n\nSee the Infrastructure Zoo for regional grid profiles and datacenter configurations.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-layer-d",
-    "href": "architecture.html#sec-layer-d",
-    "title": "The 5-Layer Architecture",
-    "section": "Layer D: Systems (Topology)",
-    "text": "Layer D: Systems (Topology)\nA single GPU cannot train a 100-billion-parameter model. Layer D composes individual HardwareNodes from Layer B into distributed clusters, connected by the network fabrics that determine communication overhead.\nThree types define a system:\n\nNode — A single compute server grouping accelerators within a physical chassis (e.g., 8x H100 GPUs connected by 900 GB/s NVLink). Includes intra-node bandwidth and NIC count.\nNetworkFabric — The inter-node interconnect: topology (fat-tree, rail-optimized), bandwidth (e.g., 400 Gbps InfiniBand NDR), latency, and oversubscription ratio.\nFleet — A collection of Nodes connected by a NetworkFabric, deployed in a specific Datacenter (Layer C). This is the complete system that solvers operate on.\n\nThe way you structure this system — how many GPUs per node, what fabric connects them, which parallelism strategy you apply — determines your communication overhead and scaling efficiency.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer D concepts span four lecture decks covering the full distributed systems stack:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nNetwork Fabrics (Vol II, Ch 3)\nThe synchronization backbone\n\\(\\alpha\\)-\\(\\beta\\) model, topology (fat-tree, dragonfly), RDMA, congestion control, bisection bandwidth\n\n\nDistributed Training (Vol II, Ch 5)\nThe physics of scaling\nData/tensor/pipeline parallelism, ZeRO/FSDP, Communication-Computation Ratio (CCR), 3D hybrid strategies\n\n\nCollective Communication (Vol II, Ch 6)\nThe traffic patterns of distributed ML\nAllReduce algorithms (ring, tree), gradient compression, hierarchical communication, computation-communication overlap\n\n\nFleet Orchestration (Vol II, Ch 8)\nExtracting useful work from shared infrastructure\nSlurm vs. Kubernetes, topology-aware scheduling, elastic training, multi-tenancy\n\n\n\n\n\nSee the Fleet Zoo for production cluster topologies from 256-GPU research clusters to 8192-GPU frontier fleets.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-layer-e",
-    "href": "architecture.html#sec-layer-e",
-    "title": "The 5-Layer Architecture",
-    "section": "Layer E: Solvers (Analysis)",
-    "text": "Layer E: Solvers (Analysis)\nThe previous four layers are static definitions — nouns. Solvers are the analytical engines — verbs — that bridge demand and supply to answer specific questions.\nEach solver implements closed-form equations from peer-reviewed systems literature. No simulation, no benchmarking, no hardware required.\n\n\n\n\n\n\n\n\n\nSolver\nBridges\nCore Equation\nKey Output\n\n\n\n\nSingleNodeModel\nA \\(\\to\\) B\nRoofline / Iron Law (Williams et al., 2009)\nLatency, throughput, bottleneck classification\n\n\nDistributedModel\nA \\(\\to\\) D\nRing All-Reduce + Pipeline schedules\nScaling efficiency, communication overhead, bubble fraction\n\n\nServingModel\nA \\(\\to\\) B\nPre-fill / Decode phase decomposition\nTTFT, inter-token latency, KV-cache memory\n\n\nEconomicsModel\nD \\(\\to\\) cost\nCapEx + OpEx over time horizon\nTCO in USD, cost per query\n\n\nSustainabilityModel\nD \\(\\to\\) C\nPUE \\(\\times\\) grid carbon intensity\nEnergy (kWh), carbon (kg CO₂e), water (L)\n\n\nReliabilityModel\nD \\(\\to\\) uptime\nYoung-Daly optimal checkpointing\nFleet MTBF, failure probability, checkpoint interval\n\n\n\nSolvers are composable. To answer “What is the most sustainable way to serve Llama-70B?”, chain ServingModel (feasibility and latency) into EconomicsModel (cost) into SustainabilityModel (carbon). Each solver’s typed output feeds naturally into the next.\n\n\n\n\n\n\nNoteTextbook and slides\n\n\n\nLayer E concepts draw from multiple lecture decks that teach the diagnostic and optimization frameworks:\n\n\n\nDeck\nTopic\nKey Concepts\n\n\n\n\nHardware Acceleration (Vol I, Ch 11)\nThe Roofline model\nArithmetic intensity, ridge points, memory-bound vs. compute-bound diagnosis\n\n\nModel Serving (Vol I, Ch 13)\nInverting every training priority\nLatency budgets, queuing theory (Little’s Law), continuous batching, training-serving skew\n\n\nInference at Scale (Vol II, Ch 9)\nWhere ML systems live or die economically\nServing economics, KV-cache bottleneck, batching strategies, autoscaling\n\n\nPerformance Engineering (Vol II, Ch 10)\nMatch the software to the silicon\nOperator fusion, FlashAttention, mixed precision, systematic profiling workflow\n\n\nDistributed Training (Vol II, Ch 5)\nScaling efficiency analysis\nCommunication-Computation Ratio, parallelism strategy selection, scaling laws\n\n\n\n\n\nSee the Solver Guide for a decision guide on choosing the right solver, and Math Foundations for the complete equations.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#progressive-lowering-in-action",
-    "href": "architecture.html#progressive-lowering-in-action",
-    "title": "The 5-Layer Architecture",
-    "section": "Progressive Lowering in Action",
-    "text": "Progressive Lowering in Action\nThe architecture is best understood through a concrete example. Consider the question: “Can I serve Llama-3-70B on a cluster of 4 H100s within a $50K/year budget while minimizing carbon?”\nThis single question touches all five layers:\n1. Layer A — Llama-3-70B workload: 70B parameters, GQA with 8 KV heads,\n             ~140 GB at FP16 precision\n\n2. Layer B — H100 hardware: 990 TFLOP/s (FP16), 3.35 TB/s HBM3,\n             80 GB capacity, 700W TDP\n\n3. Layer C — Infrastructure: choose between Quebec (8 g CO₂/kWh)\n             and US Average (385 g CO₂/kWh)\n\n4. Layer D — System: 1 node × 4 H100s, NVLink 900 GB/s intra-node,\n             tensor parallelism across 4 GPUs\n\n5. Layer E — Chain three solvers:\n             ServingModel  → TTFT, ITL, KV-cache feasibility\n             EconomicsModel → TCO over 1 year\n             SustainabilityModel → carbon footprint by region\nEach layer contributes a different piece of the answer. No single layer is sufficient alone. This is why MLSYSIM separates concerns into five composable layers rather than offering a monolithic “predict performance” function.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#sec-slides-reference",
-    "href": "architecture.html#sec-slides-reference",
-    "title": "The 5-Layer Architecture",
-    "section": "Slide Deck Quick Reference",
-    "text": "Slide Deck Quick Reference\nFor instructors and students using the companion lecture slides, the table below maps every MLSYSIM layer to the relevant slide decks.\n\nVolume I: Foundations\n\n\n\nCh\nDeck\nMLSYSIM Layer(s)\nDownload\n\n\n\n\n5\nNN Computation\nA (Workloads)\nPDF\n\n\n6\nNN Architectures\nA (Workloads)\nPDF\n\n\n8\nModel Training\nA + B + E\nPDF\n\n\n10\nModel Compression\nA (Workloads)\nPDF\n\n\n11\nHardware Acceleration\nB (Hardware) + E (Solvers)\nPDF\n\n\n12\nBenchmarking\nB (Hardware) + E (Solvers)\nPDF\n\n\n13\nModel Serving\nE (Solvers)\nPDF\n\n\n\n\n\nVolume II: At Scale\n\n\n\nCh\nDeck\nMLSYSIM Layer(s)\nDownload\n\n\n\n\n2\nCompute Infrastructure\nB (Hardware)\nPDF\n\n\n3\nNetwork Fabrics\nD (Systems)\nPDF\n\n\n5\nDistributed Training\nD (Systems) + E (Solvers)\nPDF\n\n\n6\nCollective Communication\nD (Systems)\nPDF\n\n\n8\nFleet Orchestration\nD (Systems)\nPDF\n\n\n9\nInference at Scale\nE (Solvers)\nPDF\n\n\n10\nPerformance Engineering\nE (Solvers)\nPDF\n\n\n15\nSustainable AI\nC (Infrastructure)\nPDF",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "architecture.html#where-to-go-next",
-    "href": "architecture.html#where-to-go-next",
-    "title": "The 5-Layer Architecture",
-    "section": "Where to Go Next",
-    "text": "Where to Go Next\n\nGetting Started — Install MLSYSIM and run your first analysis in 5 minutes.\nSolver Guide — Decision guide for choosing the right analytical engine.\nMath Foundations — The closed-form equations behind every solver.\nTutorials — Hands-on notebooks for roofline analysis, distributed training, LLM serving, and sustainability.\nZoo Overview — Browse the registries of vetted models, hardware, fleets, and infrastructure.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "The 5-Layer Architecture"
-    ]
-  },
-  {
-    "objectID": "models-and-solvers.html",
-    "href": "models-and-solvers.html",
-    "title": "The 3-Tier Resolver Guide",
-    "section": "",
-    "text": "MLSys·im provides 24 specialized resolvers that map to the 22 Systems Walls organized across six domains — Node, Data, Algorithm, Fleet, Ops, and Analysis.\nTo make engineering decisions systematic, we organize these tools into a 3-Tier Architecture:",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "The 3-Tier Resolver Guide"
-    ]
-  },
-  {
-    "objectID": "models-and-solvers.html#analytical-models-the-physics-engine",
-    "href": "models-and-solvers.html#analytical-models-the-physics-engine",
-    "title": "The 3-Tier Resolver Guide",
-    "section": "1. Analytical Models (The Physics Engine)",
-    "text": "1. Analytical Models (The Physics Engine)\nUse these when you want to ask: “What happens if I run this exact setup?”\n\nDomain 1 — Node (Single-Accelerator Resources)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nSingleNodeModel\nmodel, hardware, batch_size\nlatency, throughput, bottleneck\n“Is my model memory-bound?”\n\n\nEfficiencyModel\nmodel, hardware, workload_type\nMFU, achievable FLOPS\n“What MFU will my workload achieve?”\n\n\nServingModel\nmodel, hardware, seq_len\nTTFT, ITL, KV-cache footprint\n“Can I serve this LLM on this GPU?”\n\n\nContinuousBatchingModel\nmodel, hardware, seq_len, max_batch\nthroughput, fragmentation\n“What throughput with PagedAttention?”\n\n\nWeightStreamingModel\nmodel, hardware, seq_len, batch_size\nthroughput, optimal_batch\n“Cerebras wafer-scale inference?”\n\n\nTailLatencyModel\narrival_rate, service_latency, replicas\nP50, P99 wait times\n“Will I meet P99 latency SLAs?”\n\n\n\n\n\nDomain 2 — Data (Movement & Pipelines)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nDataModel\nworkload_data_rate, hardware\nutilization, is_stalled\n“Is my storage/IO the bottleneck?”\n\n\nTransformationModel\nbatch_size, cpu_throughput\ntransform_time, is_bottleneck\n“Is CPU preprocessing starving my GPU?”\n\n\nTopologyModel\nfabric, topology, num_nodes\neffective_bw, bisection_bw\n“What topology should I use?”\n\n\n\n\n\nDomain 3 — Algorithm (Scaling & Compression)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nScalingModel\ncompute_budget\noptimal_params, optimal_tokens\n“What is my optimal model size?”\n\n\nInferenceScalingModel\nmodel, hardware, reasoning_steps\ntotal_reasoning_time\n“How much does CoT reasoning cost?”\n\n\nCompressionModel\nmodel, hardware, method\naccuracy_delta, compression_ratio\n“Is quantization/pruning worth it?”\n\n\n\n\n\nDomain 4 — Fleet (Multi-Node Coordination)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nDistributedModel\nmodel, fleet, tp/pp/dp sizes\nscaling efficiency, comm overhead\n“How many GPUs do I actually need?”\n\n\nReliabilityModel\nfleet, job_duration\nMTBF, failure probability\n“Will my training job complete?”\n\n\nOrchestrationModel\nfleet, arrival_rate, avg_duration\navg_wait_time, utilization\n“How busy is my cluster?”\n\n\n\n\n\nDomain 5 — Ops (Economics, Sustainability & Safety)\n\n\n\nModel\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nEconomicsModel\nfleet, duration_days, kwh_price\nCapEx, OpEx, total TCO\n“What will this cost over 3 years?”\n\n\nSustainabilityModel\nfleet, duration_days, datacenter\nenergy, carbon (kg CO₂e), water\n“Where should I train to minimize carbon?”\n\n\nCheckpointModel\nmodel, hardware, optimizer\ncheckpoint_size, MFU penalty\n“How much MFU do I lose to checkpoints?”\n\n\nResponsibleEngineeringModel\nbase_training_time, epsilon\ndp_slowdown\n“What is the cost of differential privacy?”",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "The 3-Tier Resolver Guide"
-    ]
-  },
-  {
-    "objectID": "models-and-solvers.html#analysis-solvers-the-math-engine",
-    "href": "models-and-solvers.html#analysis-solvers-the-math-engine",
-    "title": "The 3-Tier Resolver Guide",
-    "section": "2. Analysis Solvers (The Math Engine)",
-    "text": "2. Analysis Solvers (The Math Engine)\nUse these when you want to ask: “What exact number do I need to hit my target?”\n\n\n\nSolver\nKey Inputs\nKey Outputs\nBest For\n\n\n\n\nSensitivitySolver\nmodel, hardware, perturbation_pct\nsensitivities, binding_constraint\n“Which parameter should I invest in?”\n\n\nSynthesisSolver\nmodel, target_latency\nrequired_bw, required_flops\n“What hardware do I need for this SLA?”",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "The 3-Tier Resolver Guide"
-    ]
-  },
-  {
-    "objectID": "models-and-solvers.html#design-space-exploration-dse",
-    "href": "models-and-solvers.html#design-space-exploration-dse",
-    "title": "The 3-Tier Resolver Guide",
-    "section": "3. Design Space Exploration (DSE)",
-    "text": "3. Design Space Exploration (DSE)\nUse the DSE Engine when you want to ask: “What is the best possible configuration?” It replaces the old hardcoded optimizers.\n\n\n\nEngine\nKey Inputs\nObjective\nBest For\n\n\n\n\nDSE Engine\nsearch space, objective, constraints\nminimize/maximize\n“What max batch size is safe for my SLA?” or “Where should I build my datacenter?”",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "The 3-Tier Resolver Guide"
-    ]
-  },
-  {
-    "objectID": "models-and-solvers.html#composing-resolvers",
-    "href": "models-and-solvers.html#composing-resolvers",
-    "title": "The 3-Tier Resolver Guide",
-    "section": "Composing Resolvers",
-    "text": "Composing Resolvers\nReal-world questions require chaining multiple tiers. Here are three common patterns:\n\n“Can I serve Llama-70B on 4 H100s within budget?”\nfrom mlsysim import ServingModel, EconomicsModel, Hardware, Models, Systems\n\nserving = ServingModel().solve(\n    model=Models.Language.Llama3_70B,\n    hardware=Hardware.Cloud.H100,\n    seq_len=2048, batch_size=4\n)\nprint(f\"TTFT: {serving.ttft}, ITL: {serving.itl}\")\nprint(f\"KV-Cache: {serving.kv_cache_size}\")\n\n\n“Which parameter matters most for Llama-8B latency?”\nfrom mlsysim import SensitivitySolver, Hardware, Models\n\nsensitivity = SensitivitySolver().solve(\n    model=Models.Language.Llama3_8B,\n    hardware=Hardware.Cloud.H100,\n    batch_size=1, precision=\"fp16\",\n    perturbation_pct=0.10\n)\nprint(f\"Binding constraint: {sensitivity.binding_constraint}\")\nprint(f\"BW sensitivity:     {sensitivity.bw_sensitivity:.3f}\")\nprint(f\"FLOPS sensitivity:  {sensitivity.flops_sensitivity:.3f}\")\n\n\n“What hardware do I need for a 50ms SLA?”\nfrom mlsysim import SynthesisSolver, Models\nfrom mlsysim.core.constants import Q_\n\nsynthesis = SynthesisSolver().solve(\n    model=Models.Language.Llama3_8B,\n    target_latency=Q_(\"50 ms\"),\n    batch_size=1, precision=\"fp16\"\n)\nprint(f\"Required bandwidth: {synthesis.required_bw.to('TB/s'):.2f}\")\nprint(f\"Required FLOPS:     {synthesis.required_flops.to('TFLOPs/s'):.1f}\")",
-    "crumbs": [
-      "Support",
-      "Get Started",
-      "The 3-Tier Resolver Guide"
-    ]
-  },
-  {
-    "objectID": "api-stability.html",
-    "href": "api-stability.html",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "Applies to: mlsysim v0.1.x\n\nThis document defines which parts of the mlsysim API are stable, which are experimental, and what guarantees you can rely on when building on top of the simulator.\n\n\n\nmlsysim follows Semantic Versioning with one important caveat: we are pre-1.0. Under semver, this means:\n\n\n\n\n\n\n\nVersion bump\nWhat it means\n\n\n\n\n0.1.x -&gt; 0.1.y (patch)\nBug fixes only. No API changes. Safe to upgrade.\n\n\n0.1.x -&gt; 0.2.0 (minor)\nBreaking changes allowed. Read the changelog before upgrading.\n\n\n1.0.0\nFull stability guarantee begins. Breaking changes require a major bump.\n\n\n\nIn practice: if you pin to mlsysim ~= 0.1.0 (any 0.1.x), your code will not break. If you upgrade to 0.2.0, expect to update imports and possibly adjust call signatures.\n\n\n\n\nThese interfaces are locked for the entire 0.1.x series. Bug fixes may change return values (e.g., correcting a formula), but signatures and field names will not change.\n\n\nfrom mlsysim import Engine\n\nresult = Engine.solve(\n    model=...,        # ModelSpec or registry name\n    hardware=...,     # HardwareSpec or registry name\n    batch_size=32,    # int\n    precision=\"fp16\", # str: \"fp32\", \"fp16\", \"bf16\", \"int8\", \"int4\"\n    efficiency=0.45,  # float: 0.0-1.0\n)\nAll five parameters to Engine.solve() are stable. Their names, types, and positions will not change.\n\n\n\nfrom mlsysim import Hardware\n\ngpu = Hardware.H100_SXM        # All current entries are stable\ngpu = Hardware.A100_80GB\ngpu = Hardware.RTX_4090\n# ... every entry shipping in 0.1.0\nNew entries may be added in patch releases, but existing entries will not be removed or renamed.\n\n\n\nfrom mlsysim import Models\n\nmodel = Models.LLAMA3_70B      # All current entries are stable\nmodel = Models.GPT2\n# ... every entry shipping in 0.1.0\nSame guarantee as Hardware: additions are allowed, removals are not.\n\n\n\nfrom mlsysim import Scenarios\nAll scenarios shipping in 0.1.0 are stable. Their names, parameters, and behavior are fixed for the 0.1.x series.\n\n\n\nThe following fields on the result object returned by Engine.solve() are stable:\n\n\n\nField\nType\nDescription\n\n\n\n\nlatency\npint.Quantity\nWall-clock time for one forward pass\n\n\nthroughput\npint.Quantity\nTokens/sec or samples/sec\n\n\nbottleneck\nstr\n\"compute\" or \"memory\"\n\n\nmfu\nfloat\nModel FLOPs Utilization (0.0-1.0)\n\n\nfeasible\nbool\nWhether the workload fits in memory\n\n\nenergy\npint.Quantity\nEnergy consumption per forward pass\n\n\n\n\n\n\nfrom mlsysim import ureg\nThe Pint unit registry instance is stable. All quantities returned by the engine use this registry.\n\n\n\n\n\nThese interfaces work today but are not yet finalized. Use them freely for exploration, but do not build production tooling against them without pinning to an exact version.\n\n\nfrom mlsysim.solvers import ForwardModel, DistributedModel, ServingModel\nThe solver class hierarchy, their constructors, and their method signatures may change. The Engine.solve() facade insulates you from these changes – prefer it over direct solver instantiation.\n\n\n\nEngine.solve(..., is_training=True)  # experimental\nThe is_training flag will likely be replaced by separate Engine.train() and Engine.infer() methods in v0.2.0, or by a more expressive workload specification.\n\n\n\nThe API for composing multiple solver stages into a pipeline (e.g., prefill + decode, or TP + PP) is experimental. The abstraction is correct but the interface is still being refined.\n\n\n\nThe search/sweep API for exploring hardware-model combinations is experimental. Parameter names and result formats may change.\n\n\n\nAll mlsysim CLI command names, subcommands, and flags are experimental. Shell scripts that call the CLI should pin to an exact version.\n\n\n\nFields on specialized result types (DistributedResult, ServingResult, etc.) beyond the six stable PerformanceProfile fields listed above are experimental. They may be renamed, reorganized, or moved to nested objects.\n\n\n\n\n\nThese interfaces still work in v0.1.x but emit deprecation warnings and will be removed in the next minor release.\n\n\n# Deprecated:\nfrom mlsysim import BaseModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel\nThe top-level BaseModel name was ambiguous (conflicts with Pydantic’s BaseModel in many codebases). It is now an alias that emits a DeprecationWarning.\n\n\n\n# Deprecated:\nfrom mlsysim import ForwardModel, DistributedModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel, DistributedModel\nSolver classes should be imported from mlsysim.solvers, not from the mlsysim top-level namespace. The top-level re-exports will be removed in v0.2.0 to keep the public API surface clean.\n\n\n\n\n\n\nPin your dependency: mlsysim ~= 0.1.0 (allows 0.1.x patches, blocks 0.2.0).\nUse Engine.solve() as your primary interface. It is the most stable entry point.\nAvoid importing from mlsysim.solvers unless you need solver-specific features. The engine facade covers most use cases.\nRun with warnings enabled (python3 -W default) to catch deprecation notices early.\nRead the changelog before any minor version upgrade.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "api-stability.html#versioning-policy",
-    "href": "api-stability.html#versioning-policy",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "mlsysim follows Semantic Versioning with one important caveat: we are pre-1.0. Under semver, this means:\n\n\n\n\n\n\n\nVersion bump\nWhat it means\n\n\n\n\n0.1.x -&gt; 0.1.y (patch)\nBug fixes only. No API changes. Safe to upgrade.\n\n\n0.1.x -&gt; 0.2.0 (minor)\nBreaking changes allowed. Read the changelog before upgrading.\n\n\n1.0.0\nFull stability guarantee begins. Breaking changes require a major bump.\n\n\n\nIn practice: if you pin to mlsysim ~= 0.1.0 (any 0.1.x), your code will not break. If you upgrade to 0.2.0, expect to update imports and possibly adjust call signatures.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "api-stability.html#stable-api-will-not-break-in-v0.1.x",
-    "href": "api-stability.html#stable-api-will-not-break-in-v0.1.x",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "These interfaces are locked for the entire 0.1.x series. Bug fixes may change return values (e.g., correcting a formula), but signatures and field names will not change.\n\n\nfrom mlsysim import Engine\n\nresult = Engine.solve(\n    model=...,        # ModelSpec or registry name\n    hardware=...,     # HardwareSpec or registry name\n    batch_size=32,    # int\n    precision=\"fp16\", # str: \"fp32\", \"fp16\", \"bf16\", \"int8\", \"int4\"\n    efficiency=0.45,  # float: 0.0-1.0\n)\nAll five parameters to Engine.solve() are stable. Their names, types, and positions will not change.\n\n\n\nfrom mlsysim import Hardware\n\ngpu = Hardware.H100_SXM        # All current entries are stable\ngpu = Hardware.A100_80GB\ngpu = Hardware.RTX_4090\n# ... every entry shipping in 0.1.0\nNew entries may be added in patch releases, but existing entries will not be removed or renamed.\n\n\n\nfrom mlsysim import Models\n\nmodel = Models.LLAMA3_70B      # All current entries are stable\nmodel = Models.GPT2\n# ... every entry shipping in 0.1.0\nSame guarantee as Hardware: additions are allowed, removals are not.\n\n\n\nfrom mlsysim import Scenarios\nAll scenarios shipping in 0.1.0 are stable. Their names, parameters, and behavior are fixed for the 0.1.x series.\n\n\n\nThe following fields on the result object returned by Engine.solve() are stable:\n\n\n\nField\nType\nDescription\n\n\n\n\nlatency\npint.Quantity\nWall-clock time for one forward pass\n\n\nthroughput\npint.Quantity\nTokens/sec or samples/sec\n\n\nbottleneck\nstr\n\"compute\" or \"memory\"\n\n\nmfu\nfloat\nModel FLOPs Utilization (0.0-1.0)\n\n\nfeasible\nbool\nWhether the workload fits in memory\n\n\nenergy\npint.Quantity\nEnergy consumption per forward pass\n\n\n\n\n\n\nfrom mlsysim import ureg\nThe Pint unit registry instance is stable. All quantities returned by the engine use this registry.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "api-stability.html#experimental-api-may-change-in-v0.2.0",
-    "href": "api-stability.html#experimental-api-may-change-in-v0.2.0",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "These interfaces work today but are not yet finalized. Use them freely for exploration, but do not build production tooling against them without pinning to an exact version.\n\n\nfrom mlsysim.solvers import ForwardModel, DistributedModel, ServingModel\nThe solver class hierarchy, their constructors, and their method signatures may change. The Engine.solve() facade insulates you from these changes – prefer it over direct solver instantiation.\n\n\n\nEngine.solve(..., is_training=True)  # experimental\nThe is_training flag will likely be replaced by separate Engine.train() and Engine.infer() methods in v0.2.0, or by a more expressive workload specification.\n\n\n\nThe API for composing multiple solver stages into a pipeline (e.g., prefill + decode, or TP + PP) is experimental. The abstraction is correct but the interface is still being refined.\n\n\n\nThe search/sweep API for exploring hardware-model combinations is experimental. Parameter names and result formats may change.\n\n\n\nAll mlsysim CLI command names, subcommands, and flags are experimental. Shell scripts that call the CLI should pin to an exact version.\n\n\n\nFields on specialized result types (DistributedResult, ServingResult, etc.) beyond the six stable PerformanceProfile fields listed above are experimental. They may be renamed, reorganized, or moved to nested objects.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "api-stability.html#deprecated-will-be-removed-in-v0.2.0",
-    "href": "api-stability.html#deprecated-will-be-removed-in-v0.2.0",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "These interfaces still work in v0.1.x but emit deprecation warnings and will be removed in the next minor release.\n\n\n# Deprecated:\nfrom mlsysim import BaseModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel\nThe top-level BaseModel name was ambiguous (conflicts with Pydantic’s BaseModel in many codebases). It is now an alias that emits a DeprecationWarning.\n\n\n\n# Deprecated:\nfrom mlsysim import ForwardModel, DistributedModel\n\n# Use instead:\nfrom mlsysim.solvers import ForwardModel, DistributedModel\nSolver classes should be imported from mlsysim.solvers, not from the mlsysim top-level namespace. The top-level re-exports will be removed in v0.2.0 to keep the public API surface clean.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "api-stability.html#how-to-protect-your-code",
-    "href": "api-stability.html#how-to-protect-your-code",
-    "title": "API Stability Promise",
-    "section": "",
-    "text": "Pin your dependency: mlsysim ~= 0.1.0 (allows 0.1.x patches, blocks 0.2.0).\nUse Engine.solve() as your primary interface. It is the most stable entry point.\nAvoid importing from mlsysim.solvers unless you need solver-specific features. The engine facade covers most use cases.\nRun with warnings enabled (python3 -W default) to catch deprecation notices early.\nRead the changelog before any minor version upgrade.",
-    "crumbs": [
-      "Support",
-      "Concepts",
-      "API Stability Promise"
-    ]
-  },
-  {
-    "objectID": "WEBSITE_AUDIT.html",
-    "href": "WEBSITE_AUDIT.html",
-    "title": "MLSys-im Website Audit",
-    "section": "",
-    "text": "Date: 2026-04-01 Auditor: Claude Code Scope: Landing page, Getting Started, For Students, sidebar config\n\n\n\n\nPositioning is on-target. The subtitle (“Build intuition for ML system performance, cost, and carbon – from first principles”) and the footer (“First-principles ML systems modeling”) align well with the “first-principles analytical calculator” identity. The Open Graph and Twitter Card metadata reinforce this.\nSite structure is well-organized. The sidebar groups content logically: Get Started, Tutorials (with Foundations/Optimization/Scale subsections), The Zoo, For Your Role, Concepts, Build & Extend, API Reference, Project.\nFor Students page is solid. Clear learning path table, good FAQ, accurate solver-to-textbook mapping, correct prerequisites statement. The “Predict Before You Compute” callout is excellent pedagogy.\nGetting Started page is thorough. Covers installation, first analysis, CLI, custom models, HuggingFace import, YAML-based evaluation, troubleshooting, and efficiency tuning. The Pint units callout is helpful.\nAll internal page references resolve. Every qmd file linked from the sidebar and inline links exists on disk.\nInteractive Apps section is correctly commented out in the sidebar (lines 105-114 of _quarto.yml) with a clear note about re-enabling when Marimo export is wired in.\n\n\n\n\n\n\n\nThe hero “See it in action” section (lines 56-87 of index.qmd) shows hardcoded output that does not match the current engine:\n\n\n\n\n\n\n\n\nField\nLanding Page Claims\nActual (Engine.solve(ResNet50, A100, bs=1, fp16))\n\n\n\n\nBottleneck\nMemory Bound\nCompute\n\n\nLatency\n0.42 ms\n0.57 ms\n\n\nThroughput\n2,381 img/s\n1,762 img/s\n\n\nMFU\n12.4%\n4.6%\n\n\nMemory\n0.10 GB / 80 GB\nNot shown in current profile\n\n\nAI (FLOP/B)\n4.2\nNot shown in current profile\n\n\n\nPriority: HIGH. This is the first thing users see. The bottleneck classification is outright wrong, which undermines credibility for a tool that claims to do exactly this analysis.\n\n\n\nThe “Your First Analysis” section (lines 49-64 of getting-started.qmd) shows inline comments claiming:\n\nprofile.bottleneck -&gt; 'Memory Bound' (actual: 'Compute')\nprofile.latency -&gt; 0.34 ms (actual: 0.57 ms)\nprofile.throughput -&gt; 2941 samples/sec (actual: 1762 1/s)\n\nPriority: HIGH. Students running this code will see different output than documented, causing immediate confusion.\n\n\n\nThe example at mlsysim/examples/sustainability_lab.py used impact['total_energy_kwh'] and impact['carbon_footprint_kg'] (dict-style access), but SustainabilityResult is a Pydantic model requiring attribute access (.total_energy_kwh, .carbon_footprint_kg).\nStatus: FIXED in this audit. Changed to attribute access.\n\n\n\nRunning examples as scripts (e.g., python3 mlsysim/examples/hardware_comparison.py) from outside the repo root fails because the system-installed mlsysim (site-packages) is an older version missing newer registry entries like Hardware.Tiny.nRF52840. This affects hardware_comparison.py, sustainability_lab.py, and custom_design.py.\nRecommendation: Add a note to the examples README or docstrings about running from the repo root, or add pip install -e . instructions. Alternatively, ensure the PyPI package stays in sync.\n\n\n\n\n_quarto.yml line 15: \"MLSys·IM - Machine Learning Systems\" (IM uppercase)\nLanding page title: \"MLSys·im\" (im lowercase)\nOpen Graph: \"MLSys·IM\" (IM uppercase)\nFooter: \"MLSys·im\" (im lowercase)\n\nPick one casing and use it consistently. The lowercase MLSys·im appears more often and reads better.\n\n\n\nThe “Model every constraint” section claims 21 solvers, 22 system walls, 6 constraint domains. These should be verified against the current core/solver.py module. The _quarto.yml quartodoc section lists ~23 solver classes, suggesting the count may be slightly off.\n\n\n\nGetting Started (line 39-41) mentions “Google Colab or Binder” launch buttons at the top of tutorials, but these do not appear to be implemented yet. Either add them or soften the language to “will be available.”\n\n\n\n\n\n\nFix the hero output block on the landing page to match current Engine.solve() results, or change the example to a workload that IS memory-bound at batch_size=1 (e.g., Llama3_8B on H100, which is memory-bound).\nFix the Getting Started inline output comments to match current engine results.\nStandardize the product name casing to MLSys·im everywhere.\nVerify solver/wall counts in the landing page stats section.\nSoften or remove Colab/Binder language until launch buttons are actually wired in.\nRe-install the local package (pip install -e .) so examples work regardless of working directory."
-  },
-  {
-    "objectID": "WEBSITE_AUDIT.html#whats-good",
-    "href": "WEBSITE_AUDIT.html#whats-good",
-    "title": "MLSys-im Website Audit",
-    "section": "",
-    "text": "Positioning is on-target. The subtitle (“Build intuition for ML system performance, cost, and carbon – from first principles”) and the footer (“First-principles ML systems modeling”) align well with the “first-principles analytical calculator” identity. The Open Graph and Twitter Card metadata reinforce this.\nSite structure is well-organized. The sidebar groups content logically: Get Started, Tutorials (with Foundations/Optimization/Scale subsections), The Zoo, For Your Role, Concepts, Build & Extend, API Reference, Project.\nFor Students page is solid. Clear learning path table, good FAQ, accurate solver-to-textbook mapping, correct prerequisites statement. The “Predict Before You Compute” callout is excellent pedagogy.\nGetting Started page is thorough. Covers installation, first analysis, CLI, custom models, HuggingFace import, YAML-based evaluation, troubleshooting, and efficiency tuning. The Pint units callout is helpful.\nAll internal page references resolve. Every qmd file linked from the sidebar and inline links exists on disk.\nInteractive Apps section is correctly commented out in the sidebar (lines 105-114 of _quarto.yml) with a clear note about re-enabling when Marimo export is wired in."
-  },
-  {
-    "objectID": "WEBSITE_AUDIT.html#what-needs-fixing",
-    "href": "WEBSITE_AUDIT.html#what-needs-fixing",
-    "title": "MLSys-im Website Audit",
-    "section": "",
-    "text": "The hero “See it in action” section (lines 56-87 of index.qmd) shows hardcoded output that does not match the current engine:\n\n\n\n\n\n\n\n\nField\nLanding Page Claims\nActual (Engine.solve(ResNet50, A100, bs=1, fp16))\n\n\n\n\nBottleneck\nMemory Bound\nCompute\n\n\nLatency\n0.42 ms\n0.57 ms\n\n\nThroughput\n2,381 img/s\n1,762 img/s\n\n\nMFU\n12.4%\n4.6%\n\n\nMemory\n0.10 GB / 80 GB\nNot shown in current profile\n\n\nAI (FLOP/B)\n4.2\nNot shown in current profile\n\n\n\nPriority: HIGH. This is the first thing users see. The bottleneck classification is outright wrong, which undermines credibility for a tool that claims to do exactly this analysis.\n\n\n\nThe “Your First Analysis” section (lines 49-64 of getting-started.qmd) shows inline comments claiming:\n\nprofile.bottleneck -&gt; 'Memory Bound' (actual: 'Compute')\nprofile.latency -&gt; 0.34 ms (actual: 0.57 ms)\nprofile.throughput -&gt; 2941 samples/sec (actual: 1762 1/s)\n\nPriority: HIGH. Students running this code will see different output than documented, causing immediate confusion.\n\n\n\nThe example at mlsysim/examples/sustainability_lab.py used impact['total_energy_kwh'] and impact['carbon_footprint_kg'] (dict-style access), but SustainabilityResult is a Pydantic model requiring attribute access (.total_energy_kwh, .carbon_footprint_kg).\nStatus: FIXED in this audit. Changed to attribute access.\n\n\n\nRunning examples as scripts (e.g., python3 mlsysim/examples/hardware_comparison.py) from outside the repo root fails because the system-installed mlsysim (site-packages) is an older version missing newer registry entries like Hardware.Tiny.nRF52840. This affects hardware_comparison.py, sustainability_lab.py, and custom_design.py.\nRecommendation: Add a note to the examples README or docstrings about running from the repo root, or add pip install -e . instructions. Alternatively, ensure the PyPI package stays in sync.\n\n\n\n\n_quarto.yml line 15: \"MLSys·IM - Machine Learning Systems\" (IM uppercase)\nLanding page title: \"MLSys·im\" (im lowercase)\nOpen Graph: \"MLSys·IM\" (IM uppercase)\nFooter: \"MLSys·im\" (im lowercase)\n\nPick one casing and use it consistently. The lowercase MLSys·im appears more often and reads better.\n\n\n\nThe “Model every constraint” section claims 21 solvers, 22 system walls, 6 constraint domains. These should be verified against the current core/solver.py module. The _quarto.yml quartodoc section lists ~23 solver classes, suggesting the count may be slightly off.\n\n\n\nGetting Started (line 39-41) mentions “Google Colab or Binder” launch buttons at the top of tutorials, but these do not appear to be implemented yet. Either add them or soften the language to “will be available.”"
-  },
-  {
-    "objectID": "WEBSITE_AUDIT.html#priority-recommendations",
-    "href": "WEBSITE_AUDIT.html#priority-recommendations",
-    "title": "MLSys-im Website Audit",
-    "section": "",
-    "text": "Fix the hero output block on the landing page to match current Engine.solve() results, or change the example to a workload that IS memory-bound at batch_size=1 (e.g., Llama3_8B on H100, which is memory-bound).\nFix the Getting Started inline output comments to match current engine results.\nStandardize the product name casing to MLSys·im everywhere.\nVerify solver/wall counts in the landing page stats section.\nSoften or remove Colab/Binder language until launch buttons are actually wired in.\nRe-install the local package (pip install -e .) so examples work regardless of working directory."
   },
   {
     "objectID": "contributing.html",
