@@ -155,8 +155,8 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../assets/scripts/subscribe-modal.js" defer=""></script>
 <link rel="stylesheet" href="../assets/games/common.css">
 <script type="module">
-  import "/assets/games/runtime.mjs";
-  import "/assets/games/lander.mjs";
+  import "../assets/games/runtime.mjs";
+  import "../assets/games/lander.mjs";
 </script>
 
 
@@ -638,7 +638,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       </div> <!-- /container-fluid -->
     </nav>
   <div id="quarto-announcement" data-announcement-id="ab66b8c4aea014a59d7673fa778830e8" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">3e9678ca</code> • 2026-04-25 18:31 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">dfe51d98</code> • 2026-04-25 19:17 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>📖 <strong>ML Systems</strong> — an open-access textbook on the engineering of intelligent systems. <a href="https://mlsysbook.ai/vol1/">Vol I: Foundations →</a> · <a href="https://mlsysbook.ai/vol2/">Vol II: At Scale →</a><br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (simulate) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)<br> 🎓 <strong>Teach with it:</strong> <a href="https://mlsysbook.ai/slides/">Lecture Slides</a> · <a href="https://mlsysbook.ai/instructors/">Instructor Hub</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -679,8 +679,13 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <div class="mlsp-game-container" role="region" aria-label="Gradient Lander mini-game">
   <canvas id="mlsp-canvas" class="mlsp-game-canvas" width="680" height="460"></canvas>
   <div class="mlsp-game-hud">
-    <span class="mlsp-score">VRAM <span id="mlsp-vram">100</span>% · Speed <span id="mlsp-speed">0</span></span>
-    <span>↑ increase batch size (thrust) · ← → steer learning rate · <kbd>R</kbd> retry</span>
+    <span class="mlsp-controls-line">
+      <kbd>↑</kbd> thrust (batch size) ·
+      <kbd>←</kbd> <kbd>→</kbd> steer learning rate ·
+      <kbd>R</kbd> retry
+    </span>
+    <span class="mlsp-sr-only" aria-live="polite">VRAM <span id="mlsp-vram">100</span>%, descent speed <span id="mlsp-speed">0</span></span>
+    <span class="mlsp-sr-only" id="mlsp-announce" aria-live="assertive" role="status"></span>
     <button type="button" class="mlsp-fullscreen-btn" onclick="this.closest('.mlsp-game-container').requestFullscreen()" title="Full Screen" aria-label="Full Screen">⛶</button>
   </div>
 </div>
@@ -705,6 +710,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
         if (s.speed > 40) { $speed.style.color = "#c44444"; } else { $speed.style.color = "inherit"; }
       },
       onGameOver: function(result) {
+        var ann = document.getElementById("mlsp-announce");
+        if (ann) {
+          var labels = {
+            "win": "Converged on the global minimum.",
+            "diverged": "Diverged. Learning rate too high.",
+            "local-min": "Settled in a local minimum. Suboptimal.",
+            "off-course": "Off course. Weights diverged.",
+            "missed-basin": "Missed the basin. No clear gradient.",
+            "oom": "Out of memory. VRAM exhausted."
+          };
+          ann.textContent = (labels[result && result.reason] || "Run ended.") + " Press R or click Try Again.";
+        }
         if (resolvedApi) attachAha(resolvedApi, result);
         else pendingResult = result;
       },
@@ -715,7 +732,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     });
 
     function attachAha(api, result) {
-      MLSP.showAhaCard(ahaSlot, api.ahaLabel, api.ahaText, api.ahaLink);
+      // Per-failure aha: each loss type maps to a distinct ML systems lesson.
+      // Falls back to the legacy single-message API for safety.
+      var aha = (api.aha && result && result.reason) ? api.aha(result.reason) : null;
+      var label = aha ? aha.label : api.ahaLabel;
+      var text  = aha ? aha.text  : api.ahaText;
+      var link  = aha && aha.link ? aha.link : api.ahaLink;
+      MLSP.showAhaCard(ahaSlot, label, text, link);
+      attachShareRow(result);
+    }
+
+    function attachShareRow(result) {
+      if (!result || !result.shareText) return;
+      var card = ahaSlot.querySelector(".mlsp-aha-card");
+      if (!card || card.querySelector(".mlsp-share-row")) return;
+      var row = document.createElement("div");
+      row.className = "mlsp-share-row";
+      var pre = document.createElement("pre");
+      pre.className = "mlsp-share-text";
+      pre.textContent = result.shareText;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mlsp-share-btn";
+      btn.textContent = "📋 copy result";
+      btn.addEventListener("click", function() {
+        navigator.clipboard.writeText(result.shareText).then(function() {
+          btn.textContent = "✅ copied";
+          setTimeout(function() { btn.textContent = "📋 copy result"; }, 1500);
+        }).catch(function() {
+          btn.textContent = "(copy failed)";
+        });
+      });
+      row.appendChild(pre);
+      row.appendChild(btn);
+      card.appendChild(row);
     }
   }
   tryBoot();
@@ -723,17 +773,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 </script>
 <section id="how-to-play" class="level2">
 <h2 class="anchored" data-anchor-id="how-to-play">How to play</h2>
-<ol type="1">
-<li>Use <kbd>←</kbd> and <kbd>→</kbd> to steer the learning-rate trajectory across the loss landscape.</li>
-<li>Hold <kbd>↑</kbd> to increase batch size. It stabilizes descent like thrust, but burns VRAM quickly.</li>
-<li>Touch down slowly on the deepest green platform. Orange platforms are local minima; high speed means divergence.</li>
-</ol>
+<p>The game starts paused so you can read the controls. Press <kbd>Enter</kbd> (or <kbd>Space</kbd>, or <kbd>↑</kbd>) to launch when you’re ready.</p>
+<ul>
+<li><kbd>↑</kbd> hold to thrust — increases batch size, stabilizes descent, burns VRAM.</li>
+<li><kbd>←</kbd> <kbd>→</kbd> tilt — steer the learning-rate trajectory across the loss landscape.</li>
+<li>Watch the dashed line under your ship — that’s your altitude over the ground beneath. Watch the small blue circle ahead of your ship — that’s where you’ll land if you do nothing.</li>
+<li>Touch down on the <strong>green pad</strong> (the global minimum) at low speed and near-vertical angle. The green pad pulses so you can spot it instantly.</li>
+<li>Hit the orange pads → local minimum (suboptimal). Hit anything else → divergence. Run out of VRAM → OOM.</li>
+<li>Click <kbd>↺ TRY AGAIN</kbd> in the canvas, or press <kbd>R</kbd>, to retry. The terrain is the same for everyone playing today.</li>
+<li><strong>On a phone or tablet:</strong> the canvas is divided into three vertical zones — tap-and-hold the <strong>left third</strong> to steer left, the <strong>right third</strong> to steer right, the <strong>center</strong> to thrust (and to launch from the READY screen). The game also respects your OS <em>Reduce Motion</em> preference.</li>
+</ul>
 </section>
 <section id="the-systems-concept" class="level2">
 <h2 class="anchored" data-anchor-id="the-systems-concept">The Systems Concept</h2>
-<p>Large batches can make optimization feel smoother because gradient noise falls, but the memory bill rises. The game turns that tradeoff into a landing problem: stability helps only if you still have enough memory and the learning-rate trajectory reaches the basin you actually wanted.</p>
+<p>Large batches make optimization feel smoother because gradient noise falls — but the memory bill rises. Lander turns that tradeoff into a landing problem: stability only helps if you still have enough VRAM left and the learning-rate trajectory actually reaches the basin you wanted.</p>
+<p>Each failure mode in the game maps to a real one in training:</p>
+<ul>
+<li><strong>Diverged (LR too high)</strong> — over-aggressive learning rate overshoots the minimum.</li>
+<li><strong>Local minimum</strong> — optimizer settles in a sub-optimal basin without enough exploration.</li>
+<li><strong>Missed the basin</strong> — landed in a flat or saddle region, no clear gradient signal.</li>
+<li><strong>Off course</strong> — weights drift out of the parameter space the model can handle.</li>
+<li><strong>OOM</strong> — VRAM exhausted; the run dies the way real training processes do.</li>
+</ul>
+<p>A “soft landing” on the global minimum is the only outcome where every constraint held simultaneously. That is the dream of large-batch training.</p>
 <hr>
-<p><em>Part of <a href="../games/">MLSysBook Playground</a>. Found a bug? <a href="https://github.com/harvard-edge/cs249r_book/issues/new?labels=bug&amp;title=Bug+in+Game">Report an issue</a>.</em></p>
+<p><em>Part of the <a href="../games/">MLSysBook Playground</a> — try the other 13 games.</em> Found a bug? <a href="https://github.com/harvard-edge/cs249r_book/issues/new?labels=bug&amp;title=Bug+in+Game">Report an issue</a>.</p>
 
 
 </section>
