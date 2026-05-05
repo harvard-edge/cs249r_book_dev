@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -155,8 +155,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -178,6 +201,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -217,7 +274,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -231,23 +288,59 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-resource-slides {
   --color1: #E0F2F1;
@@ -267,23 +360,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
 }
 .callout-war-story {
   --color1: #FEF2F2;
@@ -294,16 +378,34 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
 .callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-resource-videos {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -321,23 +423,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(107, 70, 193, 0.12);
   --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
 .callout-learning-objectives {
   --color1: #E8F2EA;
@@ -357,42 +450,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(61, 59, 142, 0.12);
   --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
 .callout-quiz-answer {
   --color1: #E8F2EA;
   --color2: #4A7C59;
@@ -405,32 +462,88 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-takeaways {
+  details.callout-example {
     --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
   }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-takeaways code {
+  details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-perspective {
+  details.callout-notebook {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
   }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-perspective code {
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-slides {
@@ -461,32 +574,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-war-story {
@@ -503,20 +602,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -529,6 +614,48 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
   details.callout-theorem {
@@ -545,32 +672,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
+  details.callout-takeaways {
     --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
   }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
   details.callout-learning-objectives {
@@ -601,62 +714,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
   details.callout-quiz-answer {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
@@ -674,11 +731,23 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 }
 </style>
 <style>
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
@@ -686,47 +755,35 @@ details.callout-resource-slides > summary::before {
 details.callout-checkpoint > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
 details.callout-resource-exercises > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 details.callout-learning-objectives > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
 details.callout-principle > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
 }
 details.callout-quiz-answer > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
@@ -764,11 +821,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/backmatter/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/backmatter/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/backmatter/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/backmatter/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -970,34 +1027,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1009,22 +1066,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1036,17 +1093,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1058,23 +1115,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1086,22 +1143,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1113,29 +1170,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1205,8 +1262,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1576,7 +1633,7 @@ Table&nbsp;1: <strong>D·A·M Axis Reference.</strong> Each axis maps to a disti
 <tr class="odd">
 <td style="text-align: left;"><strong>Data (D)</strong></td>
 <td style="text-align: left;"><strong>Information</strong> (The Fuel)</td>
-<td style="text-align: left;">Bandwidth (<span class="math inline">\(BW\)</span>)</td>
+<td style="text-align: left;">Bandwidth (<span class="math inline">\(\text{BW}\)</span>)</td>
 <td style="text-align: left;">Data Selection (<strong><a href="../data_selection/data_selection.html#sec-data-selection">Data Selection</a></strong>)</td>
 </tr>
 <tr class="even">
@@ -1601,7 +1658,7 @@ Table&nbsp;1: <strong>D·A·M Axis Reference.</strong> Each axis maps to a disti
 <section id="sec-dam-taxonomy-intersection-landscape-0d6e" class="level2">
 <h2 class="anchored" data-anchor-id="sec-dam-taxonomy-intersection-landscape-0d6e">Intersection Landscape</h2>
 <p>Real systems engineering lives at the <em>boundaries</em> between axes. <a href="#fig-dam-venn" class="quarto-xref">Figure&nbsp;1</a> maps the intersection landscape: what concepts and techniques emerge when two or three axes overlap.</p>
-<div id="fig-dam-venn" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Venn diagram with three overlapping circles labeled data, algorithm, and machine. Pairwise intersections are labeled: D intersection A shows data selection and curriculum learning; D intersection M shows I/O bandwidth and data formats; A intersection M shows quantization and kernel fusion. The center intersection is labeled ML systems engineering with iron law and roofline." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-dam-venn" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Venn diagram with three overlapping circles labeled data, algorithm, and machine. Pairwise intersections are labeled: D intersection A shows data selection and curriculum learning; D intersection M shows I/O bandwidth and data formats; A intersection M shows quantization and kernel fusion. The center intersection is labeled ML systems engineering with iron law and roofline.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dam-venn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/dam_venn.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: The D·A·M Intersection Landscape. Each circle represents a pure domain: Data (information), Algorithm (logic), and Machine (physics). The pairwise intersections capture techniques that require reasoning about two domains simultaneously. The center—where all three converge—is ML Systems Engineering itself: the discipline of balancing data flow, algorithmic complexity, and hardware constraints within a single system."><img src="images/dam_venn.svg" class="img-fluid figure-img"></a>
@@ -1689,13 +1746,13 @@ Table&nbsp;2: <strong>D·A·M Intersection Reference.</strong> Each zone maps sp
 <section id="sec-dam-taxonomy-iron-law-mapping-05db" class="level2">
 <h2 class="anchored" data-anchor-id="sec-dam-taxonomy-iron-law-mapping-05db">Iron Law Mapping</h2>
 <p>The performance of any ML task is governed by the distribution of work across the D·A·M axes. The iron law Mapping reveals which component’s variables dominate the execution time:</p>
-<p><span class="math display">\[ T = \underbrace{ \frac{D_{\text{vol}}}{BW} }_{\text{Data (D)}} + \underbrace{ \frac{O}{R_{\text{peak}} \cdot \eta} }_{\text{Algorithm (A) / Machine (M)}} + \underbrace{ L_{\text{lat}} }_{\text{Overhead}} \]</span></p>
-<p>Note that Algorithm and Machine share the compute term; they are separated by which variable you control. Reducing the total operations (<span class="math inline">\(O\)</span>) is an <strong>Algorithm</strong> lever, while improving the hardware’s peak throughput (<span class="math inline">\(R_{\text{peak}}\)</span>) or utilization (<span class="math inline">\(\eta\)</span>) is a <strong>Machine</strong> lever.</p>
-<p>This equation transforms performance debugging from a qualitative guessing game into a quantitative engineering problem. Every bottleneck hides in one of these terms. If your system is slow, it is because you are moving too much data (<span class="math inline">\(D_{\text{vol}}\)</span>), lacking bandwidth (<span class="math inline">\(BW\)</span>), executing too many operations (<span class="math inline">\(O\)</span>), or failing to use your hardware’s peak capability (<span class="math inline">\(\eta\)</span>). The levers below map specific optimizations to the variable they improve.</p>
+<p><span class="math display">\[ T = \underbrace{ \frac{D_{\text{vol}}}{BW} }_{\text{Data (D)}} + \underbrace{ \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}} }_{\text{Algorithm (A) / Machine (M)}} + \underbrace{ L_{\text{lat}} }_{\text{Overhead}} \]</span></p>
+<p>Note that Algorithm and Machine share the compute term; they are separated by which variable you control. Reducing the total operations (<span class="math inline">\(O\)</span>) is an <strong>Algorithm</strong> lever, while improving the hardware’s peak throughput (<span class="math inline">\(R_{\text{peak}}\)</span>) or utilization (<span class="math inline">\(\eta_{\text{hw}}\)</span>) is a <strong>Machine</strong> lever.</p>
+<p>This equation transforms performance debugging from a qualitative guessing game into a quantitative engineering problem. Every bottleneck hides in one of these terms. If your system is slow, it is because you are moving too much data (<span class="math inline">\(D_{\text{vol}}\)</span>), lacking bandwidth (<span class="math inline">\(\text{BW}\)</span>), executing too many operations (<span class="math inline">\(O\)</span>), or failing to use your hardware’s peak capability (<span class="math inline">\(\eta\)</span>). The levers below map specific optimizations to the variable they improve.</p>
 <section id="sec-dam-taxonomy-component-levers-d441" class="level3">
 <h3 class="anchored" data-anchor-id="sec-dam-taxonomy-component-levers-d441">Component levers</h3>
 <ul>
-<li><strong>Data Lever</strong>: Reducing the volume of data (<span class="math inline">\(D_{\text{vol}}\)</span>) through deduplication or curriculum learning, or increasing I/O bandwidth (<span class="math inline">\(BW\)</span>).</li>
+<li><strong>Data Lever</strong>: Reducing the volume of data (<span class="math inline">\(D_{\text{vol}}\)</span>) through deduplication or curriculum learning, or increasing I/O bandwidth (<span class="math inline">\(\text{BW}\)</span>).</li>
 <li><strong>Algorithm Lever</strong>: Reducing total arithmetic operations (<span class="math inline">\(O\)</span>) through pruning, quantization, or architectural refinement.</li>
 <li><strong>Machine Lever</strong>: Increasing the denominator of the compute term by improving peak throughput (<span class="math inline">\(R_{\text{peak}}\)</span>) or increasing the utilization factor (<span class="math inline">\(\eta\)</span>) via kernel fusion.</li>
 </ul>
@@ -1703,7 +1760,7 @@ Table&nbsp;2: <strong>D·A·M Intersection Reference.</strong> Each zone maps sp
 <section id="sec-dam-taxonomy-dam-coordination-sum-max-92bb" class="level3">
 <h3 class="anchored" data-anchor-id="sec-dam-taxonomy-dam-coordination-sum-max-92bb">D·A·M coordination: From sum to max</h3>
 <p>The additive iron law represents <strong>sequential execution</strong>—the worst case where Data, Algorithm, and Machine take turns. But skilled systems engineering transforms the sum into a max:</p>
-<p><span class="math display">\[ T_{sequential} = \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta} + L_{\text{lat}} \quad \xrightarrow{\text{overlap}} \quad T_{pipelined} = \max\left(\frac{D_{\text{vol}}}{BW}, \frac{O}{R_{\text{peak}} \cdot \eta}\right) + L_{\text{lat}} \]</span></p>
+<p><span class="math display">\[ T_{\text{sequential}} = \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}} + L_{\text{lat}} \quad \xrightarrow{\text{overlap}} \quad T_{\text{pipelined}} = \max\left(\frac{D_{\text{vol}}}{BW}, \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}}\right) + L_{\text{lat}} \]</span></p>
 <p>The systems engineer’s job is to make these components run in parallel, not in series. <a href="#tbl-dam-overlap" class="quarto-xref">Table&nbsp;3</a> summarizes key D·A·M Coordination techniques:</p>
 <div id="tbl-dam-overlap" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -1750,7 +1807,7 @@ Table&nbsp;3: <strong>D·A·M Overlap Techniques.</strong> Each technique allows
 </div>
 </figure>
 </div>
-<p>Overlap only helps when the D·A·M axes are reasonably balanced. If one term dominates (for example, severely memory bound), overlapping the smaller term with the larger yields negligible gain—the max is still dominated by the same bottleneck. Overlap provides the greatest benefit when <span class="math inline">\(D_{\text{vol}}/BW \approx O/(R_{\text{peak}} \cdot \eta)\)</span>.</p>
+<p>Overlap only helps when the D·A·M axes are reasonably balanced. If one term dominates (for example, severely memory bound), overlapping the smaller term with the larger yields negligible gain—the max is still dominated by the same bottleneck. Overlap provides the greatest benefit when <span class="math inline">\(D_{\text{vol}}/\text{BW} \approx O/(R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span>.</p>
 <div class="callout callout-style-default callout-warning callout-titled" title="The Overhead That Cannot Hide">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1770,7 +1827,9 @@ Table&nbsp;3: <strong>D·A·M Overlap Techniques.</strong> Each technique allows
 <section id="sec-dam-taxonomy-arithmetic-intensity-boundary-7f5e" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-dam-taxonomy-arithmetic-intensity-boundary-7f5e">Arithmetic Intensity Boundary</h2>
 <p>The boundary between <strong>Data</strong> (Memory Bound) and <strong>Machine</strong> (Compute Bound) is not arbitrary; it is defined mathematically by the <strong>Arithmetic Intensity</strong><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> (<span class="math inline">\(I\)</span>) of the workload.</p>
-<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Arithmetic Intensity</strong>: The ratio of floating-point operations to bytes transferred (FLOPs/byte), introduced by Williams, Waterman, and Patterson (2009) as the key parameter in the Roofline Model. It determines whether a workload is memory bound or compute bound by comparison against the hardware’s <em>ridge point</em> (<span class="math inline">\(R_{\text{peak}}/BW\)</span>). <strong><a href="appendix_machine.html#sec-machine-foundations-roofline-model-2529">The roofline model</a></strong> provides a complete derivation.</p></div></div><p><strong><a href="appendix_machine.html#sec-machine-foundations-roofline-model-2529">The roofline model</a></strong> provides rigorous definitions of Arithmetic Intensity and the Roofline Model. Use that model to quantitatively distinguish between Data and Machine bottlenecks before applying the optimizations below.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Arithmetic Intensity</strong>: The ratio of floating-point operations to bytes transferred (FLOPs/byte), introduced by <span class="citation" data-cites="williams2009roofline">Williams et al. (<a href="#ref-williams2009roofline" role="doc-biblioref">2009</a>)</span> as the key parameter in the Roofline Model. It determines whether a workload is memory bound or compute bound by comparison against the hardware’s <em>ridge point</em> (<span class="math inline">\(R_{\text{peak}}/\text{BW}\)</span>). <strong><a href="appendix_machine.html#sec-machine-foundations-roofline-model-2529">The roofline model</a></strong> provides a complete derivation.</p><div id="ref-williams2009roofline" class="csl-entry" role="listitem">
+Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline: An Insightful Visual Performance Model for Multicore Architectures.”</span> <em>Communications of the ACM</em> 52 (4): 65–76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
+</div></div></div><p><strong><a href="appendix_machine.html#sec-machine-foundations-roofline-model-2529">The roofline model</a></strong> provides rigorous definitions of Arithmetic Intensity and the Roofline Model. Use that model to quantitatively distinguish between Data and Machine bottlenecks before applying the optimizations below.</p>
 <p>The Roofline Model provides exact answers when you have time to profile. But in the middle of a production incident, you often need a faster heuristic—a set of quick thresholds that point you toward the right axis within seconds.</p>
 </section>
 <section id="sec-dam-taxonomy-rules-thumb-f94f" class="level2">
@@ -1780,7 +1839,7 @@ Table&nbsp;3: <strong>D·A·M Overlap Techniques.</strong> Each technique allows
 <li><strong>If Accelerator Utilization <span class="math inline">\(&lt;\)</span> 80 percent</strong>: You are likely <strong>Data Bound</strong> (or CPU bound). The accelerator is starving.</li>
 <li><strong>If Accelerator Utilization <span class="math inline">\(&gt;\)</span> 95 percent</strong>: You are likely <strong>Machine Bound</strong>. The accelerator is fully saturated.</li>
 <li><strong>If Batch Size is one</strong>: You are likely <strong>Latency Bound</strong> (Algorithm overhead dominates).</li>
-<li><strong>If Arithmetic Intensity <span class="math inline">\(&lt;\)</span> 100 FLOPs/byte</strong>: You are likely <strong>Memory Bound</strong> (Data/Machine boundary). This threshold is approximate for current-generation accelerators; compute your hardware’s specific ridge point (<span class="math inline">\(R_{\text{peak}}/BW\)</span>) for a precise boundary.</li>
+<li><strong>If Arithmetic Intensity <span class="math inline">\(&lt;\)</span> 100 FLOPs/byte</strong>: You are likely <strong>Memory Bound</strong> (Data/Machine boundary). This threshold is approximate for current-generation accelerators; compute your hardware’s specific ridge point (<span class="math inline">\(R_{\text{peak}}/\text{BW}\)</span>) for a precise boundary.</li>
 <li><strong>If System works in Dev but fails in Prod</strong>: Suspect <strong>Data Drift</strong> (Data component).</li>
 </ul>
 <p>Note that common industry labels map to DAM components as follows: <strong>Memory Bound</strong> typically indicates a <strong>Data</strong> bottleneck (information cannot reach the accelerator fast enough), <strong>Compute Bound</strong> indicates a <strong>Machine</strong> bottleneck (the accelerator is fully saturated), and <strong>Latency Bound</strong> indicates an <strong>Algorithm</strong> bottleneck (serial operation depth or overhead dominates).</p>
@@ -1795,10 +1854,10 @@ Table&nbsp;4: <strong>What Works vs.&nbsp;What is Wasted.</strong> Optimizing th
 <div aria-describedby="tbl-bottleneck-actions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 19%">
-<col style="width: 38%">
-<col style="width: 30%">
+<col style="width: 10%">
+<col style="width: 25%">
+<col style="width: 36%">
+<col style="width: 28%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1811,13 +1870,13 @@ Table&nbsp;4: <strong>What Works vs.&nbsp;What is Wasted.</strong> Optimizing th
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>Memory-Bound</strong></td>
-<td style="text-align: left;"><span class="math inline">\(D_{\text{vol}}/BW\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span></td>
 <td style="text-align: left;">Quantization, pruning, batching, kernel fusion</td>
 <td style="text-align: left;">Faster accelerator (more FLOP/s will not help)</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Compute-Bound</strong></td>
-<td style="text-align: left;"><span class="math inline">\(O/(R_{\text{peak}} \cdot \eta)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(O/(R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span></td>
 <td style="text-align: left;">Better kernels, Tensor Cores, faster accelerator, lower precision</td>
 <td style="text-align: left;">More memory bandwidth (already saturated)</td>
 </tr>
@@ -1927,8 +1986,8 @@ Table&nbsp;5: <strong>D·A·M Diagnostic Matrix.</strong> Root cause identificat
 <colgroup>
 <col style="width: 18%">
 <col style="width: 14%">
-<col style="width: 35%">
-<col style="width: 31%">
+<col style="width: 37%">
+<col style="width: 30%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1954,7 +2013,7 @@ Table&nbsp;5: <strong>D·A·M Diagnostic Matrix.</strong> Root cause identificat
 <tr class="odd">
 <td style="text-align: left;"><strong>High Training Cost</strong></td>
 <td style="text-align: left;"><strong>Machine</strong></td>
-<td style="text-align: left;">Is the hardware utilization (<span class="math inline">\(\eta\)</span>) below 30 percent?</td>
+<td style="text-align: left;">Is the hardware utilization (<span class="math inline">\(\eta_{\text{hw}}\)</span>) below 30 percent?</td>
 <td style="text-align: left;">Optimize CUDA kernels or use spot instances.</td>
 </tr>
 <tr class="even">
@@ -2124,14 +2183,14 @@ Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, et al. 2022. <span>“Train
 <p><strong>Answer</strong>: The bottleneck is <strong>Data</strong>. The disk at 100 percent saturation while GPU sits at 25 percent utilization is the classic “starving GPU” pattern. The Machine (GPU) has capacity to spare, but the Data pipeline cannot feed it fast enough. Two optimizations: (1) Convert raw images (JPEG/PNG) to a sequential binary format like TFRecords or WebDataset to reduce CPU decoding overhead and enable sequential disk reads. (2) Increase DataLoader workers and implement prefetching to overlap I/O with computation, ensuring the next batch is ready before the GPU finishes the current one.</p>
 <section id="exercise-two-iron-law-analysis" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="exercise-two-iron-law-analysis">Exercise two: <em>Iron law analysis</em></h4>
-<p>Consider a transformer model with 7B parameters performing inference with batch size 1. The model requires 0.014 TFLOPs per forward pass. On an H100 GPU (989 TFLOPS peak FP16 Tensor Core), the measured latency is 50 ms. Calculate the achieved utilization (<span class="math inline">\(\eta\)</span>). Is this system Data-bound, Algorithm-bound, or Machine-bound? Justify your answer.</p>
+<p>Consider a transformer model with 7B parameters performing inference with batch size 1. The model requires 0.014 TFLOPs per forward pass. On an H100 GPU (989 TFLOPS peak FP16 Tensor Core), the measured latency is 50 ms. Calculate the achieved utilization (<span class="math inline">\(\eta_{\text{hw}}\)</span>). Is this system Data-bound, Algorithm-bound, or Machine-bound? Justify your answer.</p>
 <p><strong>Answer</strong>: First, calculate achieved throughput:</p>
 <p><span class="math display">\[\text{Achieved FLOP/s} = \frac{0.014 \text{ TFLOPs}}{0.050 \text{ s}} = 0.28 \text{ TFLOP/s}\]</span></p>
 <p>Then calculate utilization:</p>
 <p><span class="math display">\[\eta = \frac{0.28}{989} \approx 0.03\%\]</span></p>
 <p>Computed values: Achieved = 0.28 TFLOP/s, Utilization = 0.03 percent.</p>
 <p>This system is <strong>Memory-bound</strong> (a <strong>Data</strong> bottleneck). At batch size one, each layer performs a matrix-vector multiply (GEMV) rather than a general matrix multiply (GEMM). The model’s 7B parameters (~14 GB in FP16) must be loaded from HBM for every forward pass, but each loaded weight is used for only a single input vector—yielding very low arithmetic intensity. The GPU’s compute units sit idle waiting for memory transfers, which is why utilization is only 0.03 percent.</p>
-<p>The fix targets the <strong>Data/Algorithm boundary</strong>: increasing the batch size transforms GEMV into GEMM, dramatically raising arithmetic intensity and pushing the workload toward compute bound. Other effective strategies include quantization (INT8 halves the bytes moved per parameter, directly reducing the <span class="math inline">\(D_{\text{vol}}/BW\)</span> term) or speculative decoding to amortize weight loads across multiple tokens.</p>
+<p>The fix targets the <strong>Data/Algorithm boundary</strong>: increasing the batch size transforms GEMV into GEMM, dramatically raising arithmetic intensity and pushing the workload toward compute bound. Other effective strategies include quantization (INT8 halves the bytes moved per parameter, directly reducing the <span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span> term) or speculative decoding to amortize weight loads across multiple tokens.</p>
 <section id="exercise-three-scaling-law-vs.-information-roofline" class="level5 unnumbered">
 <h5 class="unnumbered anchored" data-anchor-id="exercise-three-scaling-law-vs.-information-roofline">Exercise three: <em>Scaling law vs.&nbsp;information roofline</em></h5>
 <p>Your team has been training a sentiment analysis model. After scaling from 125M to 1B parameters (8<span class="math inline">\(\times\)</span> increase), validation loss improved from 0.45 to 0.42 (6.7 percent improvement). Chinchilla scaling would predict a ~15 percent improvement for this compute increase. What does this discrepancy suggest? Which D·A·M axis should you investigate first, and why?</p>

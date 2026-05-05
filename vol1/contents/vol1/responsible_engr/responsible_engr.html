@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -266,14 +323,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
 .callout-code {
   --color1: #F2F4F8;
@@ -284,14 +341,86 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(209, 215, 224, 0.12);
   --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
 }
 .callout-lighthouse {
   --color1: #FDF8E6;
@@ -301,6 +430,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(184, 134, 11, 0.04);
   --dark-background-color: rgba(184, 134, 11, 0.12);
   --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
 .callout-theorem {
   --color1: #F5F0FA;
@@ -320,33 +458,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(61, 59, 142, 0.12);
   --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
 .callout-perspective {
   --color1: #F7F8FA;
   --color2: #4A5568;
@@ -355,6 +466,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(74, 85, 104, 0.04);
   --dark-background-color: rgba(74, 85, 104, 0.12);
   --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
 }
 .callout-colab {
   --color1: #FFF5E6;
@@ -365,33 +485,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(255, 107, 53, 0.12);
   --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
 .callout-resource-slides {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -401,57 +494,21 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-definition {
+  details.callout-quiz-question {
     --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
   details.callout-code {
@@ -468,18 +525,130 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-code code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
+  details.callout-takeaways {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
   }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-checkpoint code {
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
     color: #e6e6e6 !important;
   }
   details.callout-lighthouse {
@@ -494,6 +663,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
   details.callout-theorem {
@@ -524,48 +707,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
   details.callout-perspective {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 85, 104, 0.12);
@@ -578,6 +719,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-colab {
@@ -594,48 +749,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-colab code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -650,76 +763,47 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
 }
 </style>
 <style>
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
 details.callout-code > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
 }
 details.callout-lighthouse > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
@@ -727,44 +811,17 @@ details.callout-theorem > summary::before {
 details.callout-principle > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
 details.callout-perspective > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-colab > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/responsible_engr/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/responsible_engr/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/responsible_engr/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/responsible_engr/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1581,11 +1638,15 @@ window.Quarto = {
 <section id="sec-responsible-engineering-responsibility-systems-engineering-5cfd" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-responsible-engineering-responsibility-systems-engineering-5cfd">Responsibility as Systems Engineering</h2>
 <p>In 2014, Amazon built an AI recruiting tool<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> that penalized resumes containing the word “women’s” and downgraded graduates of all-women’s colleges—despite meeting every technical metric its engineers had specified. The system optimized flawlessly for its stated objective: identify candidates similar to those previously hired. But historical hiring patterns encoded gender bias, and the model faithfully reproduced that bias at scale. The full case, examined in <a href="#sec-responsible-engineering-optimization-succeeds-systems-fail-1a22" class="quarto-xref">Section&nbsp;1.2.1</a>, reveals a pattern that recurs throughout this chapter: technically correct systems producing harmful outcomes not because they malfunction, but because they faithfully execute flawed specifications.</p>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Amazon Recruiting Tool</strong>: Developed starting in 2014 by Amazon’s Edinburgh engineering team to rate applicants on a 1–5 scale, the system trained on approximately a decade of resumes—overwhelmingly from male applicants reflecting the tech industry’s gender ratio. By 2015 the gender bias was identified; by 2017 the project was abandoned after two years of failed remediation attempts. The engineering cost was not the compute but the opportunity cost: a multi-year hiring pipeline had to be rebuilt from scratch, making it one of the most expensive documented specification failures in production ML. </p></div></div><p>If <strong>MLOps</strong> (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>), the monitoring and retraining infrastructure examined previously, is the control loop for <em>reliability</em>, then <strong>Responsible Engineering</strong> is the control loop for <em>safety</em>. Where MLOps monitors system health and triggers retraining when performance degrades, responsible engineering monitors <em>outcome quality</em> and triggers intervention when systems cause harm. A model can optimize flawlessly for its stated objective and still cause systematic harm because the failure is not a bug in the code but a flaw in the specification. In systems engineering terms, a system can pass <em>verification</em> (it meets its stated requirements) while failing <em>validation</em> (it does not meet the user’s true needs).</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Amazon Recruiting Tool</strong>: Developed starting in 2014 by Amazon’s Edinburgh engineering team to rate applicants on a 1–5 scale, the system trained on approximately a decade of resumes—overwhelmingly from male applicants reflecting the tech industry’s gender ratio. By 2015 the gender bias was identified; by 2017 the project was abandoned after two years of failed remediation attempts. The engineering cost was not the compute but the opportunity cost: a multi-year hiring pipeline had to be rebuilt from scratch, making it one of the most expensive documented specification failures in production ML. </p></div><div id="ref-strickland2019ibm" class="csl-entry" role="listitem">
+Strickland, Eliza. 2019. <span>“IBM Watson, Heal Thyself: How IBM Overpromised and Underdelivered on AI Health Care.”</span> <em>IEEE Spectrum</em> 56 (4): 24–31. <a href="https://doi.org/10.1109/mspec.2019.8678513">https://doi.org/10.1109/mspec.2019.8678513</a>.
+</div></div><p>If <strong>MLOps</strong> (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>), the monitoring and retraining infrastructure examined previously, is the control loop for <em>reliability</em>, then <strong>Responsible Engineering</strong> is the control loop for <em>safety</em>. Where MLOps monitors system health and triggers retraining when performance degrades, responsible engineering monitors <em>outcome quality</em> and triggers intervention when systems cause harm. A model can optimize flawlessly for its stated objective and still cause systematic harm because the failure is not a bug in the code but a flaw in the specification. In systems engineering terms, a system can pass <em>verification</em> (it meets its stated requirements) while failing <em>validation</em> (it does not meet the user’s true needs) <span class="citation" data-cites="strickland2019ibm">(<a href="#ref-strickland2019ibm" role="doc-biblioref">Strickland 2019</a>)</span>.</p>
 <p>Traditional software engineering assumes that bugs are local: a defect in one module rarely corrupts unrelated functionality. Machine learning systems violate this assumption. Data flows through shared representations, causing problems in one component to propagate unpredictably across the entire system. A biased training dataset does not produce a localized bug; it corrupts every prediction the system makes. Viewed through the D·A·M taxonomy (Data, Algorithm, Machine) introduced in <strong><a href="../introduction/introduction.html#sec-introduction">Introduction</a></strong>, the failure can originate along any axis: biased <em>data</em>, a misaligned <em>algorithm</em>, or inadequate <em>infrastructure</em> for monitoring outcomes. This makes responsibility an architectural concern, not an afterthought.</p>
 <p><em>Engineering responsibility therefore expands what “correct” means for ML systems.</em> Correctness in the traditional sense (reliable, performant, and maintainable) remains necessary, but ML systems must also be correct in a broader sense: fair across user groups, efficient in resource consumption, and transparent in their decision processes. Expanded correctness is engineering itself, applied to failure modes that conventional metrics do not capture. A latency regression is visible in dashboards; a fairness regression is invisible until it harms real users. Both require systematic detection, measurement, and remediation.</p>
-<p>The frameworks developed here address diagnosing, preventing, and mitigating these failures. We begin with concrete cases that reveal the <em>responsibility gap</em>: the distance between technical performance and responsible outcomes, and the mechanisms (proxy variables, feedback loops, distribution shift) through which it manifests. From there, we develop a responsible engineering checklist that systematizes impact assessment, model documentation, disaggregated testing, and incident response into repeatable engineering processes. The chapter then connects the resource consumption quantified throughout this book (training compute, inference energy, carbon footprint) to engineering ethics, demonstrating that efficiency optimization serves responsibility as directly as it serves performance. We then examine the data governance and compliance infrastructure (access control, privacy protection, lineage tracking, and audit systems) that makes responsible practices enforceable at scale, before closing with the fallacies and pitfalls that commonly undermine even well-intentioned efforts.</p>
-<p>We begin with the concrete failure cases that establish <em>why</em> engineers must lead on responsibility.</p>
+<p>The frameworks developed here address diagnosing, preventing, and mitigating these failures. We begin with concrete cases that reveal the <em>responsibility gap</em>: the distance between technical performance and responsible outcomes, and the mechanisms (proxy variables, feedback loops, distribution shift) through which it manifests. From there, we develop a responsible engineering checklist that systematizes impact assessment, model documentation, disaggregated testing, and incident response into repeatable engineering processes. The chapter then connects the resource consumption quantified throughout this book (training compute, inference energy, carbon footprint) to engineering ethics, demonstrating that efficiency optimization serves responsibility as directly as it serves performance. We then examine the data governance and compliance infrastructure (access control, privacy protection, lineage tracking, and audit systems) that makes responsible practices enforceable at scale, before closing with the fallacies <span class="citation" data-cites="raji2020closing">(<a href="#ref-raji2020closing" role="doc-biblioref">Raji et al. 2020</a>)</span> and pitfalls that commonly undermine even well-intentioned efforts.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-raji2020closing" class="csl-entry" role="listitem">
+Raji, Inioluwa Deborah, Andrew Smart, Rebecca N. White, et al. 2020. <span>“Closing the AI Accountability Gap: Defining an End-to-End Framework for Internal Algorithmic Auditing.”</span> <em>Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency</em>, January 27, 33–44. <a href="https://doi.org/10.1145/3351095.3372873">https://doi.org/10.1145/3351095.3372873</a>.
+</div></div><p>We begin with the concrete failure cases that establish <em>why</em> engineers must lead on responsibility.</p>
 <div id="quiz-question-sec-responsible-engineering-responsibility-systems-engineering-5cfd" class="callout callout-quiz-question">
 <details class="callout-quiz-question fbx-simplebox fbx-default"><summary><strong>Self-Check: Question</strong></summary><div>
 <ol type="1">
@@ -1609,9 +1670,11 @@ window.Quarto = {
 <p>The gap manifests through concrete mechanisms: proxy variables, feedback loops, and distribution shift, each producing harm through a distinct pathway. Concrete cases where optimization succeeded but systems failed reveal these mechanisms and the silent failure modes that make them invisible to conventional monitoring. Organizations that closed the gap through systematic engineering practice demonstrate that prevention is feasible. The testing challenge that makes responsibility fundamentally harder to verify than traditional software correctness then determines where responsibility ownership must sit within engineering organizations.</p>
 <section id="sec-responsible-engineering-optimization-succeeds-systems-fail-1a22" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-responsible-engineering-optimization-succeeds-systems-fail-1a22">When optimization succeeds but systems fail</h3>
-<p>The Amazon recruiting tool case illustrates this gap. In 2014, Amazon developed an AI system to automate resume screening for technical positions, training it on historical hiring data spanning ten years of resumes submitted to the company. By 2015, the company discovered the system exhibited gender bias in candidate ratings <span class="citation" data-cites="dastin2018amazon">(<a href="#ref-dastin2018amazon" role="doc-biblioref">Dastin 2022</a>)</span>.</p>
+<p>The Amazon recruiting tool case illustrates this gap. In 2014, Amazon developed an AI system to automate resume screening for technical positions, training it on historical hiring data spanning ten years of resumes submitted to the company. By 2015, the company discovered the system exhibited gender bias in candidate ratings <span class="citation" data-cites="dastin2018amazon">(<a href="#ref-dastin2018amazon" role="doc-biblioref">Dastin 2018</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-dastin2018amazon" class="csl-entry" role="listitem">
-Dastin, Jeffrey. 2022. <span>“Amazon Scraps Secret AI Recruiting Tool That Showed Bias Against Women.”</span> Amazon Scraps Secret AI Recruiting Tool that Showed Bias against Women in <em>Ethics of Data and Analytics</em>. Auerbach Publications. <a href="https://doi.org/10.1201/9781003278290-44">https://doi.org/10.1201/9781003278290-44</a>.
+Dastin, Jeffrey. 2018. <em>Amazon Scraps Secret <span>AI</span> Recruiting Tool That Showed Bias Against Women</em>. Reuters news article.<a href="
+    https://www.reuters.com/article/us-amazon-com-jobs-automation-insight/amazon-scraps-secret-ai-recruiting-tool-that-showed-bias-against-women-idUSKCN1MK08G
+  ">https://www.reuters.com/article/us-amazon-com-jobs-automation-insight/amazon-scraps-secret-ai-recruiting-tool-that-showed-bias-against-women-idUSKCN1MK08G </a>.
 </div></div><p>The technical implementation was sound. The model successfully learned patterns from historical data and optimized for the objective it was given: identify candidates similar to those previously hired. However, historical hiring patterns encoded gender bias. The system penalized resumes containing the word “women’s,” as in “women’s chess club captain,” and downgraded graduates of all-women’s colleges.</p>
 <p>The technical mechanism behind this outcome is straightforward. The model learned token-level patterns from historical data. When most previously successful hires were men, resumes containing language associated with women’s activities or institutions appeared statistically less correlated with positive hiring decisions. The model correctly identified these patterns in the training data but learned the wrong lesson from correct pattern recognition.</p>
 <p>Amazon attempted remediation by removing explicit gender indicators and gendered terms from the training process. This intervention failed because the model had learned <strong>proxy variables</strong>—features that correlate with protected attributes without directly encoding them.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> In general, proxies arise whenever features carry indirect demographic signal: ZIP codes correlate with race due to residential segregation, first names correlate with gender and ethnicity, and healthcare utilization correlates with socioeconomic status. In Amazon’s case, college names revealed attendance at all-women’s institutions, activity descriptions encoded gender-associated language patterns, and career gaps suggested parental leave patterns that differed between genders. The model reconstructed protected attributes from these proxies without ever seeing gender labels directly. Removing protected attributes from training data is therefore insufficient; fairness requires adversarial debiasing, fairness constraints during optimization, or post-hoc threshold adjustment per group.</p>
@@ -1653,9 +1716,9 @@ Angwin, Julia, Jeff Larson, Surya Mattu, and Lauren Kirchner. 2022. <span>“Mac
 <p>The sepsis model failure illustrates a class of failure that traditional engineering is poorly equipped to handle. Traditional software fails loudly. A null pointer exception crashes the program, a network timeout returns an error code. These visible failures enable rapid detection and response. In contrast, ML systems fail silently because degraded predictions look like normal predictions. The primary mechanism behind this silent degradation is <em>distribution shift</em>.</p>
 <div id="callout-definition-1.1" class="callout callout-definition" title="Distribution Shift">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Distribution Shift</strong></summary><div>
-<p><strong><em>Distribution Shift</em></strong> is the violation of the <strong>Stationarity Assumption</strong> (<span class="math inline">\(P_{train} \neq P_{deploy}\)</span>) that underpins all supervised learning. It is the umbrella term for a family of drift types: <strong>Data Drift</strong> (see <strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>) occurs when <span class="math inline">\(P(X)\)</span> shifts while <span class="math inline">\(P(Y|X)\)</span> remains stable; <strong>Concept Drift</strong> occurs when <span class="math inline">\(P(Y|X)\)</span> itself shifts.</p>
+<p><strong><em>Distribution Shift</em></strong> is the violation of the <strong>Stationarity Assumption</strong> (<span class="math inline">\(P_{\text{train}} \neq P_{\text{deploy}}\)</span>) that underpins all supervised learning. It is the umbrella term for a family of drift types: <strong>Data Drift</strong> (see <strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>) occurs when <span class="math inline">\(P(X)\)</span> shifts while <span class="math inline">\(P(Y|X)\)</span> remains stable; <strong>Concept Drift</strong> occurs when <span class="math inline">\(P(Y|X)\)</span> itself shifts.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> Accuracy degradation is measurable against divergence. Empirical studies of production recommendation and NLP models find that when Jensen-Shannon divergence <span class="math inline">\(D_{JS}(P_{train} \| P_{deploy}) &gt; 0.1\)</span>, observed accuracy drops exceed five percent relative; when <span class="math inline">\(D_{JS} &gt; 0.3\)</span>, degradation typically exceeds 15–30 percent—sufficient to invalidate a production system that passed predeployment evaluation. This degradation occurs regardless of code quality, because the model is correct given its training distribution; the environment changed, not the code.</li>
+<li><strong>Significance (Quantitative):</strong> Accuracy degradation is measurable against divergence. Empirical studies of production recommendation and NLP models find that when Jensen-Shannon divergence <span class="math inline">\(D_{\text{JS}}(P_{\text{train}} \| P_{\text{deploy}}) &gt; 0.1\)</span>, observed accuracy drops exceed five percent relative; when <span class="math inline">\(D_{\text{JS}} &gt; 0.3\)</span>, degradation typically exceeds 15–30 percent—sufficient to invalidate a production system that passed predeployment evaluation. This degradation occurs regardless of code quality, because the model is correct given its training distribution; the environment changed, not the code.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Model Error</strong> (which is a learning failure caused by the algorithm or data quality at training time), Distribution Shift is an <strong>Environmental Failure</strong>: the model’s learned mapping was correct at training time but is no longer representative of current reality.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that “Data Drift” and “Distribution Shift” are different concepts at the same level of the hierarchy. Distribution Shift is the umbrella; Data Drift and Concept Drift are its two distinct subtypes. A system can experience Data Drift without Concept Drift (the inputs change, but the relationship holds), or Concept Drift without Data Drift (inputs are stable, but the correct output changes).</li>
 </ol>
@@ -1755,7 +1818,7 @@ Table&nbsp;1: <strong>ML System Failure Mode Taxonomy</strong>: Different failur
 </figure>
 </div>
 <p>The failure mode taxonomy in <a href="#tbl-failure-modes" class="quarto-xref">Table&nbsp;1</a> complements the D·A·M diagnostic framework: D·A·M identifies <em>where</em> failures originate, while <a href="#tbl-failure-modes" class="quarto-xref">Table&nbsp;1</a> guides <em>how</em> to detect and remediate them. Crashes and performance degradation trigger immediate alerts through existing infrastructure. Data quality issues, distribution shifts, and fairness violations require specialized detection mechanisms because the system continues operating normally from a technical perspective while producing increasingly problematic outputs.</p>
-<p>The YouTube recommendation feedback loop (examined as a technical debt pattern in <strong><a href="../ml_ops/ml_ops.html#sec-ml-operations-technical-debt-system-complexity-2762">Technical Debt</a></strong>) illustrates this pattern at scale <span class="citation" data-cites="ribeiro2020auditing">(<a href="#ref-ribeiro2020auditing" role="doc-biblioref">Ribeiro et al. 2020</a>)</span>.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> The system optimized for watch time and discovered that emotionally provocative content maximized engagement metrics, developing pathways toward increasingly extreme content. The system worked exactly as designed while producing outcomes that conflicted with societal values. From a responsibility perspective, the critical insight is that these feedback loops do not affect all users equally: they disproportionately impact vulnerable populations, and the resulting content amplification patterns can correlate with demographic characteristics, transforming an operational failure into a fairness violation.</p>
+<p>The YouTube recommendation feedback loop (examined as a technical debt pattern in <strong><a href="../ml_ops/ml_ops.html#sec-ml-operations-technical-debt-system-complexity-2762">Technical Debt</a></strong>) illustrates this pattern at scale <span class="citation" data-cites="ribeiro2020auditing">(<a href="#ref-ribeiro2020auditing" role="doc-biblioref">M. H. Ribeiro et al. 2020</a>)</span>.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> The system optimized for watch time and discovered that emotionally provocative content maximized engagement metrics, developing pathways toward increasingly extreme content. The system worked exactly as designed while producing outcomes that conflicted with societal values. From a responsibility perspective, the critical insight is that these feedback loops do not affect all users equally: they disproportionately impact vulnerable populations, and the resulting content amplification patterns can correlate with demographic characteristics, transforming an operational failure into a fairness violation.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-ribeiro2020auditing" class="csl-entry" role="listitem">
 Ribeiro, Manoel Horta, Raphael Ottoni, Robert West, Virgı́lio A. F. Almeida, and Jr. Meira Wagner. 2020. <span>“Auditing Radicalization Pathways on YouTube.”</span> <em>Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency</em>, January 27, 131–41. <a href="https://doi.org/10.1145/3351095.3372879">https://doi.org/10.1145/3351095.3372879</a>.
 </div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Goodhart’s Law</strong>: “When a measure becomes a target, it ceases to be a good measure” (Strathern’s generalization of Goodhart’s 1975 monetary policy observation). Recommendation feedback loops are the canonical ML manifestation: gradient descent optimizes watch-time proxies at a speed no human curator can match, and the system’s own outputs reshape the training distribution—users who consume extreme content generate data that reinforces extremity, decoupling the proxy from user welfare orders of magnitude faster than manual editorial processes ever could. </p></div></div><div id="callout-war-story-1.1" class="callout callout-war-story" title="The Click-Bait Death Spiral">
@@ -1783,12 +1846,14 @@ Obermeyer, Ziad, Brian Powers, Christine Vogeli, and Sendhil Mullainathan. 2019.
 <p>Organizations that commit to responsible engineering produce measurable successes, demonstrating both the feasibility and business value of rigorous responsibility practices.</p>
 <p>Following the Gender Shades findings, Microsoft invested in improving facial recognition performance across demographic groups. The approach combined technical and organizational interventions: targeted data collection to address underrepresented populations, model architecture changes to improve feature extraction for diverse skin tones, and systematic disaggregated evaluation across all demographic intersections. By 2019, Microsoft had reduced error rates for darker-skinned subjects by up to 20 times, bringing error rates below 2 percent for all demographic groups <span class="citation" data-cites="raji2019actionable">(<a href="#ref-raji2019actionable" role="doc-biblioref">Raji and Buolamwini 2019</a>)</span>. The company published these improvements transparently, enabling external verification. The business outcome: Microsoft’s facial recognition API maintained enterprise customer trust while competitors faced regulatory scrutiny and contract cancellations.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-raji2019actionable" class="csl-entry" role="listitem">
-Raji, Inioluwa Deborah, and Joy Buolamwini. 2019. <span>“Actionable Auditing: Investigating the Impact of Publicly Naming Biased Performance Results of Commercial AI Products.”</span> <em>Proceedings of the 2019 AAAI/ACM Conference on AI, Ethics, and Society</em>, January 27, 429–35. <a href="https://doi.org/10.1145/3306618.3314244">https://doi.org/10.1145/3306618.3314244</a>.
+Raji, Inioluwa Deborah, and Joy Buolamwini. 2019. <span>“Actionable Auditing: <span>Investigating</span> the Impact of Publicly Naming Biased Performance Results of Commercial <span>AI</span> Products: Investigating the Impact of Publicly Naming Biased Performance Results of Commercial AI Products.”</span> <em>Proceedings of the 2019 AAAI/ACM Conference on AI, Ethics, and Society</em>, January 27, 429–35. <a href="https://doi.org/10.1145/3306618.3314244">https://doi.org/10.1145/3306618.3314244</a>.
 </div><div id="ref-twitter2021cropping" class="csl-entry" role="listitem">
 Yee, Kyra, Uthaipon Tantipongpipat, and Shubhanshu Mishra. 2021. <span>“Image Cropping on <span>Twitter</span>: Fairness Metrics, Their Limitations, and the Importance of Representation, Design, and Agency.”</span> <em>Proceedings of the ACM on Human-Computer Interaction</em> 5. <a href="https://doi.org/10.1145/3479594">https://doi.org/10.1145/3479594</a>.
 </div></div><p>Twitter’s automatic image cropping system exhibited a different failure mode. In 2020, users discovered it showed racial bias in choosing which faces to display in preview thumbnails. Twitter responded with a responsible engineering approach: systematic analysis to characterize the problem quantitatively, publication of results enabling independent verification, and ultimately removal of the automatic cropping feature entirely <span class="citation" data-cites="twitter2021cropping">(<a href="#ref-twitter2021cropping" role="doc-biblioref">Yee et al. 2021</a>)</span>. The company determined that no technical solution could guarantee equitable outcomes across all contexts. This decision prioritized user fairness over engagement optimization and demonstrated that responsible engineering sometimes means not shipping a feature.</p>
-<p>Apple’s deployment of <strong>differential privacy</strong> in iOS represents responsible engineering at scale.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> The system collects usage data for product improvement while providing mathematical guarantees about individual privacy. The implementation required substantial engineering investment: noise calibration to balance utility against privacy, distributed computation to minimize data exposure, and transparent documentation of privacy parameters. The business value: Apple differentiated on privacy as a product feature, enabling data collection that would otherwise face regulatory and reputational barriers.</p>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Differential Privacy</strong>: Introduced by <span class="citation" data-cites="dwork2006calibrating">Dwork et al. (<a href="#ref-dwork2006calibrating" role="doc-biblioref">2006</a>)</span>, a mechanism satisfies <span class="math inline">\(\epsilon\)</span>-differential privacy if any output’s probability changes by at most <span class="math inline">\(e^\epsilon\)</span> when a single individual’s data is added or removed. The systems trade-off is steep: 15–30 percent computational overhead, 10–100<span class="math inline">\(\times\)</span> more data for equivalent accuracy, and a finite privacy budget (<span class="math inline">\(\epsilon\)</span>) that depletes with each query—forcing engineers to choose between richer analytics and stronger privacy guarantees. </p><div id="ref-dwork2006calibrating" class="csl-entry" role="listitem">
+<p>Apple’s deployment of <strong>differential privacy</strong> <span class="citation" data-cites="dwork2008differential">(<a href="#ref-dwork2008differential" role="doc-biblioref">Dwork 2008</a>)</span> in iOS represents responsible engineering at scale.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> The system collects usage data for product improvement while providing mathematical guarantees about individual privacy. The implementation required substantial engineering investment: noise calibration to balance utility against privacy, distributed computation to minimize data exposure, and transparent documentation of privacy parameters. The business value: Apple differentiated on privacy as a product feature, enabling data collection that would otherwise face regulatory and reputational barriers.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-dwork2008differential" class="csl-entry" role="listitem">
+Dwork, Cynthia. 2008. <span>“Differential Privacy: A Survey of Results.”</span> In <em>Theory and Applications of Models of Computation</em>. Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/978-3-540-79228-4\_1">https://doi.org/10.1007/978-3-540-79228-4\_1</a>.
+</div><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Differential Privacy</strong>: Introduced by <span class="citation" data-cites="dwork2006calibrating">Dwork et al. (<a href="#ref-dwork2006calibrating" role="doc-biblioref">2006</a>)</span>, a mechanism satisfies <span class="math inline">\(\epsilon\)</span>-differential privacy if any output’s probability changes by at most <span class="math inline">\(e^\epsilon\)</span> when a single individual’s data is added or removed. The systems trade-off is steep: 15–30 percent computational overhead, 10–100<span class="math inline">\(\times\)</span> more data for equivalent accuracy, and a finite privacy budget (<span class="math inline">\(\epsilon\)</span>) that depletes with each query—forcing engineers to choose between richer analytics and stronger privacy guarantees. </p><div id="ref-dwork2006calibrating" class="csl-entry" role="listitem">
 Dwork, Cynthia, Frank McSherry, Kobbi Nissim, and Adam Smith. 2006. <span>“Calibrating Noise to Sensitivity in Private Data Analysis.”</span> In <em>Theory of Cryptography</em>, vol. 3876. Lecture Notes in Computer Science. Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/11681878\_14">https://doi.org/10.1007/11681878\_14</a>.
 </div></div></div><p>Spotify addressed recommendation system concerns by implementing transparency features showing users why songs were recommended and providing controls to adjust algorithm behavior. This engineering investment served multiple purposes: user trust through explainability, reduced filter bubble effects through diversity injection, and regulatory compliance through user control mechanisms. The approach demonstrates that responsibility features can enhance rather than constrain product value.</p>
 <p>A common pattern unites the preceding cases: technical interventions (improved data, better evaluation, architectural changes) combined with organizational commitments (transparency, willingness to remove features, long-term investment). The resulting business outcomes (maintained customer trust, regulatory compliance, competitive differentiation) demonstrate that responsible engineering creates value rather than adding cost. Each success rested on systematic testing and evaluation practices, yet the nature of responsible testing differs fundamentally from traditional software verification.</p>
@@ -1798,10 +1863,10 @@ Dwork, Cynthia, Frank McSherry, Kobbi Nissim, and Adam Smith. 2006. <span>“Cal
 <p>Traditional software testing verifies that systems behave correctly because correctness has clear definitions. The function should return the sum of its inputs, the database should maintain referential integrity. These properties can be expressed as testable assertions.</p>
 <p>Responsible ML properties resist simple formalization. <em>Fairness</em> has multiple conflicting mathematical definitions that cannot all be satisfied simultaneously. What counts as fair depends on context, values, and trade-offs that technical systems cannot resolve alone. Individual fairness requires that similar individuals receive similar treatment, while group fairness requires equitable outcomes across demographic categories. These criteria can conflict, and choosing between them requires value judgments beyond the scope of optimization.</p>
 <p>The trade-off between fairness and accuracy is not a sign that fairness is impractical; it is a fundamental property of constrained optimization that engineers must understand. A Pareto frontier represents the set of optimal configurations where improving one metric necessarily degrades another. <a href="#fig-fairness-frontier" class="quarto-xref">Figure&nbsp;1</a> visualizes this <strong>Fairness-Accuracy Pareto Frontier</strong>. The curve is not linear: while perfect fairness (zero disparity) often requires a significant drop in accuracy, a “Sweet Spot” typically exists where large fairness gains can be achieved with minimal accuracy loss. The shape of the frontier explains why responsible engineering is feasible: in many practical settings, substantial fairness gains can be achieved with modest accuracy loss.</p>
-<div id="fig-fairness-frontier" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Curve showing trade-off between accuracy (y-axis) and disparity (x-axis). Point A is top-right (high acc, high disparity). Point C is left (low disparity, lower acc). Point B is top-left (high acc, low disparity), showing the optimal trade-off." data-fig-env="figure">
+<div id="fig-fairness-frontier" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Curve showing trade-off between accuracy (y-axis) and disparity (x-axis). Point A is top-right (high acc, high disparity). Point C is left (low disparity, lower acc). Point B is top-left (high acc, low disparity), showing the optimal trade-off." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fairness-frontier-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="af24acb6" class="cell" data-execution_count="1">
+<div id="916215ef" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1817,7 +1882,9 @@ Figure&nbsp;1: <strong>The Fairness-Accuracy Pareto Frontier.</strong> Model Acc
 </figure>
 </div>
 <p>Responsible properties become testable when engineers work with stakeholders to define criteria appropriate for specific applications. The Gender Shades project<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> demonstrated how disaggregated evaluation across demographic categories reveals disparities invisible in aggregate metrics <span class="citation" data-cites="buolamwini2018gender">(<a href="#ref-buolamwini2018gender" role="doc-biblioref">Buolamwini and Gebru 2018</a>)</span>. The results captured dramatic error rate differences that commercial facial recognition systems showed across demographic groups. Concretely, a 1,000-sample test set that suffices for the majority group provides only 10 samples for a 1% minority subgroup—effectively requiring 100x more data than the majority group for high-confidence validation.</p>
-<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Gender Shades</strong>: A 2018 study by Joy Buolamwini and Timnit Gebru (MIT Media Lab) that audited facial recognition systems from Microsoft, IBM, and Face++ using the Fitzpatrick skin type scale—originally a dermatological classification developed by Thomas Fitzpatrick (1975) for UV sensitivity, repurposed here as a demographic benchmark for algorithmic auditing. The study established disaggregated evaluation as the standard, demonstrating that a single aggregate accuracy number can conceal 43<span class="math inline">\(\times\)</span> error rate disparities across intersectional subgroups. Within two years, Microsoft reduced its worst-case error rates by 20<span class="math inline">\(\times\)</span>, proving that the measurement methodology itself was the intervention. </p></div></div><div id="tbl-gender-shades-results" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Gender Shades</strong>: A 2018 study by Joy Buolamwini and Timnit Gebru (MIT Media Lab) that audited facial recognition systems from Microsoft, IBM, and Face++ using the Fitzpatrick skin type scale—originally a dermatological classification developed by Thomas Fitzpatrick in 1975 for UV sensitivity and later validated for clinical use <span class="citation" data-cites="fitzpatrick1988validity">(<a href="#ref-fitzpatrick1988validity" role="doc-biblioref">Fitzpatrick 1988</a>)</span>, repurposed here as a demographic benchmark for algorithmic auditing. The study established disaggregated evaluation as the standard, demonstrating that a single aggregate accuracy number can conceal 43<span class="math inline">\(\times\)</span> error rate disparities across intersectional subgroups. Within two years, Microsoft reduced its worst-case error rates by 20<span class="math inline">\(\times\)</span>, proving that the measurement methodology itself was the intervention. </p><div id="ref-fitzpatrick1988validity" class="csl-entry" role="listitem">
+Fitzpatrick, Thomas B. 1988. <span>“The Validity and Practicality of Sun-Reactive Skin Types <span>I</span> Through <span>VI</span>.”</span> <em>Archives of Dermatology</em> 124 (6): 869–71. <a href="https://doi.org/10.1001/archderm.1988.01670060015008">https://doi.org/10.1001/archderm.1988.01670060015008</a>.
+</div></div></div><div id="tbl-gender-shades-results" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full">
 <figure class="quarto-float quarto-float-tbl figure page-columns page-full">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-gender-shades-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: <strong>Gender Shades Facial Recognition Error Rates</strong>: Disaggregated evaluation reveals that aggregate accuracy metrics conceal severe performance disparities. Systems that appear highly accurate overall show error rates varying by more than 43<span class="math inline">\(\times\)</span> across demographic groups. Worst-case results across systems studied; source: <span class="citation" data-cites="buolamwini2018gender">Buolamwini and Gebru (<a href="#ref-buolamwini2018gender" role="doc-biblioref">2018</a>)</span>.
@@ -1864,7 +1931,9 @@ Table&nbsp;2: <strong>Gender Shades Facial Recognition Error Rates</strong>: Dis
 </div>
 <p>As <a href="#tbl-gender-shades-results" class="quarto-xref">Table&nbsp;2</a> quantifies, disaggregated evaluation revealed what aggregate accuracy scores concealed. Systems reporting high overall accuracy simultaneously achieved error rates as low as 0.8 percent for light-skinned males and as high as 34.7 percent for dark-skinned females (corresponding to accuracies of 99.2 percent and 65.3 percent respectively). The aggregate metric provided no indication of this 43.4-fold disparity in error rates.</p>
 <p>No universal threshold defines acceptable disparity, but engineering teams should establish explicit bounds before deployment. Common industry practices include error rate ratios below 1.25<span class="math inline">\(\times\)</span> between demographic groups for high-stakes applications, false positive rate differences under five percentage points for screening systems, and selection rate ratios of at least 0.8 relative to the highest group’s rate (the four-fifths rule from employment discrimination law).<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a><a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> These thresholds serve as starting points for stakeholder discussion, not absolute standards. The key engineering discipline is defining measurable criteria before deployment rather than discovering problems after harm has occurred.</p>
-<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>Disparate Impact</strong>: A legal doctrine from <em>Griggs v. Duke Power Co.</em> (1971), where the US Supreme Court held that practices “fair in form, but discriminatory in operation” violate civil rights law even absent intent. The distinction between <em>disparate impact</em> (unintentional statistical harm) and <em>disparate treatment</em> (intentional discrimination) is critical for ML: models trained on historical data routinely produce disparate impact through proxy variables, creating legal liability even when engineers never encoded protected attributes. </p></div><div id="fn8"><p><sup>8</sup>&nbsp;<strong>Four-Fifths Rule</strong>: Codified in the 1978 Uniform Guidelines on Employee Selection Procedures, used by the EEOC, Department of Labor, and Department of Justice. A selection rate for any protected group below 80 percent of the highest group’s rate constitutes prima facie evidence of adverse impact—for example, if 60 percent of one group passes, at least forty-eight percent of any other group must pass. For ML systems, this translates to automated monitoring that alerts when per-group selection ratios fall below 0.8, providing a concrete threshold where most fairness metrics remain qualitative. </p></div></div><p>Despite the inherent challenges, several concrete testing approaches can surface responsibility issues before deployment. <em>Slice-based evaluation</em> partitions test data into meaningful subgroups and reports metrics separately for each slice. A model may achieve 95 percent accuracy overall but only 78 percent accuracy on low-income applicants or users from rural areas, a disparity invisible in aggregate reporting. <em>Invariance testing</em> checks whether predictions change when they should not: replacing “John” with “Jamal” in a loan application should not change approval likelihood if the feature is not legitimate for the decision. <em>Boundary testing</em> evaluates model behavior at the edges of input distributions (unusual ages, extreme values, rare categories) where training data may be sparse and predictions unreliable. <em>Stress testing</em> extends boundary testing to adversarial conditions: corrupted inputs, distribution shift, adversarial examples, and edge cases designed to probe failure modes systematically. <em>Stakeholder red-teaming</em> engages domain experts and affected community members to identify scenarios that engineers may not anticipate but users will encounter, surfacing failure modes that no automated test can discover because they require lived experience to imagine.</p>
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>Disparate Impact</strong>: A legal doctrine from <em>Griggs v. Duke Power Co.</em> (1971), where the US Supreme Court held that practices “fair in form, but discriminatory in operation” violate civil rights law even absent intent. The distinction between <em>disparate impact</em> (unintentional statistical harm) and <em>disparate treatment</em> (intentional discrimination) is critical for ML: models trained on historical data routinely produce disparate impact through proxy variables, creating legal liability even when engineers never encoded protected attributes. </p></div><div id="fn8"><p><sup>8</sup>&nbsp;<strong>Four-Fifths Rule</strong>: Codified in the 1978 Uniform Guidelines on Employee Selection Procedures, used by the EEOC, Department of Labor, and Department of Justice. A selection rate for any protected group below 80 percent of the highest group’s rate constitutes prima facie evidence of adverse impact—for example, if 60 percent of one group passes, at least forty-eight percent of any other group must pass. For ML systems, this translates to automated monitoring that alerts when per-group selection ratios fall below 0.8, providing a concrete threshold where most fairness metrics remain qualitative. </p></div><div id="ref-ribeiro2020beyond" class="csl-entry" role="listitem">
+Ribeiro, Marco Tulio, Tongshuang Wu, Carlos Guestrin, and Sameer Singh. 2020. <span>“Beyond Accuracy: Behavioral Testing of NLP Models with CheckList.”</span> <em>Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</em>, 4902–12. <a href="https://doi.org/10.18653/v1/2020.acl-main.442">https://doi.org/10.18653/v1/2020.acl-main.442</a>.
+</div></div><p>Despite the inherent challenges, several concrete testing approaches can surface responsibility issues before deployment. <em>Slice-based evaluation</em> partitions <span class="citation" data-cites="ribeiro2020beyond">(<a href="#ref-ribeiro2020beyond" role="doc-biblioref">M. T. Ribeiro et al. 2020</a>)</span> test data into meaningful subgroups and reports metrics separately for each slice. A model may achieve 95 percent accuracy overall but only 78 percent accuracy on low-income applicants or users from rural areas, a disparity invisible in aggregate reporting. <em>Invariance testing</em> checks whether predictions change when they should not: replacing “John” with “Jamal” in a loan application should not change approval likelihood if the feature is not legitimate for the decision. <em>Boundary testing</em> evaluates model behavior at the edges of input distributions (unusual ages, extreme values, rare categories) where training data may be sparse and predictions unreliable. <em>Stress testing</em> extends boundary testing to adversarial conditions: corrupted inputs, distribution shift, adversarial examples, and edge cases designed to probe failure modes systematically. <em>Stakeholder red-teaming</em> engages domain experts and affected community members to identify scenarios that engineers may not anticipate but users will encounter, surfacing failure modes that no automated test can discover because they require lived experience to imagine.</p>
 <p>Responsible testing strategies complement traditional software testing rather than replacing it. Each demands engineering judgment to select, configure, and interpret. A legal team cannot specify which demographic slices matter for a healthcare algorithm; a product manager cannot determine appropriate invariance tests for a loan model. The technical depth required to implement responsible testing points to a critical organizational truth: only engineers possess the knowledge to translate abstract fairness goals into measurable, testable properties. Responsibility ownership must therefore sit within engineering organizations, not outside them.</p>
 </section>
 <section id="sec-responsible-engineering-engineering-leadership-responsibility-e03c" class="level3">
@@ -1872,7 +1941,7 @@ Table&nbsp;2: <strong>Gender Shades Facial Recognition Error Rates</strong>: Dis
 <p>When Amazon’s ethics board finally reviewed the recruiting tool, the model had already encoded proxy signals so deeply that remediation required scrapping the project entirely. The review came too late because the technical decisions that created the problem, made months earlier by engineers, had already constrained every possible fix. Responsible AI Engineering cannot be delegated exclusively to ethics boards or legal departments. These groups provide essential oversight but lack the technical access required to identify problems early in the development process.</p>
 <div id="callout-definition-1.2" class="callout callout-definition" title="Responsible AI Engineering">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: Responsible AI Engineering</strong></summary><div>
-<p><strong><em>Responsible AI Engineering</em></strong> is the engineering discipline of designing, deploying, and maintaining systems with probabilistic outputs by operationalizing societal and regulatory requirements as testable constraints on the D·A·M axes, bounding which values of <span class="math inline">\(D_{\text{vol}}\)</span>, <span class="math inline">\(O\)</span>, and <span class="math inline">\(R_{\text{peak}} \cdot \eta\)</span> are permissible.</p>
+<p><strong><em>Responsible AI Engineering</em></strong> is the engineering discipline of designing, deploying, and maintaining systems with probabilistic outputs by operationalizing societal and regulatory requirements as testable constraints on the D·A·M axes, bounding which values of <span class="math inline">\(D_{\text{vol}}\)</span>, <span class="math inline">\(O\)</span>, and <span class="math inline">\(R_{\text{peak}} \cdot \eta_{\text{hw}}\)</span> are permissible.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> Each D·A·M axis acquires concrete governance constraints: the Data axis is bounded by privacy regulations such as the General Data Protection Regulation (GDPR), which limits which <span class="math inline">\(D_{\text{vol}}\)</span> can be collected, the Algorithm axis is bounded by fairness metrics (for example, demographic parity within <span class="math inline">\(\varepsilon = 5\%\)</span> across protected groups, meaning positive prediction rates must not differ by more than 5 percentage points), and the Machine axis is bounded by robustness budgets (for example, accuracy degradation less than two percent under adversarial perturbation <span class="math inline">\(\|\delta\|_\infty \leq 0.01\)</span>). Violating these bounds is a system failure, not a research shortcoming.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>AI Ethics</strong> (which articulates aspirational values), Responsible AI Engineering translates those values into <strong>Measurable, Testable Invariants</strong> that can be verified through automated testing and continuous monitoring, using the same lifecycle practices that enforce latency SLOs.</li>
@@ -1885,7 +1954,7 @@ Table&nbsp;2: <strong>Gender Shades Facial Recognition Error Rates</strong>: Dis
 <p>The timing of responsibility interventions determines their effectiveness. An ethics review conducted before deployment can identify problems but faces limited remediation options: if the team trained the model without fairness constraints, if the architecture cannot support interpretability requirements, if the data pipeline lacks demographic attributes for monitoring, then the ethics review can only recommend rejection or acceptance of the existing system. Engineering involvement from project inception enables proactive design rather than reactive assessment.</p>
 <p>An engineering-centered approach does not diminish the importance of diverse perspectives in identifying potential harms. Product managers, user researchers, affected communities, and policy experts contribute essential knowledge about how systems fail socially despite technical success. Engineers translate these concerns into measurable requirements and testable properties that can be verified throughout the development lifecycle. Effective responsibility requires engineers who both listen to stakeholder concerns and possess the technical capability to implement appropriate safeguards.</p>
 <p>Engineering teams do not operate in isolation. As <a href="#fig-governance-layers" class="quarto-xref">Figure&nbsp;2</a> makes clear, engineering practices are nested within broader organizational, industry, and regulatory governance structures, each layer imposing constraints on the ones inside it. The key insight is that technical excellence at the innermost layer enables, but does not replace, compliance with requirements flowing inward from external governance.</p>
-<div id="fig-governance-layers" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Nested oval diagram showing governance layers from innermost to outermost: Team (reliable systems, software engineering), organization (safety culture, organizational design), industry (trustworthy certification, external reviews), and government regulation." data-fig-env="figure">
+<div id="fig-governance-layers" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Nested oval diagram showing governance layers from innermost to outermost: Team (reliable systems, software engineering), organization (safety culture, organizational design), industry (trustworthy certification, external reviews), and government regulation." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-governance-layers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/governance_layers.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Responsible AI Governance Layers. Nested governance structures surround engineering practice. At the center, engineering teams implement technical safeguards. Successive layers represent organizational safety culture, industry certification and external review, and government regulation. Technical excellence at the center enables compliance with requirements flowing inward from outer layers."><img src="images/svg/governance_layers.svg" class="img-fluid figure-img"></a>
@@ -2171,7 +2240,7 @@ Table&nbsp;5: <strong>Fairness Risk by ML Archetype</strong>: Fairness risks var
 Buolamwini, Joy, and Timnit Gebru. 2018. <span>“Gender Shades: Intersectional Accuracy Disparities in Commercial Gender Classification.”</span> <em>Conference on Fairness, Accountability and Transparency</em>, 77–91. <a href="http://proceedings.mlr.press/v81/buolamwini18a.html">http://proceedings.mlr.press/v81/buolamwini18a.html</a>.
 </div></div><p>Engineers should identify relevant subgroups based on application context. For healthcare applications, demographic factors like race, age, and gender are essential. For content moderation, language and cultural context matter. For financial services, protected categories under fair lending laws require specific attention.</p>
 <p>Testing infrastructure should support stratified evaluation where performance metrics are computed separately for each relevant subgroup, enabling comparison of error rates and error types across populations. Intersectional analysis considers combinations of attributes because harms may concentrate at intersections not visible in single-factor analysis. Confidence intervals provide uncertainty quantification for subgroup metrics when small subgroup sizes may yield unreliable estimates. Temporal monitoring tracks subgroup performance over time, detecting drift that affects some populations before others.</p>
-<p>Several open-source tools support responsible testing workflows. Fairlearn (Microsoft Research, 2020) provides fairness metrics and mitigation algorithms that integrate with scikit-learn pipelines <span class="citation" data-cites="bird2020fairlearn">(<a href="#ref-bird2020fairlearn" role="doc-biblioref">Bird et al. 2020</a>)</span>. AI Fairness 360 (IBM Research, 2018) offers over 70 fairness metrics and ten bias mitigation algorithms across the ML lifecycle <span class="citation" data-cites="bellamy2019aif360">(<a href="#ref-bellamy2019aif360" role="doc-biblioref">Bellamy et al. 2019</a>)</span>.</p>
+<p>Several open-source tools support responsible testing workflows. Fairlearn <span class="citation" data-cites="bird2020fairlearn">(<a href="#ref-bird2020fairlearn" role="doc-biblioref">Bird et al. 2020</a>)</span> provides fairness metrics and mitigation algorithms that integrate with scikit-learn pipelines. AI Fairness 360 <span class="citation" data-cites="bellamy2019aif360">(<a href="#ref-bellamy2019aif360" role="doc-biblioref">Bellamy et al. 2019</a>)</span> offers over 70 fairness metrics and ten bias mitigation algorithms across the ML lifecycle.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-bird2020fairlearn" class="csl-entry" role="listitem">
 Bird, Sarah, Miro Dudı́k, Richard Edgar, et al. 2020. <span>“Fairlearn: A Toolkit for Assessing and Improving Fairness in AI.”</span> <em>Microsoft Technical Report MSR-TR-2020-32</em>.<a href="
     https://www.microsoft.com/en-us/research/publication/fairlearn-a-toolkit-for-assessing-and-improving-fairness-in-ai/
@@ -2253,10 +2322,14 @@ Table&nbsp;7: <strong>Confusion Matrix for Group B (Minority)</strong>: Loan app
 </figure>
 </div>
 <p>Three standard fairness metrics computed from the confusion matrices in <a href="#tbl-confusion-group-a" class="quarto-xref">Table&nbsp;6</a> and <a href="#tbl-confusion-group-b" class="quarto-xref">Table&nbsp;7</a> reveal significant disparities.<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a></p>
-<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Fairness Metric Incompatibility</strong>: The measured disparities are a direct consequence of an impossibility theorem proving that multiple fairness metrics cannot be satisfied simultaneously when group base rates differ (Chouldechova, 2017). This forces an explicit trade-off: optimizing for one metric, like equal opportunity, will degrade another, such as predictive parity. A system designer must therefore choose which fairness guarantee to violate, as it is mathematically impossible to satisfy all three. </p></div></div><p>Demographic parity requires equal approval rates across groups. Group A receives approval at a rate of (4,500 + 1,000) / 10,000 = 55 percent, while Group B receives approval at (600 + 200) / 2,000 = 40 percent. The 15 percentage point disparity indicates unequal treatment in approval decisions.</p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Fairness Metric Incompatibility</strong>: The measured disparities are a direct consequence of an impossibility theorem proving that multiple fairness metrics cannot be satisfied simultaneously when group base rates differ <span class="citation" data-cites="chouldechova2017fair">(<a href="#ref-chouldechova2017fair" role="doc-biblioref">Chouldechova 2017</a>)</span>. This forces an explicit trade-off: optimizing for one metric, like equal opportunity, will degrade another, such as predictive parity. A system designer must therefore choose which fairness guarantee to violate, as it is mathematically impossible to satisfy all three. </p><div id="ref-chouldechova2017fair" class="csl-entry" role="listitem">
+Chouldechova, Alexandra. 2017. <span>“Fair Prediction with Disparate Impact: A Study of Bias in Recidivism Prediction Instruments.”</span> <em>Big Data</em> 5 (2): 153–63. <a href="https://doi.org/10.1089/big.2016.0047">https://doi.org/10.1089/big.2016.0047</a>.
+</div></div></div><p>Demographic parity requires equal approval rates across groups. Group A receives approval at a rate of (4,500 + 1,000) / 10,000 = 55 percent, while Group B receives approval at (600 + 200) / 2,000 = 40 percent. The 15 percentage point disparity indicates unequal treatment in approval decisions.</p>
 <p>Equal opportunity requires equal true positive rates among qualified applicants. Group A achieves a TPR of 4,500 / (4,500 + 500) = 90 percent, meaning 90 percent of applicants who would repay receive approval. Group B achieves only 600 / (600 + 400) = 60 percent TPR. This 30 percentage point disparity means qualified applicants from Group B face substantially higher rejection rates than equally qualified applicants from Group A.</p>
 <p>Equalized odds<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> requires both equal true positive rates and equal false positive rates. Group A shows an FPR of 1,000 / (1,000 + 4,000) = 20 percent, and Group B shows 200 / (200 + 800) = 20 percent. While false positive rates are equal, the true positive rate disparity means equalized odds is violated.</p>
-<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Equalized Odds</strong>: Formalized by Hardt, Price, and Srebro (NeurIPS 2016), requiring that both TPR and FPR be equal across protected groups. The weaker “equal opportunity” relaxes this to TPR alone. The practically important result: equalized odds can be achieved as a post-processing step by adjusting prediction thresholds per group, requiring no model retraining—separating the fairness mechanism from the training pipeline and enabling fairness fixes without retraining cycles that cost thousands of GPU-hours. </p></div></div><p>The pattern revealed by these metrics has a clear interpretation: the model rejects qualified applicants from Group B at a much higher rate (40 percent false negative rate vs.&nbsp;10 percent) while maintaining similar false positive rates. The disparity pattern suggests the model has learned stricter approval criteria for Group B, potentially encoding historical discrimination in lending patterns where minority applicants faced higher scrutiny despite equivalent qualifications.</p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Equalized Odds</strong>: Formalized by <span class="citation" data-cites="hardt2016equality">Hardt et al. (<a href="#ref-hardt2016equality" role="doc-biblioref">2016</a>)</span>, requiring that both TPR and FPR be equal across protected groups. The weaker “equal opportunity” relaxes this to TPR alone. The practically important result: equalized odds can be achieved as a post-processing step by adjusting prediction thresholds per group, requiring no model retraining—separating the fairness mechanism from the training pipeline and enabling fairness fixes without retraining cycles that cost thousands of GPU-hours. </p><div id="ref-hardt2016equality" class="csl-entry" role="listitem">
+Hardt, Moritz, Eric Price, and Nathan Srebro. 2016. <span>“Equality of Opportunity in Supervised Learning.”</span> <em>Advances in Neural Information Processing Systems</em> 29: 3315–23. <a href="https://papers.nips.cc/paper/6374-equality-of-opportunity-in-supervised-learning">https://papers.nips.cc/paper/6374-equality-of-opportunity-in-supervised-learning</a>.
+</div></div></div><p>The pattern revealed by these metrics has a clear interpretation: the model rejects qualified applicants from Group B at a much higher rate (40 percent false negative rate vs.&nbsp;10 percent) while maintaining similar false positive rates. The disparity pattern suggests the model has learned stricter approval criteria for Group B, potentially encoding historical discrimination in lending patterns where minority applicants faced higher scrutiny despite equivalent qualifications.</p>
 <p>Production systems must automate these calculations across all protected attributes, triggering alerts when disparities exceed predefined thresholds. <a href="#lst-fairness-metrics-code" class="quarto-xref">Listing&nbsp;1</a> shows the core pattern: compute per-group metrics from confusion matrices, then flag disparities that exceed acceptable bounds.</p>
 <div id="lst-fairness-metrics-code" class="listing quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-lst figure">
@@ -2298,10 +2371,10 @@ Table&nbsp;8: <strong>Fairness Metrics Summary</strong>: Comparison of fairness 
 <div aria-describedby="tbl-fairness-metrics-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 14%">
-<col style="width: 24%">
-<col style="width: 24%">
-<col style="width: 36%">
+<col style="width: 33%">
+<col style="width: 19%">
+<col style="width: 19%">
+<col style="width: 28%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2337,8 +2410,8 @@ Table&nbsp;8: <strong>Fairness Metrics Summary</strong>: Comparison of fairness 
 </div>
 <p>To understand <em>why</em> aggregate metrics hide these disparities, look closely at <a href="#fig-fairness-threshold" class="quarto-xref">Figure&nbsp;3</a>. When a single threshold is applied to populations with different score distributions, the same decision boundary produces vastly different outcomes for each group <span class="citation" data-cites="barocas2016big">(<a href="#ref-barocas2016big" role="doc-biblioref">Barocas and Selbst 2016</a>)</span>. The figure exposes a fundamental tension: any fixed threshold is simultaneously “correct” for the combined population while being systematically wrong for each subpopulation.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-barocas2016big" class="csl-entry" role="listitem">
-Barocas, Solon, and Andrew D. Selbst. 2016. <span>“Big Data’s Disparate Impact.”</span> <em>SSRN Electronic Journal</em> 104: 671–732. <a href="https://doi.org/10.2139/ssrn.2477899">https://doi.org/10.2139/ssrn.2477899</a>.
-</div></div><div id="fig-fairness-threshold" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Diagram showing two subgroups A and B with different score distributions. Vertical threshold lines at 75 percent and 81.25 percent show how the same threshold produces different approval rates for each group." data-fig-env="figure">
+Barocas, Solon, and Andrew D. Selbst. 2016. <span>“Big Data’s Disparate Impact.”</span> <em>California Law Review</em> 104: 671–732. <a href="https://doi.org/10.2139/ssrn.2477899">https://doi.org/10.2139/ssrn.2477899</a>.
+</div></div><div id="fig-fairness-threshold" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram showing two subgroups A and B with different score distributions. Vertical threshold lines at 75 percent and 81.25 percent show how the same threshold produces different approval rates for each group." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fairness-threshold-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="87f05059f5e3217e075f46d2dc48fa692d9d6403.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Threshold Effects on Subgroup Outcomes. A single classification threshold (vertical lines) applied to two subgroups with different score distributions produces disparate outcomes. Circles represent positive outcomes (loan repayment); plus markers represent negative outcomes (default). The 75 percent threshold approves most of Subgroup A but rejects most of Subgroup B, even when qualified individuals exist in both groups. The 81.25 percent threshold shows how threshold adjustment changes the fairness-accuracy trade-off. This visualization explains why aggregate accuracy can mask severe subgroup disparities."><img src="responsible_engr_files/mediabag/87f05059f5e3217e075f46d2dc48fa692d9d6403.svg" class="img-fluid figure-img"></a>
@@ -2349,7 +2422,9 @@ Figure&nbsp;3: <strong>Threshold Effects on Subgroup Outcomes</strong>. A single
 </figure>
 </div>
 <p>Several mitigation approaches exist, each with distinct trade-offs. Threshold adjustment lowers the approval threshold for Group B to equalize TPR but may increase false positives for that group. Reweighting<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> increases the weight of Group B samples during training to give the model stronger signal about this population but may reduce overall accuracy. Adversarial debiasing trains with an adversary that prevents the model from learning group membership but adds training complexity.<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> The choice among these approaches requires stakeholder input about which trade-offs are acceptable in the specific application context. Engineers present these trade-offs effectively by making them explicit and quantifiable.</p>
-<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Reweighting</strong>: A preprocessing technique rooted in importance sampling from statistics: samples from an underrepresented group receive higher loss weights during training, amplifying their influence on gradient updates without removing any data. Kamiran and Calders (2012) proved that appropriately chosen weights can eliminate disparate impact from training data. The systems trade-off: reweighting shifts the loss landscape, potentially reducing majority-group accuracy by 1–3 percent to close disparity gaps—a cost that must be evaluated against the Pareto frontier for the application. </p></div><div id="fn13"><p><sup>13</sup>&nbsp;<strong>Adversarial Debiasing</strong>: The key differentiating property is stability under distribution shift: because the adversary forces the primary model to learn representations <em>invariant</em> to the protected attribute (not just calibrated on the training distribution), adversarial debiasing is the only technique that theoretically maintains fairness guarantees when the deployment distribution differs from training. Post-processing methods (threshold adjustment, output reweighting) recalibrate on the training distribution but fail when deployment demographics shift—which is why they often appear to work in evaluation but degrade after launch. The cost is 20–50 percent additional training time and 1–3 percent accuracy reduction. </p></div></div><div id="callout-checkpoint-1.2" class="callout callout-checkpoint" title="Fairness Criteria">
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Reweighting</strong>: A preprocessing technique rooted in importance sampling from statistics: samples from an underrepresented group receive higher loss weights during training, amplifying their influence on gradient updates without removing any data. <span class="citation" data-cites="kamiran2012data">Kamiran and Calders (<a href="#ref-kamiran2012data" role="doc-biblioref">2012</a>)</span> proved that appropriately chosen weights can eliminate disparate impact from training data. The systems trade-off: reweighting shifts the loss landscape, potentially reducing majority-group accuracy by 1–3 percent to close disparity gaps—a cost that must be evaluated against the Pareto frontier for the application. </p><div id="ref-kamiran2012data" class="csl-entry" role="listitem">
+Kamiran, Faisal, and Toon Calders. 2012. <span>“Data Preprocessing Techniques for Classification Without Discrimination.”</span> <em>Knowledge and Information Systems</em> 33 (1): 1–33. <a href="https://doi.org/10.1007/s10115-011-0463-8">https://doi.org/10.1007/s10115-011-0463-8</a>.
+</div></div><div id="fn13"><p><sup>13</sup>&nbsp;<strong>Adversarial Debiasing</strong>: The key differentiating property is stability under distribution shift: because the adversary forces the primary model to learn representations <em>invariant</em> to the protected attribute (not just calibrated on the training distribution), adversarial debiasing is the only technique that theoretically maintains fairness guarantees when the deployment distribution differs from training. Post-processing methods (threshold adjustment, output reweighting) recalibrate on the training distribution but fail when deployment demographics shift—which is why they often appear to work in evaluation but degrade after launch. The cost is 20–50 percent additional training time and 1–3 percent accuracy reduction. </p></div></div><div id="callout-checkpoint-1.2" class="callout callout-checkpoint" title="Fairness Criteria">
 <details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.2: Fairness Criteria</strong></summary><div>
 <p>Fairness is not a single metric; it is a constrained design choice.</p>
 <ul class="task-list">
@@ -2445,11 +2520,11 @@ Table&nbsp;9: <strong>Explainability Requirements by Domain</strong>: Different 
 </div>
 <p>Engineering teams should select explainability approaches based on these domain requirements. Post-hoc explanation methods (LIME, SHAP) generate feature importance scores for individual predictions without requiring model architecture changes.<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> Inherently interpretable models (linear models, decision trees, attention mechanisms) provide explanations as part of their structure but may sacrifice predictive performance. Concept-based explanations map model behavior to human-understandable concepts rather than raw features. The choice involves trade-offs between explanation fidelity, computational cost, and model flexibility. <a href="#fig-interpretability-spectrum" class="quarto-xref">Figure&nbsp;4</a> arranges these trade-offs along a single axis. On the left side, decision trees and linear regression offer direct auditability: an engineer can inspect every coefficient or branching rule that produced a prediction, at the cost of limited representational capacity. On the right side, deep neural networks and convolutional architectures achieve higher accuracy on complex tasks but resist human inspection, requiring post-hoc tools like LIME or SHAP to approximate explanations. The choice depends on the application’s accountability requirements: high-stakes credit decisions subject to adverse action notice laws demand models near the interpretable end, while large-scale recommendation systems that face no per-decision regulatory scrutiny can tolerate opaque architectures. The spectrum does not imply “simple is always better,” because a highly interpretable model that makes wrong predictions serves no one. The engineering challenge is selecting the most interpretable model that meets accuracy requirements for the application.</p>
 <div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>LIME and SHAP</strong>: LIME <span class="citation" data-cites="ribeiro2016why">(<a href="#ref-ribeiro2016why" role="doc-biblioref">Ribeiro et al. 2016</a>)</span> fits a local interpretable model around each prediction—fast but potentially inconsistent across nearby inputs. SHAP <span class="citation" data-cites="lundberg2017unified">(<a href="#ref-lundberg2017unified" role="doc-biblioref">Lundberg and Lee 2017</a>)</span> adapts Shapley values from game theory (Lloyd Shapley, 1953; Nobel Prize 2012) to compute mathematically consistent feature contributions, but with exponential worst-case complexity. The systems trade-off is stark: SHAP adds 10–100<span class="math inline">\(\times\)</span> inference latency, making LIME the only viable option for real-time serving where explanation must arrive within the same latency budget as the prediction itself. </p><div id="ref-ribeiro2016why" class="csl-entry" role="listitem">
-Ribeiro, Marco Tulio, Sameer Singh, and Carlos Guestrin. 2016. <span>“"Why Should i Trust You?": Explaining the Predictions of Any Classifier.”</span> <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, August 13, 1135–44. <a href="https://doi.org/10.1145/2939672.2939778">https://doi.org/10.1145/2939672.2939778</a>.
+Ribeiro, Marco Tulio, Sameer Singh, and Carlos Guestrin. 2016. <span>“"Why Should i Trust You?": <span>Explaining</span> the Predictions of Any Classifier: Explaining the Predictions of Any Classifier.”</span> <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, August 13, 1135–44. <a href="https://doi.org/10.1145/2939672.2939778">https://doi.org/10.1145/2939672.2939778</a>.
 </div><div id="ref-lundberg2017unified" class="csl-entry" role="listitem">
 Lundberg, Scott M., and Su-In Lee. 2017. <span>“A Unified Approach to Interpreting Model Predictions.”</span> <em>Advances in Neural Information Processing Systems</em> 30: 4765–74. <a href="https://proceedings.neurips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html">https://proceedings.neurips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html</a>.
 </div></div></div><div id="callout-war-story-1.4" class="callout callout-war-story" title="The Clever Hans Effect">
-<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.4: The Clever Hans Effect</strong></summary><div><strong>The Context</strong>: Researchers at Mount Sinai Hospital trained a neural network to detect pneumonia in chest X-rays. The model achieved superhuman accuracy on the test set.<p></p>
+<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.4: The Clever Hans Effect</strong></summary><div><strong>The Context</strong>: Researchers at Mount Sinai Hospital trained a neural network to detect pneumonia in chest X-rays <span class="citation" data-cites="rajkomar2019machine">(<a href="#ref-rajkomar2019machine" role="doc-biblioref">Rajkomar et al. 2019</a>)</span>. The model achieved superhuman accuracy on the test set.<p></p>
 <p><strong>The Failure</strong>: When tested on data from other hospitals, performance collapsed. Heatmap analysis revealed the model was not looking at the lungs. Instead, it had learned to detect a metal token that technicians at the training hospital placed on the patient’s shoulder.</p>
 <p><strong>The Consequence</strong>: The model was effectively a “metal token detector,” not a pneumonia detector. It had learned a spurious correlation that was 100 percent predictive in the training distribution but irrelevant to the medical pathology.</p>
 <p><strong>The Systems Lesson</strong>: Neural networks are lazy optimizers. They will exploit the easiest statistical signal to minimize loss, even if that signal is medically irrelevant. Interpretability tools (saliency maps) are not optional; they are quality assurance gates <span class="citation" data-cites="lapuschkin2019unmasking">(<a href="#ref-lapuschkin2019unmasking" role="doc-biblioref">Lapuschkin et al. 2019</a>)</span>.</p>
@@ -2457,7 +2532,9 @@ Lundberg, Scott M., and Su-In Lee. 2017. <span>“A Unified Approach to Interpre
 </div>
 <div class="no-row-height column-margin column-container"><div id="ref-lapuschkin2019unmasking" class="csl-entry" role="listitem">
 Lapuschkin, Sebastian, Stephan Wäldchen, Alexander Binder, Grégoire Montavon, Wojciech Samek, and Klaus-Robert Müller. 2019. <span>“Unmasking Clever Hans Predictors and Assessing What Machines Really Learn.”</span> <em>Nature Communications</em> 10 (1): 1–8. <a href="https://doi.org/10.1038/s41467-019-08987-4">https://doi.org/10.1038/s41467-019-08987-4</a>.
-</div></div><div id="fig-interpretability-spectrum" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Horizontal spectrum showing model types from more interpretable (decision trees, linear regression, logistic regression) to less interpretable (random forest, neural network, convolutional neural network)." data-fig-env="figure">
+</div></div><div class="no-row-height column-margin column-container"><div id="ref-rajkomar2019machine" class="csl-entry" role="listitem">
+Rajkomar, Alvin, Jeffrey Dean, and Isaac Kohane. 2019. <span>“Machine Learning in Medicine.”</span> <em>New England Journal of Medicine</em> 380 (14): 1347–58. <a href="https://doi.org/10.1056/nejmra1814259">https://doi.org/10.1056/nejmra1814259</a>.
+</div></div><div id="fig-interpretability-spectrum" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Horizontal spectrum showing model types from more interpretable (decision trees, linear regression, logistic regression) to less interpretable (random forest, neural network, convolutional neural network)." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-interpretability-spectrum-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/interpretability_spectrum.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Model Interpretability Spectrum. A horizontal spectrum arranges model architectures from most interpretable on the left (decision trees, linear regression, logistic regression) to least interpretable on the right (random forests, neural networks, convolutional neural networks). Models on the left allow direct inspection of decision logic, while those on the right require post-hoc explanation techniques such as LIME or SHAP. High-stakes regulatory requirements may constrain model selection toward the interpretable end of this spectrum."><img src="images/svg/interpretability_spectrum.svg" class="img-fluid figure-img"></a>
@@ -2618,10 +2695,10 @@ Table&nbsp;11: <strong>Edge Deployment Constraints</strong>: Power and latency r
 <div aria-describedby="tbl-edge-deployment-constraints-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 13%">
-<col style="width: 27%">
-<col style="width: 32%">
 <col style="width: 26%">
+<col style="width: 23%">
+<col style="width: 28%">
+<col style="width: 22%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2980,7 +3057,7 @@ Henderson, Peter, Jieru Hu, Joshua Romoff, Emma Brunskill, Dan Jurafsky, and Joe
 <li><strong>Total Emissions</strong>: 1,300,000.0 <span class="math inline">\(\times\)</span> 0.4 = <strong>520,000 kg CO₂</strong> (520 metric tons).</li>
 <li><strong>Comparison</strong>: A typical passenger car emits ≈ 4.6 metric tons of CO2 per year.</li>
 </ol>
-<p><strong>The Systems Conclusion</strong>: Training a single state-of-the-art model is equivalent to the annual carbon footprint of <strong>113 cars</strong>. At this scale, efficiency transforms from a technical preference into a moral requirement. Every one percent improvement in the <strong>Efficiency (<span class="math inline">\(\eta\)</span>)</strong> of a training pipeline removes the equivalent of one car’s annual emissions from the atmosphere.</p>
+<p><strong>The Systems Conclusion</strong>: Training a single state-of-the-art model is equivalent to the annual carbon footprint of <strong>113 cars</strong>. At this scale, efficiency transforms from a technical preference into a moral requirement. Every one percent improvement in the <strong>Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> of a training pipeline removes the equivalent of one car’s annual emissions from the atmosphere.</p>
 </div></details>
 </div>
 <p>The key insight is that efficiency optimization and environmental responsibility align: the techniques that reduce inference costs also reduce carbon emissions per prediction. More granular carbon accounting methodologies—lifecycle assessment, scope 1/2/3 emissions tracking, and carbon-aware scheduling—build on this foundation for organizations requiring detailed environmental impact analysis.</p>
@@ -3038,7 +3115,7 @@ Henderson, Peter, Jieru Hu, Joshua Romoff, Emma Brunskill, Dan Jurafsky, and Joe
 </div>
 <p>The Lighthouse KWS system, the keyword-spotting voice assistant introduced in <strong><a href="../ml_systems/ml_systems.html#sec-ml-systems">ML Systems</a></strong> and used as a running example throughout earlier chapters, illustrates how the fairness risks identified in <a href="#tbl-fairness-archetype" class="quarto-xref">Table&nbsp;5</a> intensify at the governance level. Always-listening devices continuously process audio in users’ homes, feature stores maintain voice pattern histories across millions of users, and edge storage caches models derived from population-wide training data. These capabilities create governance obligations around consent management, data minimization, access auditing, and deletion rights.</p>
 <p><a href="#fig-data-governance-pillars" class="quarto-xref">Figure&nbsp;5</a> maps these governance obligations to four operational pillars, each with distinct engineering mechanisms. Privacy protects individuals through techniques like differential privacy and data minimization, limiting what the system retains beyond its immediate training purpose. Security prevents unauthorized access through encryption at rest and in transit, role-based access controls, and audit logging of every query against the feature store. Compliance ensures adherence to regulatory frameworks such as GDPR and CCPA, translating legal requirements into concrete system capabilities like erasure pipelines and consent management APIs. Transparency enables accountability through documentation of data provenance, model lineage, and decision audit trails. These pillars must operate together because a failure in any one undermines the others: encrypted data with no access controls is still vulnerable, and compliant storage without transparency cannot survive a regulatory audit. In the context of the D·A·M taxonomy, governance provides the structural integrity for the Data axis, ensuring that the fuel for our systems remains safe, compliant, and reliable across the entire data lifecycle.</p>
-<div id="fig-data-governance-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Circular diagram with 'Data Governance' at center, surrounded by eight topical elements: Organization, Policies, Data catalogs, Data &amp; analytic definitions, Data Sourcing, Data quality &amp; master Data, Data Operations, Data Security." data-fig-env="figure">
+<div id="fig-data-governance-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Circular diagram with 'Data Governance' at center, surrounded by eight topical elements: Organization, Policies, Data catalogs, Data &amp; analytic definitions, Data Sourcing, Data quality &amp; master Data, Data Operations, Data Security." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-data-governance-pillars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="2310f5637a64eeed0712bf80e5b85d5cbc0ff664.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Data governance framework: A comprehensive data governance framework weaves together many interconnected topical elements (Organization, Policies, Data catalogs, Data Sourcing, Data quality &amp; master Data, Data Operations, Data Security, and Data &amp; analytic definitions) that together deliver the obligations of privacy, security, compliance, and transparency across the data lifecycle."><img src="responsible_engr_files/mediabag/2310f5637a64eeed0712bf80e5b85d5cbc0ff664.svg" class="img-fluid figure-img"></a>
@@ -3057,7 +3134,9 @@ Figure&nbsp;5: <strong>Data governance framework</strong>: A comprehensive data 
 <section id="sec-responsible-engineering-technical-privacy-protection-methods-4a74" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-responsible-engineering-technical-privacy-protection-methods-4a74">Technical privacy protection methods</h3>
 <p>A data scientist with legitimate access to training data does not need, and should not see, individual user records when aggregate statistics suffice. Privacy-preserving techniques<a href="#fn24" class="footnote-ref" id="fnref24" role="doc-noteref"><sup>24</sup></a> address this gap by determining what information systems expose even to authorized users, adding a second layer of protection beyond access control. Differential privacy provides formal mathematical guarantees that individual training examples do not leak through model behavior. Implementing differential privacy in production requires careful engineering: adding calibrated noise during model development, tracking privacy budgets across all data uses, and validating that deployed models satisfy privacy guarantees through testing infrastructure that attempts to extract training data through membership inference attacks.<a href="#fn25" class="footnote-ref" id="fnref25" role="doc-noteref"><sup>25</sup></a></p>
-<div class="no-row-height column-margin column-container"><div id="fn24"><p><sup>24</sup>&nbsp;<strong>Privacy-Preserving Techniques</strong>: Before differential privacy, the field relied on syntactic guarantees: k-anonymity (Sweeney, 2002) ensures each record is indistinguishable from k-1 others, l-diversity adds attribute variety within equivalence classes, and t-closeness bounds distribution distance. All three fail against ML-specific attacks: a model trained on k-anonymized data can still memorize and leak individual records through membership inference. Differential privacy’s semantic guarantee (<span class="math inline">\(\epsilon\)</span>-bounded influence per record) is the only approach proven robust against arbitrary adversaries, explaining why it displaced syntactic methods for ML training despite its higher utility cost. </p></div><div id="fn25"><p><sup>25</sup>&nbsp;<strong>Membership Inference Attack</strong>: The attack exploits a model’s higher prediction confidence on examples from its training set, a direct signal of overfitting. Membership inference provides the core validation method for the privacy engineering described: if an attacker can determine a specific record was used for training, the privacy guarantee is violated, even if the record’s content is not exposed. The attack’s success rate—which can exceed 90 percent on overfit models—serves as the standard benchmark for quantifying this information leakage. </p></div><div id="fn26"><p><sup>26</sup>&nbsp;<strong>Federated Learning</strong>: From Latin <em>foedus</em> (treaty, covenant)—the name describes independent entities collaborating while retaining autonomy. <span class="citation" data-cites="mcmahan2017federated">McMahan et al. (<a href="#ref-mcmahan2017federated" role="doc-biblioref">2017</a>)</span> introduced Federated Averaging (FedAvg): each device trains locally and shares only gradient updates, never raw data. The etymology explains the design: federated learning provides “data minimization by architecture.” However, gradient updates can leak training data through reconstruction attacks, motivating the combination of federated learning with differential privacy—a defense-in-depth pattern where neither mechanism alone suffices. </p><div id="ref-mcmahan2017federated" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn24"><p><sup>24</sup>&nbsp;<strong>Privacy-Preserving Techniques</strong>: Before differential privacy, the field relied on syntactic guarantees: k-anonymity <span class="citation" data-cites="sweeney2002k">(<a href="#ref-sweeney2002k" role="doc-biblioref">Sweeney 2002</a>)</span> ensures each record is indistinguishable from k-1 others, l-diversity adds attribute variety within equivalence classes, and t-closeness bounds distribution distance. All three fail against ML-specific attacks: a model trained on k-anonymized data can still memorize and leak individual records through membership inference. Differential privacy’s semantic guarantee (<span class="math inline">\(\epsilon\)</span>-bounded influence per record) is the only approach proven robust against arbitrary adversaries, explaining why it displaced syntactic methods for ML training despite its higher utility cost. </p><div id="ref-sweeney2002k" class="csl-entry" role="listitem">
+Sweeney, Latanya. 2002. <span>“K-Anonymity: A Model for Protecting Privacy.”</span> <em>International Journal of Uncertainty, Fuzziness and Knowledge-Based Systems</em> 10 (5): 557–70. <a href="https://doi.org/10.1142/S0218488502001648">https://doi.org/10.1142/S0218488502001648</a>.
+</div></div><div id="fn25"><p><sup>25</sup>&nbsp;<strong>Membership Inference Attack</strong>: The attack exploits a model’s higher prediction confidence on examples from its training set, a direct signal of overfitting. Membership inference provides the core validation method for the privacy engineering described: if an attacker can determine a specific record was used for training, the privacy guarantee is violated, even if the record’s content is not exposed. The attack’s success rate—which can exceed 90 percent on overfit models—serves as the standard benchmark for quantifying this information leakage. </p></div><div id="fn26"><p><sup>26</sup>&nbsp;<strong>Federated Learning</strong>: From Latin <em>foedus</em> (treaty, covenant)—the name describes independent entities collaborating while retaining autonomy. <span class="citation" data-cites="mcmahan2017federated">McMahan et al. (<a href="#ref-mcmahan2017federated" role="doc-biblioref">2017</a>)</span> introduced Federated Averaging (FedAvg): each device trains locally and shares only gradient updates, never raw data. The etymology explains the design: federated learning provides “data minimization by architecture.” However, gradient updates can leak training data through reconstruction attacks, motivating the combination of federated learning with differential privacy—a defense-in-depth pattern where neither mechanism alone suffices. </p><div id="ref-mcmahan2017federated" class="csl-entry" role="listitem">
 McMahan, Brendan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Agüera y Arcas. 2017. <span>“Communication-Efficient Learning of Deep Networks from Decentralized Data.”</span> <em>Artificial Intelligence and Statistics</em>, 1273–82. <a href="http://proceedings.mlr.press/v54/mcmahan17a.html">http://proceedings.mlr.press/v54/mcmahan17a.html</a>.
 </div></div></div><p>KWS systems face particularly acute privacy challenges because the always-listening architecture requires processing audio continuously while minimizing data retention and exposure. Production systems implement privacy through three architectural choices. On-device processing ensures that wake word detection runs entirely locally, with audio never transmitted unless the wake word is detected. Federated learning<a href="#fn26" class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a> allows devices to train on local audio and improve wake word detection while sharing only aggregated model updates, never raw recordings. Automatic deletion policies ensure that detected wake word audio is retained only briefly for quality monitoring before being permanently removed from storage. Data lakes implement lifecycle policies that automatically delete voice samples after 30 days unless explicitly tagged for long-term research use, and feature stores implement time-to-live (TTL) fields that cause user voice patterns to expire and be purged from online serving stores.</p>
 </section>
@@ -3066,8 +3145,8 @@ McMahan, Brendan, Eider Moore, Daniel Ramage, Seth Hampson, and Blaise Agüera y
 <p>When a European user invokes the “right to erasure” under GDPR, the voice assistant must locate and delete every recording, derived feature, and model artifact associated with that user across distributed storage systems, all within 30 days. The requirement is not a policy aspiration; it is an engineering specification with a deadline. Compliance requirements transform from legal obligations into system architecture constraints that shape pipeline design, storage choices, and operational procedures. GDPR’s data minimization principle requires limiting collection and retention to what is necessary for stated purposes. For KWS systems, this means justifying why voice samples need retention beyond training, documenting retention periods in system design documents, and implementing automated deletion once periods expire. The “right to access” requires systems to retrieve all data associated with a user, consolidating results from distributed storage systems.</p>
 <p>Voice assistants operating globally face overlapping regulatory regimes because compliance requirements vary by jurisdiction and apply differently based on user age and data sensitivity. European requirements for cross-border data transfer restrict storing EU users’ voice data on servers outside designated countries unless specific safeguards exist, driving architectural decisions about regional data lakes, feature store replication strategies, and processing localization. Standardized documentation frameworks like data cards <span class="citation" data-cites="pushkarna2022data">(<a href="#ref-pushkarna2022data" role="doc-biblioref">Pushkarna et al. 2022</a>)</span> translate these compliance requirements into operational artifacts. Examine the data card template in <a href="#fig-data-card" class="quarto-xref">Figure&nbsp;6</a> to see how this structured format turns abstract compliance obligations into concrete, machine-checkable fields. Training pipelines check that input datasets have valid data cards before processing, and serving systems enforce that only models trained on compliant data can deploy to production.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-pushkarna2022data" class="csl-entry" role="listitem">
-Pushkarna, Mahima, Andrew Zaldivar, and Oddur Kjartansson. 2022. <span>“Data Cards: Purposeful and Transparent Dataset Documentation for Responsible AI.”</span> <em>2022 ACM Conference on Fairness Accountability and Transparency</em>, June 20, 1776–826. <a href="https://doi.org/10.1145/3531146.3533231">https://doi.org/10.1145/3531146.3533231</a>.
-</div></div><div id="fig-data-card" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t!" alt="Sample data card template showing structured fields: dataset name and description at top, authorship, funding, intended uses, and potential risks in middle sections, and methods at bottom." data-fig-env="figure">
+Pushkarna, Mahima, Andrew Zaldivar, and Oddur Kjartansson. 2022. <span>“Data Cards: Purposeful and Transparent Dataset Documentation for Responsible AI.”</span> <em>Proceedings of the 2022 ACM Conference on Fairness, Accountability, and Transparency (FAccT)</em>, June 20, 1776–826. <a href="https://doi.org/10.1145/3531146.3533231">https://doi.org/10.1145/3531146.3533231</a>.
+</div></div><div id="fig-data-card" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Sample data card template showing structured fields: dataset name and description at top, authorship, funding, intended uses, and potential risks in middle sections, and methods at bottom." data-fig-pos="t!" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-data-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="439ae551f4d955b988cae5c3b5ba56c989b15bfc.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Data Governance Documentation: Data cards standardize critical dataset information, enabling transparency and accountability required for regulatory compliance with laws like GDPR and HIPAA. By providing a structured overview of dataset characteristics, intended uses, and potential risks, data cards facilitate responsible AI practices and support data subject rights."><img src="responsible_engr_files/mediabag/439ae551f4d955b988cae5c3b5ba56c989b15bfc.svg" class="img-fluid figure-img"></a>

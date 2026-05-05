@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-c6e67e663447326d1c3f52e730a1c254.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-bad894f6903d90188856202af6e7cbd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../vol1/assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#1F407A">
@@ -266,6 +323,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
 .callout-definition {
   --color1: #F0F4F8;
   --color2: #1B4F72;
@@ -274,60 +340,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(27, 79, 114, 0.04);
   --dark-background-color: rgba(27, 79, 114, 0.12);
   --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
 .callout-resource-slides {
   --color1: #E0F2F1;
@@ -338,34 +350,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-resource-exercises {
+.callout-resource-videos {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -373,6 +358,42 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(32, 178, 170, 0.04);
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
 .callout-colab {
   --color1: #FFF5E6;
@@ -392,7 +413,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(209, 215, 224, 0.12);
   --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
-.callout-resource-videos {
+.callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -401,32 +422,59 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
 }
 .callout-takeaways {
   --color1: #FDF2F7;
@@ -437,9 +485,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(190, 24, 93, 0.12);
   --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
   details.callout-definition {
     --text-color: #e6e6e6;
     --background-color: rgba(27, 79, 114, 0.12);
@@ -452,90 +523,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-slides {
@@ -552,60 +539,74 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
+  details.callout-resource-videos {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-exercises code {
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
     color: #e6e6e6 !important;
   }
   details.callout-colab {
@@ -636,60 +637,102 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-code code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-videos {
+  details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
+  details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-  details.callout-lighthouse {
+  details.callout-learning-objectives {
     --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-lighthouse code {
+  details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-theorem code {
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-  details.callout-war-story {
+  details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-war-story code {
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
   details.callout-takeaways {
@@ -706,44 +749,46 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
 }
 </style>
 <style>
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
 details.callout-definition > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
 }
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
 details.callout-colab > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
@@ -751,20 +796,32 @@ details.callout-colab > summary::before {
 details.callout-code > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
 }
 details.callout-takeaways > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Machine Learning Systems at Scale">
-<meta property="og:image" content="./contents/vol2/performance_engineering/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta property="og:image" content="../../../contents/vol2/performance_engineering/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta property="og:site_name" content="Machine Learning Systems at Scale">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Machine Learning Systems at Scale">
-<meta name="twitter:image" content="./contents/vol2/performance_engineering/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta name="twitter:image" content="../../../contents/vol2/performance_engineering/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="b727508aec93ade4ae3d59e61f4e966e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="./">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="../../../">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../../../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1628,7 +1685,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="sec-performance-engineering-memory-wall">The Memory Wall and the Efficiency Frontier</h2>
 <p>An H100 GPU capable of 989 teraFLOPS often sits 95 percent idle while generating text from a large language model because the processor is starving for data. Performance engineering operates within a constrained optimization space defined by the memory wall, where the speed of moving bytes from memory to compute units fundamentally caps our operational throughput.</p>
 <p>Part II established the distributed logic of the fleet: parallelism strategies (<strong><a href="../distributed_training/distributed_training.html#sec-distributed-training-systems">Distributed Training Systems</a></strong>), communication patterns (<strong><a href="../collective_communication/collective_communication.html#sec-collective-communication">Collective Communication</a></strong>), fault recovery (<strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong>), and resource orchestration (<strong><a href="../fleet_orchestration/fleet_orchestration.html#sec-fleet-orchestration">Fleet Orchestration</a></strong>). Those chapters ensured that workloads reach the right hardware and survive failures along the way. This chapter ensures that each workload <em>uses</em> that hardware efficiently, extracting maximum throughput from every accelerator cycle.</p>
-<section id="sec-performance-engineering-efficiency-frontier" class="level3">
+<section id="sec-performance-engineering-efficiency-frontier" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-performance-engineering-efficiency-frontier">The iron law of ML performance</h3>
 <p>Performance engineering operates within a constrained optimization space defined by the <strong>iron law</strong> of ML system performance:</p>
 <p><span id="eq-iron-law-perf"><span class="math display">\[
@@ -1655,7 +1712,7 @@ window.Quarto = {
 </ul>
 </div></details>
 </div>
-<div id="fig-iron-law-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Flowchart starting with Profile Workload, branching to Compute Bound, Memory Bound, or Overhead Bound, each leading to specific optimization techniques.">
+<div id="fig-iron-law-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Flowchart starting with Profile Workload, branching to Compute Bound, Memory Bound, or Overhead Bound, each leading to specific optimization techniques." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-iron-law-flowchart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/diagnostic-flow.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: iron law Diagnostic Flowchart. The optimization process begins with profiling to determine which term in Equation&nbsp;1 dominates. If the workload is compute-bound, precision engineering or algorithmic changes reduce the numerator. If memory-bound, operator fusion and tiling reduce HBM traffic. If overhead-bound, graph compilation and communication overlap attack the residual term. Applying the wrong technique yields zero improvement."><img src="images/svg/diagnostic-flow.svg" class="img-fluid figure-img"></a>
@@ -1666,8 +1723,10 @@ Figure&nbsp;1: <strong>iron law Diagnostic Flowchart</strong>. The optimization 
 </figure>
 </div>
 <p>The central lesson of <a href="#fig-iron-law-flowchart" class="quarto-xref">Figure&nbsp;1</a> is that profiling must precede optimization: applying operator fusion to a compute-bound workload, or precision engineering to an overhead-bound one, yields zero improvement regardless of implementation quality.</p>
-<p>The <strong>efficiency frontier</strong> is the Pareto-optimal curve of model quality vs.&nbsp;system throughput. A model on the frontier cannot improve throughput without sacrificing quality, or vice versa. The techniques in this chapter push the frontier outward by making each quality level achievable at higher throughput, or equivalently, by making each throughput level achievable at higher quality. An organization’s goal is not merely to reach the frontier but to find the point on it that best matches their latency, throughput, cost, and quality requirements.</p>
-<p>The multi-dimensional nature of this frontier makes optimization challenging. The relevant dimensions include:</p>
+<p>The <strong>efficiency frontier</strong> is the Pareto-optimal curve of model quality vs.&nbsp;system throughput. A model on the frontier cannot improve throughput without sacrificing quality, or vice versa <span class="citation" data-cites="thompson2021deep">(<a href="#ref-thompson2021deep" role="doc-biblioref">Thompson et al. 2021</a>)</span>. The techniques in this chapter push the frontier outward by making each quality level achievable at higher throughput, or equivalently, by making each throughput level achievable at higher quality. An organization’s goal is not merely to reach the frontier but to find the point on it that best matches their latency, throughput, cost, and quality requirements.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-thompson2021deep" class="csl-entry" role="listitem">
+Thompson, Neil C., Kristjan Greenewald, Keeheon Lee, and Gabriel F. Manso. 2021. <span>“Deep Learning’s Diminishing Returns: The Cost of Improvement Is Becoming Unsustainable.”</span> <em>IEEE Spectrum</em> 58 (10): 50–55. <a href="https://doi.org/10.1109/mspec.2021.9563954">https://doi.org/10.1109/mspec.2021.9563954</a>.
+</div></div><p>The multi-dimensional nature of this frontier makes optimization challenging. The relevant dimensions include:</p>
 <ul>
 <li><strong>Throughput</strong> (tokens/second or requests/second): How much work the system completes per unit time.</li>
 <li><strong>Latency</strong> (time-to-first-token, inter-token latency): How quickly the system responds to individual requests.</li>
@@ -1774,10 +1833,12 @@ Table&nbsp;1: <strong>The Widening memory wall</strong>. Compute throughput has 
 </section>
 <section id="sec-performance-engineering-roofline" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-performance-engineering-roofline">The roofline model</h3>
-<p>The <strong>Roofline Model</strong><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> provides a quantitative framework for diagnosing whether a workload is compute-bound or memory-bound on a specific piece of hardware. Introduced by Williams, Waterman, and Patterson (2009), the model plots achievable performance as a function of <strong>arithmetic intensity</strong>, defined as the ratio of floating-point operations to bytes transferred from memory. The intersection of these two regimes is known as the <strong>ridge point</strong><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>.</p>
-<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Roofline Model</strong>: Published as “Roofline: An Insightful Visual Performance Model for Multicore Architectures” in <em>Communications of the ACM</em> (April 2009). Originally designed for CPU multicore workloads, the model’s power lies in its hardware-agnostic simplicity: two numbers (peak FLOPS and peak bandwidth) define the entire performance envelope. This same simplicity now drives GPU purchasing decisions for ML inference, where the ridge point determines whether a workload benefits from faster compute or faster memory. </p></div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Ridge Point</strong>: The intersection of the memory-bound and compute-bound lines on a Roofline plot. It represents the minimum <strong>Arithmetic Intensity</strong> required to reach peak hardware performance (<span class="math inline">\(R_{\text{peak}}\)</span>). For an H100 GPU (FP16), the ridge point is roughly 295 FLOP/byte; if an operator’s intensity is below this “ridge,” it will never saturate the Tensor Cores, regardless of how much compute is available. </p></div></div><div id="callout-definition-1.1" class="callout callout-definition" title="Arithmetic Intensity">
+<p>The <strong>Roofline Model</strong><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> provides a quantitative framework for diagnosing whether a workload is compute-bound or memory-bound on a specific piece of hardware. Introduced by <span class="citation" data-cites="williams2009roofline">Williams et al. (<a href="#ref-williams2009roofline" role="doc-biblioref">2009</a>)</span>, the model plots achievable performance as a function of <strong>arithmetic intensity</strong>, defined as the ratio of floating-point operations to bytes transferred from memory. The intersection of these two regimes is known as the <strong>ridge point</strong><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Roofline Model</strong>: Published as “Roofline: An Insightful Visual Performance Model for Multicore Architectures” in <em>Communications of the ACM</em> (April 2009). Originally designed for CPU multicore workloads, the model’s power lies in its hardware-agnostic simplicity: two numbers (peak FLOPS and peak bandwidth) define the entire performance envelope. This same simplicity now drives GPU purchasing decisions for ML inference, where the ridge point determines whether a workload benefits from faster compute or faster memory. </p></div><div id="ref-williams2009roofline" class="csl-entry" role="listitem">
+Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline: An Insightful Visual Performance Model for Multicore Architectures.”</span> <em>Communications of the ACM</em> 52 (4): 65–76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
+</div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Ridge Point</strong>: The intersection of the memory-bound and compute-bound lines on a Roofline plot. It represents the minimum <strong>Arithmetic Intensity</strong> required to reach peak hardware performance (<span class="math inline">\(R_{\text{peak}}\)</span>). For an H100 GPU (FP16), the ridge point is roughly 295 FLOP/byte; if an operator’s intensity is below this “ridge,” it will never saturate the Tensor Cores, regardless of how much compute is available. </p></div></div><div id="callout-definition-1.1" class="callout callout-definition" title="Arithmetic Intensity">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Arithmetic Intensity</strong></summary><div>
-<p><strong><em>Arithmetic Intensity (<span class="math inline">\(I\)</span>)</em></strong> is the ratio of floating-point operations performed to the number of bytes transferred from memory (<span class="math inline">\(FLOP/\text{byte}\)</span>).</p>
+<p><strong><em>Arithmetic Intensity (<span class="math inline">\(AI\)</span>)</em></strong> is the ratio of floating-point operations performed to the number of bytes transferred from memory (<span class="math inline">\(FLOP/\text{byte}\)</span>).</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> It characterizes the <strong>Computational Density</strong> of a workload. It is the independent variable in the <strong>Roofline Model</strong>, determining whether a system operates in the <strong>Bandwidth-Bound</strong> (<span class="math inline">\(\text{BW}\)</span>) or <strong>Compute-Bound</strong> (<span class="math inline">\(R_{\text{peak}}\)</span>) regime.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Peak Throughput</strong> (a hardware property), Arithmetic Intensity is an <strong>Algorithmic Property</strong> that measures how effectively a workload reuses data once it is loaded into the processor.</li>
@@ -1785,7 +1846,7 @@ Table&nbsp;1: <strong>The Widening memory wall</strong>. Compute throughput has 
 </ol>
 </div></details>
 </div>
-<p>For a given accelerator with peak compute <span class="math inline">\(R_{\text{peak}}\)</span> (in FLOP/s) and peak memory bandwidth <span class="math inline">\(\text{BW}\)</span> (in bytes/second), the achievable performance of a workload with arithmetic intensity <span class="math inline">\(I\)</span> (in FLOP/byte) is:</p>
+<p>For a given accelerator with peak compute <span class="math inline">\(R_{\text{peak}}\)</span> (in FLOP/s) and peak memory bandwidth <span class="math inline">\(\text{BW}\)</span> (in bytes/second), the achievable performance of a workload with arithmetic intensity <span class="math inline">\(AI\)</span> (in FLOP/byte) is:</p>
 <p><span id="eq-performance-roofline"><span class="math display">\[
 \text{Achievable FLOPS} = \min(R_{\text{peak}}, \; \text{BW} \times I)
 \tag{2}\]</span></span></p>
@@ -1794,7 +1855,7 @@ Table&nbsp;1: <strong>The Widening memory wall</strong>. Compute throughput has 
 I_{\text{ridge}} = \frac{R_{\text{peak}}}{\text{BW}}
 \tag{3}\]</span></span></p>
 <p>Workloads with <span class="math inline">\(I &lt; I_{\text{ridge}}\)</span> are memory-bound: their performance is limited by how fast data can be loaded, not how fast it can be processed. Workloads with <span class="math inline">\(I &gt; I_{\text{ridge}}\)</span> are compute-bound: the arithmetic units are the bottleneck. <a href="#fig-roofline-model" class="quarto-xref">Figure&nbsp;2</a> illustrates this relationship graphically.</p>
-<div id="fig-roofline-model" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Log-log plot showing roofline model with memory bandwidth ceiling as diagonal line and compute ceiling as horizontal line, meeting at ridge point. Workload types are marked: LLM decode and element-wise ops on the left (memory-bound), large GEMM on the right (compute-bound).">
+<div id="fig-roofline-model" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Log-log plot showing roofline model with memory bandwidth ceiling as diagonal line and compute ceiling as horizontal line, meeting at ridge point. Workload types are marked: LLM decode and element-wise ops on the left (memory-bound), large GEMM on the right (compute-bound)." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-roofline-model-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/roofline-model.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The Roofline Model. Achievable performance (y-axis) as a function of arithmetic intensity (x-axis) on a log-log plot. The sloped line represents the memory bandwidth ceiling; the flat line represents the compute ceiling. Their intersection is the ridge point. Most transformer inference operations fall in the memory-bound region (left of the ridge point), while large batched GEMMs fall in the compute-bound region (right)."><img src="images/svg/roofline-model.svg" class="img-fluid figure-img"></a>
@@ -1810,10 +1871,10 @@ I_{\text{ridge}}^{\text{H100, FP16}} = \frac{989 \text{ TFLOPS}}{3.35 \text{ TB/
 \]</span></p>
 <p>Any operation performing fewer than 295 floating-point operations per byte loaded is memory-bound on the H100 at FP16. At FP8 precision, where compute doubles to 1979 TFLOPS while bandwidth remains 3.35 TB/s, the ridge point rises to approximately 591 FLOP/byte. The A100, with 312 TFLOPS and 2 TB/s, has a lower ridge point of approximately 153 FLOP/byte at FP16. Each hardware generation increases compute faster than bandwidth, pushing the ridge point higher and making more workloads memory-bound.</p>
 <p><a href="#fig-shifting-roofline" class="quarto-xref">Figure&nbsp;3</a> overlays the roofline models for four GPU generations on a single log-log plot, making the generational shift visible at a glance. The ridge point has grown from 139 FLOP/byte on the V100 to 2,250 FLOP/byte on the B200, a 16<span class="math inline">\(\times\)</span> increase in seven years. An operation like naive self-attention, with an arithmetic intensity near 10 FLOP/byte, was memory-bound on every generation but falls progressively further below the ridge with each new chip. More critically, operations near 200 FLOP/byte, such as large matrix multiplications, transition from compute-bound on V100 to memory-bound on B200. The same kernel can change performance regime across hardware generations, a fact that demands re-profiling whenever hardware is upgraded.</p>
-<div id="fig-shifting-roofline" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Log-log roofline plot for V100, A100, H100, B200 with ridge points and example ML operations marked">
+<div id="fig-shifting-roofline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Log-log roofline plot for V100, A100, H100, B200 with ridge points and example ML operations marked" data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-shifting-roofline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="b18202d9" class="cell" data-execution_count="4">
+<div id="41d76e80" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1981,7 +2042,7 @@ t_{\text{decode}} = \frac{35 \text{ GB}}{3.35 \text{ TB/s}} \approx 10.4 \text{ 
 </ol>
 <p>Intermediate tensors <span class="math inline">\(Z_1\)</span> and <span class="math inline">\(Z_2\)</span> each occupy the same memory as the output <span class="math inline">\(Y\)</span>. For a hidden dimension of 4096 and batch size of 2048 in FP16, each intermediate tensor is <span class="math inline">\(4096 \times 2048 \times 2 = 16\)</span> MB. The unfused execution reads and writes 32 MB of intermediate data that a fused kernel avoids entirely by holding <span class="math inline">\(Z_1\)</span> and <span class="math inline">\(Z_2\)</span> in registers or shared memory (SRAM) within the SM.</p>
 <p><a href="#fig-fusion-before-after" class="quarto-xref">Figure&nbsp;4</a> contrasts these two execution paths, making the HBM traffic savings visible.</p>
-<div id="fig-fusion-before-after" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Two side-by-side dataflow diagrams. Left unfused path shows seven HBM-transfer arrows totaling 88 MB. Right fused path shows three arrows totaling 24 MB, with intermediates staying in SRAM.">
+<div id="fig-fusion-before-after" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two side-by-side dataflow diagrams. Left unfused path shows seven HBM-transfer arrows totaling 88 MB. Right fused path shows three arrows totaling 24 MB, with intermediates staying in SRAM." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fusion-before-after-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/operator-fusion.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Operator Fusion: Before and After. Left: three separate kernels each read from and write to HBM, materializing intermediate tensors Z_1 and Z_2 (seven HBM transfers totaling 88 MB of memory traffic). Right: a single fused kernel reads X and W once, performs all three operations with intermediates held in SRAM, and writes only the final output Y (three HBM transfers totaling 24 MB). The fused path eliminates 64 MB of redundant HBM traffic per layer."><img src="images/svg/operator-fusion.svg" class="img-fluid figure-img"></a>
@@ -2032,8 +2093,10 @@ Dao, Tri, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 2022. <s
 <p>A concrete numerical example clarifies the memory savings. Consider one attention head with sequence length <span class="math inline">\(N = 8192\)</span> and head dimension <span class="math inline">\(d = 128\)</span>. The <span class="math inline">\(Q\)</span>, <span class="math inline">\(K\)</span>, <span class="math inline">\(V\)</span> matrices are each <span class="math inline">\(8192 \times 128\)</span> in FP16, occupying <span class="math inline">\(8192 \times 128 \times 2 = 2\)</span> MB each (6 MB total for one head). The output matrix <span class="math inline">\(O\)</span> is the same size (2 MB). The total input/output data is therefore 8 MB per head.</p>
 <p>The na"ive algorithm computes <span class="math inline">\(S = QK^T\)</span>, a matrix of shape <span class="math inline">\(8192 \times 8192\)</span>. In FP16, this score matrix occupies <span class="math inline">\(8192 \times 8192 \times 2 = 128\)</span> MB per head. After applying softmax, the result <span class="math inline">\(P = \text{softmax}(S)\)</span> is also <span class="math inline">\(128\)</span> MB. Computing <span class="math inline">\(PV\)</span> requires reading <span class="math inline">\(P\)</span> again. In total, the na"ive algorithm reads <span class="math inline">\(Q\)</span>, <span class="math inline">\(K\)</span>, <span class="math inline">\(V\)</span> from HBM (6 MB), writes <span class="math inline">\(S\)</span> (128 MB), reads <span class="math inline">\(S\)</span> for softmax (128 MB), writes <span class="math inline">\(P\)</span> (128 MB), reads <span class="math inline">\(P\)</span> for the final multiply (128 MB), and writes <span class="math inline">\(O\)</span> (2 MB). The total HBM traffic is approximately 520 MB per head, dominated by the quadratic intermediates.</p>
 <p>FlashAttention processes the computation in tiles of size <span class="math inline">\(B_r \times B_c\)</span> (typically <span class="math inline">\(128 \times 128\)</span> on H100). For one tile, the algorithm loads a block of <span class="math inline">\(Q\)</span> (<span class="math inline">\(128 \times 128 \times 2 = 32\)</span> KB), a block of <span class="math inline">\(K\)</span> (<span class="math inline">\(128 \times 128 \times 2 = 32\)</span> KB), and a block of <span class="math inline">\(V\)</span> (32 KB), totaling 96 KB. This fits comfortably in the H100’s 228 KB of shared memory per SM. The tile score <span class="math inline">\(S_{\text{tile}} = Q_{\text{tile}} K_{\text{tile}}^T\)</span> is computed and consumed entirely within SRAM; it is never written to HBM. The algorithm iterates over <span class="math inline">\(8192/128 = 64\)</span> column tiles for each of <span class="math inline">\(64\)</span> row tiles, but the total HBM traffic is just the cost of reading <span class="math inline">\(Q\)</span>, <span class="math inline">\(K\)</span>, <span class="math inline">\(V\)</span> once (6 MB) and writing <span class="math inline">\(O\)</span> once (2 MB), totaling 8 MB per head. This is 65<span class="math inline">\(\times\)</span> less HBM traffic than the na"ive algorithm, and the ratio grows quadratically with sequence length.</p>
-<p>FlashAttention-2 (Dao, 2023) further optimizes the algorithm for modern GPU architectures by restructuring the parallelism pattern. The original FlashAttention parallelizes over batch and head dimensions, meaning each thread block handles one (batch, head) pair and iterates over the full sequence. FlashAttention-2 additionally parallelizes over the sequence dimension of the query matrix, distributing work across thread blocks more efficiently and achieving better occupancy on GPUs with many streaming multiprocessors. It also reduces the number of non-GEMM FLOPs by restructuring the rescaling operations and exploiting the asymmetry between the Q loop (outer) and K/V loop (inner).</p>
-<p>FlashAttention-3 targets the H100’s new hardware features: FP8 Tensor Cores and the Tensor Memory Accelerator (TMA). By computing attention in FP8 with selective FP16 accumulation, FlashAttention-3 achieves near-peak FP8 utilization for the attention operation, further closing the gap between achieved and theoretical performance.</p>
+<p>FlashAttention-2 <span class="citation" data-cites="dao2023flashattention2">(<a href="#ref-dao2023flashattention2" role="doc-biblioref">Dao 2023</a>)</span> further optimizes the algorithm for modern GPU architectures by restructuring the parallelism pattern. The original FlashAttention parallelizes over batch and head dimensions, meaning each thread block handles one (batch, head) pair and iterates over the full sequence. FlashAttention-2 additionally parallelizes over the sequence dimension of the query matrix, distributing work across thread blocks more efficiently and achieving better occupancy on GPUs with many streaming multiprocessors. It also reduces the number of non-GEMM FLOPs by restructuring the rescaling operations and exploiting the asymmetry between the Q loop (outer) and K/V loop (inner).</p>
+<div class="no-row-height column-margin column-container"><div id="ref-dao2023flashattention2" class="csl-entry" role="listitem">
+Dao, Tri. 2023. <span>“FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning.”</span> <em>arXiv Preprint arXiv:2307.08691</em>. <a href="https://arxiv.org/abs/2307.08691">https://arxiv.org/abs/2307.08691</a>.
+</div></div><p>FlashAttention-3 targets the H100’s new hardware features: FP8 Tensor Cores and the Tensor Memory Accelerator (TMA). By computing attention in FP8 with selective FP16 accumulation, FlashAttention-3 achieves near-peak FP8 utilization for the attention operation, further closing the gap between achieved and theoretical performance.</p>
 <div id="callout-war-story-1.1" class="callout callout-war-story" title="The FlashAttention Breakthrough">
 <p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.1: The FlashAttention Breakthrough</strong></summary><div>In 2022, Tri Dao challenged the prevailing wisdom that the attention mechanism’s <span class="math inline">\(O(N^2)\)</span> complexity required better matrix multiplication kernels. His insight was that the bottleneck was not compute, but memory hierarchy. Standard attention materialized the massive <span class="math inline">\(N \times N\)</span> attention score matrix in high-latency HBM. FlashAttention restructured the algorithm using tiling to keep running statistics in on-chip SRAM, computing the softmax without ever writing the full matrix to global memory. This reduced memory complexity to linear <span class="math inline">\(O(N)\)</span> and wall-clock time by 2–4x. Within six months, it was integrated into PyTorch, TensorFlow, and JAX, becoming the default attention implementation for the industry.<p></p>
 </div></details>
@@ -2050,10 +2113,10 @@ Dao, Tri, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 2022. <s
 </ul>
 </div></details>
 </div>
-<div id="fig-flashattention-memory-savings" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Log-log plot of attention memory vs. sequence length. Standard O(N²) curve rises steeply; FlashAttention O(N) stays flat. Shaded region shows savings, with annotations at 8K and 65K.">
+<div id="fig-flashattention-memory-savings" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Log-log plot of attention memory vs. sequence length. Standard O(N²) curve rises steeply; FlashAttention O(N) stays flat. Shaded region shows savings, with annotations at 8K and 65K." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-flashattention-memory-savings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="e854c315" class="cell" data-execution_count="8">
+<div id="332a9ec4" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2118,11 +2181,11 @@ Dettmers, Tim, Mike Lewis, Younes Belkada, and Luke Zettlemoyer. 2022. <span>“
 <div class="no-row-height column-margin column-container"><div id="ref-frantar2023gptq" class="csl-entry" role="listitem">
 Frantar, Elias, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2023. <span>“GPTQ: Accurate Post-Training Quantization for Generative Pre-Trained Transformers.”</span> In <em>CoRR</em>, abs/2210.17323. <a href="https://doi.org/10.48550/ARXIV.2210.17323">https://doi.org/10.48550/ARXIV.2210.17323</a>.
 </div><div id="ref-lin2024awq" class="csl-entry" role="listitem">
-Lin, Ji, Jiaming Tang, Haotian Tang, Shang Yang, Guangxuan Xiao, and Song Han. 2025. <span>“AWQ: Activation-Aware Weight Quantization for on-Device LLM Compression and Acceleration.”</span> <em>GetMobile: Mobile Computing and Communications</em> 28 (4): 12–17. <a href="https://doi.org/10.1145/3714983.3714987">https://doi.org/10.1145/3714983.3714987</a>.
-</div></div><p>AWQ [Activation-Aware Weight Quantization; <span class="citation" data-cites="lin2024awq">Lin et al. (<a href="#ref-lin2024awq" role="doc-biblioref">2025</a>)</span>] observes that not all weights are equally important: weights connected to high-activation channels contribute disproportionately to model output. AWQ identifies these salient weights by analyzing activation magnitudes across a calibration dataset, then applies per-channel scaling to protect them before uniform group quantization. This achieves INT4 weight quantization with quality comparable to GPTQ but with 10–100<span class="math inline">\(\times\)</span> faster quantization time (minutes instead of hours), since it avoids the expensive Hessian computation.</p>
+Lin, Ji, Jiaming Tang, Haotian Tang, Shang Yang, Guangxuan Xiao, and Song Han. 2024. <span>“<span>AWQ</span>: Activation-Aware Weight Quantization for <span>LLM</span> Compression and Acceleration.”</span> <em>Proceedings of Machine Learning and Systems (MLSys)</em>. <a href="https://arxiv.org/abs/2306.00978">https://arxiv.org/abs/2306.00978</a>.
+</div></div><p>AWQ [Activation-Aware Weight Quantization; <span class="citation" data-cites="lin2024awq">Lin et al. (<a href="#ref-lin2024awq" role="doc-biblioref">2024</a>)</span>] observes that not all weights are equally important: weights connected to high-activation channels contribute disproportionately to model output. AWQ identifies these salient weights by analyzing activation magnitudes across a calibration dataset, then applies per-channel scaling to protect them before uniform group quantization. This achieves INT4 weight quantization with quality comparable to GPTQ but with 10–100<span class="math inline">\(\times\)</span> faster quantization time (minutes instead of hours), since it avoids the expensive Hessian computation.</p>
 <p>SmoothQuant <span class="citation" data-cites="xiao2023smoothquant">(<a href="#ref-xiao2023smoothquant" role="doc-biblioref">Xiao et al. 2023</a>)</span> takes yet another approach to the outlier problem. Rather than handling outliers at runtime (LLM.int8()) or through weight optimization (GPTQ, AWQ), SmoothQuant smooths the activation distribution <em>before</em> quantization by migrating the quantization difficulty from activations to weights. The key observation is that activation outliers are channel-specific: certain hidden dimensions consistently produce large values across all tokens. SmoothQuant applies a per-channel scaling transformation that divides the activation by a smoothing factor and multiplies the corresponding weight by the same factor. This mathematically equivalent transformation reduces activation outlier magnitudes at the cost of slightly increasing weight magnitudes, making both tensors more amenable to uniform INT8 quantization. The result is efficient W8A8 (weight-8-bit, activation-8-bit) quantization that exploits INT8 Tensor Cores for both bandwidth and compute benefits.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-xiao2023smoothquant" class="csl-entry" role="listitem">
-Xiao, Guangxuan, Ji Lin 0002, Mickaël Seznec, Hao Wu, Julien Demouth, and Song Han 0003. 2023. <span>“SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models.”</span> <em>Proceedings of the 40th International Conference on Machine Learning</em>, 38087–99. <a href="https://proceedings.mlr.press/v202/xiao23c.html">https://proceedings.mlr.press/v202/xiao23c.html</a>.
+Xiao, Guangxuan, Ji Lin, Mickaël Seznec, Hao Wu, Julien Demouth, and Song Han. 2023. <span>“SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models.”</span> <em>Proceedings of the 40th International Conference on Machine Learning</em>, 38087–99. <a href="https://proceedings.mlr.press/v202/xiao23c.html">https://proceedings.mlr.press/v202/xiao23c.html</a>.
 </div></div><p>These four approaches, LLM.int8(), GPTQ, AWQ, and SmoothQuant, represent a progression in the sophistication of quantization techniques for LLMs. LLM.int8() handles outliers at runtime with mixed-precision decomposition but limits compression to INT8. GPTQ uses second-order information for aggressive INT4 weight compression but requires hours of calibration per model. AWQ achieves similar INT4 quality with minutes of calibration by focusing on activation-aware scaling. SmoothQuant enables W8A8 quantization by preprocessing the weight-activation pairs. In practice, AWQ has become the default choice for weight-only quantization in production LLM deployment, while SmoothQuant is preferred when both weight and activation quantization are needed for compute-bound workloads.</p>
 <p>The choice among these techniques also depends on the deployment target. For GPU inference with Tensor Core support, GPTQ and AWQ produce INT4 weight representations that are dequantized to FP16 during the GEMM computation, using the GPU’s FP16 Tensor Cores. For CPU inference or edge deployment, INT8 representations (LLM.int8() or static per-channel INT8 quantization) can directly exploit integer arithmetic units without dequantization overhead.</p>
 <p>The storage cost for block-wise quantization is minimal. Storing one FP32 scale (32 bits) for every block of 128 INT8 weights (1024 bits) increases total model size by only 3 percent. This small overhead allows block-wise quantization to isolate the destructive impact of outliers, preserving the effective dynamic range for the 99 percent of normal weights, without the bandwidth penalty of higher-precision formats.</p>
@@ -2414,10 +2477,10 @@ Bengio, Yoshua, Nicholas Léonard, and Aaron Courville. 2013. <span>“Estimatin
 <p>The potential benefit of communication-computation overlap depends on the relative magnitudes of communication and computation time, which vary dramatically across system configurations.</p>
 <p>Consider a 7B parameter model trained on 8 H100 GPUs within a single node connected by NVLink at 900 GB/s. The gradient tensor contains 14 GB of FP16 values. A ring AllReduce across 8 GPUs transfers approximately <span class="math inline">\(2 \times (N-1)/N \approx 2\)</span> times this volume, taking approximately 31.1 ms at NVLink bandwidth. The backward pass computation, at 40 percent Model FLOPs Utilization, takes approximately 145.0 ms.</p>
 <p>Without overlap, the training step requires 248.5 ms (forward + backward + AllReduce). With overlap, the AllReduce is fully hidden behind the backward pass, reducing the step time to 217.4 ms, a 1.14<span class="math inline">\(\times\)</span> improvement. This example illustrates a critical property: overlap is most effective when backward compute time exceeds AllReduce time. As <a href="#fig-overlap-budget" class="quarto-xref">Figure&nbsp;6</a> shows, as cluster scale increases from 8 to 1024 GPUs, overlap efficiency degrades from ~90 percent to ~40 percent because communication overhead eventually exceeds the computation budget. For smaller models or slower interconnects (for example, PCIe at 64 GB/s instead of NVLink at 900 GB/s), the AllReduce would exceed the backward pass, and no amount of overlap can fully hide the communication.</p>
-<div id="fig-overlap-budget" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Stacked bar chart of step time contribution vs. GPU count. Overlapped communication, pure computation, and exposed communication. Black line shows overlap efficiency degrading from 90 percent to 40 percent.">
+<div id="fig-overlap-budget" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Stacked bar chart of step time contribution vs. GPU count. Overlapped communication, pure computation, and exposed communication. Black line shows overlap efficiency degrading from 90 percent to 40 percent." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-overlap-budget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="43edb2d5" class="cell" data-execution_count="13">
+<div id="fe9f545a" class="cell" data-execution_count="13">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2924,7 +2987,7 @@ Figure&nbsp;6: <strong>The Overlap Budget</strong>. As cluster scale increases (
 <section id="sec-performance-engineering-summary" class="level2">
 <h2 class="anchored" data-anchor-id="sec-performance-engineering-summary">Summary</h2>
 <p>Performance engineering transforms a model that should be efficient into one that is, by attacking the fundamental bottleneck of modern ML systems: the memory wall. <a href="#fig-optimization-hierarchy" class="quarto-xref">Figure&nbsp;7</a> illustrates the profiling hierarchy, providing four levels of diagnostic granularity from application-level global metrics down to hardware counters.</p>
-<div id="fig-optimization-hierarchy" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Pyramid diagram showing four levels of profiling: Hardware Counters at the base, Kernel Profiling, Framework Profiling, and Application Profiling at the top, with an arrow indicating drill-down from top to bottom.">
+<div id="fig-optimization-hierarchy" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Pyramid diagram showing four levels of profiling: Hardware Counters at the base, Kernel Profiling, Framework Profiling, and Application Profiling at the top, with an arrow indicating drill-down from top to bottom." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-optimization-hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/profiling-hierarchy.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: The Profiling Hierarchy. Four levels of profiling granularity. Start at Level 4 (Application Profiling) for global symptoms, and drill down through Framework and Kernel profiling to find the root cause at Level 1 (Hardware Counters)."><img src="images/svg/profiling-hierarchy.svg" class="img-fluid figure-img"></a>

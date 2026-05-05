@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -155,8 +155,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -178,6 +201,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -217,7 +274,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -231,23 +288,41 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-checkpoint {
   --color1: #FFF8E7;
@@ -258,6 +333,60 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
 .callout-learning-objectives {
   --color1: #E8F2EA;
   --color2: #4A7C59;
@@ -266,6 +395,24 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(74, 124, 89, 0.04);
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
 .callout-resource-slides {
   --color1: #E0F2F1;
@@ -285,6 +432,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
 .callout-example {
   --color1: #F0F8F6;
   --color2: #148F77;
@@ -293,51 +449,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(20, 143, 119, 0.04);
   --dark-background-color: rgba(20, 143, 119, 0.12);
   --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
 .callout-quiz-question {
   --color1: #F0F0F8;
@@ -348,89 +459,63 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-resource-videos {
+  details.callout-takeaways {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
+  details.callout-chapter-connection {
     --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-checkpoint {
@@ -447,6 +532,90 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
   details.callout-learning-objectives {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
@@ -459,6 +628,34 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-slides {
@@ -489,6 +686,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
   details.callout-example {
     --text-color: #e6e6e6;
     --background-color: rgba(20, 143, 119, 0.12);
@@ -501,76 +712,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-question {
@@ -587,104 +728,50 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
 }
 </style>
 <style>
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-checkpoint > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
 details.callout-learning-objectives > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
 }
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
@@ -692,44 +779,14 @@ details.callout-resource-slides > summary::before {
 details.callout-quiz-answer > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
 details.callout-example > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
-}
 details.callout-quiz-question > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
 </style>
 
@@ -764,11 +821,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/ml_workflow/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/ml_workflow/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/ml_workflow/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/ml_workflow/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -970,34 +1027,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1009,22 +1066,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1036,17 +1093,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1058,23 +1115,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1086,22 +1143,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1113,29 +1170,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1205,8 +1262,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1568,7 +1625,7 @@ Amershi, Saleema, Andrew Begel, Christian Bird, et al. 2019. <span>“Software E
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Machine Learning Lifecycle</strong></summary><div>
 <p><strong><em>Machine Learning Lifecycle</em></strong> is the continuous engineering discipline of managing <strong>System Entropy</strong> across the Data, Algorithm, and Machine axes.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It transforms the linear software “release” into a <strong>Continuous Loop</strong> of monitoring, retraining, and redeployment to maintain the system’s <strong>Duty Cycle (<span class="math inline">\(\eta\)</span>)</strong>.</li>
+<li><strong>Significance (Quantitative):</strong> It transforms the linear software “release” into a <strong>Continuous Loop</strong> of monitoring, retraining, and redeployment to maintain the system’s <strong>Duty Cycle (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong>.</li>
 <li><strong>Distinction (Durable):</strong> Unlike a <strong>Traditional Software Lifecycle</strong>, which degrades primarily through code modification, the ML Lifecycle recognizes that models degrade through <strong>Data Drift</strong> even when the code remains untouched.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that the lifecycle ends at “Deployment.” In reality, deployment is the <strong>Beginning of the Feedback Loop</strong>: monitoring insights are the “source code” for the next iteration of the model.</li>
 </ol>
@@ -1576,7 +1633,7 @@ Amershi, Saleema, Andrew Begel, Christian Bird, et al. 2019. <span>“Software E
 </div>
 <p>Throughout this chapter, we use <em>lifecycle</em> to describe the stages themselves and <em>workflow</em> to describe the engineering discipline of orchestrating them; the lifecycle is <em>what gets traversed</em>, the workflow is <em>how the traversal is managed</em>. This distinction requires systems thinking: analyzing how a system’s parts interrelate rather than treating them in isolation. These patterns (formalized in <a href="#sec-ml-workflow-integrating-systems-thinking-principles-24c0" class="quarto-xref">Section&nbsp;1.9</a> and illustrated throughout this chapter with a detailed case study) explain <em>why</em> ML systems require integrated engineering approaches rather than sequential component optimization.</p>
 <p> To see how these stages interconnect, examine <a href="#fig-ml-lifecycle" class="quarto-xref">Figure&nbsp;1</a>, which traces two parallel pipelines through the complete lifecycle. Follow the data pipeline (green, top row) as it transforms raw inputs through collection, ingestion, analysis, labeling, validation, and preparation into ML-ready datasets. Then follow the model development pipeline (blue, bottom row) as it takes these datasets through training, evaluation, validation, and deployment to create production systems. Pay particular attention to the curved feedback arrows connecting deployment back to earlier stages: one returns monitoring insights to data collection, another feeds evaluation results back to training. These feedback paths create the continuous improvement cycles that distinguish ML from traditional linear development.</p>
-<div id="fig-ml-lifecycle" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Two parallel pipelines: data (green, top) with six stages from collection to preparation; model (blue, bottom) with four stages. A feedback arrow connects deployment to collection, and another connects evaluation to training." data-fig-pos="htb">
+<div id="fig-ml-lifecycle" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two parallel pipelines: data (green, top) with six stages from collection to preparation; model (blue, bottom) with four stages. A feedback arrow connects deployment to collection, and another connects evaluation to training." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ml-lifecycle-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="3b022a3ffa6f028fe2c2c3165c292a16a3a9e0ff.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Dual-pipeline ML development: The data pipeline (green, top) progresses from collection through preparation. The model pipeline (blue, bottom) takes prepared datasets through training and deployment. Feedback arrows show how deployment experiences reshape collection strategies and evaluation results trigger model improvements."><img src="ml_workflow_files/mediabag/3b022a3ffa6f028fe2c2c3165c292a16a3a9e0ff.svg" class="img-fluid figure-img"></a>
@@ -1594,7 +1651,7 @@ Figure&nbsp;1: <strong>Dual-pipeline ML development</strong>: The data pipeline 
 <p> Time allocation across stages follows a consistent pattern across industries. Data-related activities (collection, cleaning, labeling, validation, and preparation, covered comprehensively in <strong><a href="../data_engineering/data_engineering.html#sec-data-engineering">Data Engineering</a></strong>) consume 60–80 percent of total project time <span class="citation" data-cites="crowdflower2016data">(<a href="#ref-crowdflower2016data" role="doc-biblioref">CrowdFlower 2016</a>)</span>. Model development and training (the focus of <strong><a href="../training/training.html#sec-model-training">Model Training</a></strong>), despite receiving the most research attention, typically represents only 10–20 percent of effort. The remaining 10–20 percent goes to deployment, integration, and initial monitoring setup. This distribution surprises teams accustomed to traditional software where implementation dominates. In ML projects, the “source code” is the data, and preparing that source code is the primary engineering activity. For a concrete breakdown, turn to <a href="#fig-ds-time" class="quarto-xref">Figure&nbsp;2</a>—data cleaning and organizing alone accounts for 60 percent of practitioner effort.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-crowdflower2016data" class="csl-entry" role="listitem">
 CrowdFlower. 2016. <em>Data Science Report 2016</em>. <a href="https://visit.figure-eight.com/data-science-report.html">https://visit.figure-eight.com/data-science-report.html</a>.
-</div></div><div id="fig-ds-time" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Pie chart showing data scientist time allocation: 60 percent cleaning and organizing data, 19 percent collecting datasets, 9 percent mining for patterns, 5 percent building training sets, 4 percent refining algorithms, 3 percent other tasks." data-fig-pos="htb">
+</div></div><div id="fig-ds-time" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Pie chart showing data scientist time allocation: 60 percent cleaning and organizing data, 19 percent collecting datasets, 9 percent mining for patterns, 5 percent building training sets, 4 percent refining algorithms, 3 percent other tasks." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ds-time-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="bfa17ab7428a59073217342626b3309e90c451c4.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Data Scientist Time Allocation: Data preparation consumes up to 60 percent of data science effort, with data collection accounting for an additional 19 percent. Model-focused activities such as pattern mining, training set construction, and algorithm refinement together represent roughly 18 percent of total time. Source: CrowdFlower 2016 Data Science Report."><img src="ml_workflow_files/mediabag/bfa17ab7428a59073217342626b3309e90c451c4.svg" class="img-fluid figure-img"></a>
@@ -1752,7 +1809,9 @@ Table&nbsp;2: <strong>Traditional Software vs.&nbsp;ML Development Lifecycles</s
 <section id="sec-ml-workflow-erosion-determinism" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-workflow-erosion-determinism">The erosion of determinism: Breaking OS assumptions</h3>
 <p>This shift from code-centric to data-centric development erodes more than just project management models; it breaks the fundamental assumptions of modern Operating Systems. For over fifty years, OS kernels (from Unix to Windows) have been optimized for <strong>Spatial and Temporal Locality</strong><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>: the belief that if a program reads byte <span class="math inline">\(X\)</span>, it will likely read <span class="math inline">\(X+1\)</span> soon, and if it uses memory address <span class="math inline">\(Y\)</span>, it will likely reuse it.</p>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Locality of Reference</strong>: Formalized by Peter Denning in 1968 as the principle governing virtual memory design. The cost of violating locality is quantitative: an L1 cache hit costs approximately 1 ns, while a DRAM access costs 50–100 ns (50–100<span class="math inline">\(\times\)</span> penalty), and a Non-Volatile Memory Express (NVMe) SSD read costs 10–100 <span class="math inline">\(\mu\)</span>s (10,000–100,000<span class="math inline">\(\times\)</span> penalty). Random shuffling of multi-terabyte datasets during each training epoch triggers the worst case at every level of the memory hierarchy, explaining why ML data loaders must implement their own prefetching logic rather than relying on OS page cache heuristics. </p></div></div><p>ML workflows violate these abstractions at scale. A multi-terabyte dataset being randomly shuffled during every training epoch presents a “worst-case” workload for traditional file system buffers and virtual memory prefetchers. When every “instruction” (a sample) is fetched stochastically from a massive pool, the OS’s predictive caching logic fails, and the system defaults to expensive disk I/O or network transfers. A systems engineer must acknowledge that the “Abstractions of the 1970s,” once designed to hide hardware latency, are often the primary sources of the <strong>Overhead Term (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong> in the <strong>iron law</strong> for Software 2.0. Bridging this gap requires the specialized data engineering and hardware-aware optimizations we examine in the following Parts.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Locality of Reference</strong>: Formalized by <span class="citation" data-cites="denning1968working">Denning (<a href="#ref-denning1968working" role="doc-biblioref">1968</a>)</span> as the principle governing virtual memory design. The cost of violating locality is quantitative: an L1 cache hit costs approximately 1 ns, while a DRAM access costs 50–100 ns (50–100<span class="math inline">\(\times\)</span> penalty), and a Non-Volatile Memory Express (NVMe) SSD read costs 10–100 <span class="math inline">\(\mu\)</span>s (10,000–100,000<span class="math inline">\(\times\)</span> penalty). Random shuffling of multi-terabyte datasets during each training epoch triggers the worst case at every level of the memory hierarchy, explaining why ML data loaders must implement their own prefetching logic rather than relying on OS page cache heuristics. </p><div id="ref-denning1968working" class="csl-entry" role="listitem">
+Denning, Peter J. 1968. <span>“The Working Set Model for Program Behavior.”</span> <em>Communications of the ACM</em> 11 (5): 323–33. <a href="https://doi.org/10.1145/363095.363141">https://doi.org/10.1145/363095.363141</a>.
+</div></div></div><p>ML workflows violate these abstractions at scale. A multi-terabyte dataset being randomly shuffled during every training epoch presents a “worst-case” workload for traditional file system buffers and virtual memory prefetchers. When every “instruction” (a sample) is fetched stochastically from a massive pool, the OS’s predictive caching logic fails, and the system defaults to expensive disk I/O or network transfers. A systems engineer must acknowledge that the “Abstractions of the 1970s,” once designed to hide hardware latency, are often the primary sources of the <strong>Overhead Term (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong> in the <strong>iron law</strong> for Software 2.0. Bridging this gap requires the specialized data engineering and hardware-aware optimizations we examine in the following Parts.</p>
 <p>These distinctions translate directly into the structured six-stage framework that organizes how ML projects unfold, each stage presenting unique challenges that traditional software methodologies cannot address. The differences just covered should be clear before examining that framework.</p>
 <div id="callout-checkpoint-1.1" class="callout callout-checkpoint" title="ML vs. Traditional DevOps">
 <details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.1: ML vs. Traditional DevOps</strong></summary><div>
@@ -1800,7 +1859,7 @@ Table&nbsp;2: <strong>Traditional Software vs.&nbsp;ML Development Lifecycles</s
 <h2 class="anchored" data-anchor-id="sec-ml-workflow-six-core-lifecycle-stages-00b0">Lifecycle Stages</h2>
 <p>Where traditional software follows requirements through implementation to testing, ML systems demand a different organizational structure: one that accommodates iterative experimentation, data-driven evolution, and continuous feedback. The six-stage framework that follows captures these differences.</p>
 <p>As <a href="#fig-lifecycle-overview" class="quarto-xref">Figure&nbsp;3</a> illustrates, the ML lifecycle distills into six core stages. Read them left to right: Problem Definition establishes objectives and constraints; Data Collection and Preparation encompasses the data pipeline; Model Development and Training creates models; Evaluation and Validation ensures quality; Deployment and Integration brings systems to production; and Monitoring and Maintenance ensures continued effectiveness. The prominent feedback loop connecting monitoring back to data collection (the key insight in the diagram) shows that production signals (drift detection, performance degradation, new failure modes) flow back to inform earlier phases, capturing the cyclical nature that distinguishes ML from linear software development.</p>
-<div id="fig-lifecycle-overview" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Linear flowchart with six boxes: problem definition, data collection, model development, evaluation, deployment, monitoring . Feedback loop arrow curves from monitoring back to data colle ction." data-fig-pos="htb">
+<div id="fig-lifecycle-overview" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Linear flowchart with six boxes: problem definition, data collection, model development, evaluation, deployment, monitoring . Feedback loop arrow curves from monitoring back to data colle ction." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-lifecycle-overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="32bea3fae4b52ad87d942dc967967f700d4e8734.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Simplified Lifecycle with Feedback: Six stages progress from problem definition through data collection, model development, evaluation, deployment, and monitoring. The feedback loop from monitoring back to data collection captures the essential insight that production insights drive continuous refinement across earlier stages, because data distributions shift, model performance drifts, and operational requirements evolve."><img src="ml_workflow_files/mediabag/32bea3fae4b52ad87d942dc967967f700d4e8734.svg" class="img-fluid figure-img"></a>
@@ -1826,11 +1885,11 @@ Figure&nbsp;3: <strong>Simplified Lifecycle with Feedback</strong>: Six stages p
 </div>
 <p> <a href="#fig-lifecycle-overview" class="quarto-xref">Figure&nbsp;3</a> presents a linear narrative, but experienced practitioners recognize that these stages interconnect closely. Each stage corresponds to specific terms in the performance equation, and this mapping reveals what we call the <strong><em>iron law of Workflow</em></strong>: decisions made during data collection constrain what is achievable during model development, which in turn determines deployment requirements. The following perspective formalizes how each lifecycle stage maps to the <strong>iron law of ML Systems</strong>:</p>
 <div id="callout-perspective-1.1" class="callout callout-perspective" title="The iron law of Workflow">
-<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The iron law of Workflow</strong></summary><div>The six lifecycle stages are not merely procedural steps; they are the engineering levers used to optimize the variables in the <strong>iron law of ML Systems</strong> (<span class="math inline">\(T = \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta} + L_{\text{lat}}\)</span>):<p></p>
+<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The iron law of Workflow</strong></summary><div>The six lifecycle stages are not merely procedural steps; they are the engineering levers used to optimize the variables in the <strong>iron law of ML Systems</strong> (<span class="math inline">\(T = \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}} + L_{\text{lat}}\)</span>):<p></p>
 <ul>
 <li><strong>Data Collection and Preparation</strong>: Primarily determines the <strong>Data (<span class="math inline">\(D_{\text{vol}}\)</span>)</strong> term. High-quality curation reduces the volume of data needed to reach a target accuracy.</li>
 <li><strong>Model Development and Training</strong>: Defines the <strong>Operations (<span class="math inline">\(O\)</span>)</strong> term. Architectural choices (for example, transformers vs.&nbsp;convolutional neural networks (CNNs)) set the computational floor.</li>
-<li><strong>Evaluation and Validation</strong>: Verifies whether the achieved <strong>Efficiency (<span class="math inline">\(\eta\)</span>)</strong> and model accuracy jointly meet deployment requirements on the target hardware.</li>
+<li><strong>Evaluation and Validation</strong>: Verifies whether the achieved <strong>Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> and model accuracy jointly meet deployment requirements on the target hardware.</li>
 <li><strong>Deployment and Integration</strong>: Focuses on minimizing the <strong>Overhead (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong> tax through efficient serving infrastructure.</li>
 </ul>
 <p>Viewed this way, managing the workflow is mathematically equivalent to minimizing the total system latency and cost.</p>
@@ -1840,7 +1899,7 @@ Figure&nbsp;3: <strong>Simplified Lifecycle with Feedback</strong>: Six stages p
 <div id="tbl-lighthouse-workflow-comparison" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[9,30,28,33]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-lighthouse-workflow-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: <strong>Workflow Variations by Lighthouse Model</strong>: The same lifecycle stages target different iron law terms depending on the workload’s binding constraint. ResNet-50 optimizes for Throughput (<span class="math inline">\(O/s\)</span>); Deep Learning Recommendation Model (DLRM) is bound by Memory Bandwidth (<span class="math inline">\(D_{\text{vol}}/BW\)</span>); TinyML is strictly bound by Energy (<span class="math inline">\(J\)</span>) and Memory Capacity.
+Table&nbsp;3: <strong>Workflow Variations by Lighthouse Model</strong>: The same lifecycle stages target different iron law terms depending on the workload’s binding constraint. ResNet-50 optimizes for Throughput (<span class="math inline">\(O/s\)</span>); Deep Learning Recommendation Model (DLRM) is bound by Memory Bandwidth (<span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span>); TinyML is strictly bound by Energy (<span class="math inline">\(J\)</span>) and Memory Capacity.
 </figcaption>
 <div aria-describedby="tbl-lighthouse-workflow-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -1867,8 +1926,8 @@ Table&nbsp;3: <strong>Workflow Variations by Lighthouse Model</strong>: The same
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Training</strong></td>
-<td style="text-align: left;"><em>Compute Bound</em>: Maximize Model FLOPs Utilization (<span class="math inline">\(\eta\)</span>); mixed precision to saturate Tensor Cores</td>
-<td style="text-align: left;"><em>I/O Bound</em>: Optimize sparse embedding lookups; memory bandwidth (<span class="math inline">\(BW\)</span>) limits throughput</td>
+<td style="text-align: left;"><em>Compute Bound</em>: Maximize Model FLOPs Utilization (<span class="math inline">\(\eta_{\text{hw}}\)</span>); mixed precision to saturate Tensor Cores</td>
+<td style="text-align: left;"><em>I/O Bound</em>: Optimize sparse embedding lookups; memory bandwidth (<span class="math inline">\(\text{BW}\)</span>) limits throughput</td>
 <td style="text-align: left;"><em>Model Search</em>: Neural Architecture Search (NAS) for smallest architecture; quantization-aware training (QAT) required</td>
 </tr>
 <tr class="odd">
@@ -1888,7 +1947,7 @@ Table&nbsp;3: <strong>Workflow Variations by Lighthouse Model</strong>: The same
 <h3 class="anchored" data-anchor-id="sec-ml-workflow-case-study-diabetic-retinopathy-screening-7d71">Case study: DR screening</h3>
 <p> DR screening systems <span class="citation" data-cites="gulshan2016deep">(<a href="#ref-gulshan2016deep" role="doc-biblioref">Gulshan et al. 2016</a>)</span> meet all three criteria. The problem appears straightforward (classify retinal images as healthy or diseased), but the path from laboratory success to clinical deployment illustrates every aspect of lifecycle complexity. The development journey is well documented, and the challenges span every lifecycle stage from data collection through monitoring.</p>
 <div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>Diabetic Retinopathy (DR)</strong>: Affects 93–103 million people worldwide, with 22–35 percent of diabetic patients developing retinopathy. In developing countries, up to 90 percent of DR-caused vision loss is preventable with early detection, yet specialist access remains severely limited. This gap defines the ML systems problem: the screening task must be automated at scale on low-cost edge hardware in clinics that lack both ophthalmologists and reliable connectivity, making inference latency, model size, and offline capability binding deployment constraints. </p></div></div><p>Diabetic retinopathy affects over 100 million people worldwide and is a leading cause of preventable blindness<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>. To appreciate what the model must learn, look closely at <a href="#fig-eye-dr" class="quarto-xref">Figure&nbsp;4</a>: the clinical challenge is detecting characteristic hemorrhages (dark red spots) that indicate disease progression. Rural areas in developing countries have approximately one ophthalmologist per 100,000+ people, making AI-assisted screening not merely convenient but medically essential.</p>
-<div id="fig-eye-dr" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Two side-by-side retinal fundus images: L eft shows healthy retina, right shows diabetic retinopathy with dark red hemorrhage spots scattered across the retina." data-fig-pos="htb">
+<div id="fig-eye-dr" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two side-by-side retinal fundus images: L eft shows healthy retina, right shows diabetic retinopathy with dark red hemorrhage spots scattered across the retina." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-eye-dr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/eye-dr.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Retinal Hemorrhages: Diabetic retinopathy causes visible hemorrhages in retinal images. While this appears to be straightforward image classification, the path from laboratory success to clinical deployment illustrates every aspect of AI lifecycle complexity. Source: Google."><img src="images/png/eye-dr.png" class="img-fluid figure-img"></a>
@@ -2026,7 +2085,7 @@ Figure&nbsp;4: <strong>Retinal Hemorrhages</strong>: Diabetic retinopathy causes
 <h3 class="anchored" data-anchor-id="sec-ml-workflow-data-infrastructure-distributed-deployment-23ec">Distributed data infrastructure</h3>
 <p>As the number of clinics grows from a handful to hundreds, data infrastructure must scale accordingly. Each retinal image travels through multiple stages: clinic cameras capture the image, local systems provide initial storage and processing, quality validation checks ensure usability, secure transmission moves data to central systems, and finally, integration with training datasets completes the pipeline. The infrastructure decisions at each stage are shaped by the deployment constraints established during problem definition.</p>
 <p> Different data access patterns demand different storage solutions. Teams typically implement tiered storage architectures<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>:</p>
-<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Tiered Storage</strong>: Places data on different storage media based on access frequency and performance requirements. The cost-performance gap is an order of magnitude: NVMe SSDs deliver 500,000+ input/output operations per second (IOPS) at ~$0.10/GB/month, while object storage costs ~$0.023/GB/month but with 100–200 ms latency. For ML training loops requiring sustained sequential reads at 1–10 GB/s, choosing the wrong tier converts a compute-bound training pipeline into an I/O-bound one, directly inflating the iron law’s Data term <span class="math inline">\((D_{\text{vol}}/BW)\)</span>. </p></div></div><ul>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Tiered Storage</strong>: Places data on different storage media based on access frequency and performance requirements. The cost-performance gap is an order of magnitude: NVMe SSDs deliver 500,000+ input/output operations per second (IOPS) at ~$0.10/GB/month, while object storage costs ~$0.023/GB/month but with 100–200 ms latency. For ML training loops requiring sustained sequential reads at 1–10 GB/s, choosing the wrong tier converts a compute-bound training pipeline into an I/O-bound one, directly inflating the iron law’s Data term <span class="math inline">\((D_{\text{vol}}/\text{BW})\)</span>. </p></div></div><ul>
 <li><strong>Hot Storage</strong>: High-throughput NVMe SSDs for data currently used in training loops.</li>
 <li><strong>Warm Storage</strong>: S3-compatible object storage for recent datasets and active validation sets.</li>
 <li><strong>Cold Storage</strong>: Low-cost archival storage (for example, AWS Glacier) for historical data required for regulatory audit trails but rarely accessed.</li>
@@ -2045,7 +2104,7 @@ Figure&nbsp;4: <strong>Retinal Hemorrhages</strong>: Diabetic retinopathy causes
 <p>A blurry retinal image that slips past quality checks does not merely waste storage—it corrupts the training distribution, degrades model accuracy, and may produce a misdiagnosis months later in a clinic thousands of miles away. Quality assurance ensures that data meets the requirements downstream stages depend on. In our DR example, automated checks at the point of collection flag issues like poor focus or incorrect framing, allowing clinic staff to recapture images immediately rather than discovering the problem weeks later during model training.</p>
 <p>Validation extends beyond image quality to verify proper labeling, patient association, and privacy compliance. Local validation catches problems at the point of capture; centralized validation detects distributional anomalies across the full clinic network—for instance, flagging when a particular site’s images skew toward a narrow demographic range that would bias the training set.</p>
 <p>Data collection decisions directly constrain model development: bandwidth limits dictate what architectures are feasible, privacy requirements shape training pipelines (for example, federated learning), and quality variations across clinic environments determine robustness requirements. <a href="#fig-ml-lifecycle-feedback" class="quarto-xref">Figure&nbsp;5</a> traces these feedback pathways concretely. Follow each labeled arrow: evaluation reveals the DR model underperforms on images from older fundus cameras, triggering targeted data collection from clinics using that equipment. Validation across diverse patient populations shows lower sensitivity for patients with cataracts, driving data augmentation strategies that simulate lens opacities. Monitoring detects accuracy drift in clinics that upgraded their imaging equipment, feeding back to update preprocessing steps.</p>
-<div id="fig-ml-lifecycle-feedback" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Diagram with six boxes: data collection, preparation, training, evaluation, deployment, monitoring . Labeled feedback arrows show data gaps, validation issues, performance insights, and deployment constraints flowing between stages." data-fig-pos="htb">
+<div id="fig-ml-lifecycle-feedback" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram with six boxes: data collection, preparation, training, evaluation, deployment, monitoring . Labeled feedback arrows show data gaps, validation issues, performance insights, and deployment constraints flowing between stages." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ml-lifecycle-feedback-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="0bf77ce41501f490d93814e8c70cde069443189c.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Feedback paths across lifecycle stages: Six labeled feedback arrows connect the lifecycle stages. Data gaps identified during evaluation flow back to collection. Validation issues inform training adjustments. Performance insights from monitoring trigger new evaluation cycles. Model updates propagate from monitoring to training. Data quality issues feed back to preparation. Deployment constraints propagate backward to influence model design."><img src="ml_workflow_files/mediabag/0bf77ce41501f490d93814e8c70cde069443189c.svg" class="img-fluid figure-img"></a>
@@ -2095,7 +2154,9 @@ Figure&nbsp;5: <strong>Feedback paths across lifecycle stages</strong>: Six labe
 Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2012. <span>“<span>ImageNet</span> Classification with Deep Convolutional Neural Networks.”</span> <em>Advances in Neural Information Processing Systems</em> 25: 1097–105. <a href="https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html">https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html</a>.
 </div><div id="ref-deng2009imagenet" class="csl-entry" role="listitem">
 Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2009. <span>“ImageNet: A Large-Scale Hierarchical Image Database.”</span> <em>2009 IEEE Conference on Computer Vision and Pattern Recognition</em>, June, 248–55. <a href="https://doi.org/10.1109/cvpr.2009.5206848">https://doi.org/10.1109/cvpr.2009.5206848</a>.
-</div></div><p> The DR system faces a sharp optimization challenge: achieve expert-level diagnostic accuracy while fitting within edge device memory and latency budgets. Data and compute budgets are finite, so techniques that reduce both requirements without sacrificing accuracy become essential design choices. Transfer learning<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> addresses exactly this constraint: rather than training a model from scratch, it adapts models pretrained on large datasets (like ImageNet’s 14 million images) to specific tasks <span class="citation" data-cites="alexnet2012 deng2009imagenet">(<a href="#ref-alexnet2012" role="doc-biblioref">Krizhevsky et al. 2012</a>; <a href="#ref-deng2009imagenet" role="doc-biblioref">Deng et al. 2009</a>)</span>. Because transfer learning reuses representations already learned from millions of general images, practitioners can achieve expert-level performance with thousands rather than millions of domain-specific training examples, sharply reducing both training time and data collection effort. This approach became widespread in the 2013–2014 era through influential papers by Yosinski et al.&nbsp;and Oquab et al., establishing it as the foundation for practical computer vision applications.</p>
+</div><div id="ref-yosinski2014transferable" class="csl-entry" role="listitem">
+Yosinski, Jason, Jeff Clune, Yoshua Bengio, and Hod Lipson. 2014. <span>“How Transferable Are Features in Deep Neural Networks?”</span> <em>Advances in Neural Information Processing Systems</em> 27.
+</div></div><p> The DR system faces a sharp optimization challenge: achieve expert-level diagnostic accuracy while fitting within edge device memory and latency budgets. Data and compute budgets are finite, so techniques that reduce both requirements without sacrificing accuracy become essential design choices. Transfer learning<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> addresses exactly this constraint: rather than training a model from scratch, it adapts models pretrained on large datasets (like ImageNet’s 14 million images) to specific tasks <span class="citation" data-cites="alexnet2012 deng2009imagenet">(<a href="#ref-alexnet2012" role="doc-biblioref">Krizhevsky et al. 2012</a>; <a href="#ref-deng2009imagenet" role="doc-biblioref">Deng et al. 2009</a>)</span>. Because transfer learning reuses representations already learned from millions of general images, practitioners can achieve expert-level performance with thousands rather than millions of domain-specific training examples, sharply reducing both training time and data collection effort. This approach became widespread in the 2013–2014 era through influential work including <span class="citation" data-cites="yosinski2014transferable">Yosinski et al. (<a href="#ref-yosinski2014transferable" role="doc-biblioref">2014</a>)</span>, establishing it as the foundation for practical computer vision applications.</p>
 <p>Using transfer learning combined with a meticulously labeled dataset of 128,000 images, developers in DR projects achieve AUC<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> of 0.99 with sensitivity of 97.5 percent and specificity of 93.4 percent <span class="citation" data-cites="gulshan2016deep">(<a href="#ref-gulshan2016deep" role="doc-biblioref">Gulshan et al. 2016</a>)</span>, comparable to or exceeding ophthalmologist performance in controlled settings. This result validates approaches that combine large-scale pretraining with domain-specific fine-tuning. The training strategy uses the gradient-based optimization principles <strong><a href="../nn_computation/nn_computation.html#sec-neural-computation">Neural Computation</a></strong> establishes to adapt the pretrained convolutional architectures <strong><a href="../nn_architectures/nn_architectures.html#sec-network-architectures">Network Architectures</a></strong> presents for medical imaging.</p>
 <div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>AUC (Area Under the ROC Curve)</strong>: Measures the area under the receiver operating characteristic (ROC) curve plotting true positive rate vs.&nbsp;false positive rate across all classification thresholds, ranging from 0.5 (random) to 1.0 (perfect). Unlike accuracy, AUC is threshold-independent and robust to class imbalance, making it the standard metric for medical screening systems. The systems consequence: a model with 0.99 AUC can still produce unacceptable sensitivity at the specific operating threshold chosen for deployment, so AUC alone cannot validate deployment readiness. </p></div><div id="ref-gulshan2016deep" class="csl-entry" role="listitem">
 Gulshan, Varun, Lily Peng, Marc Coram, et al. 2016. <span>“Development and Validation of a Deep Learning Algorithm for Detection of Diabetic Retinopathy in Retinal Fundus Photographs.”</span> <em>JAMA</em> 316 (22): 2402. <a href="https://doi.org/10.1001/jama.2016.17216">https://doi.org/10.1001/jama.2016.17216</a>.
@@ -2130,10 +2191,10 @@ Gulshan, Varun, Lily Peng, Marc Coram, et al. 2016. <span>“Development and Val
 <section id="sec-ml-workflow-prototype-productionscale-development-168a" class="level3">
 <h3 class="anchored" data-anchor-id="sec-ml-workflow-prototype-productionscale-development-168a">Prototype to production</h3>
 <p>A team of three data scientists can manage experiments with spreadsheets and shared notebooks. A team of 30 cannot. As projects evolve from prototype to production, complexity grows across multiple dimensions simultaneously: larger datasets, more sophisticated models, concurrent experiments, and distributed training infrastructure. The informal coordination that worked at pilot scale becomes the primary bottleneck at production scale—a phenomenon <a href="#fig-mlops-leverage" class="quarto-xref">Figure&nbsp;6</a> quantifies by contrasting manual workflows against automated platforms. The axes are relative units intended to show shape, not absolute throughput.</p>
-<div id="fig-mlops-leverage" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Line chart comparing experimentation velocity vs. team size. Red line for manual workflows shows linear then saturating growth. Blue line for MLOps platform shows super-linear growth demonstrating leverage effect." data-fig-pos="htb">
+<div id="fig-mlops-leverage" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line chart comparing experimentation velocity vs. team size. Red line for manual workflows shows linear then saturating growth. Blue line for MLOps platform shows super-linear growth demonstrating leverage effect." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mlops-leverage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="ba0c0565" class="cell" data-execution_count="7">
+<div id="92bb40a6" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2197,7 +2258,7 @@ Figure&nbsp;6: <strong>The MLOps Leverage</strong>: Why infrastructure investmen
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: Model Validation</strong></summary><div>
 <p><strong><em>Model Validation</em></strong> is the rigorous verification that a model meets <strong>Business Constraints</strong>—service level agreement (SLA), fairness, and cost—on <strong>Production-Representative Data</strong>.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It moves beyond “Test Set Accuracy” to test for <strong>Robustness</strong> against distribution shift (<span class="math inline">\(D_{\text{vol}}\)</span>) and <strong>Efficiency</strong> against hardware limits (<span class="math inline">\(R_{\text{peak}}, BW\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> It moves beyond “Test Set Accuracy” to test for <strong>Robustness</strong> against distribution shift (<span class="math inline">\(D_{\text{vol}}\)</span>) and <strong>Efficiency</strong> against hardware limits (<span class="math inline">\(R_{\text{peak}}, \text{BW}\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Model Evaluation</strong>, which measures performance on a <strong>Static Test Set</strong>, Model Validation confirms that the model generalizes to the <strong>Dynamic Conditions</strong> of production.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that validation is “one more test.” In reality, it is a <strong>Risk Management Framework</strong> for detecting silent failure before it compounds into business impact.</li>
 </ol>
@@ -2498,7 +2559,7 @@ Figure&nbsp;6: <strong>The MLOps Leverage</strong>: Why infrastructure investmen
 <section id="sec-ml-workflow-summary-fb13" class="level2">
 <h2 class="anchored" data-anchor-id="sec-ml-workflow-summary-fb13">Summary</h2>
 <p>This chapter established the ML lifecycle as the systematic framework for engineering machine learning systems, the mental roadmap organizing how data, models, and deployment infrastructure interconnect throughout development. Return to <a href="#fig-ml-lifecycle" class="quarto-xref">Figure&nbsp;1</a> one final time: the two parallel pipelines now carry richer meaning. The data pipeline transforms raw inputs through collection, ingestion, analysis, labeling, validation, and preparation into ML-ready datasets. The model development pipeline takes these datasets through training, evaluation, validation, and deployment to create production systems. With the full chapter as context, the feedback arrows tell a deeper story—each one represents a lesson learned in production flowing back to strengthen earlier stages, creating the continuous improvement cycles that distinguish ML from traditional linear development.</p>
-<p>Understanding this framework explains why machine learning systems demand specialized approaches distinct from traditional software. ML workflows replace deterministic specifications with probabilistic optimization, static behavior with dynamic adaptation, and isolated development with continuous feedback loops. The iron law of workflow provides the quantitative backbone: each lifecycle stage maps to a specific term in the performance equation (<span class="math inline">\(T = D_{\text{vol}}/BW + O/(R_{\text{peak}} \cdot \eta) + L_{\text{lat}}\)</span>), making workflow management mathematically equivalent to system optimization. This systematic perspective recognizes that success emerges not from perfecting individual stages in isolation, but from understanding how data quality affects model performance, how deployment constraints shape training strategies, and how production insights inform each subsequent development iteration.</p>
+<p>Understanding this framework explains why machine learning systems demand specialized approaches distinct from traditional software. ML workflows replace deterministic specifications with probabilistic optimization, static behavior with dynamic adaptation, and isolated development with continuous feedback loops. The iron law of workflow provides the quantitative backbone: each lifecycle stage maps to a specific term in the performance equation (<span class="math inline">\(T = D_{\text{vol}}/\text{BW} + O/(R_{\text{peak}} \cdot \eta_{\text{hw}}) + L_{\text{lat}}\)</span>), making workflow management mathematically equivalent to system optimization. This systematic perspective recognizes that success emerges not from perfecting individual stages in isolation, but from understanding how data quality affects model performance, how deployment constraints shape training strategies, and how production insights inform each subsequent development iteration.</p>
 <p>Three quantitative insights from this chapter guide engineering decisions:</p>
 <ol type="1">
 <li><p><strong>60–80 percent</strong>: The proportion of project time consumed by data-related activities. Model development, despite receiving the most attention, represents only 10–20 percent of effort. Plan accordingly.</p></li>

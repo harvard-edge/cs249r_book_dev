@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-c6e67e663447326d1c3f52e730a1c254.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-bad894f6903d90188856202af6e7cbd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -155,8 +155,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -178,6 +201,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -217,7 +274,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../vol1/assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#1F407A">
@@ -240,59 +297,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-code {
   --color1: #F2F4F8;
@@ -303,51 +315,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(209, 215, 224, 0.12);
   --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
 .callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -356,6 +323,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(32, 178, 170, 0.04);
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
 }
 .callout-definition {
   --color1: #F0F4F8;
@@ -375,6 +351,33 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(190, 24, 93, 0.12);
   --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
 .callout-checkpoint {
   --color1: #FFF8E7;
   --color2: #D97706;
@@ -384,14 +387,68 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-example {
   --color1: #F0F8F6;
@@ -419,88 +476,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-code {
@@ -517,76 +504,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-code code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -599,6 +516,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
     color: #e6e6e6 !important;
   }
   details.callout-definition {
@@ -629,6 +560,48 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
   details.callout-checkpoint {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -643,18 +616,102 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-chapter-connection {
     --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
   details.callout-example {
@@ -677,44 +734,17 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 details.callout-quiz-question > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-code > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
 details.callout-resource-exercises > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
 }
 details.callout-definition > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
@@ -722,11 +752,38 @@ details.callout-definition > summary::before {
 details.callout-takeaways > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
 details.callout-checkpoint > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
 details.callout-example > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
@@ -764,11 +821,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Machine Learning Systems at Scale">
-<meta property="og:image" content="./contents/vol2/compute_infrastructure/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta property="og:image" content="../../../contents/vol2/compute_infrastructure/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta property="og:site_name" content="Machine Learning Systems at Scale">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Machine Learning Systems at Scale">
-<meta name="twitter:image" content="./contents/vol2/compute_infrastructure/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta name="twitter:image" content="../../../contents/vol2/compute_infrastructure/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -970,34 +1027,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1009,22 +1066,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1036,17 +1093,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1058,23 +1115,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1086,22 +1143,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1113,29 +1170,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1205,8 +1262,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="b727508aec93ade4ae3d59e61f4e966e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="./">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="../../../">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../../../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1644,11 +1701,13 @@ Figure&nbsp;1: <strong>The Four Infrastructure Walls</strong>. Four dominant con
 <div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Systolic Array</strong>: From Greek <em>systole</em> (contraction) – coined by H. T. Kung and Leiserson in 1978 because data pulses through a grid of processing elements in a heart-like rhythm. The metaphor explains the design: each cell performs one MAC and passes the result to its neighbor, eliminating register-file round-trips. Google’s TPU v1 deployed a <span class="math inline">\(256 \times 256\)</span> array (65,536 MACs), achieving 92 TOPS within 75 W by hardwiring this dataflow – the architectural bet that made datacenter-scale inference economically viable. </p></div></div><p>The cost of this efficiency is reduced programmability. Models must be compiled through XLA (Accelerated Linear Algebra), which maps high-level operations onto the fixed dataflow. Workloads with irregular control flow or dynamic shapes may not map well to this architecture, and the compilation process itself can be time-consuming (minutes to hours for complex models), which slows the iteration cycle during model development.</p>
 <p>The programming model distinction between GPUs and TPUs has practical implications for organizational decisions. Research teams that frequently modify model architectures (adding custom attention patterns, experimenting with new activation functions, prototyping novel training algorithms) generally prefer the GPU’s CUDA ecosystem because new operations can be implemented as custom kernels without waiting for compiler support. Teams running established architectures at scale (standard Transformer training, large-scale fine-tuning) may prefer TPUs because the XLA compiler can optimize the entire computation graph, often achieving better hardware utilization than hand-written CUDA kernels for standard operations.</p>
 <div id="callout-war-story-1.1" class="callout callout-war-story" title="The TPU Origin Story">
-<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.1: The TPU Origin Story</strong></summary><div>In 2013, Google engineers projected that if users spoke to their Android phones for just three minutes per day using voice search, the company would need to double its datacenter compute capacity to handle the inference load. The cost was prohibitive. When they profiled their production workloads, a striking pattern emerged: over 90 percent of inference cycles were spent on matrix multiplications in neural network models. The existing GPU fleet was powerful but expensive, and its general-purpose SIMT architecture carried the generality tax for capabilities that inference workloads never used. This observation led directly to the TPU v1, a purpose-built inference accelerator with a <span class="math inline">\(256 \times 256\)</span> systolic array that could deliver 92 TOPS (INT8) within a 75 W power envelope. The first TPUs were deployed in 2015, and within a year they were processing every Google Search query, every Google Translate request, and every AlphaGo move <span class="citation" data-cites="jouppi2017datacenter">(<a href="#ref-jouppi2017datacenter" role="doc-biblioref"><span class="nocase">Jouppi et al.</span> 2017</a>)</span>.<p></p>
+<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.1: The TPU Origin Story</strong></summary><div>In 2013, Google engineers projected that if users spoke to their Android phones for just three minutes per day using voice search, the company would need to double its datacenter compute capacity to handle the inference load. The cost was prohibitive. When they profiled their production workloads, a striking pattern emerged: over 90 percent of inference cycles were spent on matrix multiplications in neural network models. The existing GPU fleet was powerful but expensive, and its general-purpose SIMT architecture carried the generality tax for capabilities that inference workloads never used. This observation led directly to the TPU v1, a purpose-built inference accelerator with a <span class="math inline">\(256 \times 256\)</span> systolic array that could deliver 92 TOPS (INT8) within a 75 W power envelope. The first TPUs were deployed in 2015, and within a year they were processing every Google Search query, every Google Translate request, and every AlphaGo move <span class="citation" data-cites="silver2017mastering jouppi2017datacenter">(<a href="#ref-silver2017mastering" role="doc-biblioref">Silver et al. 2017</a>; <a href="#ref-jouppi2017datacenter" role="doc-biblioref"><span class="nocase">Jouppi et al.</span> 2017</a>)</span>.<p></p>
 </div></details>
 </div>
 <div class="no-row-height column-margin column-container"><div id="ref-jouppi2017datacenter" class="csl-entry" role="listitem">
-<span class="nocase">Jouppi, Norman P., Cliff Young, Nishant Patil, David Patterson, et al.</span> 2017. <span>“In-Datacenter Performance Analysis of a Tensor Processing Unit.”</span> <em>Proceedings of the 44th Annual International Symposium on Computer Architecture (ISCA)</em>. <a href="https://doi.org/10.1145/3079856.3080246">https://doi.org/10.1145/3079856.3080246</a>.
+<span class="nocase">Jouppi, Norman P., Cliff Young, Nishant Patil, David Patterson, et al.</span> 2017. <span>“In-Datacenter Performance Analysis of a <span>Tensor Processing Unit</span>.”</span> <em>International Symposium on Computer Architecture (ISCA)</em>, 1–12. <a href="https://doi.org/10.1145/3079856.3080246">https://doi.org/10.1145/3079856.3080246</a>.
+</div></div><div class="no-row-height column-margin column-container"><div id="ref-silver2017mastering" class="csl-entry" role="listitem">
+Silver, David, Julian Schrittwieser, Karen Simonyan, et al. 2017. <span>“Mastering the Game of Go Without Human Knowledge.”</span> <em>Nature</em> 550 (7676): 354–59. <a href="https://doi.org/10.1038/nature24270">https://doi.org/10.1038/nature24270</a>.
 </div></div><p><em>When does it make economic sense to abandon general-purpose programmability entirely?</em></p>
 <p>Custom ASICs represent the extreme end of the spectrum. When an organization runs a single model architecture at enormous scale, the economics of silicon justify designing a chip specifically for that workload. By stripping away every feature not required by the target computation, custom ASICs achieve the lowest energy per operation and the highest sustained utilization of any architecture on the spectrum.</p>
 <p>Tesla’s Dojo D1 chip, for example, is optimized for the spatial and temporal convolutions in video-based vision models. Its 1,024 custom cores are designed to execute the exact computational primitives needed by Tesla’s vision pipeline, with on-chip SRAM sized to hold the working set of a single spatial tile. This eliminates the repeated round-trips to off-chip memory that a general-purpose GPU would require for the same computation.</p>
@@ -1660,7 +1719,7 @@ Figure&nbsp;1: <strong>The Four Infrastructure Walls</strong>. Four dominant con
 </section>
 <section id="sec-compute-wafer-scale" class="level3">
 <h3 class="anchored" data-anchor-id="sec-compute-wafer-scale">Wafer-scale engines</h3>
-<p> </p>
+<p></p>
 <p>Wafer-Scale Engines (WSE) represent the ultimate pursuit of data locality. While every other architecture on the spectrum relies on chiplets or discrete dies connected by relatively slow PCB-level or package-level interconnects, a wafer-scale engine (like the Cerebras WSE-3) is a single, continuous piece of silicon the size of a dinner plate. By avoiding the need to “dice” the wafer into individual chips, a WSE can maintain a single, massive on-chip interconnect across its entire surface.</p>
 <p>The WSE-3 contains 900,000 AI-optimized cores and 44 GB of on-chip SRAM, all connected by a silicon fabric that delivers 21 PB/s of memory bandwidth. To put this in perspective, a single WSE-3 has roughly the same compute and memory bandwidth as a cluster of hundreds of H100 GPUs, but because the entire system resides on a single piece of silicon, the communication latency between any two cores is measured in nanoseconds rather than microseconds.</p>
 <p>As <a href="#fig-wafer-scale-engine" class="quarto-xref">Figure&nbsp;2</a> shows, the challenge of wafer-scale integration is physical: manufacturing yield, power delivery, and thermal expansion. A single defect on a standard chip might render it useless, but on a wafer-scale engine, the software must be “defect-aware,” routing around local manufacturing flaws in the silicon fabric. Delivering 23 kW of power to a single piece of silicon and cooling it requires specialized manifold-level liquid cooling that is closer to industrial plumbing than traditional computer engineering.</p>
@@ -1785,12 +1844,12 @@ Table&nbsp;2: <strong>NVIDIA GPU Architecture Evolution</strong>. Each generatio
 <div aria-describedby="tbl-gpu-evolution-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 8%">
-<col style="width: 21%">
-<col style="width: 14%">
-<col style="width: 7%">
-<col style="width: 13%">
+<col style="width: 22%">
+<col style="width: 10%">
+<col style="width: 25%">
+<col style="width: 17%">
+<col style="width: 9%">
+<col style="width: 15%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1844,7 +1903,7 @@ Table&nbsp;2: <strong>NVIDIA GPU Architecture Evolution</strong>. Each generatio
 <div id="fig-accelerator-efficiency-wall" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Dual-axis log-scale plot showing GPU FP16 TFLOPS and TFLOPS per watt from 2016 to 2024 across six NVIDIA GPU generations." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-accelerator-efficiency-wall-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="7861515c" class="cell" data-execution_count="4">
+<div id="7ed33163" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2170,7 +2229,7 @@ Table&nbsp;5: <strong>Evolution of High Bandwidth Memory</strong>. Each generati
 <div id="fig-compute-memory-divergence" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Dual-axis log-scale plot showing GPU compute growth at 36x vs. memory bandwidth growth at 9x from 2017 to 2024, with diverging slopes illustrating the memory wall." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-compute-memory-divergence-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="b71d0341" class="cell" data-execution_count="7">
+<div id="f8e8f076" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2226,7 +2285,7 @@ Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline:
 <div id="fig-roofline-landscape" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Log-log roofline plot for H100 showing memory-bound and compute-bound regions with five ML workloads plotted from LLM decode at 1 FLOP per byte to LLM training at 2000 FLOP per byte." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-roofline-landscape-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="52a3616d" class="cell" data-execution_count="8">
+<div id="86e68d79" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2298,7 +2357,7 @@ Figure&nbsp;8: <strong>The Roofline Landscape: NVIDIA H100</strong>. The rooflin
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.4: Pipeline Bubble</strong></summary><div>
 <p><strong><em>Pipeline Bubble</em></strong> is the idle time in pipeline-parallel training caused by stages waiting for inputs from upstream workers during the fill and drain phases of a micro-batch cycle.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It represents a direct loss in <strong>System Efficiency (<span class="math inline">\(\eta\)</span>)</strong>. For a model with <span class="math inline">\(p\)</span> pipeline stages and <span class="math inline">\(m\)</span> micro-batches, the bubble fraction is approximately <strong><span class="math inline">\((p-1)/m\)</span></strong>, dictating the maximum theoretical utilization of the cluster.</li>
+<li><strong>Significance (Quantitative):</strong> It represents a direct loss in <strong>System Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong>. For a model with <span class="math inline">\(p\)</span> pipeline stages and <span class="math inline">\(m\)</span> micro-batches, the bubble fraction is approximately <strong><span class="math inline">\((p-1)/m\)</span></strong>, dictating the maximum theoretical utilization of the cluster.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Network Latency</strong> (which is a data transfer delay), a Pipeline Bubble is a <strong>Temporal Dependency</strong> delay: workers are idle not because the network is slow, but because the next piece of work has not yet been computed.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that bubbles can be eliminated by “faster networking.” In reality, the bubble is an <strong>Algorithmic Constraint</strong>: it can only be reduced by increasing the number of micro-batches (<span class="math inline">\(m\)</span>), which in turn increases the <strong>Memory Footprint</strong> for stored activations.</li>
 </ol>
@@ -2380,7 +2439,9 @@ Figure&nbsp;9: <strong>The Power Delivery Path</strong>. The journey of energy f
 </div></details>
 </div>
 <p>The trajectory of TDP tells the story of a physical law reaching its limits. For three decades, <strong>Dennard scaling</strong><a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> allowed chip designers to shrink transistors while maintaining constant power density: smaller transistors required lower voltage, so packing more transistors into the same area did not increase heat output per unit area. This scaling broke down around 2006 when transistor dimensions reached the point where quantum effects (subthreshold leakage, gate oxide tunneling) prevented further voltage reduction. Since then, each generation of accelerator has increased power consumption roughly in proportion to its performance gains. The era of “free” performance improvements through process shrinks is over; every gain in throughput now comes with a proportional gain in power consumption and heat generation.</p>
-<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Dennard Scaling</strong>: Named after Robert Dennard (IBM, 1974), who observed that shrinking transistors could maintain constant power density because voltage and current scale with dimensions. The breakdown around 2006 – when subthreshold leakage and gate-oxide tunneling prevented further voltage reduction below ~28 nm – is the direct cause of the V100-to-B200 TDP trajectory (300 W to 1,000 W). For ML infrastructure, the post-Dennard era means every TFLOPS gain arrives with a proportional watt increase, making cooling and power delivery co-equal design constraints with the silicon itself. </p></div></div><p>The numbers are stark. The V100 (2017) operated at 300 W TDP. The A100 (2020) increased to 400 W. The H100 (2022) reached 700 W. The B200 (2024) draws 1,000 W. In seven years, TDP has more than tripled, growing at approximately 18 percent per year.</p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Dennard Scaling</strong>: Named after <span class="citation" data-cites="dennard1974design">Dennard et al. (<a href="#ref-dennard1974design" role="doc-biblioref">1974</a>)</span> at IBM, who observed that shrinking transistors could maintain constant power density because voltage and current scale with dimensions. The breakdown around 2006 – when subthreshold leakage and gate-oxide tunneling prevented further voltage reduction below ~28 nm – is the direct cause of the V100-to-B200 TDP trajectory (300 W to 1,000 W). For ML infrastructure, the post-Dennard era means every TFLOPS gain arrives with a proportional watt increase, making cooling and power delivery co-equal design constraints with the silicon itself. </p><div id="ref-dennard1974design" class="csl-entry" role="listitem">
+Dennard, R. H., F. H. Gaensslen, Hwa-Nien Yu, V. L. Rideout, E. Bassous, and A. R. LeBlanc. 1974. <span>“Design of Ion-Implanted MOSFET’s with Very Small Physical Dimensions.”</span> <em>IEEE Journal of Solid-State Circuits</em> 9 (5): 256–68. <a href="https://doi.org/10.1109/jssc.1974.1050511">https://doi.org/10.1109/jssc.1974.1050511</a>.
+</div></div></div><p>The numbers are stark. The V100 (2017) operated at 300 W TDP. The A100 (2020) increased to 400 W. The H100 (2022) reached 700 W. The B200 (2024) draws 1,000 W. In seven years, TDP has more than tripled, growing at approximately 18 percent per year.</p>
 <p>If this growth rate continues, the next generation after Blackwell will approach 1,200–1,400 W per accelerator, and the generation after that may reach 1,500–2,000 W. At 2,000 W per accelerator, a single 8-GPU node would consume 16 kW of GPU power alone, requiring liquid cooling<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> infrastructure that can remove heat at rates approaching those of industrial process cooling equipment.</p>
 <div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Liquid Cooling Flow Rate</strong>: A rack of GB200 NVL72 nodes (120 kW) requires approximately 150–200 liters per minute (LPM) of coolant flow. At these rates, the primary risk shift is from thermal throttling to mechanical failure (leaks, pump cavitation), necessitating the industrial-grade manifolds and quick-disconnect fittings common in chemical processing plants. </p></div></div><div id="callout-perspective-1.3" class="callout callout-perspective" title="The End of Dennard Scaling">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.3: The End of Dennard Scaling</strong></summary><div>For three decades, Dennard scaling allowed architects to increase transistor count without increasing power density, as smaller transistors required proportionally less voltage. That free lunch ended around 2006 when process nodes dropped below 28nm, where quantum effects like subthreshold leakage and gate oxide tunneling prevent further voltage reduction. The result is that power density now rises with transistor density: every new generation of accelerator that delivers more TFLOPS also demands more watts. The transition from the V100 (12nm) to the H100 (4nm) illustrates this physics: while transistor density tripled, the inability to scale voltage meant TDP grew from 300 W to 700 W. The “free” efficiency gains of the silicon era are over; today, the only path to higher performance per watt is architectural specialization – Tensor Cores, systolic arrays, precision engineering – or massive increases in power and cooling infrastructure. For ML infrastructure planners, this means that power and cooling capacity must grow at least as fast as compute demand, and facility designs that assume future hardware will be more power-efficient are building on a foundation that no longer exists.<p></p>
@@ -2811,7 +2872,7 @@ Figure&nbsp;11: <strong>The Infrastructure Bandwidth Hierarchy</strong>. Concent
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> It dictates the <strong>Scaling Ceiling</strong> for distributed training. At each physical boundary (die edge, package edge, chassis, rack), the <strong>Effective Bandwidth (<span class="math inline">\(\text{BW}\)</span>)</strong> drops by approximately one order of magnitude while latency (<span class="math inline">\(L_{\text{lat}}\)</span>) increases.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Idealized Networking Models</strong>, the Bandwidth Hierarchy captures the <strong>Physical Cost of Distance</strong>: shorter signal paths over denser wiring achieve higher throughput at lower energy per bit.</li>
-<li><strong>Common Pitfall:</strong> A frequent misconception is that all cluster communication is equal. In reality, parallelism strategies must be <strong>Hierarchy-Aware</strong>: placing high-frequency synchronization (for example, Tensor Parallelism) on a slow tier will rapidly idle the compute units (<span class="math inline">\(R_{\text{peak}}\)</span>), collapsing system efficiency (<span class="math inline">\(\eta\)</span>).</li>
+<li><strong>Common Pitfall:</strong> A frequent misconception is that all cluster communication is equal. In reality, parallelism strategies must be <strong>Hierarchy-Aware</strong>: placing high-frequency synchronization (for example, Tensor Parallelism) on a slow tier will rapidly idle the compute units (<span class="math inline">\(R_{\text{peak}}\)</span>), collapsing system efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>).</li>
 </ol>
 </div></details>
 </div>
@@ -3066,7 +3127,7 @@ Table&nbsp;10: <strong>Node Memory Hierarchy</strong>. Each tier trades capacity
 </ol>
 <p>The critical design goal is to make the data pipeline <em>invisible</em> to the GPU: the prefetching must be deep enough that a batch is always ready when the GPU needs it, regardless of transient variations in storage bandwidth or preprocessing time. When this pipeline is well-tuned, the GPU utilization is limited only by compute and communication, not by data loading. When it is poorly tuned, the GPU can spend 10–30 percent of its time waiting for data, which directly reduces training throughput.</p>
 <p>The traditional data path routes every byte through the host CPU: storage controller to host DRAM (one PCIe traversal), then host DRAM to GPU HBM (a second PCIe traversal). This “bounce buffer” architecture doubles the traffic on the PCIe root complex and makes the CPU a bottleneck for I/O-intensive workloads, capping effective bandwidth at 3–4 GB/s per NVMe drive due to kernel context switching and interrupt handling overhead. <strong>GPUDirect Storage (GDS)</strong> eliminates this inefficiency by establishing a direct DMA path between the NVMe controller and GPU memory, bypassing the host CPU entirely. A single NVMe drive can deliver 5–7 GB/s directly to GPU HBM through GDS, saturating the drive’s internal bandwidth rather than the host’s I/O subsystem. For a standard node equipped with four NVMe drives, GDS unlocks an aggregate storage-to-GPU bandwidth of 20–28 GB/s, freeing the CPU to focus exclusively on preprocessing tasks like tokenization and sequence packing. <strong><a href="../data_storage/data_storage.html#sec-data-storage">Data Storage</a></strong> examines GDS and the broader storage hierarchy in detail.</p>
-<p>The required prefetch depth is not arbitrary but follows from the statistics of I/O latency variance. If the GPU processes one batch every <span class="math inline">\(T_{\text{compute}}\)</span> seconds and the storage system delivers a batch every <span class="math inline">\(T_{io}\)</span> seconds with standard deviation <span class="math inline">\(\sigma_{io}\)</span>, the minimum prefetch depth <span class="math inline">\(k\)</span> required to maintain a 99.7 percent probability of zero stalls is <span class="math inline">\(k \ge \lceil T_{io} / T_{\text{compute}} + 3\sigma_{io} / T_{\text{compute}} \rceil\)</span>. For our 175B model training run where <span class="math inline">\(T_{\text{compute}} = 2.0\)</span> seconds and the storage layer delivers batches at <span class="math inline">\(T_{io} = 1.5 \pm 0.5\)</span> seconds, the required depth is <span class="math inline">\(\lceil 0.75 + 0.75 \rceil = 2\)</span> batches. In production environments where “noisy neighbors” on shared file systems induce heavy tail latencies, engineers typically over-provision this buffer to 4–8 batches to insulate the GPU from the erratic physics of distributed storage. The memory cost of this prefetch buffer (each batch may occupy 100–200 MB of host DRAM) is negligible compared to the cost of a GPU stall.</p>
+<p>The required prefetch depth is not arbitrary but follows from the statistics of I/O latency variance. If the GPU processes one batch every <span class="math inline">\(T_{\text{compute}}\)</span> seconds and the storage system delivers a batch every <span class="math inline">\(T_{\text{io}}\)</span> seconds with standard deviation <span class="math inline">\(\sigma_{\text{io}}\)</span>, the minimum prefetch depth <span class="math inline">\(k\)</span> required to maintain a 99.7 percent probability of zero stalls is <span class="math inline">\(k \ge \lceil T_{\text{io}} / T_{\text{compute}} + 3\sigma_{\text{io}} / T_{\text{compute}} \rceil\)</span>. For our 175B model training run where <span class="math inline">\(T_{\text{compute}} = 2.0\)</span> seconds and the storage layer delivers batches at <span class="math inline">\(T_{\text{io}} = 1.5 \pm 0.5\)</span> seconds, the required depth is <span class="math inline">\(\lceil 0.75 + 0.75 \rceil = 2\)</span> batches. In production environments where “noisy neighbors” on shared file systems induce heavy tail latencies, engineers typically over-provision this buffer to 4–8 batches to insulate the GPU from the erratic physics of distributed storage. The memory cost of this prefetch buffer (each batch may occupy 100–200 MB of host DRAM) is negligible compared to the cost of a GPU stall.</p>
 <p>As cluster sizes expand, a new bottleneck emerges at the storage layer: the <strong>I/O Wall</strong>. When training our 1760B model across 128 nodes, the system acts as a synchronized “thundering herd” – all 128 nodes simultaneously demand the next microbatch of tokens at the start of every training step. A shared parallel filesystem like Lustre, even with 500 GB/s of aggregate throughput, will buckle when 128 clients simultaneously pull data, causing read latencies to spike from milliseconds to seconds. The architectural solution is <strong>tiered storage</strong> with aggressive local caching. By provisioning each training node with local NVMe SSDs capable of delivering 25 GB/s per node, the cluster decouples its immediate data dependency from the shared filesystem. A background process prefetches data from the central store to the local NVMe cache asynchronously, smoothing out I/O spikes. For the 128-node cluster, local NVMe creates an aggregate read bandwidth of 3.2 TB/s (<span class="math inline">\(128 \times 25\)</span> GB/s), eclipsing the capability of even the most expensive centralized storage arrays and ensuring the GPUs are never starved.</p>
 <div class="callout callout-style-default callout-warning callout-titled" title="The Data Loading Trap">
 <div class="callout-header d-flex align-content-center">
@@ -3459,7 +3520,7 @@ Figure&nbsp;13: <strong>Pod-Scale Network Topologies</strong>. Two dominant pod 
 </div>
 <div id="callout-definition-1.11" class="callout callout-definition" title="Warehouse-Scale Computer (WSC)">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.11: Warehouse-Scale Computer (WSC)</strong></summary><div>
-<p><strong><em>Warehouse-Scale Computer (WSC)</em></strong> is a building-scale computing system in which thousands of servers are operated as a single coherent machine—with the network fabric serving as the system bus, distributed storage as the disk subsystem, and a cluster orchestrator as the operating system—enabling training workloads that would be physically impossible on any single machine.</p>
+<p><em><strong>Warehouse-Scale Computer (WSC)</strong></em> is a building-scale computing system in which thousands of servers are operated as a single coherent machine—with the network fabric serving as the system bus, distributed storage as the disk subsystem, and a cluster orchestrator as the operating system—enabling training workloads that would be physically impossible on any single machine.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> A WSC of 10,000 H100 GPUs delivers approximately 3,120 ExaFLOP/s BF16 peak—enabling frontier model training at scales impossible on a single node. However, the system is only as fast as its bisection bandwidth: non-blocking InfiniBand at 50 GB/s per GPU provides 250 TB/s aggregate injection bandwidth; if the fabric is 4:1 oversubscribed, effective bisection bandwidth drops to 62.5 TB/s, potentially bottlenecking AllReduce and dropping training throughput by 30–60 percent.</li>
 <li><strong>Distinction (Durable):</strong> Unlike a general-purpose compute cluster (which runs many independent jobs on separate nodes with no requirement for tight coupling), a WSC training cluster operates as a single synchronous instrument—every node must participate in every AllReduce, making the failure or slowdown of a single node a cluster-wide performance event.</li>
@@ -3510,11 +3571,11 @@ Figure&nbsp;13: <strong>Pod-Scale Network Topologies</strong>. Two dominant pod 
 <section id="sec-compute-scaling-efficiency" class="level3">
 <h3 class="anchored" data-anchor-id="sec-compute-scaling-efficiency">Scaling efficiency</h3>
 <p>Before examining specific pod architectures, we must understand the metric that determines whether scaling from one node to many is worthwhile: <strong>scaling efficiency</strong>. If a model trains in time <span class="math inline">\(T_1\)</span> on one node, ideal (linear) scaling would train it in time <span class="math inline">\(T_1/N\)</span> on <span class="math inline">\(N\)</span> nodes. In practice, communication overhead, pipeline bubbles, and load imbalances reduce the speedup. Scaling efficiency is defined as:</p>
-<p><span id="eq-scaling-efficiency"><span class="math display">\[\eta = \frac{T_1}{N \times T_N} \tag{2}\]</span></span></p>
+<p><span id="eq-scaling-efficiency"><span class="math display">\[\eta_{\text{scaling}} = \frac{T_1}{N \times T_N} \tag{2}\]</span></span></p>
 <p>where <span class="math inline">\(T_N\)</span> is the training time on <span class="math inline">\(N\)</span> nodes. An efficiency of 1.0 means perfect linear scaling; an efficiency of 0.5 means we achieve only half the expected speedup.</p>
 <div id="callout-definition-1.12" class="callout callout-definition" title="Scaling Efficiency">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.12: Scaling Efficiency</strong></summary><div>
-<p><strong><em>Scaling Efficiency (<span class="math inline">\(\eta\)</span>)</em></strong> is the ratio of actual throughput to ideal linear throughput when increasing the number of compute nodes (<span class="math inline">\(N\)</span>).</p>
+<p><strong><em>Scaling Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</em></strong> is the ratio of actual throughput to ideal linear throughput when increasing the number of compute nodes (<span class="math inline">\(N\)</span>).</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> It is the most important metric for cluster productivity (<span class="math inline">\(\eta = T_1 / (N \cdot T_N)\)</span>). A scaling efficiency of 0.50 means that a 10,000-GPU cluster is delivering only the same useful work as a 5,000-GPU cluster, wasting 50 percent of the hardware investment.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Single-Node Efficiency</strong> (which captures local bottlenecks like <span class="math inline">\(\text{BW}\)</span>), Scaling Efficiency captures the <strong>Cluster-Level Overhead</strong> of communication (<span class="math inline">\(L_{\text{lat}}\)</span>) and synchronization.</li>
@@ -3555,7 +3616,7 @@ Figure&nbsp;13: <strong>Pod-Scale Network Topologies</strong>. Two dominant pod 
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.13: Hierarchy-Aware Parallelism</strong></summary><div>
 <p><strong><em>Hierarchy-Aware Parallelism</em></strong> is the strategy of mapping different parallel execution modes to the physical bandwidth tiers of the cluster.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It ensures that high-frequency synchronization (for example, Tensor Parallelism) stays on the fastest links (NVLink), while lower-frequency tasks (for example, Data Parallelism) use slower tiers (InfiniBand). This alignment maximizes the <strong>System Efficiency (<span class="math inline">\(\eta\)</span>)</strong> by minimizing communication stalls (<span class="math inline">\(L_{\text{lat}}\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> It ensures that high-frequency synchronization (for example, Tensor Parallelism) stays on the fastest links (NVLink), while lower-frequency tasks (for example, Data Parallelism) use slower tiers (InfiniBand). This alignment maximizes the <strong>System Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> by minimizing communication stalls (<span class="math inline">\(L_{\text{lat}}\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Uniform Parallelism</strong>, which treats all node-to-node links as equal, Hierarchy-Aware strategies respect the <strong>Bandwidth Cliffs</strong> between die, node, and rack boundaries.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that any model can be sharded across any number of nodes. In reality, if the <strong>Hierarchy Mapping</strong> is wrong (for example, sharding a large tensor across a slow inter-rack link), the communication time will dwarf the compute time, making the scale-out useless.</li>
 </ol>
@@ -3590,7 +3651,9 @@ Figure&nbsp;13: <strong>Pod-Scale Network Topologies</strong>. Two dominant pod 
 <section id="nvidia-dgx-superpod" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="nvidia-dgx-superpod">NVIDIA DGX SuperPOD</h4>
 <p>The DGX SuperPOD is designed for organizations that run diverse workloads: large language models one week, vision models the next, and scientific simulations on weekends. Its network uses a <strong>fat-tree</strong> topology<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> built from InfiniBand NDR switches, providing high-bandwidth, any-to-any connectivity with low hop counts. In a fat-tree, the aggregate bandwidth at each level of the tree matches the bandwidth of the level below, so no bottleneck exists regardless of which pairs of nodes are communicating. A typical SuperPOD configuration connects 32 DGX H100 nodes (256 GPUs) through a two-tier InfiniBand fabric, with larger installations using a three-tier fat-tree to scale to thousands of GPUs.</p>
-<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Fat-Tree</strong>: Proposed by Charles Leiserson (MIT, 1985), named because links grow “fatter” (higher bandwidth) at each level of the tree hierarchy, preventing upper-tier congestion. A non-blocking fat-tree gives every node full bisection bandwidth for arbitrary traffic patterns, which is why it dominates ML clusters running diverse AllReduce and AllToAll workloads. The cost constraint is switch count: <span class="math inline">\(O(N^{3/2})\)</span> switches for <span class="math inline">\(N\)</span> endpoints in a three-tier design, making the network fabric 10–15 percent of total cluster cost at scale. </p></div></div><p>The fat-tree’s strength is its flexibility. Whether the training framework uses ring-AllReduce, tree-AllReduce, or AllToAll communication patterns, the fat-tree’s any-to-any connectivity provides near-optimal bandwidth for all of them. This makes it the natural choice for research environments where the communication pattern changes with each experiment.</p>
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Fat-Tree</strong>: Proposed by <span class="citation" data-cites="leiserson1985fattrees">Leiserson (<a href="#ref-leiserson1985fattrees" role="doc-biblioref">1985</a>)</span> at MIT, named because links grow “fatter” (higher bandwidth) at each level of the tree hierarchy, preventing upper-tier congestion. A non-blocking fat-tree gives every node full bisection bandwidth for arbitrary traffic patterns, which is why it dominates ML clusters running diverse AllReduce and AllToAll workloads. The cost constraint is switch count: <span class="math inline">\(O(N^{3/2})\)</span> switches for <span class="math inline">\(N\)</span> endpoints in a three-tier design, making the network fabric 10–15 percent of total cluster cost at scale. </p><div id="ref-leiserson1985fattrees" class="csl-entry" role="listitem">
+Leiserson, Charles E. 1985. <span>“Fat-Trees: Universal Networks for Hardware-Efficient Supercomputing.”</span> <em>IEEE Transactions on Computers</em> C-34 (10): 892–901. <a href="https://doi.org/10.1109/tc.1985.6312192">https://doi.org/10.1109/tc.1985.6312192</a>.
+</div></div></div><p>The fat-tree’s strength is its flexibility. Whether the training framework uses ring-AllReduce, tree-AllReduce, or AllToAll communication patterns, the fat-tree’s any-to-any connectivity provides near-optimal bandwidth for all of them. This makes it the natural choice for research environments where the communication pattern changes with each experiment.</p>
 <p>The fat-tree also simplifies job scheduling significantly. Because any subset of nodes can communicate efficiently with any other subset, the scheduler can place jobs on whatever nodes are available without worrying about locality constraints. This scheduling flexibility improves cluster utilization because jobs do not need to wait for a specific set of contiguous nodes to become available. In a torus topology, by contrast, a training job that requires 64 nodes works most efficiently when those nodes form a compact sub-torus within the larger topology, which constrains the scheduler and can leave nodes idle even when the cluster has sufficient total capacity.</p>
 <p>For our 1760B model, a SuperPOD configuration of 128 DGX H100 nodes (1,024 GPUs) connected via a two-tier InfiniBand fat-tree provides the baseline training platform. The fat-tree’s full bisection bandwidth ensures that the data-parallel AllReduce of 350 GB of gradients across 128 nodes proceeds at the full InfiniBand line rate, regardless of which specific nodes are assigned to the job. This topology flexibility is particularly valuable when nodes are periodically quarantined for maintenance: the scheduler simply substitutes healthy nodes from elsewhere in the fabric without any performance penalty, maintaining training continuity.</p>
 <p>The trade-off is cost and complexity. A fat-tree requires a large number of expensive InfiniBand switches (each costing $15,000–30,000), and the switch count grows super-linearly with the number of endpoints. For a 1,024-GPU cluster, the switch fabric alone can cost $10–20 million, representing 10–15 percent of total system cost. Cable management also becomes formidable: a three-tier fat-tree for 1,024 GPUs requires thousands of individual cables, each of which must be precisely routed, labeled, and tested. <strong><a href="../network_fabrics/network_fabrics.html#sec-network-fabrics">Network Fabrics</a></strong> examines the fat-tree topology and its alternatives in full quantitative detail.</p>
@@ -3608,10 +3671,10 @@ Table&nbsp;13: <strong>WSC Architecture Comparison</strong>. The choice of pod a
 <div aria-describedby="tbl-pod-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 34%">
+<col style="width: 33%">
+<col style="width: 27%">
 <col style="width: 18%">
-<col style="width: 22%">
-<col style="width: 24%">
+<col style="width: 20%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -3733,7 +3796,7 @@ Table&nbsp;13: <strong>WSC Architecture Comparison</strong>. The choice of pod a
 <li><strong>Accelerators and servers</strong> (50–60 percent of CapEx): The GPUs or TPUs themselves, along with the host servers, baseboard management controllers, and local storage.</li>
 <li><strong>Networking</strong> (10–15 percent of CapEx): InfiniBand switches, HCAs, cables, and optical transceivers. A fat-tree fabric for 1,000 GPUs can cost $10–20 million.</li>
 <li><strong>Facility</strong> (15–25 percent of CapEx): Building construction or retrofit, electrical infrastructure (transformers, UPS, PDUs), and cooling plant (chillers, piping, pumps). Liquid cooling infrastructure adds 10–15 percent to facility costs but reduces long-term OpEx.</li>
-<li><strong>Electricity</strong> (60–70 percent of OpEx): At $0.07/kWh, a 1,000-GPU H100 cluster consuming 1 MW (including cooling at PUE 1.1) costs approximately $615,000 per year in electricity alone.</li>
+<li><strong>Electricity</strong> (60–70 percent of OpEx): At $0.07/kWh, a 1,000-GPU H100 cluster consuming 1 MW (including cooling at 1.1) costs approximately $615,000 per year in electricity alone.</li>
 <li><strong>Staffing and maintenance</strong> (20–30 percent of OpEx): System administrators, hardware technicians, replacement parts, and software license fees.</li>
 </ul>
 <p>For our 1760B model, a minimum viable training cluster requires approximately 1,000 H100 GPUs spread across 125 nodes to complete a training run in 2–4 weeks. Evaluating the TCO over a three-year lifecycle reveals a stark utilization dependency. The hardware CapEx dominates at $43.75 million ($350,000 per node), supported by a $5 million investment in a two-tier InfiniBand fat-tree network and a proportional $10 million facility allocation. Operational costs add approximately $1.5 million annually for electricity (at $0.07/kWh with a PUE of 1.1) and specialized staffing, bringing the three-year total to roughly $63 million. If this dedicated cluster only trains six frontier models per year, the effective cost per run is $3.5 million. Conversely, executing the same workload on the public cloud at $4.00 per GPU-hour with 80 percent utilization would cost approximately $1.075 million per run, totaling $19.3 million over three years – less than a third of the on-premises investment. The economic advantage of owning hardware only materializes at <em>continuous utilization</em>: if the cluster runs 24/7 (supporting not just training but also inference, fine-tuning, and experimentation), the effective on-premises cost drops to approximately $2.40 per GPU-hour, significantly undercutting the cloud rate. This utilization dependency is the central tension in every build-vs.-buy analysis.</p>
@@ -4114,7 +4177,7 @@ Table&nbsp;14: <strong>Power Efficiency Across GPU Generations</strong>. Each ge
 <ul>
 <li><strong>The generality tax</strong>: Accelerators achieve 10–100<span class="math inline">\(\times\)</span> higher throughput than CPUs by dedicating silicon area to matrix arithmetic rather than branch prediction and out-of-order execution. The trade-off is reduced flexibility. Each step along the spectrum from GPU to TPU to custom ASIC reclaims more die area for arithmetic.</li>
 <li><strong>memory wall Dominance</strong>: For single-request LLM inference, memory bandwidth determines latency because the arithmetic completes in microseconds while data transfer takes milliseconds. HBM costs 3–5<span class="math inline">\(\times\)</span> more per GB than DDR but provides 50<span class="math inline">\(\times\)</span> the bandwidth. The energy cost of moving data (20 pJ/byte) exceeds the energy cost of computing on it (1 pJ/MAC) by 20<span class="math inline">\(\times\)</span>.</li>
-<li><strong>Roofline Model</strong>: The ridge point (<span class="math inline">\(I_{ridge}\)</span> = peak FLOPS/memory BW) divides workloads into memory-bound and compute-bound regimes. LLM decode is deeply memory-bound (<span class="math inline">\(I \approx 1\)</span>); LLM training is compute-bound (<span class="math inline">\(I &gt; 2{,}000\)</span>). Always diagnose before optimizing.</li>
+<li><strong>Roofline Model</strong>: The ridge point (<span class="math inline">\(I_{\text{ridge}}\)</span> = peak FLOPS/memory BW) divides workloads into memory-bound and compute-bound regimes. LLM decode is deeply memory-bound (<span class="math inline">\(I \approx 1\)</span>); LLM training is compute-bound (<span class="math inline">\(I &gt; 2{,}000\)</span>). Always diagnose before optimizing.</li>
 <li><strong>Bandwidth Hierarchy Dictates Parallelism</strong>: The 18<span class="math inline">\(\times\)</span> bandwidth cliff between NVLink and InfiniBand confines tensor parallelism to within a node and data parallelism to across nodes. Pipeline parallelism spans nodes when model depth exceeds a single node’s capacity.</li>
 <li><strong>Peak vs.&nbsp;Sustained</strong>: Model FLOPS Utilization (MFU) of 40–50 percent is considered good for large-scale training. Capacity planning must use sustained throughput, not peak specifications.</li>
 <li><strong>PUE as Efficiency Metric</strong>: Liquid cooling achieves PUE of 1.05–1.10, delivering 90–95 percent of facility power to computation, compared to 50–65 percent for air-cooled facilities. The transition from air to liquid cooling is a thermodynamic necessity, not an optional upgrade, for modern ML racks.</li>

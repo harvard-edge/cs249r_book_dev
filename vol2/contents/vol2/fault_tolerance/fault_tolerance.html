@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-c6e67e663447326d1c3f52e730a1c254.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-bad894f6903d90188856202af6e7cbd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../vol1/assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#1F407A">
@@ -266,68 +323,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 .callout-example {
   --color1: #F0F8F6;
@@ -338,41 +341,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(20, 143, 119, 0.12);
   --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
 }
 .callout-colab {
   --color1: #FFF5E6;
@@ -383,23 +359,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(255, 107, 53, 0.12);
   --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
 }
 .callout-war-story {
   --color1: #FEF2F2;
@@ -410,14 +377,59 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-principle {
   --color1: #F3F2FA;
@@ -428,114 +440,75 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(61, 59, 142, 0.12);
   --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-resource-exercises {
+  details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
+  details.callout-theorem code {
     color: #e6e6e6 !important;
   }
   details.callout-example {
@@ -552,60 +525,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-chapter-connection {
     --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
+  details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
   details.callout-colab {
@@ -622,32 +553,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-colab code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
   }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-war-story {
@@ -664,18 +581,88 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
   }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-theorem code {
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
   details.callout-principle {
@@ -692,79 +679,149 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
+  details.callout-resource-videos {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-checkpoint code {
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
 }
 </style>
 <style>
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
 details.callout-example > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
 }
 details.callout-colab > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
 details.callout-principle > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Machine Learning Systems at Scale">
-<meta property="og:image" content="./contents/vol2/fault_tolerance/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta property="og:image" content="../../../contents/vol2/fault_tolerance/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta property="og:site_name" content="Machine Learning Systems at Scale">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Machine Learning Systems at Scale">
-<meta name="twitter:image" content="./contents/vol2/fault_tolerance/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta name="twitter:image" content="../../../contents/vol2/fault_tolerance/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="b727508aec93ade4ae3d59e61f4e966e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="./">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="../../../">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../../../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1745,19 +1802,19 @@ Figure&nbsp;1: <strong>The ML Failure Spectrum</strong>. Reliability challenges 
 <p>System reliability engineering provides the foundational framework for understanding failure at scale <span class="citation" data-cites="birolini2017reliability">(<a href="#ref-birolini2017reliability" role="doc-biblioref">Birolini 2017</a>)</span>. Individual components exhibit failure rates characterized by the failure rate parameter <span class="math inline">\(\lambda\)</span>,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> measured in failures per unit time. For a single component with constant failure rate <span class="math inline">\(\lambda\)</span>, the probability of surviving without failure until time <span class="math inline">\(t\)</span> follows an exponential distribution<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>:</p>
 <div class="no-row-height column-margin column-container"><div id="ref-birolini2017reliability" class="csl-entry" role="listitem">
 Birolini, Alessandro. 2017. <em>Reliability Engineering: Theory and Practice</em>. 8th ed. Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/978-3-662-54209-5">https://doi.org/10.1007/978-3-662-54209-5</a>.
-</div><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Failure Rate (<span class="math inline">\(\lambda\)</span>)</strong>: Expressed in FITs (Failures In Time), where 1 FIT equals one failure per billion device-hours. A datacenter GPU with 50,000-hour MTBF has <span class="math inline">\(\lambda = 20\)</span> FITs, which seems negligible for one device but becomes dominant at fleet scale: a 10,000-GPU cluster accumulates 200,000 FITs, translating to an expected failure every 5 hours. </p></div><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Poisson Process</strong>: A statistical model for events occurring independently at a constant average rate. Reliability models assume hardware failures follow a Poisson distribution, leading to the exponential survival function <span class="math inline">\(R(t) = e^{-\lambda t}\)</span>. This assumption simplifies fleet planning: the probability of at least one failure in a 10,000-node cluster is <span class="math inline">\(1 - e^{-N \lambda t}\)</span>, making failure risk scale linearly with <span class="math inline">\(N\)</span> but exponentially with <span class="math inline">\(t\)</span>. </p></div></div><p><span id="eq-single-component-reliability"><span class="math display">\[ R_{single}(t) = e^{-\lambda t}  \tag{1}\]</span></span></p>
+</div><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Failure Rate (<span class="math inline">\(\lambda\)</span>)</strong>: Expressed in FITs (Failures In Time), where 1 FIT equals one failure per billion device-hours. A datacenter GPU with 50,000-hour MTBF has <span class="math inline">\(\lambda = 20\)</span> FITs, which seems negligible for one device but becomes dominant at fleet scale: a 10,000-GPU cluster accumulates 200,000 FITs, translating to an expected failure every 5 hours. </p></div><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Poisson Process</strong>: A statistical model for events occurring independently at a constant average rate. Reliability models assume hardware failures follow a Poisson distribution, leading to the exponential survival function <span class="math inline">\(R(t) = e^{-\lambda t}\)</span>. This assumption simplifies fleet planning: the probability of at least one failure in a 10,000-node cluster is <span class="math inline">\(1 - e^{-N \lambda t}\)</span>, making failure risk scale linearly with <span class="math inline">\(N\)</span> but exponentially with <span class="math inline">\(t\)</span>. </p></div></div><p><span id="eq-single-component-reliability"><span class="math display">\[ R_{\text{single}}(t) = e^{-\lambda t}  \tag{1}\]</span></span></p>
 <p>The mean time between failures (MTBF) for this component equals <span class="math inline">\(1/\lambda\)</span>. Modern GPUs in datacenter environments exhibit MTBF values ranging from 40,000 to 100,000 hours depending on operating conditions, cooling effectiveness, and manufacturing variation.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>GPU MTBF Variation</strong>: NVIDIA specifies A100 MTBF at approximately 50,000 hours under controlled conditions, but fleet telemetry from Google (Tensor Processing Unit (TPU) pods) and Meta (GPUs) consistently shows field failure rates 20–50 percent higher than manufacturer specifications. The gap arises from thermal stress, power fluctuations, and memory-intensive ML workloads that push components beyond the steady-state assumptions in reliability models. </p></div></div><p>When multiple independent components operate in a system where any single failure causes system failure, <a href="#eq-system-reliability-product" class="quarto-xref">Equation&nbsp;2</a> formalizes how system reliability becomes the product of individual component reliabilities:</p>
-<p><span id="eq-system-reliability-product"><span class="math display">\[ R_{system}(t) = \prod_{i=1}^{N} R_i(t) = \prod_{i=1}^{N} e^{-\lambda_i t}  \tag{2}\]</span></span></p>
+<p><span id="eq-system-reliability-product"><span class="math display">\[ R_{\text{system}}(t) = \prod_{i=1}^{N} R_i(t) = \prod_{i=1}^{N} e^{-\lambda_i t}  \tag{2}\]</span></span></p>
 <p>For <span class="math inline">\(N\)</span> identical components with individual failure rate <span class="math inline">\(\lambda\)</span>, this simplifies to:</p>
-<p><span id="eq-system-reliability-n-components"><span class="math display">\[ R_{system}(t) = e^{-N\lambda t}  \tag{3}\]</span></span></p>
+<p><span id="eq-system-reliability-n-components"><span class="math display">\[ R_{\text{system}}(t) = e^{-N\lambda t}  \tag{3}\]</span></span></p>
 <p>The system failure rate becomes <span class="math inline">\(N\lambda\)</span>, and <a href="#eq-system-mtbf" class="quarto-xref">Equation&nbsp;4</a> expresses how the system MTBF scales inversely with component count. This inverse scaling reveals the counterintuitive reality of <em>the 9s of reliability</em> at cluster scale:</p>
-<p><span id="eq-system-mtbf"><span class="math display">\[ \text{MTBF}_{system} = \frac{1}{N\lambda} = \frac{\text{MTBF}_{component}}{N}  \tag{4}\]</span></span></p>
+<p><span id="eq-system-mtbf"><span class="math display">\[ \text{MTBF}_{\text{system}} = \frac{1}{N\lambda} = \frac{\text{MTBF}_{\text{component}}}{N}  \tag{4}\]</span></span></p>
 <p><a href="#fig-reliability-gap" class="quarto-xref">Figure&nbsp;2</a> visualizes the fundamental tension: as clusters grow, the expected time between failures shrinks below common training durations, making fault tolerance not optional but physically necessary.</p>
 <div id="fig-reliability-gap" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Semilog plot of cluster MTBF vs. GPU count with reference lines for 1-day, 1-week, and 3-month training durations. Shaded region where MTBF falls below 3-month training." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-reliability-gap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="b44bddd9" class="cell" data-execution_count="3">
+<div id="4e6a778b" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1803,9 +1860,9 @@ Figure&nbsp;4: <strong>The Checkpoint Tax Decomposition</strong>. Time overhead 
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.1: The 9s of Reliability</strong></summary><div><strong>Problem</strong>: You have a cluster of <strong>10,000 GPUs</strong>. Each GPU has <strong>99.99 percent</strong> availability (only 52 minutes of downtime per year). What is the probability that the <strong>entire cluster</strong> is up for <strong>1 hour</strong>?<p></p>
 <p><strong>The Math</strong>:</p>
 <ol type="1">
-<li><strong>Single GPU Success Probability (<span class="math inline">\(P_{1h}\)</span>)</strong>: A GPU failing once per year (8,760 hours) has hourly survival probability <span class="math inline">\(P_{1h} \approx 1 - 1/N_{\text{hours}}\)</span> = 0.99989.</li>
-<li><strong>Cluster Success Probability (<span class="math inline">\(P_{cluster}\)</span>)</strong>: <span class="math inline">\(P_{cluster} = (P_{1h})^{N}\)</span>.</li>
-<li><strong>Calculation</strong>: <span class="math inline">\((P_{1h})^{N}\)</span> <span class="math inline">\(\approx\)</span> <strong>0.32</strong>.</li>
+<li><strong>Single GPU Success Probability (<span class="math inline">\(P_{\text{1h}}\)</span>)</strong>: A GPU failing once per year (8,760 hours) has hourly survival probability <span class="math inline">\(P_{\text{1h}} \approx 1 - 1/N_{\text{hours}}\)</span> = 0.99989.</li>
+<li><strong>Cluster Success Probability (<span class="math inline">\(P_{\text{cluster}}\)</span>)</strong>: <span class="math inline">\(P_{\text{cluster}} = (P_{\text{1h}})^{N}\)</span>.</li>
+<li><strong>Calculation</strong>: <span class="math inline">\((P_{\text{1h}})^{N}\)</span> <span class="math inline">\(\approx\)</span> <strong>0.32</strong>.</li>
 </ol>
 <p><strong>The Systems Conclusion</strong>: Even with 99.99 percent reliable hardware, a 10,000-GPU cluster has only a <strong>32 percent chance</strong> of surviving a single hour without a failure. Hardware reliability alone is insufficient; software must handle failures automatically.</p>
 </div></details>
@@ -1850,19 +1907,19 @@ Figure&nbsp;4: <strong>The Checkpoint Tax Decomposition</strong>. Time overhead 
 <section id="step-1-calculate-failure-rate-per-gpu-subsystem" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="step-1-calculate-failure-rate-per-gpu-subsystem">Step 1: Calculate failure rate per GPU subsystem</h4>
 <p>Each GPU operates within a failure domain that includes the GPU itself, its PCIe connection, and proportional shares of the power supply and network infrastructure.</p>
-<p><span class="math display">\[ \lambda_{GPU} = \frac{1}{50,000} = 2.0 \times 10^{-5} \text{ failures/hour} \]</span></p>
-<p><span class="math display">\[ \lambda_{PCIe} = \frac{1}{200,000} = 0.5 \times 10^{-5} \text{ failures/hour} \]</span></p>
-<p><span class="math display">\[ \lambda_{power/GPU} = \frac{1}{8} \times \frac{1}{100,000} = 0.125 \times 10^{-5} \text{ failures/hour} \]</span></p>
-<p><span class="math display">\[ \lambda_{network/GPU} = \frac{1}{8} \times \frac{1}{150,000} = 0.083 \times 10^{-5} \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{GPU}} = \frac{1}{50,000} = 2.0 \times 10^{-5} \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{PCIe}} = \frac{1}{200,000} = 0.5 \times 10^{-5} \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{power/GPU}} = \frac{1}{8} \times \frac{1}{100,000} = 0.125 \times 10^{-5} \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{network/GPU}} = \frac{1}{8} \times \frac{1}{150,000} = 0.083 \times 10^{-5} \text{ failures/hour} \]</span></p>
 </section>
 <section id="step-2-calculate-total-per-gpu-failure-rate" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="step-2-calculate-total-per-gpu-failure-rate">Step 2: Calculate total per-GPU failure rate</h4>
-<p><span class="math display">\[ \lambda_{total/GPU} = (2.0 + 0.5 + 0.125 + 0.083) \times 10^{-5} = 2.708 \times 10^{-5} \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{total/GPU}} = (2.0 + 0.5 + 0.125 + 0.083) \times 10^{-5} = 2.708 \times 10^{-5} \text{ failures/hour} \]</span></p>
 </section>
 <section id="step-3-calculate-cluster-failure-rate-and-mtbf" class="level4 unnumbered page-columns page-full">
 <h4 class="unnumbered anchored" data-anchor-id="step-3-calculate-cluster-failure-rate-and-mtbf">Step 3: Calculate cluster failure rate and MTBF</h4>
-<p><span class="math display">\[ \lambda_{cluster} = 10,000 \times 2.708 \times 10^{-5} = 0.2708 \text{ failures/hour} \]</span></p>
-<p><span class="math display">\[ \text{MTBF}_{cluster} = \frac{1}{0.2708} = 3.69 \text{ hours} \]</span></p>
+<p><span class="math display">\[ \lambda_{\text{cluster}} = 10,000 \times 2.708 \times 10^{-5} = 0.2708 \text{ failures/hour} \]</span></p>
+<p><span class="math display">\[ \text{MTBF}_{\text{cluster}} = \frac{1}{0.2708} = 3.69 \text{ hours} \]</span></p>
 <p>This result means the cluster experiences a failure approximately every 3.7 hours on average. Over a 24-hour period, the expected number of failures is 6.5. A training run lasting one week will experience approximately 45 failures. Any training system operating at this scale must treat failure as a continuous condition, not an exceptional event.</p>
 <p><a href="#tbl-cluster-mtbf-scaling" class="quarto-xref">Table&nbsp;1</a> generalizes this analysis across cluster sizes, demonstrating the mathematical inevitability of frequent failures at scale.</p>
 <div id="tbl-cluster-mtbf-scaling" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1938,7 +1995,7 @@ Table&nbsp;1: <strong>Cluster MTBF Scaling</strong>: System-level mean time betw
 <div class="no-row-height column-margin column-container"></div><div id="fig-published-failure-rates" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" alt="Log-log scatter plot of MTTF in hours vs. GPU count with theoretical 1 over N curve and labeled data points from Meta RSC and Llama 3 training." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-published-failure-rates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="8ec2ddd5" class="cell" data-execution_count="5">
+<div id="344ab79a" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1949,12 +2006,12 @@ Table&nbsp;1: <strong>Cluster MTBF Scaling</strong>: System-level mean time betw
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-published-failure-rates-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: <strong>Published Failure Rates from Production Clusters</strong>. Measured MTTF values from Meta’s RSC clusters (<span class="citation" data-cites="kokolis2025reliability">Kokolis et al. (<a href="#ref-kokolis2025reliability" role="doc-biblioref">2025</a>)</span>) and Llama 3 training <span class="citation" data-cites="dubey2024llama3">(<a href="#ref-dubey2024llama3" role="doc-biblioref">Grattafiori et al. 2024</a>)</span> plotted against the theoretical 1/N curve. At 16,384 GPUs, both empirical measurements and theory predict failures every 2 to 3 hours, confirming that fault tolerance is a mathematical necessity, not an edge case. Data sources: Kokolis et al., arXiv:2410.21680; Meta, arXiv:2407.21783.
+Figure&nbsp;5: <strong>Published Failure Rates from Production Clusters</strong>. Measured MTTF values from Meta’s RSC clusters (<span class="citation" data-cites="kokolis2025reliability">Kokolis et al. (<a href="#ref-kokolis2025reliability" role="doc-biblioref">2025</a>)</span>) and Llama 3 training <span class="citation" data-cites="dubey2024llama3">(<a href="#ref-dubey2024llama3" role="doc-biblioref"><span class="nocase">Dubey et al.</span> 2024</a>)</span> plotted against the theoretical 1/N curve. At 16,384 GPUs, both empirical measurements and theory predict failures every 2 to 3 hours, confirming that fault tolerance is a mathematical necessity, not an edge case. Data sources: Kokolis et al., arXiv:2410.21680; Meta, arXiv:2407.21783.
 </figcaption>
 <div class="no-row-height column-margin column-container"><div id="ref-kokolis2025reliability" class="csl-entry" role="listitem">
 Kokolis, Apostolos, Michael Kuchnik, John Hoffman, et al. 2025. <span>“Revisiting Reliability in Large-Scale Machine Learning Research Clusters.”</span> <em>2025 IEEE International Symposium on High-Performance Computer Architecture (HPCA)</em>. <a href="https://doi.org/10.1109/HPCA61900.2025.00096">https://doi.org/10.1109/HPCA61900.2025.00096</a>.
 </div><div id="ref-dubey2024llama3" class="csl-entry" role="listitem">
-Grattafiori, Aaron, Abhimanyu Dubey, Abhinav Jauhri, et al. 2024. <span>“The Llama 3 Herd of Models.”</span> <em>arXiv Preprint arXiv:2407.21783</em>, July. <a href="http://arxiv.org/abs/2407.21783v3">http://arxiv.org/abs/2407.21783v3</a>.
+<span class="nocase">Dubey, Abhimanyu, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, et al.</span> 2024. <em>The <span>Llama</span> 3 Herd of Models</em>. arXiv preprint arXiv:2407.21783. <a href="https://arxiv.org/abs/2407.21783">https://arxiv.org/abs/2407.21783</a>.
 </div></div></figure>
 </div>
 </section>
@@ -1969,7 +2026,9 @@ Grattafiori, Aaron, Abhimanyu Dubey, Abhinav Jauhri, et al. 2024. <span>“The L
 <li><strong>Network packet loss</strong>: Momentary congestion causes dropped packets, but retransmission succeeds</li>
 <li><strong>Memory bit flips</strong>: Cosmic ray induced single-event upsets<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> corrupt individual bits</li>
 </ul>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Single-Event Upset (SEU)</strong>: From particle physics, where “upset” denotes a non-destructive state change. Cosmic rays and alpha particles from chip packaging flip approximately one bit per gigabyte of RAM per month at sea level. ECC memory corrects single-bit errors but cannot handle multi-bit upsets in the same word, leaving a residual silent corruption rate that compounds across the terabytes of state in large-scale ML training. - <strong>Thermal throttling</strong>: Temporary performance reduction due to temperature spikes - <strong>Software timeouts</strong>: Temporary resource contention causes operation delays</p></div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Silent Data Corruption (SDC)</strong>: Meta’s fleet-wide analysis found approximately 0.1 percent of training runs exhibited anomalous loss trajectories traceable to hardware errors that triggered no explicit exceptions. Detection required statistical monitoring of loss curves rather than traditional error handling, fundamentally changing the debugging model: in ML training, the absence of an error message does not imply correct computation. </p></div></div><p>Transient failures are particularly insidious in ML training because they may not trigger explicit errors. A transient memory bit flip during gradient computation produces incorrect gradients that propagate through subsequent training steps. The model continues training but produces subtly degraded results. Studies of large-scale training runs have documented cases where transient hardware errors caused training to diverge after hundreds of hours, wasting substantial compute resources <span class="citation" data-cites="dixit2021silent">(<a href="#ref-dixit2021silent" role="doc-biblioref">Vangal et al. 2021</a>)</span>.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Single-Event Upset (SEU)</strong>: From particle physics, where “upset” denotes a non-destructive state change. Cosmic rays and alpha particles from chip packaging flip approximately one bit per gigabyte of RAM per month at sea level. ECC memory corrects single-bit errors but cannot handle multi-bit upsets in the same word, leaving a residual silent corruption rate that compounds across the terabytes of state in large-scale ML training. - <strong>Thermal throttling</strong>: Temporary performance reduction due to temperature spikes - <strong>Software timeouts</strong>: Temporary resource contention causes operation delays</p></div><div id="ref-schroeder2009dram" class="csl-entry" role="listitem">
+Schroeder, Bianca, Eduardo Pinheiro, and Wolf-Dietrich Weber. 2009. <span>“DRAM Errors in the Wild: A Large-Scale Field Study.”</span> <em>ACM SIGMETRICS Performance Evaluation Review</em> 37 (1): 193–204. <a href="https://doi.org/10.1145/2492101.1555372">https://doi.org/10.1145/2492101.1555372</a>.
+</div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Silent Data Corruption (SDC)</strong>: Meta’s fleet-wide analysis found approximately 0.1 percent of training runs exhibited anomalous loss trajectories traceable to hardware errors that triggered no explicit exceptions. Detection required statistical monitoring of loss curves rather than traditional error handling, fundamentally changing the debugging model: in ML training, the absence of an error message does not imply correct computation. </p></div></div><p>Transient failures are particularly insidious in ML training because they may not trigger explicit errors. A transient memory bit flip during gradient computation produces incorrect gradients that propagate through subsequent training steps. The model continues training but produces subtly degraded results. Studies of large-scale training runs have documented cases where transient hardware errors caused training to diverge after hundreds of hours, wasting substantial compute resources <span class="citation" data-cites="dixit2021silent schroeder2009dram">(<a href="#ref-dixit2021silent" role="doc-biblioref">Dixit et al. 2021</a>; <a href="#ref-schroeder2009dram" role="doc-biblioref">Schroeder et al. 2009</a>)</span>.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
 <p>The appropriate response to transient failures depends on detection capability. Errors that trigger explicit exceptions can be handled through retry logic. Silent corruption requires validation mechanisms such as gradient checksums, periodic model evaluation, and statistical monitoring of training dynamics.</p>
 </section>
 <section id="sec-fault-tolerance-reliability-reliability-failstop-failures-5cdd" class="level4">
@@ -1997,7 +2056,7 @@ Grattafiori, Aaron, Abhimanyu Dubey, Abhinav Jauhri, et al. 2024. <span>“The L
 <li><strong>single-event upsets (SEUs)</strong>: High-energy particles (cosmic rays at sea level, alpha particles from packaging materials) strike memory cells or logic gates, flipping a bit from 0 to 1. At 10,000+ GPUs, this is a statistical certainty.</li>
 <li><strong>Manufacturing Variances</strong>: “Marginal” chips that pass initial QA may exhibit bit flips only under specific voltage/temperature conditions (for example, during the intense <span class="math inline">\(di/dt\)</span> swings of a backward pass).</li>
 </ol>
-<p>Facebook documented a pervasive SDC issue where a hardware fault caused a valid file to be reported as “size zero” during decompression <span class="citation" data-cites="dixit2021silent">(<a href="#ref-dixit2021silent" role="doc-biblioref">Vangal et al. 2021</a>)</span>. As <a href="#fig-sdc-example" class="quarto-xref">Figure&nbsp;6</a> illustrates, the system “worked” (no crash), but data was silently deleted. In ML, this manifests as valid-looking but mathematically garbage gradients.</p>
+<p>Facebook documented a pervasive SDC issue where a hardware fault caused a valid file to be reported as “size zero” during decompression <span class="citation" data-cites="dixit2021silent">(<a href="#ref-dixit2021silent" role="doc-biblioref">Dixit et al. 2021</a>)</span>. As <a href="#fig-sdc-example" class="quarto-xref">Figure&nbsp;6</a> illustrates, the system “worked” (no crash), but data was silently deleted. In ML, this manifests as valid-looking but mathematically garbage gradients.</p>
 <div class="no-row-height column-margin column-container"></div><div id="fig-sdc-example" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="System diagram showing data flow from compressed storage through defective CPU to database. Arrows indicate processing stages where file size calculation returns zero, causing missing rows in output." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-sdc-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -2181,9 +2240,11 @@ Figure&nbsp;11: <strong>Hierarchy of Failure Domains</strong>. Failure domains a
 <h3 class="anchored" data-anchor-id="sec-fault-tolerance-reliability-reliability-bathtub-curve-hardware-lifecycle-7d8a">The bathtub curve and hardware lifecycle</h3>
 <p>The failure taxonomy above classifies failure types and domains, answering WHAT KIND of failures occur. Equally important for designing fault tolerance is understanding WHEN in a component’s lifetime failures are most likely to occur. Hardware failure rates are not constant over component lifetime. <a href="#fig-bathtub-curve" class="quarto-xref">Figure&nbsp;12</a> illustrates the bathtub curve, a well-established model in reliability engineering that describes how failure rates vary across three distinct phases:</p>
 <p>The first phase, infant mortality, exhibits elevated failure rates from manufacturing defects, improper installation, and early-life wear-out of marginal components. This phase typically lasts days to weeks for electronic components. Burn-in testing<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a> operates components under stress conditions before deployment to precipitate infant mortality failures before production use.</p>
-<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;<strong>Burn-in Testing</strong>: Components operate at elevated temperature (85–125 degrees C) and voltage for 24–168 hours to precipitate infant mortality failures before production. Cloud providers burn-in GPUs before deployment, which is why newly provisioned cloud instances typically exhibit lower initial failure rates than bare-metal deployments of fresh hardware. </p></div><div id="ref-klutke2003critical" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;<strong>Burn-in Testing</strong>: Components operate at elevated temperature (85–125 degrees C) and voltage for 24–168 hours to precipitate infant mortality failures before production. Cloud providers burn-in GPUs before deployment, which is why newly provisioned cloud instances typically exhibit lower initial failure rates than bare-metal deployments of fresh hardware. </p></div><div id="ref-pinheiro2007failure" class="csl-entry" role="listitem">
+Pinheiro, Eduardo, Wolf-Dietrich Weber, and Luiz André Barroso. 2007. <span>“Failure Trends in a Large Disk Drive Population.”</span> <em>5th USENIX Conference on File and Storage Technologies (FAST)</em>, 17–28. <a href="http://www.usenix.org/events/fast07/tech/pinheiro.html">http://www.usenix.org/events/fast07/tech/pinheiro.html</a>.
+</div><div id="ref-klutke2003critical" class="csl-entry" role="listitem">
 Klutke, G., P. C. Kiessler, and M. A. Wortman. 2003. <span>“A Critical Look at the Bathtub Curve.”</span> <em>IEEE Transactions on Reliability</em> 52 (1): 125–29. <a href="https://doi.org/10.1109/tr.2002.804492">https://doi.org/10.1109/tr.2002.804492</a>.
-</div></div><p>After surviving infant mortality, components enter the useful life phase, where they exhibit relatively constant failure rates <span class="citation" data-cites="klutke2003critical">(<a href="#ref-klutke2003critical" role="doc-biblioref">Klutke et al. 2003</a>)</span>. This phase represents the longest portion of component lifetime and is the period where the exponential reliability model in <a href="#eq-single-component-reliability" class="quarto-xref">Equation&nbsp;1</a> applies most accurately. For datacenter GPUs, the useful life phase typically spans 3–5 years.</p>
+</div></div><p>After surviving infant mortality, components enter the useful life phase, where they exhibit relatively constant failure rates <span class="citation" data-cites="pinheiro2007failure klutke2003critical">(<a href="#ref-pinheiro2007failure" role="doc-biblioref">Pinheiro et al. 2007</a>; <a href="#ref-klutke2003critical" role="doc-biblioref">Klutke et al. 2003</a>)</span>. This phase represents the longest portion of component lifetime and is the period where the exponential reliability model in <a href="#eq-single-component-reliability" class="quarto-xref">Equation&nbsp;1</a> applies most accurately. For datacenter GPUs, the useful life phase typically spans 3–5 years.</p>
 <p>As components age, they enter the wear-out phase, where failure rates increase due to accumulated wear. For GPUs, wear mechanisms include electromigration<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> in circuits, thermal cycling stress on solder joints, and degradation of thermal interface materials. The onset of wear-out depends heavily on operating conditions; components operated at high temperatures or with frequent thermal cycling enter wear-out earlier.</p>
 <div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;<strong>Electromigration</strong>: Gradual displacement of metal atoms in conductors by electron momentum transfer, first characterized by Huntington and Grone in 1961. The failure rate follows Black’s equation, scaling exponentially with temperature and inversely with current density squared. For ML accelerators running sustained high-power workloads at nanometer-scale wire widths, electromigration is the dominant wear-out mechanism, making thermal management a direct determinant of fleet lifespan. </p></div></div><p>The practical implication for ML systems is that fleet-wide failure rates depend on age distribution. A cluster populated entirely with new GPUs will experience elevated failure rates during the first few weeks, followed by a stable period, then increasing failures as the fleet ages. Mixed-age fleets exhibit more consistent aggregate failure rates because different cohorts are in different lifecycle phases.</p>
 <div id="fig-bathtub-curve" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Line graph of failure rate vs. component age showing bathtub shape. Three phases: infant mortality with high decreasing rate, useful life with constant low rate, and wear-out with increasing rate. Vertical dashed line marks burn-in period." data-fig-pos="htb">
@@ -2277,8 +2338,8 @@ Table&nbsp;3: <strong>Failure Impact by Model Type</strong>: The cost of trainin
 <p>Prevention costs include storage, throughput overhead, recovery infrastructure, and complexity. Storage cost scales with model size and checkpoint frequency. Checkpoint writes consume memory bandwidth and may stall training. Recovery infrastructure requires spare capacity and automated recovery systems. Fault tolerant systems are harder to develop and debug.</p>
 <p>Optimal investment in fault tolerance balances these costs. For small-scale training on a few GPUs where failures are rare, minimal fault tolerance may be cost-optimal. Infrequent checkpoints and manual recovery suffice. For large-scale training on thousands of GPUs where failures occur multiple times daily, extensive fault tolerance provides positive return on investment. Frequent checkpoints, automatic recovery, and elastic training become essential. <a href="#fig-young-daly" class="quarto-xref">Figure&nbsp;3</a> visualizes how the trade-off between checkpoint overhead and recovery cost reaches an optimum that depends on both system MTBF and checkpoint write time.</p>
 <p><a href="#eq-ft-total-cost" class="quarto-xref">Equation&nbsp;6</a> presents a simplified economic model for expected cost per training run:</p>
-<p><span id="eq-ft-total-cost"><span class="math display">\[ C_{total} = C_{compute} + E[N_{failures}] \times C_{per\_failure} + C_{ft}  \tag{6}\]</span></span></p>
-<p>where <span class="math inline">\(C_{compute}\)</span> is the base compute cost, <span class="math inline">\(E[N_{failures}]\)</span> is the expected number of failures during training, <span class="math inline">\(C_{per\_failure}\)</span> is the cost per failure, and <span class="math inline">\(C_{ft}\)</span> is the cost of fault tolerance mechanisms. The cost per failure includes wasted compute plus overhead.</p>
+<p><span id="eq-ft-total-cost"><span class="math display">\[ C_{\text{total}} = C_{\text{compute}} + E[N_{\text{failures}}] \times C_{\text{per\_failure}} + C_{\text{ft}}  \tag{6}\]</span></span></p>
+<p>where <span class="math inline">\(C_{\text{compute}}\)</span> is the base compute cost, <span class="math inline">\(E[N_{\text{failures}}]\)</span> is the expected number of failures during training, <span class="math inline">\(C_{\text{per\_failure}}\)</span> is the cost per failure, and <span class="math inline">\(C_{\text{ft}}\)</span> is the cost of fault tolerance mechanisms. The cost per failure includes wasted compute plus overhead.</p>
 <p><a href="#eq-ft-investment-criterion" class="quarto-xref">Equation&nbsp;7</a> formalizes when fault tolerance investment is justified:</p>
 <p><span id="eq-ft-investment-criterion"><span class="math display">\[ \frac{\partial C_{\text{ft}}}{\partial x} &lt; \frac{\partial (E[N_{\text{failures}}] \times C_{\text{per-failure}})}{\partial x}  \tag{7}\]</span></span></p>
 <p>where <span class="math inline">\(x\)</span> represents investment in fault tolerance mechanisms. In practice, this means investing in fault tolerance until the marginal cost of additional protection exceeds the marginal reduction in failure costs.</p>
@@ -2304,9 +2365,9 @@ Table&nbsp;3: <strong>Failure Impact by Model Type</strong>: The cost of trainin
 <p>A single bit-flip in a weight matrix illustrates the severity. If a critical weight in a ResNet-50 model flips from <code>0.5</code> to <code>-0.5</code> due to a transient fault affecting the sign bit in the IEEE 754<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> floating-point representation, the sign of a feature map reverses, causing a cascade of errors through subsequent layers. Research has shown that a single, targeted bit-flip in a key layer can drop ImageNet accuracy from 76 percent to less than 10 percent <span class="citation" data-cites="reagen2018ares">(<a href="#ref-reagen2018ares" role="doc-biblioref">Reagen et al. 2018</a>)</span>. Unlike traditional software where a single bit error might cause a crash, in neural networks it can silently corrupt the learned representations that determine system behavior.</p>
 <div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>IEEE 754 (1985)</strong>: Standardized by William Kahan at Berkeley, this format uses 1 sign bit, 8 exponent bits, and 23 mantissa bits for FP32. The bit layout creates an asymmetric vulnerability for ML: a sign-bit flip inverts a weight entirely (<span class="math inline">\(0.5 \to -0.5\)</span>), while a single exponent-bit flip can shift magnitude by <span class="math inline">\(2^{64}\times\)</span> or more, explaining why one bit-flip in a neural network weight can collapse accuracy from 76 percent to below 10 percent. </p></div><div id="ref-reagen2018ares" class="csl-entry" role="listitem">
 Reagen, Brandon, Udit Gupta, Lillian Pentecost, et al. 2018. <span>“Ares: A Framework for Quantifying the Resilience of Deep Neural Networks.”</span> <em>2018 55th ACM/ESDA/IEEE Design Automation Conference (DAC)</em>, June, 1–6. <a href="https://doi.org/10.1109/dac.2018.8465834">https://doi.org/10.1109/dac.2018.8465834</a>.
-</div><div id="ref-ma2024challenges" class="csl-entry" role="listitem">
-Ma, Xiaoyu, and David Patterson. 2024. <span>“Challenges and Research Directions for Large Language Model Inference Hardware.”</span> <em>arXiv Preprint arXiv:2601.05047</em>.
-</div></div><p>The reliability problem is worsening. As the ML fleet scales to sub-5nm process nodes (<strong><a href="../compute_infrastructure/compute_infrastructure.html#sec-compute-infrastructure">Compute Infrastructure</a></strong>), the failures in time (FIT) rate for silent data corruption (SDC) rises: smaller nodes have lower critical charges, making bit-flips from cosmic rays and thermal noise more frequent, while chips with billions of transistors have higher statistical probabilities of manufacturing defects that manifest only under specific ML workloads <span class="citation" data-cites="ma2024challenges">(<a href="#ref-ma2024challenges" role="doc-biblioref">Ma and Patterson 2024</a>)</span>. ML system architects must treat hardware as an <strong>unreliable substrate</strong>, where algorithmic fault tolerance (gradient checksums, weight replication, periodic consistency checks in the MLOps pipeline (<strong><a href="../ops_scale/ops_scale.html#sec-ops-scale">ML Operations at Scale</a></strong>)) is a mandatory requirement rather than an HPC specialty.</p>
+</div><div id="ref-ma2026challenges" class="csl-entry" role="listitem">
+Ma, Yufei, Sayak Pawar, Aayush Cherian, et al. 2026. <em>Challenges and Research Directions for Large Language Model Inference Hardware</em>. <a href="https://arxiv.org/abs/2601.05047">https://arxiv.org/abs/2601.05047</a>.
+</div></div><p>The reliability problem is worsening. As the ML fleet scales to sub-5nm process nodes (<strong><a href="../compute_infrastructure/compute_infrastructure.html#sec-compute-infrastructure">Compute Infrastructure</a></strong>), the failures in time (FIT) rate for silent data corruption (SDC) rises: smaller nodes have lower critical charges, making bit-flips from cosmic rays and thermal noise more frequent, while chips with billions of transistors have higher statistical probabilities of manufacturing defects that manifest only under specific ML workloads <span class="citation" data-cites="ma2026challenges">(<a href="#ref-ma2026challenges" role="doc-biblioref">Ma et al. 2026</a>)</span>. ML system architects must treat hardware as an <strong>unreliable substrate</strong>, where algorithmic fault tolerance (gradient checksums, weight replication, periodic consistency checks in the MLOps pipeline (<strong><a href="../ops_scale/ops_scale.html#sec-ops-scale">ML Operations at Scale</a></strong>)) is a mandatory requirement rather than an HPC specialty.</p>
 <p>Hardware faults fall into three categories based on temporal characteristics, as <a href="#fig-fault-temporal-categories" class="quarto-xref">Figure&nbsp;13</a> summarizes.</p>
 <div id="fig-fault-temporal-categories" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Four-panel diagram showing Transient, Intermittent, and Permanent fault patterns over time, with a dedicated bit-flip illustration." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
@@ -2539,7 +2600,9 @@ Rashid, Layali, Karthik Pattabiraman, and Sathish Gopalakrishnan. 2012. <span>�
 Bushnell, Michael L, and Vishwani D Agrawal. 2002. <span>“Built-in Self-Test.”</span> <em>Essentials of Electronic Testing for Digital, Memory and Mixed-Signal VLSI Circuits</em>, 489–548.
 </div><div id="fn20"><p><sup>20</sup>&nbsp;<strong>Scan Chains</strong>: Test infrastructure linking internal flip-flops into shift registers, developed in the 1970s for IC design-for-testability. The trade-off is concrete: 5–15 percent silicon area overhead buys 95 percent+ manufacturing fault coverage. For ML accelerators with billions of transistors in matrix-multiply units, scan-based testing during burn-in catches the stuck-at faults that would otherwise silently corrupt weight and gradient computations in production. </p></div><div id="fn21"><p><sup>21</sup>&nbsp;<strong>Hamming Codes (1950)</strong>: Richard Hamming invented error-correcting codes at Bell Labs after repeated frustration with relay computer failures corrupting weekend batch jobs. His SECDED (single-error-correcting, double-error-detecting) scheme uses parity bits at power-of-2 positions to locate errors with <span class="math inline">\(O(\log n)\)</span> overhead. Every modern ECC DRAM module descends from this design, protecting the terabytes of model weights and optimizer state in ML training from the soft errors that would otherwise accumulate silently. </p></div><div id="ref-hamming1950error" class="csl-entry" role="listitem">
 Hamming, R. W. 1950. <span>“Error Detecting and Error Correcting Codes.”</span> <em>Bell System Technical Journal</em> 29 (2): 147–60. <a href="https://doi.org/10.1002/j.1538-7305.1950.tb00463.x">https://doi.org/10.1002/j.1538-7305.1950.tb00463.x</a>.
-</div><div id="fn22"><p><sup>22</sup>&nbsp;<strong>CRC (Cyclic Redundancy Check)</strong>: Polynomial checksum algorithm developed by W. Wesley Peterson in 1961, detecting over 99.9 percent of transmission errors with negligible computational overhead. In distributed ML training, CRC-32 validates gradient payloads exchanged during AllReduce across thousands of nodes; without this check, a single corrupted gradient packet would silently poison the parameter update for every worker in the collective. </p></div></div><p>Error detection and correction codes<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> <span class="citation" data-cites="hamming1950error">(<a href="#ref-hamming1950error" role="doc-biblioref">Hamming 1950</a>)</span> add redundant bits to detect and correct bit errors. <a href="#fig-parity" class="quarto-xref">Figure&nbsp;20</a> illustrates the simplest form: parity checks append an extra bit to each data word, enabling immediate detection when a bit flip occurs. More advanced codes such as cyclic redundancy checks (CRC)<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a> compute checksums that detect over 99.9 percent of transmission errors, a capability critical for validating gradient payloads during distributed AllReduce operations.</p>
+</div><div id="fn22"><p><sup>22</sup>&nbsp;<strong>CRC (Cyclic Redundancy Check)</strong>: Polynomial checksum algorithm developed by <span class="citation" data-cites="peterson1961cyclic">Peterson and Brown (<a href="#ref-peterson1961cyclic" role="doc-biblioref">1961</a>)</span>, detecting over 99.9 percent of transmission errors with negligible computational overhead. In distributed ML training, CRC-32 validates gradient payloads exchanged during AllReduce across thousands of nodes; without this check, a single corrupted gradient packet would silently poison the parameter update for every worker in the collective. </p><div id="ref-peterson1961cyclic" class="csl-entry" role="listitem">
+Peterson, W. Wesley, and D. T. Brown. 1961. <span>“Cyclic Codes for Error Detection.”</span> <em>Proceedings of the IRE</em> 49 (1): 228–35. <a href="https://doi.org/10.1109/JRPROC.1961.287814">https://doi.org/10.1109/JRPROC.1961.287814</a>.
+</div></div></div><p>Error detection and correction codes<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> <span class="citation" data-cites="hamming1950error">(<a href="#ref-hamming1950error" role="doc-biblioref">Hamming 1950</a>)</span> add redundant bits to detect and correct bit errors. <a href="#fig-parity" class="quarto-xref">Figure&nbsp;20</a> illustrates the simplest form: parity checks append an extra bit to each data word, enabling immediate detection when a bit flip occurs. More advanced codes such as cyclic redundancy checks (CRC)<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a> compute checksums that detect over 99.9 percent of transmission errors, a capability critical for validating gradient payloads during distributed AllReduce operations.</p>
 <div id="fig-parity" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Two 7-bit data sequences with an eighth even-parity bit. The top sequence is valid. The bottom shows a bit flip that causes a parity mismatch, detecting the error." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-parity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -2579,7 +2642,7 @@ Figure&nbsp;22: <strong>Error Masking via Voting</strong>. In triple modular red
 </figcaption>
 </figure>
 </div>
-<p>At the software level, distributed ML systems employ runtime monitoring <span class="citation" data-cites="francalanza2017foundation mahmoud2021issre">(<a href="#ref-francalanza2017foundation" role="doc-biblioref">Francalanza et al. 2017</a>; <a href="#ref-mahmoud2021issre" role="doc-biblioref">Mahmoud et al. 2021</a>)</span>, anomaly detection (statistical outlier detection, One-Class SVM <span class="citation" data-cites="chandola2009anomaly">(<a href="#ref-chandola2009anomaly" role="doc-biblioref">Chandola et al. 2009</a>)</span>), consistency checks across distributed model parameters <span class="citation" data-cites="lindholm2019data">(<a href="#ref-lindholm2019data" role="doc-biblioref">Lindholm et al. 2019</a>)</span>, and heartbeat mechanisms <span class="citation" data-cites="kawazoe1997heartbeat">(<a href="#ref-kawazoe1997heartbeat" role="doc-biblioref">Kawazoe Aguilera et al. 1997</a>)</span> that detect node failures within configurable timeout periods. Software-implemented fault tolerance (scale-invariant feature transform (SIFT)) techniques <span class="citation" data-cites="reis2005swift">(<a href="#ref-reis2005swift" role="doc-biblioref">Reis et al. 2005</a>)</span> such as N-version programming and Reed-Solomon error correction codes <span class="citation" data-cites="plank1997tutorial">(<a href="#ref-plank1997tutorial" role="doc-biblioref">Plank 1997</a>)</span> add redundancy at the software level, enabling detection and correction of errors without dedicated hardware. Watchdog timers <span class="citation" data-cites="pont2002using">(<a href="#ref-pont2002using" role="doc-biblioref">Pont and Ong 2002</a>)</span> monitor task execution and trigger recovery actions when systems become unresponsive.</p>
+<p>At the software level, distributed ML systems employ runtime monitoring <span class="citation" data-cites="francalanza2017foundation mahmoud2021issre">(<a href="#ref-francalanza2017foundation" role="doc-biblioref">Francalanza et al. 2017</a>; <a href="#ref-mahmoud2021issre" role="doc-biblioref">Mahmoud et al. 2021</a>)</span>, anomaly detection (statistical outlier detection, One-Class SVM <span class="citation" data-cites="chandola2009anomaly">(<a href="#ref-chandola2009anomaly" role="doc-biblioref">Chandola et al. 2009</a>)</span>), consistency checks across distributed model parameters <span class="citation" data-cites="lindholm2019data">(<a href="#ref-lindholm2019data" role="doc-biblioref">Lindholm et al. 2019</a>)</span>, and heartbeat mechanisms <span class="citation" data-cites="kawazoe1997heartbeat">(<a href="#ref-kawazoe1997heartbeat" role="doc-biblioref">Kawazoe Aguilera et al. 1997</a>)</span> that detect node failures within configurable timeout periods. Software-implemented fault tolerance (scale-invariant feature transform (SIFT)) techniques <span class="citation" data-cites="reis2005swift">(<a href="#ref-reis2005swift" role="doc-biblioref">Reis et al. 2005</a>)</span> such as N-version programming and Reed-Solomon error correction codes <span class="citation" data-cites="plank1997tutorial reed1960polynomial">(<a href="#ref-plank1997tutorial" role="doc-biblioref">Plank 1997</a>; <a href="#ref-reed1960polynomial" role="doc-biblioref">Reed and Solomon 1960</a>)</span> add redundancy at the software level, enabling detection and correction of errors without dedicated hardware. Watchdog timers <span class="citation" data-cites="pont2002using">(<a href="#ref-pont2002using" role="doc-biblioref">Pont and Ong 2002</a>)</span> monitor task execution and trigger recovery actions when systems become unresponsive.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-francalanza2017foundation" class="csl-entry" role="listitem">
 Francalanza, Adrian, Luca Aceto, Antonis Achilleos, et al. 2017. <span>“A Foundation for Runtime Monitoring.”</span> In <em>Runtime Verification</em>. Springer International Publishing. <a href="https://doi.org/10.1007/978-3-319-67531-2\_2">https://doi.org/10.1007/978-3-319-67531-2\_2</a>.
 </div><div id="ref-mahmoud2021issre" class="csl-entry" role="listitem">
@@ -2594,6 +2657,8 @@ Kawazoe Aguilera, Marcos, Wei Chen, and Sam Toueg. 1997. <span>“Heartbeat: A T
 Reis, G. A., J. Chang, N. Vachharajani, R. Rangan, and D. I. August. 2005. <span>“SWIFT: Software Implemented Fault Tolerance.”</span> <em>International Symposium on Code Generation and Optimization</em>, 243–54. <a href="https://doi.org/10.1109/cgo.2005.34">https://doi.org/10.1109/cgo.2005.34</a>.
 </div><div id="ref-plank1997tutorial" class="csl-entry" role="listitem">
 Plank, James S. 1997. <span>“A Tutorial on Reed-Solomon Coding for Fault-Tolerance in RAID-Like Systems.”</span> <em>Software: Practice and Experience</em> 27 (9): 995–1012. <a href="https://doi.org/10.1002/(sici)1097-024x(199709)27:9<995::aid-spe111>3.0.co;2-6">https://doi.org/10.1002/(sici)1097-024x(199709)27:9&lt;995::aid-spe111&gt;3.0.co;2-6</a>.
+</div><div id="ref-reed1960polynomial" class="csl-entry" role="listitem">
+Reed, I. S., and G. Solomon. 1960. <span>“Polynomial Codes over Certain Finite Fields.”</span> <em>Journal of the Society for Industrial and Applied Mathematics</em> 8 (2): 300–304. <a href="https://doi.org/10.1137/0108018">https://doi.org/10.1137/0108018</a>.
 </div><div id="ref-pont2002using" class="csl-entry" role="listitem">
 Pont, Michael J, and Royan HL Ong. 2002. <span>“Using Watchdog Timers to Improve the Reliability of Single-Processor Embedded Systems: Seven New Patterns and a Case Study.”</span> <em>Proceedings of the First Nordic Conference on Pattern Languages of Programs</em>, 159–200.
 </div></div><div id="quiz-question-sec-fault-tolerance-hardware-fault-taxonomy" class="callout callout-quiz-question">
@@ -2785,8 +2850,14 @@ Figure&nbsp;24: <strong>CI/CD Pipeline</strong>: Automated CI/CD pipelines enfor
 </section>
 <section id="sec-ft-fault-injection-tools-frameworks" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-ft-fault-injection-tools-frameworks">Fault Injection Tools and Frameworks</h2>
-<p>Proving that a multi-node training cluster can survive a sudden network partition requires more than hope. Engineers do not wait for a real hurricane to take out a data center; they deliberately sever the network connection in a staging environment and observe what the orchestration layer does. <strong>Fault injection</strong> is the engineering discipline of deliberately breaking a system—flipping memory bits, dropping network packets, and corrupting API responses—to empirically verify that robustness mechanisms work before real chaos arrives.</p>
-<section id="sec-ft-fault-error-models" class="level3 page-columns page-full">
+<p>Proving that a multi-node training cluster can survive a sudden network partition requires more than hope. Engineers do not wait for a real hurricane to take out a data center; they deliberately sever the network connection in a staging environment and observe what the orchestration layer does. <strong>Fault injection</strong> is the engineering discipline of deliberately breaking a system—flipping memory bits, dropping network packets, and corrupting API responses—to empirically verify that robustness mechanisms work before real chaos arrives <span class="citation" data-cites="chen2020tensorfi tsai2021nvbitfi grafe2023large">(<a href="#ref-chen2020tensorfi" role="doc-biblioref">Chen et al. 2020</a>; <a href="#ref-tsai2021nvbitfi" role="doc-biblioref">Tsai et al. 2021</a>; <a href="#ref-grafe2023large" role="doc-biblioref">Gräfe et al. 2023</a>)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-chen2020tensorfi" class="csl-entry" role="listitem">
+Chen, Zitao, Niranjhana Narayanan, Bo Fang, Guanpeng Li, Karthik Pattabiraman, and Nathan DeBardeleben. 2020. <span>“TensorFI: A Flexible Fault Injection Framework for TensorFlow Applications.”</span> <em>2020 IEEE 31st International Symposium on Software Reliability Engineering (ISSRE)</em>, October, 426–35. <a href="https://doi.org/10.1109/issre5003.2020.00047">https://doi.org/10.1109/issre5003.2020.00047</a>.
+</div><div id="ref-tsai2021nvbitfi" class="csl-entry" role="listitem">
+Tsai, Timothy, Siva Kumar Sastry Hari, Michael Sullivan, Oreste Villa, and Stephen W. Keckler. 2021. <span>“NVBitFI: Dynamic Fault Injection for GPUs.”</span> <em>2021 51st Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN)</em>, June, 284–91. <a href="https://doi.org/10.1109/dsn48987.2021.00041">https://doi.org/10.1109/dsn48987.2021.00041</a>.
+</div><div id="ref-grafe2023large" class="csl-entry" role="listitem">
+Gräfe, Ralf, Qutub Syed Sha, Florian Geissler, and Michael Paulitsch. 2023. <span>“Large-Scale Application of Fault Injection into PyTorch Models -an Extension to PyTorchFI for Validation Efficiency.”</span> <em>2023 53rd Annual IEEE/IFIP International Conference on Dependable Systems and Networks - Supplemental Volume (DSN-s)</em>, June, 56–62. <a href="https://doi.org/10.1109/dsn-s58398.2023.00025">https://doi.org/10.1109/dsn-s58398.2023.00025</a>.
+</div></div><section id="sec-ft-fault-error-models" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ft-fault-error-models">Fault and error models</h3>
 <p>Hardware faults manifest in various ways: transient, permanent, and intermittent. Beyond the type of fault, its manifestation characteristics matter equally. A fault may strike a memory cell or corrupt a functional unit mid-computation. It may affect a single bit or multiple bits simultaneously. It may propagate to the application level and cause an observable error, or it may be masked by microarchitectural redundancy and remain benign. These characteristics define the <strong>fault model</strong>, which plays a major role in simulating and measuring what happens to a system when a fault occurs.</p>
 <p>To study and understand the impact of hardware faults on ML systems, understanding the concepts of fault models and error models is essential. A fault model describes how a hardware fault manifests itself in the system, while an <strong>error model</strong> represents how the fault propagates and affects the system’s behavior.</p>
@@ -2972,7 +3043,7 @@ Table&nbsp;6: <strong>Fault Characteristics</strong>: Transient, permanent, and 
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Checkpointing</strong></summary><div>
 <p><strong><em>Checkpointing</em></strong> is the periodic serialization of the complete training state (parameters, optimizer state, and data loader position) to persistent storage.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It minimizes the <strong>Lost Work</strong> after a system failure. Within the <strong>iron law</strong>, checkpointing creates an <strong>I/O Overhead</strong> that reduces the total training throughput (<span class="math inline">\(\eta\)</span>), with the optimal interval (<span class="math inline">\(T_{\text{opt}}\)</span>) governed by the <strong>Young-Daly Formula</strong> (<span class="math inline">\(T_{\text{opt}} = \sqrt{2 \cdot T_{\text{save}} \cdot \text{MTBF}}\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> It minimizes the <strong>Lost Work</strong> after a system failure. Within the <strong>iron law</strong>, checkpointing creates an <strong>I/O Overhead</strong> that reduces the total training throughput (<span class="math inline">\(\eta_{\text{hw}}\)</span>), with the optimal interval (<span class="math inline">\(T_{\text{opt}}\)</span>) governed by the <strong>Young-Daly Formula</strong> (<span class="math inline">\(T_{\text{opt}} = \sqrt{2 \cdot T_{\text{save}} \cdot \text{MTBF}}\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Incremental Backups</strong>, Checkpointing must capture the <strong>Exact Execution Context</strong> (including random seeds and learning rate schedules) to ensure deterministic resumption of the optimization loop.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that Checkpointing is “just writing to disk.” In reality, for large models, it is a <strong>Storage System Stress Test</strong>: the simultaneous write from thousands of GPUs can trigger a <strong>checkpoint storm</strong> that saturates the entire network fabric (<span class="math inline">\(\text{BW}\)</span>).</li>
 </ol>
@@ -3009,7 +3080,7 @@ Table&nbsp;6: <strong>Fault Characteristics</strong>: Transient, permanent, and 
 <div id="fig-checkpoint-tradeoff" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Three curves: checkpoint overhead decreasing with interval, rework cost increasing, and total wasted work with minimum at optimal interval around 24 minutes." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-checkpoint-tradeoff-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="e2e5a173" class="cell" data-execution_count="7">
+<div id="f62cd727" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -3077,7 +3148,7 @@ Figure&nbsp;27: <strong>Checkpoint-Recovery Timeline</strong>. A training run pr
 <p>Checkpoint serialization requires memory buffers for gathering distributed state and preparing data for write. For synchronous checkpointing, all workers must hold their checkpoint data in memory until the checkpoint completes. This potentially requires significant additional memory allocation.</p>
 <p>Synchronous checkpointing pauses training while the checkpoint writes. Even with fast storage, the pause disrupts the training pipeline and may cause GPU idle time. Data loading and forward passes cannot proceed during checkpoint operations.</p>
 <p><a href="#eq-checkpoint-overhead" class="quarto-xref">Equation&nbsp;8</a> quantifies the wasted time due to checkpointing:</p>
-<p><span id="eq-checkpoint-overhead"><span class="math display">\[ O_{ckpt} = \frac{T_{\text{save}}}{T_{\text{interval}}} + \frac{T_{\text{pause}}}{T_{\text{interval}}}  \tag{8}\]</span></span></p>
+<p><span id="eq-checkpoint-overhead"><span class="math display">\[ O_{\text{ckpt}} = \frac{T_{\text{save}}}{T_{\text{interval}}} + \frac{T_{\text{pause}}}{T_{\text{interval}}}  \tag{8}\]</span></span></p>
 <p>where <span class="math inline">\(T_{\text{pause}}\)</span> represents any training pause beyond the checkpoint write time. This includes memory allocation, coordination, and serialization.</p>
 </section>
 <section id="the-stop-the-world-cost" class="level4">
@@ -3258,9 +3329,9 @@ Figure&nbsp;28: <strong>Distributed Checkpoint Architecture</strong>. Comparison
 </div>
 <p>The basic protocol has a subtle correctness bug. If the coordinator crashes after some workers confirm but before writing metadata, those workers believe the checkpoint succeeded while the system has no valid checkpoint.</p>
 <p>Production systems use two-phase commit<a href="#fn31" class="footnote-ref" id="fnref31" role="doc-noteref"><sup>31</sup></a> to ensure correctness. Two-phase commit is a classic distributed systems protocol <span class="citation" data-cites="gray1978notes">(<a href="#ref-gray1978notes" role="doc-biblioref">Gray 1978</a>)</span>:</p>
-<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>Two-Phase Commit (2PC)</strong>: Formalized by Jim Gray in 1978, 2PC ensures all participants either commit or abort atomically. The protocol’s known weakness is blocking: if the coordinator fails between prepare and commit, participants wait indefinitely. For distributed checkpointing this blocking is acceptable because a stuck checkpoint can be timed out and retried, whereas the alternative (partial checkpoint writes) would leave the system with an unrecoverable inconsistent state. </p></div><div id="ref-gray1978notes" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>Two-Phase Commit (2PC)</strong>: Formalized by <span class="citation" data-cites="gray1978notes">Gray (<a href="#ref-gray1978notes" role="doc-biblioref">1978</a>)</span>, 2PC ensures all participants either commit or abort atomically. The protocol’s known weakness is blocking: if the coordinator fails between prepare and commit, participants wait indefinitely. For distributed checkpointing this blocking is acceptable because a stuck checkpoint can be timed out and retried, whereas the alternative (partial checkpoint writes) would leave the system with an unrecoverable inconsistent state. </p><div id="ref-gray1978notes" class="csl-entry" role="listitem">
 Gray, J. N. 1978. <span>“Notes on Data Base Operating Systems.”</span> In <em>Operating Systems</em>. Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/3-540-08755-9\_9">https://doi.org/10.1007/3-540-08755-9\_9</a>.
-</div></div><p>In the prepare phase, workers write to staging location and report success to coordinator. In the commit phase, coordinator atomically renames or commits all shards together. For example, the coordinator moves files from <code>staging/</code> to <code>checkpoints/</code>. If the coordinator fails between phases, workers detect during next heartbeat and rollback staged writes.</p>
+</div></div></div><p>In the prepare phase, workers write to staging location and report success to coordinator. In the commit phase, coordinator atomically renames or commits all shards together. For example, the coordinator moves files from <code>staging/</code> to <code>checkpoints/</code>. If the coordinator fails between phases, workers detect during next heartbeat and rollback staged writes.</p>
 <p>This ensures atomic checkpoint commits. Either all shards are committed together, or none are.</p>
 <p>Consistency is a critical consideration in this protocol. In distributed training with synchronous gradient updates, workers naturally reach consistent states at step boundaries. Checkpointing at step boundaries ensures all workers have applied the same updates. With asynchronous training or pipeline parallelism, defining and reaching consistent states requires more careful coordination.</p>
 </section>
@@ -3466,7 +3537,7 @@ Rajbhandari, Samyam, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. 2020. <span>�
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: Straggler</strong></summary><div>
 <p><strong><em>Straggler</em></strong> is a worker in a distributed training job that processes tasks significantly slower than its peers, creating a synchronization bottleneck.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> In a synchronous system (BSP), cluster throughput (<span class="math inline">\(\eta\)</span>) is bounded by the speed of the <strong>Slowest Rank</strong>. A single 10 percent performance drop on one node can reduce the effective compute capacity of thousands of nodes by 10 percent.</li>
+<li><strong>Significance (Quantitative):</strong> In a synchronous system (BSP), cluster throughput (<span class="math inline">\(\eta_{\text{hw}}\)</span>) is bounded by the speed of the <strong>Slowest Rank</strong>. A single 10 percent performance drop on one node can reduce the effective compute capacity of thousands of nodes by 10 percent.</li>
 <li><strong>Distinction (Durable):</strong> Unlike a <strong>Hardware Failure</strong> (where the node stops), a Straggler continues to produce correct results but violates the <strong>Temporal Consistency</strong> required for efficient parallel execution.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that stragglers are caused only by “bad hardware.” In reality, they are often caused by <strong>System Jitter</strong>: background OS processes, network congestion, or thermal throttling that varies across the datacenter floor.</li>
 </ol>
@@ -3537,7 +3608,7 @@ Figure&nbsp;29: <strong>Elastic Training Recovery</strong>. Unlike static traini
 <p>Implementing elastic training requires adapting several training components:</p>
 <p>Batch size adjustment is the first concern: with fewer workers, each worker must process more samples to maintain the global batch size, or the global batch size must be reduced. Reducing global batch size may require learning rate adjustment.</p>
 <p>The relationship between batch size and optimal learning rate has been studied extensively. <span class="citation" data-cites="goyal2017accurate">Goyal et al. (<a href="#ref-goyal2017accurate" role="doc-biblioref">2017</a>)</span> demonstrated that a linear scaling rule works well in practice: when scaling the batch size by factor <span class="math inline">\(k\)</span>, scale the learning rate also by factor <span class="math inline">\(k\)</span>. <a href="#eq-lr-scaling" class="quarto-xref">Equation&nbsp;10</a> expresses an alternative square root scaling law that provides more conservative adjustment:</p>
-<div class="no-row-height column-margin column-container"></div><p><span id="eq-lr-scaling"><span class="math display">\[ \eta_{new} = \eta_{base} \times \sqrt{\frac{N_{new}}{N_{base}}}  \tag{10}\]</span></span></p>
+<div class="no-row-height column-margin column-container"></div><p><span id="eq-lr-scaling"><span class="math display">\[ \eta_{\text{new}} = \eta_{\text{base}} \times \sqrt{\frac{N_{\text{new}}}{N_{\text{base}}}}  \tag{10}\]</span></span></p>
 <p>where <span class="math inline">\(N\)</span> represents the number of workers (and thus the global batch size). The linear rule <span class="citation" data-cites="goyal2017accurate">(<a href="#ref-goyal2017accurate" role="doc-biblioref">Goyal et al. 2017</a>)</span> is often preferred for large batch training with warmup, while square root scaling provides a more conservative alternative when stability is a concern.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-goyal2017accurate" class="csl-entry" role="listitem">
 Goyal, Priya, Piotr Dollár, Ross Girshick, et al. 2017. <span>“Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour.”</span> <em>CoRR</em> abs/1706.02677 (June). <a href="http://arxiv.org/abs/1706.02677v2">http://arxiv.org/abs/1706.02677v2</a>.
@@ -3577,11 +3648,11 @@ Table&nbsp;8: <strong>Elastic Training Framework Comparison</strong>: Modern fra
 <div aria-describedby="tbl-elastic-training-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 16%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 21%">
 <col style="width: 19%">
-<col style="width: 17%">
-<col style="width: 20%">
+<col style="width: 22%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -3788,11 +3859,11 @@ Table&nbsp;9: <strong>Stateless vs.&nbsp;Stateful Serving Fault Tolerance</stron
 <p>Redundancy is the foundation of serving fault tolerance. By maintaining multiple copies of serving capability, the system can continue operating when individual copies fail.</p>
 <section id="sec-fault-tolerance-reliability-reliability-availability-calculations-ef0a" class="level4">
 <h4 class="anchored" data-anchor-id="sec-fault-tolerance-reliability-reliability-availability-calculations-ef0a">Availability calculations</h4>
-<p>For a single replica with availability <span class="math inline">\(A_{single}\)</span> (probability of being operational at any given time), <a href="#eq-availability-redundancy" class="quarto-xref">Equation&nbsp;11</a> quantifies how multiple independent replicas achieve higher system availability:</p>
-<p><span id="eq-availability-redundancy"><span class="math display">\[ A_{system} = 1 - (1 - A_{single})^R  \tag{11}\]</span></span></p>
+<p>For a single replica with availability <span class="math inline">\(A_{\text{single}}\)</span> (probability of being operational at any given time), <a href="#eq-availability-redundancy" class="quarto-xref">Equation&nbsp;11</a> quantifies how multiple independent replicas achieve higher system availability:</p>
+<p><span id="eq-availability-redundancy"><span class="math display">\[ A_{\text{system}} = 1 - (1 - A_{\text{single}})^R  \tag{11}\]</span></span></p>
 <p>where <span class="math inline">\(R\)</span> is the number of replicas.</p>
 <p>As a worked example, consider the following scenario.</p>
-<p>Single replica availability: <span class="math inline">\(A_{single} = 99\%\)</span> (3.65 days of downtime per year)</p>
+<p>Single replica availability: <span class="math inline">\(A_{\text{single}} = 99\%\)</span> (3.65 days of downtime per year)</p>
 <p>With two replicas: <span class="math inline">\(A = 1 - (0.01)^2 = 99.99\%\)</span> (52.6 minutes downtime per year)</p>
 <p>With three replicas: <span class="math inline">\(A = 1 - (0.01)^3 = 99.9999\%\)</span> (31.5 seconds downtime per year)</p>
 <p>This calculation assumes independent failures. Correlated failures reduce actual availability below these theoretical values. Shared power, shared network, and software bugs create correlation.</p>
@@ -4370,7 +4441,7 @@ Figure&nbsp;33: <strong>Training Failure Signatures</strong>. Common patterns of
 </section>
 </section>
 </section>
-<section id="sec-fault-tolerance-reliability-reliability-case-studies-927f" class="level2">
+<section id="sec-fault-tolerance-reliability-reliability-case-studies-927f" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-fault-tolerance-reliability-reliability-case-studies-927f">Case Studies</h2>
 <p>How did Meta keep a 992-node GPU cluster productive enough to successfully train the OPT-175B model despite experiencing dozens of hardware failures per week? The following examples show how leading organizations implement fault tolerance in production ML systems, illustrating the principles developed throughout this chapter.</p>
 <section id="sec-fault-tolerance-reliability-reliability-largescale-llm-training-fault-tolerance-f4aa" class="level3">
@@ -4385,10 +4456,12 @@ Figure&nbsp;33: <strong>Training Failure Signatures</strong>. Common patterns of
 <p>Instead, the recovery procedure triggers a “Slice Swap.” The control plane identifies the failing physical slice and immediately marks it for drainage. The training job is then preempted and migrated to a healthy, standby slice of identical topology. This approach treats hardware as immutable infrastructure during a job’s execution. To support this, Google maintains a “hot pool” of reserved capacity. The detection-to-recovery workflow is highly automated, targeting a total recovery time of under 3 minutes. This speed is critical because, at the scale of a full pod, statistical hardware failures occur approximately 1-2 times per day. If recovery took 30 minutes, the system would lose nearly 5 percent of its compute capacity to restart latency alone.</p>
 <p>The quantitative success of this approach is measured in “Effective Throughput,” which Google strives to keep within 2 percent of the theoretical peak, even in the face of daily component failures. By decoupling the logical training topology from the physical hardware addresses, the system allows for the seamless replacement of hardware under the hood. Furthermore, the ICI fabric’s determinism allows the system to distinguish between transient network congestion and permanent link failures with high accuracy, reducing false positives that would trigger unnecessary restarts. The key lesson from the TPU experience is that for tightly coupled, high-bandwidth systems, attempting to repair a running topology is often futile; it is more efficient to treat the hardware grouping as the atomic unit of failure and replace the entire unit, relying on massive scale to provide the necessary redundancy.</p>
 </section>
-<section id="sec-fault-tolerance-reliability-reliability-netflix-chaos-engineering" class="level3">
+<section id="sec-fault-tolerance-reliability-reliability-netflix-chaos-engineering" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-fault-tolerance-reliability-reliability-netflix-chaos-engineering">Netflix chaos engineering for ML</h3>
-<p>While training resilience focuses on long-running batch jobs, Netflix applied the principles of Chaos Engineering to the distinct challenges of real-time Machine Learning serving. The premise was simple but radical: because ML inference pipelines are complex distributed systems with non-deterministic dependencies, “one cannot trust a system one has not tried to break.” To validate this, Netflix extended their famous “Chaos Monkey” toolset to create specific fault injection scenarios for their recommendation and personalization algorithms. This “Chaos Monkey for ML” went beyond simple server termination; it was designed to simulate semantic failures specific to the ML lifecycle, such as injecting latency into feature store retrieval, simulating stale embeddings, and even corrupting model weights in the staging environment to verify monitoring alerts.</p>
-<p>One specific failure scenario involved the “Feature Drift Attack,” where the chaos agent artificially skewed the distribution of input features for the live ranking model. The goal was to verify if the model monitoring system (monitoring Kullback-Leibler divergence) would detect the shift and trigger an automatic fallback. Initially, the system failed to detect the drift until user engagement metrics plummeted. Following this exposure, the team hardened the detection mechanism to catch distribution shifts within 5 minutes. Another scenario involved randomly killing 20 percent of the inference replicas during peak traffic. The system was expected to degrade gracefully, serving cached or non-personalized recommendations, but initially, it cascaded into a complete outage due to retry storms on the remaining replicas.</p>
+<p>While training resilience focuses on long-running batch jobs, Netflix applied the principles of Chaos Engineering <span class="citation" data-cites="basiri2016chaos">(<a href="#ref-basiri2016chaos" role="doc-biblioref">Basiri et al. 2016</a>)</span> to the distinct challenges of real-time Machine Learning serving. The premise was simple but radical: because ML inference pipelines are complex distributed systems with non-deterministic dependencies, “one cannot trust a system one has not tried to break.” To validate this, Netflix extended their famous “Chaos Monkey” toolset to create specific fault injection scenarios for their recommendation and personalization algorithms. This “Chaos Monkey for ML” went beyond simple server termination; it was designed to simulate semantic failures specific to the ML lifecycle, such as injecting latency into feature store retrieval, simulating stale embeddings, and even corrupting model weights in the staging environment to verify monitoring alerts.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-basiri2016chaos" class="csl-entry" role="listitem">
+Basiri, Ali, Niosha Behnam, Ruud de Rooij, et al. 2016. <span>“Chaos Engineering.”</span> <em>IEEE Software</em> 33 (3): 35–41. <a href="https://doi.org/10.1109/ms.2016.60">https://doi.org/10.1109/ms.2016.60</a>.
+</div></div><p>One specific failure scenario involved the “Feature Drift Attack,” where the chaos agent artificially skewed the distribution of input features for the live ranking model. The goal was to verify if the model monitoring system (monitoring Kullback-Leibler divergence) would detect the shift and trigger an automatic fallback. Initially, the system failed to detect the drift until user engagement metrics plummeted. Following this exposure, the team hardened the detection mechanism to catch distribution shifts within 5 minutes. Another scenario involved randomly killing 20 percent of the inference replicas during peak traffic. The system was expected to degrade gracefully, serving cached or non-personalized recommendations, but initially, it cascaded into a complete outage due to retry storms on the remaining replicas.</p>
 <p>The recovery procedure for these injected faults centered on “Fallback hierarchies.” If the primary, heavy-weight deep learning model failed or timed out (latency injection), the system was configured to instantly switch to a lightweight linear model, and if that failed, to a simple popularity-based list. The quantitative outcome of this rigorous testing was a dramatic reduction in Mean Time To Recovery (MTTR) for real incidents, dropping from 45 minutes to just 8 minutes over a six-month period. Furthermore, the chaos experiments revealed 12 previously unknown failure modes, including a critical race condition in the feature joiner. The fallback validation proved that the simple popularity-based backup maintained 94 percent of the baseline recommendation quality, giving the engineering team the confidence to aggressively time out lagging complex models. Resilience in ML serving is not a static property but a continuous practice of active verification.</p>
 </section>
 <section id="sec-fault-tolerance-reliability-reliability-deepspeed-fault-tolerance" class="level3">
@@ -4437,7 +4510,7 @@ Figure&nbsp;33: <strong>Training Failure Signatures</strong>. Common patterns of
 <p><span class="math display">\[T_{\text{opt}} = \sqrt{2 \times 5 \times 240} = \sqrt{2400} \approx 49 \text{ minutes}\]</span></p>
 <p>The intuitive “every hour” is close but suboptimal. More critically, if checkpoint time increases to 15 minutes (larger model, slower storage), the optimal interval becomes 85 minutes, not the “every 15 minutes” that some teams adopt to “stay safe.” Too-frequent checkpointing wastes more compute than it saves. The quantitative approach reveals that intuition-based intervals often deviate 2–3<span class="math inline">\(\times\)</span> from optimal in either direction.</p>
 <p><strong>Fallacy:</strong> <em>MTBF assumes independent failures.</em></p>
-<p>The reliability equation <span class="math inline">\(\text{MTBF}_{system} = \text{MTBF}_{component}/N\)</span> assumes component failures are statistically independent. In production, failures correlate:</p>
+<p>The reliability equation <span class="math inline">\(\text{MTBF}_{\text{system}} = \text{MTBF}_{\text{component}}/N\)</span> assumes component failures are statistically independent. In production, failures correlate:</p>
 <ul>
 <li><strong>Shared power domain</strong>: UPS failure takes down entire rack</li>
 <li><strong>Shared switch</strong>: Top-of-rack switch failure partitions all connected GPUs</li>
@@ -4478,9 +4551,9 @@ Figure&nbsp;33: <strong>Training Failure Signatures</strong>. Common patterns of
 <p><strong>Fallacy:</strong> <em>Elastic training eliminates the need for checkpointing.</em></p>
 <p>Elastic training (<a href="#sec-fault-tolerance-reliability-reliability-elastic-training-4f87" class="quarto-xref">Section&nbsp;1.8</a>) adjusts parallelism degree when workers fail, continuing with reduced capacity, which appears to eliminate checkpoint-restart overhead. However, state consistency challenges remain: reducing from N to N-1 workers requires redistributing model shards, optimizer states, and data assignments consistently. Below some minimum viable size, training becomes infeasible (model does not fit, batch size too small), requiring checkpoint-restart regardless. Each removed worker reduces throughput; accumulated failures progressively degrade training speed until checkpoint-restart becomes preferable to continued degradation. If a failure was caused by a software bug triggered by specific data, the bug persists in remaining workers. Elastic training is complementary to checkpointing, not a replacement; the reduced checkpoint frequency still requires occasional checkpoints for catastrophic failures and training completion.</p>
 <p><strong>Fallacy:</strong> <em>Silent data corruption is rare in modern hardware.</em></p>
-<p>Modern GPUs and memory systems include extensive error correction (ECC, CRC, parity), creating the intuition that silent data corruption is negligible. Large-scale studies reveal otherwise <span class="citation" data-cites="dixit2021silent sridharan2015memory">(<a href="#ref-dixit2021silent" role="doc-biblioref">Vangal et al. 2021</a>; <a href="#ref-sridharan2015memory" role="doc-biblioref">Sridharan et al. 2015</a>)</span>: 0.01-0.1 percent of GPUs per year exhibit silent corruption not caught by ECC, and cosmic ray-induced bit flips occur at approximately 1 per GB-month. For a 10,000-GPU cluster, this means 1-10 silent GPU corruption events per year and hundreds of memory bit flips monthly. Silent corruption causes mysterious training anomalies: loss spikes attributed to “bad batches” may be hardware errors, gradient NaNs blamed on learning rates may be bit flips, and models failing to converge despite correct hyperparameters may have corrupted weights. Detection strategies include redundant computation (computing batches on multiple workers and comparing), gradient checksums (verifying AllReduce consistency), and statistical monitoring of gradient/activation distributions. Unlike detectable failures, silent corruption does not trigger errors; training “succeeds” but produces subtly broken models, requiring detection mechanisms as discussed in <a href="#sec-fault-tolerance-reliability-reliability-mlspecific-debugging-27d5" class="quarto-xref">Section&nbsp;1.11.3</a>.</p>
+<p>Modern GPUs and memory systems include extensive error correction (ECC, CRC, parity), creating the intuition that silent data corruption is negligible. Large-scale studies reveal otherwise <span class="citation" data-cites="dixit2021silent sridharan2015memory">(<a href="#ref-dixit2021silent" role="doc-biblioref">Dixit et al. 2021</a>; <a href="#ref-sridharan2015memory" role="doc-biblioref">Sridharan et al. 2015</a>)</span>: 0.01-0.1 percent of GPUs per year exhibit silent corruption not caught by ECC, and cosmic ray-induced bit flips occur at approximately 1 per GB-month. For a 10,000-GPU cluster, this means 1-10 silent GPU corruption events per year and hundreds of memory bit flips monthly. Silent corruption causes mysterious training anomalies: loss spikes attributed to “bad batches” may be hardware errors, gradient NaNs blamed on learning rates may be bit flips, and models failing to converge despite correct hyperparameters may have corrupted weights. Detection strategies include redundant computation (computing batches on multiple workers and comparing), gradient checksums (verifying AllReduce consistency), and statistical monitoring of gradient/activation distributions. Unlike detectable failures, silent corruption does not trigger errors; training “succeeds” but produces subtly broken models, requiring detection mechanisms as discussed in <a href="#sec-fault-tolerance-reliability-reliability-mlspecific-debugging-27d5" class="quarto-xref">Section&nbsp;1.11.3</a>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-dixit2021silent" class="csl-entry" role="listitem">
-Vangal, Sriram, Somnath Paul, Steven Hsu, et al. 2021. <span>“Wide-Range Many-Core SoC Design in Scaled CMOS: Challenges and Opportunities.”</span> <em>IEEE Transactions on Very Large Scale Integration (VLSI) Systems</em> 29 (5): 843–56. <a href="https://doi.org/10.1109/tvlsi.2021.3061649">https://doi.org/10.1109/tvlsi.2021.3061649</a>.
+Dixit, Harish Dattatraya, Sneha Pendharkar, Matt Beadon, et al. 2021. <em>Silent Data Corruptions at Scale</em>. arXiv preprint arXiv:2102.11245. <a href="https://arxiv.org/abs/2102.11245">https://arxiv.org/abs/2102.11245</a>.
 </div><div id="ref-sridharan2015memory" class="csl-entry" role="listitem">
 Sridharan, Vilas, Nathan DeBardeleben, Sean Blanchard, et al. 2015. <span>“Memory Errors in Modern Systems: The Good, the Bad, and the Ugly.”</span> <em>ACM SIGPLAN Notices</em> 50 (4): 297–310. <a href="https://doi.org/10.1145/2775054.2694348">https://doi.org/10.1145/2775054.2694348</a>.
 </div></div><p>Recognizing these fallacies prevents engineers from optimizing for the wrong failure modes. The core principles required to build resilient machine learning fleets follow from the quantitative reasoning developed throughout this chapter.</p>

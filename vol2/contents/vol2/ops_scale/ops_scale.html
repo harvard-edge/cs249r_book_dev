@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-c6e67e663447326d1c3f52e730a1c254.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-bad894f6903d90188856202af6e7cbd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../vol1/assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#1F407A">
@@ -266,50 +323,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
 }
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 .callout-code {
   --color1: #F2F4F8;
@@ -320,16 +359,25 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(209, 215, 224, 0.12);
   --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-resource-exercises {
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-resource-videos {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -347,41 +395,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-notebook {
   --color1: #F2F7FF;
@@ -392,41 +413,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(44, 82, 130, 0.12);
   --dark-title-background-color: rgba(44, 82, 130, 0.12);
 }
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
 .callout-lighthouse {
   --color1: #FDF8E6;
@@ -437,161 +449,66 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(184, 134, 11, 0.12);
   --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-resource-videos {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-answer {
@@ -608,34 +525,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
   details.callout-theorem {
     --text-color: #e6e6e6;
     --background-color: rgba(107, 70, 193, 0.12);
@@ -650,18 +539,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
+  details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-code code {
     color: #e6e6e6 !important;
   }
   details.callout-example {
@@ -678,18 +567,116 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-chapter-connection {
+  details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-chapter-connection code {
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
     color: #e6e6e6 !important;
   }
   details.callout-lighthouse {
@@ -706,65 +693,135 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
 }
 </style>
 <style>
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-quiz-answer > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
 details.callout-example > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
 details.callout-lighthouse > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Machine Learning Systems at Scale">
-<meta property="og:image" content="./contents/vol2/ops_scale/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta property="og:image" content="../../../contents/vol2/ops_scale/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta property="og:site_name" content="Machine Learning Systems at Scale">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Machine Learning Systems at Scale">
-<meta name="twitter:image" content="./contents/vol2/ops_scale/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta name="twitter:image" content="../../../contents/vol2/ops_scale/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="b727508aec93ade4ae3d59e61f4e966e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="./">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="../../../">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../../../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -2009,7 +2066,7 @@ Table&nbsp;1: <strong>Operational Complexity Growth at Scale</strong>: Six dimen
 <div id="fig-n-models-complexity" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Log-scale plot showing O(N), O(N log N), O(N²) curves with total operational load crossing team capacity at 50 models, with Artisanal, Growing Pains, and Platform Required zones.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-n-models-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="bcfa81d3" class="cell" data-execution_count="3">
+<div id="02463aa8" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2028,9 +2085,9 @@ Figure&nbsp;1: <strong>The N-Models Complexity Explosion</strong>. Monitoring al
 <section id="sec-ml-operations-scale-quantifying-platform-economics-2026" class="level3">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-quantifying-platform-economics-2026">Quantifying platform economics</h3>
 <p>The economic case for platform operations rests on understanding both the costs of fragmented approaches and the returns from shared infrastructure. <a href="#eq-platform-roi" class="quarto-xref">Equation&nbsp;1</a> formalizes platform return on investment as the ratio of engineering time savings across all models to total platform cost:</p>
-<p><span id="eq-platform-roi"><span class="math display">\[\text{ROI}_{\text{platform}} = \frac{N_{models} \times T_{saved} \times C_{\text{engineer}}}{C_{\text{platform}}} \tag{1}\]</span></span></p>
-<p>where <span class="math inline">\(N_{models}\)</span> represents the number of models benefiting from the platform, <span class="math inline">\(T_{saved}\)</span> is the engineering time saved per model per period, <span class="math inline">\(C_{\text{engineer}}\)</span> is the fully-loaded cost per engineer hour, and <span class="math inline">\(C_{\text{platform}}\)</span> is the total platform cost including development, infrastructure, and maintenance.</p>
-<p>The equation reveals why platform investments make sense only at sufficient scale. For a small organization with five models, the denominator might exceed the numerator even with significant per-model savings. As model count grows, the numerator scales linearly with <span class="math inline">\(N_{models}\)</span> while platform costs grow much more slowly, typically sublinearly due to infrastructure amortization.</p>
+<p><span id="eq-platform-roi"><span class="math display">\[\text{ROI}_{\text{platform}} = \frac{N_{\text{models}} \times T_{\text{saved}} \times C_{\text{engineer}}}{C_{\text{platform}}} \tag{1}\]</span></span></p>
+<p>where <span class="math inline">\(N_{\text{models}}\)</span> represents the number of models benefiting from the platform, <span class="math inline">\(T_{\text{saved}}\)</span> is the engineering time saved per model per period, <span class="math inline">\(C_{\text{engineer}}\)</span> is the fully-loaded cost per engineer hour, and <span class="math inline">\(C_{\text{platform}}\)</span> is the total platform cost including development, infrastructure, and maintenance.</p>
+<p>The equation reveals why platform investments make sense only at sufficient scale. For a small organization with five models, the denominator might exceed the numerator even with significant per-model savings. As model count grows, the numerator scales linearly with <span class="math inline">\(N_{\text{models}}\)</span> while platform costs grow much more slowly, typically sublinearly due to infrastructure amortization.</p>
 <div id="callout-notebook-1.2" class="callout callout-notebook" title="The Platform Dividend">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.2: The Platform Dividend</strong></summary><div><strong>Problem</strong>: Your organization manages 50 models. A centralized ML Platform team costs $120,000/month. If the platform saves each model team 20 hours of manual toil per month, is the platform investment profitable?<p></p>
 <p><strong>The Math</strong>:</p>
@@ -2062,7 +2119,7 @@ Figure&nbsp;1: <strong>The N-Models Complexity Explosion</strong>. Monitoring al
 <div id="fig-platform-roi-threshold" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Line chart showing platform ROI vs. model count with break-even points for two cost levels">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-platform-roi-threshold-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="d0c65808" class="cell" data-execution_count="6">
+<div id="21c18eba" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2344,7 +2401,7 @@ Table&nbsp;3: <strong>Telemetry Paradigms at Scale</strong>: Because logs and tr
 <p><a href="#tbl-ops-scale-telemetry" class="quarto-xref">Table&nbsp;3</a> summarizes these three paradigms. Effective platforms present high-level dashboards by default and enable investigation into lower levels only when anomalies are detected.</p>
 </section>
 </section>
-<section id="sec-ml-operations-scale-modeltype-operations-diversity-3a36" class="level3">
+<section id="sec-ml-operations-scale-modeltype-operations-diversity-3a36" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-modeltype-operations-diversity-3a36">Model-type operations diversity</h3>
 <p>Beyond scale considerations, different model types require fundamentally different operational patterns. The practices appropriate for deploying a large language model are entirely inappropriate for a fraud detection system, and vice versa. Examine <a href="#tbl-ops-scale-model-types" class="quarto-xref">Table&nbsp;4</a>: LLMs demand staged rollouts over days to weeks with hours-long rollback windows, while fraud detection requires hourly updates with seconds-fast rollback to address adversarial dynamics.</p>
 <div id="tbl-ops-scale-model-types" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -2421,10 +2478,12 @@ Table&nbsp;4: <strong>Model-Type Operational Requirements</strong>: Update frequ
 </div>
 <p>The operational cadence for LLMs is measured in weeks to months, with each update treated as a significant event requiring cross-functional coordination.</p>
 </section>
-<section id="recommendation-system-operations" class="level4">
+<section id="recommendation-system-operations" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="recommendation-system-operations">Recommendation system operations</h4>
-<p>Recommendation systems operate at the opposite end of the operational spectrum. User preferences shift continuously, new content arrives constantly, and the systems must adapt rapidly to remain relevant. A recommendation system that cannot update for a month will show measurable engagement degradation.</p>
-<p>In response to these dynamics, operational patterns for recommendation systems emphasize continuous training pipelines that produce daily or weekly model updates, interleaving experiments that compare multiple model variants on the same requests, rapid iteration cycles where changes can reach production within hours, and statistically rigorous A/B testing infrastructure. A key metric that captures this operational urgency is <em>feature freshness latency</em>, which measures how quickly user actions propagate into the model’s predictions.</p>
+<p>Recommendation systems operate at the opposite end of the operational spectrum <span class="citation" data-cites="steck2021deep">(<a href="#ref-steck2021deep" role="doc-biblioref">Steck et al. 2021</a>)</span>. User preferences shift continuously, new content arrives constantly, and the systems must adapt rapidly to remain relevant. A recommendation system that cannot update for a month will show measurable engagement degradation.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-steck2021deep" class="csl-entry" role="listitem">
+Steck, Harald, Linas Baltrunas, Ehtsham Elahi, Dawen Liang, Yves Raimond, and Justin Basilico. 2021. <span>“Deep Learning for Recommender Systems: A Netflix Case Study.”</span> <em>AI Magazine</em> 42 (3): 7–18. <a href="https://doi.org/10.1609/aimag.v42i3.18140">https://doi.org/10.1609/aimag.v42i3.18140</a>.
+</div></div><p>In response to these dynamics, operational patterns for recommendation systems emphasize continuous training pipelines that produce daily or weekly model updates, interleaving experiments that compare multiple model variants on the same requests, rapid iteration cycles where changes can reach production within hours, and statistically rigorous A/B testing infrastructure. A key metric that captures this operational urgency is <em>feature freshness latency</em>, which measures how quickly user actions propagate into the model’s predictions.</p>
 <div id="callout-example-1.1" class="callout callout-example" title="Feature Freshness Latency">
 <p></p><details class="callout-example fbx-simplebox fbx-default" open=""><summary><strong>Example 1.1: Feature Freshness Latency</strong></summary><div>The problem: A user clicks a “Basketball” video. The time required for their feed to show more basketball content is the <strong>Feature Freshness Latency</strong>.<p></p>
 <p>The formula is: <span class="math display">\[ L_{\text{freshness}} = T_{\text{available}} - T_{\text{event}} \]</span></p>
@@ -2452,10 +2511,12 @@ Table&nbsp;4: <strong>Model-Type Operational Requirements</strong>: Update frequ
 <p>These adversarial dynamics dictate operational requirements: hourly or more frequent model updates in response to emerging patterns, instant rollback capability when false positive rates spike, shadow scoring of all transactions for rapid model comparison, and feature velocity monitoring to detect sudden distribution shifts.</p>
 <p>The risk profile is asymmetric. False negatives (missed fraud) cause direct financial losses, while false positives (legitimate transactions blocked) cause customer friction. Operations must balance these competing concerns in real time.</p>
 </section>
-<section id="the-underlying-principle" class="level4">
+<section id="the-underlying-principle" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="the-underlying-principle">The underlying principle</h4>
-<p>These diverse operational patterns reflect a single underlying principle: risk profile determines operational cadence. LLMs operate slowly because quality regressions are difficult to detect and expensive to remediate after widespread exposure. Recommendation systems operate rapidly because stale models lose relevance faster than bad updates can cause damage. Fraud detection operates continuously because adversaries do not wait for scheduled deployments. Understanding this principle enables teams to design appropriate operational practices for new model types by analyzing their risk characteristics rather than copying patterns from superficially similar systems.</p>
-</section>
+<p>These diverse operational patterns reflect a single underlying principle: risk profile determines operational cadence. LLMs operate slowly because quality regressions are difficult to detect and expensive to remediate after widespread exposure <span class="citation" data-cites="bender2021dangers">(<a href="#ref-bender2021dangers" role="doc-biblioref">Bender et al. 2021</a>)</span>. Recommendation systems operate rapidly because stale models lose relevance faster than bad updates can cause damage. Fraud detection operates continuously because adversaries do not wait for scheduled deployments. Understanding this principle enables teams to design appropriate operational practices for new model types by analyzing their risk characteristics rather than copying patterns from superficially similar systems.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-bender2021dangers" class="csl-entry" role="listitem">
+Bender, Emily M., Timnit Gebru, Angelina McMillan-Major, and Shmargaret Shmitchell. 2021. <span>“On the Dangers of Stochastic Parrots: Can Language Models Be Too Big?”</span> <em>Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Transparency</em>, March, 610–23. <a href="https://doi.org/10.1145/3442188.3445922">https://doi.org/10.1145/3442188.3445922</a>.
+</div></div></section>
 </section>
 <section id="sec-ml-operations-scale-mlops-maturity-hierarchy-dab1" class="level3">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-mlops-maturity-hierarchy-dab1">The MLOps maturity hierarchy</h3>
@@ -2746,10 +2807,10 @@ Table&nbsp;6: <strong>Staged Ensemble Deployment Pattern</strong>: Four-phase ro
 <div aria-describedby="tbl-ops-scale-ensemble-deploy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 17%">
-<col style="width: 46%">
+<col style="width: 15%">
+<col style="width: 47%">
 <col style="width: 9%">
-<col style="width: 26%">
+<col style="width: 27%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2836,10 +2897,10 @@ Table&nbsp;7: <strong>Deployment Patterns by Scale</strong>: Four patterns addre
 <div aria-describedby="tbl-ops-scale-deploy-patterns-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 31%">
-<col style="width: 18%">
-<col style="width: 23%">
+<col style="width: 21%">
+<col style="width: 20%">
 <col style="width: 26%">
+<col style="width: 30%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -3193,8 +3254,8 @@ Caveness, Emily, Paul Suganthan G. C., Zhuo Peng, Neoklis Polyzotis, Sudip Roy, 
 <p>Canary deployment<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> routes a small percentage of traffic to the new version while monitoring for regressions. If metrics remain acceptable, traffic percentage increases until the new version serves all traffic.</p>
 <div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>Canary Deployment</strong>: Named after the coal-mining practice of using canaries to detect toxic gases – a small sacrifice that protects the whole. For ML systems, the analogy is precise: model regressions typically manifest as gradual accuracy degradation rather than crashes, making them invisible to health checks but detectable through statistical comparison of canary vs.&nbsp;control traffic. Without canary stages, a subtly degraded model can reach 100 percent traffic before anyone notices the loss. </p></div></div><p>Typical progression: 1 percent → 5 percent → 25 percent → 50 percent → 100 percent</p>
 <p>Determining the duration of each stage is critical. <a href="#eq-canary-duration" class="quarto-xref">Equation&nbsp;4</a> relates stage duration to sample requirements, request rate, and traffic percentage, enabling precise calculation of minimum canary durations for statistical validity:</p>
-<p><span id="eq-canary-duration"><span class="math display">\[t_{stage} = \frac{n_{samples\_needed}}{r_{requests} \times p_{stage}} \tag{4}\]</span></span></p>
-<p>where <span class="math inline">\(t_{stage}\)</span> is the duration required at a given percentage, <span class="math inline">\(n_{samples\_needed}\)</span> is the number of observations needed for statistical significance, <span class="math inline">\(r_{requests}\)</span> is the request rate, and <span class="math inline">\(p_{stage}\)</span> is the traffic percentage.</p>
+<p><span id="eq-canary-duration"><span class="math display">\[t_{\text{stage}} = \frac{n_{\text{samples\_needed}}}{r_{\text{requests}} \times p_{\text{stage}}} \tag{4}\]</span></span></p>
+<p>where <span class="math inline">\(t_{\text{stage}}\)</span> is the duration required at a given percentage, <span class="math inline">\(n_{\text{samples\_needed}}\)</span> is the number of observations needed for statistical significance, <span class="math inline">\(r_{\text{requests}}\)</span> is the request rate, and <span class="math inline">\(p_{\text{stage}}\)</span> is the traffic percentage.</p>
 </section>
 <section id="worked-example-canary-duration-calculation" class="level4">
 <h4 class="anchored" data-anchor-id="worked-example-canary-duration-calculation">Worked example: Canary duration calculation</h4>
@@ -3470,8 +3531,8 @@ Figure&nbsp;7: <strong>Shadow Deployment Architecture.</strong> Production traff
 <div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;<strong>Interleaving Experiments</strong>: Originally developed for search engine evaluation, interleaving merges results from two rankers into one list shown to each user, then credits clicks to the originating ranker. This requires 10–100<span class="math inline">\(\times\)</span> fewer samples than A/B testing because each user provides a direct within-subject comparison rather than a between-population signal. For fleet-scale recommendation systems iterating on dozens of model variants, this 10–100<span class="math inline">\(\times\)</span> sample reduction translates directly into faster experiment cycles and lower opportunity cost from suboptimal models in production. </p></div><div id="ref-chapelle2012large" class="csl-entry" role="listitem">
 Chapelle, Olivier, Thorsten Joachims, Filip Radlinski, and Yisong Yue. 2012. <span>“Large-Scale Validation and Analysis of Interleaved Search Evaluation.”</span> <em>ACM Transactions on Information Systems</em> 30 (1): 1–41. <a href="https://doi.org/10.1145/2094072.2094078">https://doi.org/10.1145/2094072.2094078</a>.
 </div><div id="ref-kohavi2009controlled" class="csl-entry" role="listitem">
-Kohavi, Ron, Roger Longbotham, Dan Sommerfield, and Randal M. Henne. 2008. <span>“Controlled Experiments on the Web: Survey and Practical Guide.”</span> <em>Data Mining and Knowledge Discovery</em> 18 (1): 140–81. <a href="https://doi.org/10.1007/s10618-008-0114-1">https://doi.org/10.1007/s10618-008-0114-1</a>.
-</div></div><p>The key insight is statistical efficiency. An interleaving experiment requires 10<span class="math inline">\(\times\)</span> to 100<span class="math inline">\(\times\)</span> fewer samples to detect the same effect size compared to A/B testing <span class="citation" data-cites="kohavi2009controlled">(<a href="#ref-kohavi2009controlled" role="doc-biblioref">Kohavi et al. 2008</a>)</span>, because each user provides direct comparison signals rather than contributing to aggregate statistics.</p>
+Kohavi, Ron, Roger Longbotham, Dan Sommerfield, and Randal M. Henne. 2009. <span>“Controlled Experiments on the Web: Survey and Practical Guide.”</span> <em>Data Mining and Knowledge Discovery</em> 18 (1): 140–81. <a href="https://doi.org/10.1007/s10618-008-0114-1">https://doi.org/10.1007/s10618-008-0114-1</a>.
+</div></div><p>The key insight is statistical efficiency. An interleaving experiment requires 10<span class="math inline">\(\times\)</span> to 100<span class="math inline">\(\times\)</span> fewer samples to detect the same effect size compared to A/B testing <span class="citation" data-cites="kohavi2009controlled">(<a href="#ref-kohavi2009controlled" role="doc-biblioref">Kohavi et al. 2009</a>)</span>, because each user provides direct comparison signals rather than contributing to aggregate statistics.</p>
 <p>Interleaving implementation:</p>
 <ol type="1">
 <li>Both model variants score all candidates</li>
@@ -3987,10 +4048,10 @@ Figure&nbsp;9: <strong>Hierarchical Monitoring Architecture.</strong> To prevent
 <p>Rather than alerting on individual metric thresholds, fleet-wide anomaly detection identifies unusual patterns across the model portfolio.</p>
 <section id="statistical-process-control" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="statistical-process-control">Statistical process control</h4>
-<p>Control charts<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> adapted for ML monitoring track whether metric distributions remain stable over time <span class="citation" data-cites="shewhart1931economic">(<a href="#ref-shewhart1931economic" role="doc-biblioref">Carroll and Johnson 2020</a>)</span>. The core idea is distinguishing common cause variation (normal fluctuation) from special cause variation (genuine anomalies).</p>
-<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Statistical Process Control (SPC)</strong>: Invented by Walter Shewhart at Bell Labs in 1924 for manufacturing quality control. The 3–sigma control limit produces false alarms only 0.27 percent of the time for a stable process. For ML fleet monitoring, this false-alarm rate compounds: 100 models with 10 metrics each generate roughly 3 spurious alerts per day at 3–sigma, making alert-fatigue management an inherent constraint of applying SPC at platform scale. </p></div><div id="ref-shewhart1931economic" class="csl-entry" role="listitem">
-Carroll, Alison R., and David P. Johnson. 2020. <span>“Know It When You See It: Identifying and Using Special Cause Variation for Quality Improvement.”</span> <em>Hospital Pediatrics</em> 10 (11): e8–10. <a href="https://doi.org/10.1542/hpeds.2020-002303">https://doi.org/10.1542/hpeds.2020-002303</a>.
-</div></div><p>For a metric <span class="math inline">\(X\)</span> with established mean <span class="math inline">\(\mu\)</span> and standard deviation <span class="math inline">\(\sigma\)</span>:</p>
+<p>Control charts<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> adapted for ML monitoring track whether metric distributions remain stable over time <span class="citation" data-cites="shewhart1931economic">(<a href="#ref-shewhart1931economic" role="doc-biblioref">Shewhart 1931</a>)</span>. The core idea is distinguishing common cause variation (normal fluctuation) from special cause variation (genuine anomalies).</p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Statistical Process Control (SPC)</strong>: Invented by Walter Shewhart at Bell Labs in 1924 <span class="citation" data-cites="shewhart1931economic">(<a href="#ref-shewhart1931economic" role="doc-biblioref">Shewhart 1931</a>)</span> for manufacturing quality control. The 3–sigma control limit produces false alarms only 0.27 percent of the time for a stable process. For ML fleet monitoring, this false-alarm rate compounds: 100 models with 10 metrics each generate roughly 3 spurious alerts per day at 3–sigma, making alert-fatigue management an inherent constraint of applying SPC at platform scale. </p><div id="ref-shewhart1931economic" class="csl-entry" role="listitem">
+Shewhart, Walter A. 1931. <em>Economic Control of Quality of Manufactured Product</em>. D. Van Nostrand Company. <a href="https://archive.org/details/in.ernet.dli.2015.150272">https://archive.org/details/in.ernet.dli.2015.150272</a>.
+</div></div></div><p>For a metric <span class="math inline">\(X\)</span> with established mean <span class="math inline">\(\mu\)</span> and standard deviation <span class="math inline">\(\sigma\)</span>:</p>
 <ul>
 <li>Upper Control Limit: <span class="math inline">\(UCL = \mu + 3\sigma\)</span></li>
 <li>Lower Control Limit: <span class="math inline">\(LCL = \mu - 3\sigma\)</span></li>
@@ -4049,8 +4110,8 @@ Listing&nbsp;5: <strong>Fleet Anomaly Attribution</strong>: Detecting correlated
 <p>Covariate shift occurs when the distribution of input features <span class="math inline">\(P(X)\)</span> changes, but the relationship between inputs and outputs <span class="math inline">\(P(Y|X)\)</span> remains constant. This is detectable in real-time by monitoring input statistics such as mean, variance, and null rates without needing labels.</p>
 <p>Concept drift occurs when the relationship <span class="math inline">\(P(Y|X)\)</span> changes, such as when users change their definition of spam or relevant content. This requires ground truth labels to detect, which are often delayed by minutes, days, or weeks.</p>
 <p>Because labels are often delayed, most real-time monitoring systems focus on detecting covariate shift as a leading indicator of potential performance degradation. Statistical tests like the Population Stability Index (PSI) quantify this shift.</p>
-<p>For continuous features, the Population Stability Index (PSI)<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> quantifies distribution shift <span class="citation" data-cites="yurdakul2018statistical">(<a href="#ref-yurdakul2018statistical" role="doc-biblioref">Yurdakul and Naranjo 2020</a>)</span>. <a href="#eq-psi-monitoring" class="quarto-xref">Equation&nbsp;11</a> computes PSI as the sum of log-ratio weighted differences between actual and expected bucket proportions, yielding actionable thresholds: values below 0.1 indicate stability, while values at or above 0.25 demand immediate investigation. The mathematical foundation of PSI is established in <strong><a href="../robust_ai/robust_ai.html#sec-robust-ai">Robust AI</a></strong>.</p>
-<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Population Stability Index (PSI)</strong>: Originally developed in credit scoring to detect shifts in loan-applicant populations, where regulators mandated quantitative drift monitoring. The standard thresholds (PSI &lt; 0.1 stable, <span class="math inline">\(\geq\)</span> 0.25 action required) were established empirically in financial services. For ML fleet monitoring, PSI’s advantage is computational cheapness – a single pass over bucketed histograms – making it feasible to track hundreds of features across hundreds of models without saturating the monitoring budget. </p></div><div id="ref-yurdakul2018statistical" class="csl-entry" role="listitem">
+<p>For continuous features, the Population Stability Index (PSI)<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> quantifies distribution shift <span class="citation" data-cites="yurdakul2020statistical">(<a href="#ref-yurdakul2020statistical" role="doc-biblioref">Yurdakul and Naranjo 2020</a>)</span>. <a href="#eq-psi-monitoring" class="quarto-xref">Equation&nbsp;11</a> computes PSI as the sum of log-ratio weighted differences between actual and expected bucket proportions, yielding actionable thresholds: values below 0.1 indicate stability, while values at or above 0.25 demand immediate investigation. The mathematical foundation of PSI is established in <strong><a href="../robust_ai/robust_ai.html#sec-robust-ai">Robust AI</a></strong>.</p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Population Stability Index (PSI)</strong>: Originally developed in credit scoring to detect shifts in loan-applicant populations, where regulators mandated quantitative drift monitoring. The standard thresholds (PSI &lt; 0.1 stable, <span class="math inline">\(\geq\)</span> 0.25 action required) were established empirically in financial services. For ML fleet monitoring, PSI’s advantage is computational cheapness – a single pass over bucketed histograms – making it feasible to track hundreds of features across hundreds of models without saturating the monitoring budget. </p></div><div id="ref-yurdakul2020statistical" class="csl-entry" role="listitem">
 Yurdakul, Bilal, and Joshua Naranjo. 2020. <span>“Statistical Properties of the Population Stability Index.”</span> <em>The Journal of Risk Model Validation</em>, ahead of print. <a href="https://doi.org/10.21314/jrmv.2020.227">https://doi.org/10.21314/jrmv.2020.227</a>.
 </div></div><p><span id="eq-psi-monitoring"><span class="math display">\[PSI = \sum_{i=1}^{n} (A_i - E_i) \times \ln\left(\frac{A_i}{E_i}\right) \tag{11}\]</span></span></p>
 <p>where <span class="math inline">\(A_i\)</span> is the proportion in bucket <span class="math inline">\(i\)</span> of the actual (current) distribution, <span class="math inline">\(E_i\)</span> is the proportion in bucket <span class="math inline">\(i\)</span> of the expected (reference) distribution, and <span class="math inline">\(n\)</span> is the number of buckets.</p>
@@ -4233,7 +4294,7 @@ Sigelman, Benjamin H, Luiz André Barroso, Mike Burrows, et al. 2010. <em>Dapper
 <p><span class="math display">\[Z = \frac{C_{\text{current}} - \mu}{\sigma}\]</span></p>
 <p>where <span class="math inline">\(C_{\text{current}}\)</span> is the observed cost for the current period. A Z-score of 3 indicates the current cost is 3 standard deviations above the historical mean, an event expected less than 0.3 percent of the time under normal operations.</p>
 <p>Complementing Z-score analysis, <strong>percentage change</strong> detection captures sudden shifts regardless of historical variance:</p>
-<p><span class="math display">\[\Delta\% = \frac{C_{\text{current}} - C_{previous}}{C_{previous}} \times 100\]</span></p>
+<p><span class="math display">\[\Delta\% = \frac{C_{\text{current}} - C_{\text{previous}}}{C_{\text{previous}}} \times 100\]</span></p>
 <p>Percentage change detection excels at catching step-function increases, such as when a misconfigured autoscaler doubles instance count overnight.</p>
 </section>
 <section id="alerting-thresholds-and-false-positive-analysis" class="level4">
@@ -4445,11 +4506,11 @@ Listing&nbsp;6: <strong>Cost Attribution Schema</strong>: Resource tagging dimen
 <li>Monitoring and alerting</li>
 <li>Cost attribution and governance</li>
 </ul>
-<p>Platforms at this level include Vertex AI, SageMaker, and internal platforms at major technology companies such as TFX<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> at Google <span class="citation" data-cites="baylor2017tfx">(<a href="#ref-baylor2017tfx" role="doc-biblioref">Baylor et al. 2017</a>)</span> and MLflow <span class="citation" data-cites="zaharia2018accelerating">(<a href="#ref-zaharia2018accelerating" role="doc-biblioref">Chen et al. 2020</a>)</span>. Model teams interact through high-level APIs while the platform manages all operational concerns.</p>
+<p>Platforms at this level include Vertex AI, SageMaker, and internal platforms at major technology companies such as TFX<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> at Google <span class="citation" data-cites="baylor2017tfx">(<a href="#ref-baylor2017tfx" role="doc-biblioref">Baylor et al. 2017</a>)</span> and MLflow <span class="citation" data-cites="zaharia2018accelerating">(<a href="#ref-zaharia2018accelerating" role="doc-biblioref">Zaharia et al. 2018</a>)</span>. Model teams interact through high-level APIs while the platform manages all operational concerns.</p>
 <div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;<strong>TensorFlow Extended (TFX)</strong>: Google’s production ML platform, open-sourced in 2019 after years of internal use. TFX’s key architectural insight is that data validation via TensorFlow Data Validation (TFDV) gates the pipeline before training begins, catching schema violations and distribution drift that would otherwise produce silently degraded models. This “fail before training” philosophy prevents the most expensive class of ML waste: GPU-hours spent training on corrupted data. </p></div><div id="ref-baylor2017tfx" class="csl-entry" role="listitem">
 Baylor, Denis, Eric Breck, Heng-Tze Cheng, et al. 2017. <span>“TFX: A TensorFlow-Based Production-Scale Machine Learning Platform.”</span> <em>Proceedings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, August, 1387–95. <a href="https://doi.org/10.1145/3097983.3098021">https://doi.org/10.1145/3097983.3098021</a>.
 </div><div id="ref-zaharia2018accelerating" class="csl-entry" role="listitem">
-Chen, Andrew, Andy Chow, Aaron Davidson, et al. 2020. <span>“Developments in MLflow: A System to Accelerate the Machine Learning Lifecycle.”</span> <em>Proceedings of the Fourth International Workshop on Data Management for End-to-End Machine Learning</em> 41 (June): 1–4. <a href="https://doi.org/10.1145/3399579.3399867">https://doi.org/10.1145/3399579.3399867</a>.
+Zaharia, Matei, Andrew Chen, Aaron Davidson, et al. 2018. <span>“Accelerating the Machine Learning Lifecycle with <span>MLflow</span>.”</span> <em>IEEE Data Engineering Bulletin</em> 41 (4): 39–45. <a href="http://sites.computer.org/debull/A18dec/p39.pdf">http://sites.computer.org/debull/A18dec/p39.pdf</a>.
 </div></div></section>
 </section>
 <section id="sec-ml-operations-scale-selfservice-model-deployment-4753" class="level3 page-columns page-full">
@@ -4568,9 +4629,9 @@ Olston, Christopher, Noah Fiedel, Kiril Gorovoy, et al. 2017. <span>“TensorFlo
 </section>
 <section id="sec-ml-operations-scale-advanced-fleet-metrics-ml-productivity-goodput-mpg-fabf" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-advanced-fleet-metrics-ml-productivity-goodput-mpg-fabf">Advanced fleet metrics: ML productivity goodput (MPG)</h3>
-<p>While utilization metrics capture resource busyness, they often fail to reflect true engineering value. A GPU spinning at 100 percent utilization on a hyperparameter tuning job that eventually fails due to a configuration error is “efficient” in terms of hardware but “wasteful” in terms of productivity. To address this, <strong>ML Productivity Goodput (MPG)</strong> provides a comprehensive metric for fleet efficiency <span class="citation" data-cites="kumar2024machine">(<a href="#ref-kumar2024machine" role="doc-biblioref">Kumar et al. 2024</a>)</span>.</p>
-<div class="no-row-height column-margin column-container"><div id="ref-kumar2024machine" class="csl-entry" role="listitem">
-Kumar, S. D., A. Yazdanbakhsh, M. Hashemi, K. Swersky, and Vijay Janapa Reddi. 2024. <span>“Machine Learning Fleet Efficiency: Analyzing and Optimizing Large-Scale Google TPU Systems with ML Productivity Goodput.”</span> <em>arXiv Preprint arXiv:2410.02271</em>.
+<p>While utilization metrics capture resource busyness, they often fail to reflect true engineering value. A GPU spinning at 100 percent utilization on a hyperparameter tuning job that eventually fails due to a configuration error is “efficient” in terms of hardware but “wasteful” in terms of productivity. To address this, <strong>ML Productivity Goodput (MPG)</strong> provides a comprehensive metric for fleet efficiency <span class="citation" data-cites="wongpanich2025fleet">(<a href="#ref-wongpanich2025fleet" role="doc-biblioref">Wongpanich et al. 2025</a>)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-wongpanich2025fleet" class="csl-entry" role="listitem">
+Wongpanich, Arissa, Tayo Oguntebi, Jose Baiocchi Paredes, et al. 2025. <em>Machine Learning Fleet Efficiency: Analyzing and Optimizing Large-Scale <span>Google TPU</span> Systems with <span>ML</span> Productivity Goodput</em>. <a href="https://arxiv.org/abs/2502.06982">https://arxiv.org/abs/2502.06982</a>.
 </div><div id="ref-hennessy2011computer" class="csl-entry" role="listitem">
 Hennessy, John L., and David A. Patterson. 2011. <em>Computer Architecture: A Quantitative Approach</em>. Morgan Kaufmann.
 </div></div><p>MPG establishes what we term the <strong>iron law of Machine Learning Fleet Efficiency</strong>. Just as the classic iron law of Processor Performance <span class="citation" data-cites="hennessy2011computer">(<a href="#ref-hennessy2011computer" role="doc-biblioref">Hennessy and Patterson 2011</a>)</span> decomposes CPU execution time, this formulation decomposes ML fleet efficiency into three orthogonal components:</p>
@@ -4876,7 +4937,7 @@ Table&nbsp;14: <strong>Cost-Quality Tradeoff Analysis</strong>: Diminishing retu
 <p><strong><em>Total Cost of Ownership (TCO) for ML Systems</em></strong> is the complete economic accounting of developing, deploying, and operating machine learning capabilities across their full lifecycle.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> It captures the <strong>Cost Inversion</strong> of scale: while training costs are a one-time “upfront” operation (<span class="math inline">\(O\)</span>), the cumulative <strong>Inference TCO</strong> grows linearly with user adoption and time, often exceeding development costs by 5<span class="math inline">\(\times\)</span> to 10<span class="math inline">\(\times\)</span> over a 3-year period.</li>
-<li><strong>Distinction (Durable):</strong> Unlike <strong>Traditional IT TCO</strong> (where hardware CapEx dominates), ML TCO is uniquely shaped by <strong>Operating Efficiency (<span class="math inline">\(\eta\)</span>)</strong>, meaning the ability to serve predictions at the lowest possible energy and compute cost per query.</li>
+<li><strong>Distinction (Durable):</strong> Unlike <strong>Traditional IT TCO</strong> (where hardware CapEx dominates), ML TCO is uniquely shaped by <strong>Operating Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong>, meaning the ability to serve predictions at the lowest possible energy and compute cost per query.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that the “Training Check” is the primary financial risk. In reality, the <strong>Data Debt</strong> and <strong>Maintenance Overhead</strong> are the “silent interest rates” that can make an accurate model economically unsustainable in production.</li>
 </ol>
 </div></details>
@@ -4889,7 +4950,7 @@ Table&nbsp;14: <strong>Cost-Quality Tradeoff Analysis</strong>: Diminishing retu
 <div id="fig-tco-iceberg" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Horizontal bar chart showing cost categories from GPU compute to compliance, with waterline separating visible infrastructure from hidden operational costs.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tco-iceberg-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="f6154f27" class="cell" data-execution_count="13">
+<div id="4343419e" class="cell" data-execution_count="13">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -4910,16 +4971,16 @@ Figure&nbsp;10: <strong>The TCO Iceberg</strong>. Total Cost of Ownership analys
 <section id="training-cost-model" class="level4">
 <h4 class="anchored" data-anchor-id="training-cost-model">Training cost model</h4>
 <p>Training costs encompass the compute required to develop and maintain models. <a href="#eq-training-cost" class="quarto-xref">Equation&nbsp;15</a> formalizes training cost as a function of GPU count, training duration, hourly rates, datacenter efficiency, and failure overhead:</p>
-<p><span id="eq-training-cost"><span class="math display">\[C_{\text{train}} = N_{GPU} \times T_{hours} \times R_{GPU/hr} \times PUE \times (1 + F_{fail}) \tag{15}\]</span></span></p>
+<p><span id="eq-training-cost"><span class="math display">\[C_{\text{train}} = N_{\text{GPU}} \times T_{\text{hours}} \times R_{\text{GPU/hr}} \times \text{PUE} \times (1 + F_{\text{fail}}) \tag{15}\]</span></span></p>
 <p>where:</p>
 <ul>
-<li><span class="math inline">\(N_{GPU}\)</span> is the number of GPUs allocated</li>
-<li><span class="math inline">\(T_{hours}\)</span> is the training duration in hours</li>
-<li><span class="math inline">\(R_{GPU/hr}\)</span> is the hourly GPU cost (including instance overhead)</li>
-<li><span class="math inline">\(PUE\)</span> is the Power Usage Effectiveness multiplier (typically 1.1-1.5)</li>
-<li><span class="math inline">\(F_{fail}\)</span> is the failure overhead factor (fraction of training lost to failures and restarts)</li>
+<li><span class="math inline">\(N_{\text{GPU}}\)</span> is the number of GPUs allocated</li>
+<li><span class="math inline">\(T_{\text{hours}}\)</span> is the training duration in hours</li>
+<li><span class="math inline">\(R_{\text{GPU/hr}}\)</span> is the hourly GPU cost (including instance overhead)</li>
+<li><span class="math inline">\(\text{PUE}\)</span> is the Power Usage Effectiveness multiplier (typically 1.1-1.5)</li>
+<li><span class="math inline">\(F_{\text{fail}}\)</span> is the failure overhead factor (fraction of training lost to failures and restarts)</li>
 </ul>
-<p>The PUE factor captures datacenter efficiency: a PUE of 1.2 means 20 percent additional power for cooling and infrastructure. The failure overhead <span class="math inline">\(F_{fail}\)</span> accounts for checkpoint-and-restart costs; at scale, <strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong> establishes that failure rates of 1-5 percent per GPU-day require 10–25 percent overhead for fault tolerance.</p>
+<p>The PUE factor captures datacenter efficiency: a PUE of 1.2 means 20 percent additional power for cooling and infrastructure. The failure overhead <span class="math inline">\(F_{\text{fail}}\)</span> accounts for checkpoint-and-restart costs; at scale, <strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong> establishes that failure rates of 1-5 percent per GPU-day require 10–25 percent overhead for fault tolerance.</p>
 </section>
 <section id="worked-example-training-cost-calculation" class="level4">
 <h4 class="anchored" data-anchor-id="worked-example-training-cost-calculation">Worked example: Training cost calculation</h4>
@@ -4936,47 +4997,47 @@ Figure&nbsp;10: <strong>The TCO Iceberg</strong>. Total Cost of Ownership analys
 <section id="inference-cost-model" class="level4">
 <h4 class="anchored" data-anchor-id="inference-cost-model">Inference cost model</h4>
 <p>Inference costs dominate TCO for production ML systems at scale. <a href="#eq-inference-cost" class="quarto-xref">Equation&nbsp;16</a> expresses serving cost as a function of query volume, latency requirements, and utilization efficiency:</p>
-<p><span id="eq-inference-cost"><span class="math display">\[C_{\text{infer}} = \frac{Q_{daily} \times L_{avg}}{U_{GPU} \times B_{eff}} \times R_{GPU/hr} \times 24 \times 365 \tag{16}\]</span></span></p>
+<p><span id="eq-inference-cost"><span class="math display">\[C_{\text{infer}} = \frac{Q_{\text{daily}} \times L_{\text{avg}}}{U_{\text{GPU}} \times B_{\text{eff}}} \times R_{\text{GPU/hr}} \times 24 \times 365 \tag{16}\]</span></span></p>
 <p>where:</p>
 <ul>
-<li><span class="math inline">\(Q_{daily}\)</span> is the daily query volume</li>
-<li><span class="math inline">\(L_{avg}\)</span> is the average latency per inference (in hours, for unit consistency)</li>
-<li><span class="math inline">\(U_{GPU}\)</span> is the effective GPU utilization (typically 0.4-0.8)</li>
-<li><span class="math inline">\(B_{eff}\)</span> is the effective batch size (throughput multiplier from batching)</li>
-<li><span class="math inline">\(R_{GPU/hr}\)</span> is the hourly GPU cost</li>
+<li><span class="math inline">\(Q_{\text{daily}}\)</span> is the daily query volume</li>
+<li><span class="math inline">\(L_{\text{avg}}\)</span> is the average latency per inference (in hours, for unit consistency)</li>
+<li><span class="math inline">\(U_{\text{GPU}}\)</span> is the effective GPU utilization (typically 0.4-0.8)</li>
+<li><span class="math inline">\(B_{\text{eff}}\)</span> is the effective batch size (throughput multiplier from batching)</li>
+<li><span class="math inline">\(R_{\text{GPU/hr}}\)</span> is the hourly GPU cost</li>
 </ul>
-<p>The key insight is that inference cost scales linearly with query volume but sublinearly with optimization: improving utilization from 40 percent to 80 percent halves infrastructure requirements, and effective batching (<span class="math inline">\(B_{eff} &gt; 1\)</span>) further reduces per-query costs.</p>
+<p>The key insight is that inference cost scales linearly with query volume but sublinearly with optimization: improving utilization from 40 percent to 80 percent halves infrastructure requirements, and effective batching (<span class="math inline">\(B_{\text{eff}} &gt; 1\)</span>) further reduces per-query costs.</p>
 </section>
 <section id="alternative-formulation" class="level4">
 <h4 class="anchored" data-anchor-id="alternative-formulation">Alternative formulation</h4>
 <p>For capacity planning, express inference cost in terms of required GPU-seconds per query:</p>
-<p><span class="math display">\[C_{\text{infer}} = Q_{annual} \times \frac{t_{inference}}{U_{GPU}} \times \frac{R_{GPU/hr}}{3600}\]</span></p>
-<p>where <span class="math inline">\(t_{inference}\)</span> is the inference time in seconds. This formulation directly connects latency optimization to cost reduction.</p>
+<p><span class="math display">\[C_{\text{infer}} = Q_{\text{annual}} \times \frac{t_{\text{inference}}}{U_{\text{GPU}}} \times \frac{R_{\text{GPU/hr}}}{3600}\]</span></p>
+<p>where <span class="math inline">\(t_{\text{inference}}\)</span> is the inference time in seconds. This formulation directly connects latency optimization to cost reduction.</p>
 </section>
 <section id="data-cost-model" class="level4">
 <h4 class="anchored" data-anchor-id="data-cost-model">Data cost model</h4>
 <p>Data costs exhibit superlinear scaling with user base due to storage growth, transfer volume, and processing requirements. <a href="#eq-data-cost" class="quarto-xref">Equation&nbsp;17</a> decomposes data cost into three components:</p>
 <p><span id="eq-data-cost"><span class="math display">\[C_{\text{data}} = C_{\text{storage}} + C_{\text{egress}} + C_{\text{process}} \tag{17}\]</span></span></p>
 <p>Each component scales differently:</p>
-<p>Storage costs grow with data retention requirements: <span class="math display">\[C_{\text{storage}} = V_{data} \times R_{storage/GB} \times T_{retention}\]</span></p>
-<p>where <span class="math inline">\(V_{data}\)</span> is data volume in GB, <span class="math inline">\(R_{storage/GB}\)</span> is the monthly storage rate, and <span class="math inline">\(T_{retention}\)</span> is retention period in months.</p>
-<p>Egress costs scale with data transfer volume: <span class="math display">\[C_{\text{egress}} = V_{transfer} \times R_{egress/GB}\]</span></p>
+<p>Storage costs grow with data retention requirements: <span class="math display">\[C_{\text{storage}} = V_{\text{data}} \times R_{\text{storage/GB}} \times T_{\text{retention}}\]</span></p>
+<p>where <span class="math inline">\(V_{\text{data}}\)</span> is data volume in GB, <span class="math inline">\(R_{\text{storage/GB}}\)</span> is the monthly storage rate, and <span class="math inline">\(T_{\text{retention}}\)</span> is retention period in months.</p>
+<p>Egress costs scale with data transfer volume: <span class="math display">\[C_{\text{egress}} = V_{\text{transfer}} \times R_{\text{egress/GB}}\]</span></p>
 <p>Cloud egress pricing ($0.08-0.12 per GB) makes data transfer a significant cost driver for multi-region deployments and training data distribution.</p>
-<p>Processing costs scale with compute requirements for extract, transform, load (ETL), feature engineering, and data validation: <span class="math display">\[C_{\text{process}} = V_{processed} \times R_{process/GB}\]</span></p>
+<p>Processing costs scale with compute requirements for extract, transform, load (ETL), feature engineering, and data validation: <span class="math display">\[C_{\text{process}} = V_{\text{processed}} \times R_{\text{process/GB}}\]</span></p>
 <p>Data processing costs often surprise organizations: a feature engineering pipeline processing 10 TB daily at $0.02 per GB costs $73,000 annually.</p>
 </section>
 <section id="iteration-cost-model" class="level4">
 <h4 class="anchored" data-anchor-id="iteration-cost-model">Iteration cost model</h4>
 <p>Development costs capture the engineering investment in experimentation and model improvement. <a href="#eq-iteration-cost" class="quarto-xref">Equation&nbsp;18</a> formalizes this as the product of experiment count, experiment duration, and combined engineering and compute costs:</p>
-<p><span id="eq-iteration-cost"><span class="math display">\[C_{\text{iter}} = N_{exp} \times T_{exp} \times (C_{\text{engineer}} + C_{\text{compute}}) \tag{18}\]</span></span></p>
+<p><span id="eq-iteration-cost"><span class="math display">\[C_{\text{iter}} = N_{\text{exp}} \times T_{\text{exp}} \times (C_{\text{engineer}} + C_{\text{compute}}) \tag{18}\]</span></span></p>
 <p>where:</p>
 <ul>
-<li><span class="math inline">\(N_{exp}\)</span> is the number of experiments conducted</li>
-<li><span class="math inline">\(T_{exp}\)</span> is the average experiment duration</li>
+<li><span class="math inline">\(N_{\text{exp}}\)</span> is the number of experiments conducted</li>
+<li><span class="math inline">\(T_{\text{exp}}\)</span> is the average experiment duration</li>
 <li><span class="math inline">\(C_{\text{engineer}}\)</span> is the engineering cost per experiment (time allocation)</li>
 <li><span class="math inline">\(C_{\text{compute}}\)</span> is the compute cost per experiment</li>
 </ul>
-<p>A critical but often overlooked factor: failed experiments have real cost. If 90 percent of experiments do not improve production metrics, the effective cost per successful experiment is 10<span class="math inline">\(\times\)</span> the nominal experiment cost. This motivates investment in experiment infrastructure that reduces <span class="math inline">\(T_{exp}\)</span> and improves experiment success rates.</p>
+<p>A critical but often overlooked factor: failed experiments have real cost. If 90 percent of experiments do not improve production metrics, the effective cost per successful experiment is 10<span class="math inline">\(\times\)</span> the nominal experiment cost. This motivates investment in experiment infrastructure that reduces <span class="math inline">\(T_{\text{exp}}\)</span> and improves experiment success rates.</p>
 </section>
 <section id="worked-example-startup-vs.-production-company-tco" class="level4">
 <h4 class="anchored" data-anchor-id="worked-example-startup-vs.-production-company-tco">Worked example: Startup vs.&nbsp;production company TCO</h4>
@@ -5147,7 +5208,7 @@ Table&nbsp;16: <strong>TCO Sensitivity Analysis</strong>. Impact of 2<span class
 <ul>
 <li>Optimize for development velocity, not infrastructure efficiency</li>
 <li>Accept higher per-inference costs for faster experimentation</li>
-<li>Invest in experiment infrastructure (reduce <span class="math inline">\(T_{exp}\)</span>)</li>
+<li>Invest in experiment infrastructure (reduce <span class="math inline">\(T_{\text{exp}}\)</span>)</li>
 <li>Defer infrastructure optimization until cost structure shifts</li>
 </ul>
 <p>When <strong>training costs dominate</strong> (growth-stage, <span class="math inline">\(C_{\text{train}} &gt; 40\%\)</span> of TCO):</p>
@@ -5294,7 +5355,7 @@ Table&nbsp;17: <strong>Optimization Priority Matrix</strong>. Match optimization
 <p><strong><a href="../data_storage/data_storage.html#sec-data-storage">Data Storage</a></strong> introduced feature store architectures with online stores for low-latency serving and offline stores for training data generation. Operating these systems at scale presents unique challenges in freshness, consistency, and performance. The core problem feature stores solve is the <strong>training-serving gap</strong>: features computed during training must be reproducible during serving, but the computational contexts differ fundamentally: batch vs.&nbsp;real-time, hours vs.&nbsp;milliseconds.</p>
 <p>The gap often manifests as <strong>training-serving skew</strong>, a critical failure mode where subtle differences in feature processing logic between batch training and real-time inference pipelines cause silent accuracy degradation.</p>
 <div id="callout-perspective-1.3" class="callout callout-perspective" title="Training-Serving Skew">
-<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.3: Training-Serving Skew</strong></summary><div><strong>Training-Serving Skew</strong> is the failure mode where subtle differences in feature processing logic between batch training and real-time inference pipelines cause silent accuracy degradation. At fleet scale, the concern shifts from detecting skew in a single model to preventing it as a platform-level property: a Feature Store (see <a href="#sec-ml-operations-scale-feature-store-architecture-51da" class="quarto-xref">Section&nbsp;1.6.1</a>) provides the consistency guarantee that eliminates skew by construction—training and serving pipelines read from the same materialized feature store, making <span class="math inline">\(f_{train}(x) \equiv f_{serve}(x)\)</span> an architectural invariant rather than a manual verification responsibility.<p></p>
+<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.3: Training-Serving Skew</strong></summary><div><strong>Training-Serving Skew</strong> is the failure mode where subtle differences in feature processing logic between batch training and real-time inference pipelines cause silent accuracy degradation. At fleet scale, the concern shifts from detecting skew in a single model to preventing it as a platform-level property: a Feature Store (see <a href="#sec-ml-operations-scale-feature-store-architecture-51da" class="quarto-xref">Section&nbsp;1.6.1</a>) provides the consistency guarantee that eliminates skew by construction—training and serving pipelines read from the same materialized feature store, making <span class="math inline">\(f_{\text{train}}(x) \equiv f_{\text{serve}}(x)\)</span> an architectural invariant rather than a manual verification responsibility.<p></p>
 </div></details>
 </div>
 <p>At the scale of fleet-wide operations, skew prevention shifts from individual model validation to platform-level consistency guarantees.</p>
@@ -5380,7 +5441,7 @@ Table&nbsp;18: <strong>Feature Freshness Requirements by Type</strong>: Four fea
 <section id="freshness-monitoring" class="level4">
 <h4 class="anchored" data-anchor-id="freshness-monitoring">Freshness monitoring</h4>
 <p><a href="#eq-feature-staleness" class="quarto-xref">Equation&nbsp;20</a> defines feature staleness as the difference between current time and the most recent feature update, enabling direct comparison against SLO thresholds:</p>
-<p><span id="eq-feature-staleness"><span class="math display">\[\text{Staleness} = t_{current} - t_{feature\_update} \tag{20}\]</span></span></p>
+<p><span id="eq-feature-staleness"><span class="math display">\[\text{Staleness} = t_{\text{current}} - t_{\text{feature\_update}} \tag{20}\]</span></span></p>
 <p>Alerts trigger when staleness exceeds SLO thresholds. For streaming features, staleness spikes indicate pipeline issues. For batch features, staleness increases linearly between updates.</p>
 </section>
 <section id="worked-example-freshness-impact-on-model-quality" class="level4">
@@ -5471,7 +5532,7 @@ Listing&nbsp;8: <strong>Point-in-Time Join</strong>: A SQL lateral join that ret
 <section id="storage-implications" class="level4">
 <h4 class="anchored" data-anchor-id="storage-implications">Storage implications</h4>
 <p>Point-in-time correctness requires storing feature history rather than current values alone. The storage implications are substantial:</p>
-<p><span class="math display">\[\text{Storage} = N_{entities} \times N_{features} \times \frac{T_{retention}}{T_{update}}\]</span></p>
+<p><span class="math display">\[\text{Storage} = N_{\text{entities}} \times N_{\text{features}} \times \frac{T_{\text{retention}}}{T_{\text{update}}}\]</span></p>
 <p>For 100 million users, 1000 features, 1 year retention, and hourly updates:</p>
 <p><span class="math display">\[\text{Storage} = 10^8 \times 10^3 \times \frac{365 \times 24}{1} = 8.76 \times 10^{14} \text{ feature values}\]</span></p>
 <p>At 100 bytes per value, this represents approximately 87 petabytes before compression. Efficient feature stores use compression, columnar storage, and retention policies to manage this scale.</p>
@@ -5822,37 +5883,57 @@ Table&nbsp;19: <strong>Organizational Pattern Decision Factors</strong>: Five cr
 </section>
 </section>
 </section>
-<section id="sec-ml-operations-scale-case-studies-8bfd" class="level2">
+<section id="sec-ml-operations-scale-case-studies-8bfd" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-ml-operations-scale-case-studies-8bfd">Case Studies</h2>
 <p>Examining how leading technology companies have built ML operations at scale provides concrete examples of the principles discussed throughout this chapter.</p>
-<section id="sec-ml-operations-scale-uber-michelangelo-37ff" class="level3">
+<section id="sec-ml-operations-scale-uber-michelangelo-37ff" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-uber-michelangelo-37ff">Uber michelangelo</h3>
-<p>Uber’s Michelangelo platform, launched in 2017, serves as the industry’s foundational reference architecture for managing machine learning at hyper-scale. Before Michelangelo, Uber faced a chaotic “dual implementation” problem: data scientists developed models in Python, but engineering teams had to rewrite feature pipelines in Java for production, leading to weeks of delay and frequent logic divergence. The platform’s most significant architectural contribution was the <strong>Feature Store</strong>, a centralized repository that decoupled feature engineering from model development. By allowing over 100 different models—ranging from ETA prediction to fraud detection—to reuse pre-computed features like “average trip distance in the last 30 days,” Uber reduced duplicate compute costs by approximately 60 percent and slashed deployment times from weeks to hours.</p>
-<p>The operational challenge at Uber was distinct because of the sheer density of models relative to the engineering headcount. At its peak, Michelangelo managed over 10,000 active models in production with a core platform team of only 50 engineers. To sustain this 200:1 ratio, the team enforced a strict “Golden Path” architecture. They removed flexibility in favor of standardization, requiring all models to use specific versions of XGBoost or PyTorch and adhere to a rigid schema for input/output data. This standardization enabled the automation of the entire model lifecycle—training, evaluation, deployment, and monitoring—without manual intervention. When a model architecture was updated, the platform could automatically re-train and re-deploy thousands of dependent services, effectively treating models as configuration rather than bespoke code.</p>
+<p>Uber’s Michelangelo platform, launched in 2017, serves as the industry’s foundational reference <span class="citation" data-cites="hermann2017michelangelo">(<a href="#ref-hermann2017michelangelo" role="doc-biblioref">Hermann and Del Balso 2017</a>)</span> architecture for managing machine learning at hyper-scale. Before Michelangelo, Uber faced a chaotic “dual implementation” problem: data scientists developed models in Python, but engineering teams had to rewrite feature pipelines in Java for production, leading to weeks of delay and frequent logic divergence. The platform’s most significant architectural contribution was the <strong>Feature Store</strong>, a centralized repository that decoupled feature engineering from model development. By allowing over 100 different models—ranging from ETA prediction to fraud detection—to reuse pre-computed features like “average trip distance in the last 30 days,” Uber reduced duplicate compute costs by approximately 60 percent and slashed deployment times from weeks to hours.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-hermann2017michelangelo" class="csl-entry" role="listitem">
+Hermann, Jeremy, and Mike Del Balso. 2017. <em>Meet Michelangelo: Uber’s Machine Learning Platform</em>. Uber Engineering Blog. <a href="https://www.uber.com/blog/michelangelo-machine-learning-platform/">https://www.uber.com/blog/michelangelo-machine-learning-platform/</a>.
+</div></div><p>The operational challenge at Uber was distinct because of the sheer density of models relative to the engineering headcount. At its peak, Michelangelo managed over 10,000 active models in production with a core platform team of only 50 engineers. To sustain this 200:1 ratio, the team enforced a strict “Golden Path” architecture. They removed flexibility in favor of standardization, requiring all models to use specific versions of XGBoost or PyTorch and adhere to a rigid schema for input/output data. This standardization enabled the automation of the entire model lifecycle—training, evaluation, deployment, and monitoring—without manual intervention. When a model architecture was updated, the platform could automatically re-train and re-deploy thousands of dependent services, effectively treating models as configuration rather than bespoke code.</p>
 <p>A critical evolution in Michelangelo’s design was the migration from batch-centric to real-time serving. Early versions relied on HDFS for batch training and Cassandra for serving pre-computed predictions. However, as products like Uber Eats demanded instant personalization based on real-time context (for example, current weather or restaurant load), the platform had to rebuild its serving stack around Apache Flink and a high-performance feature serving layer. This shift introduced complex consistency challenges, requiring a “Kappa architecture” where the same code generated features for both offline training sets and online inference requests. To manage risk during this transition, Uber implemented an A/B testing framework capable of running over 1,000 concurrent experiments. This framework used “shadow pipelines” where new model versions processed live traffic and logged predictions without showing them to users, allowing engineers to verify latency and accuracy before promotion. Ultimately, Michelangelo evolved from a monolithic service into a federated ecosystem of microservices, proving that a centralized ML platform must eventually unbundle itself to prevent becoming a bottleneck for diverse business units.</p>
 </section>
-<section id="sec-ml-operations-scale-meta-ml-platform" class="level3">
+<section id="sec-ml-operations-scale-meta-ml-platform" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-meta-ml-platform">Meta fblearner flow</h3>
-<p>Meta’s FBLearner Flow exemplifies the “democratization” philosophy of ML infrastructure, designed to support an internal user base where over 25 percent of the engineering organization builds models. Operating at a scale of billions of predictions per second, the primary operational challenge was the <strong>“N-models problem.”</strong> With tens of thousands of models in production—ranking everything from News Feed posts to ads and friend suggestions—manual tuning was impossible. FBLearner addressed this by treating the training pipeline as a DAG that abstracts away the underlying infrastructure. An engineer defines the workflow in code, and the platform handles resource allocation, fault tolerance, and data sharding across thousands of GPUs. This abstraction allowed Meta to embed ML engineers directly into product teams rather than centralizing them, preventing the platform team from becoming a bottleneck while maintaining a unified infrastructure standard.</p>
-<p>A defining characteristic of Meta’s architecture is its aggressive approach to <strong>feature freshness</strong>. For products like the News Feed, the value of a feature (for example, “user just clicked ‘like’ on a similar video”) decays within seconds. To meet Service Level Objectives (SLOs) requiring sub-second freshness, FBLearner integrates tightly with real-time stream processors. This necessitates a “lambda architecture” where the platform automatically manages the join logic between streaming features and historical batch data. The design decision to prioritize freshness introduced significant complexity in monitoring; standard metrics like CPU usage were insufficient to detect silent failures in feature streams. In response, Meta developed a tiered monitoring hierarchy that tracks statistical distributions of inputs and outputs. By alerting on “feature drift” (for example, the mean value of a feature shifting by more than 5 percent) rather than just system health, they reduced alert fatigue by 80 percent, ensuring on-call engineers only reacted to genuine data quality issues.</p>
+<p>Meta’s FBLearner Flow exemplifies the “democratization” philosophy of ML infrastructure <span class="citation" data-cites="facebook2016fblearner">(<a href="#ref-facebook2016fblearner" role="doc-biblioref">Engineering 2016</a>)</span>, designed to support an internal user base where over 25 percent of the engineering organization builds models. Operating at a scale of billions of predictions per second, the primary operational challenge was the <strong>“N-models problem.”</strong> With tens of thousands of models in production—ranking everything from News Feed posts to ads and friend suggestions—manual tuning was impossible. FBLearner addressed this by treating the training pipeline as a DAG that abstracts away the underlying infrastructure. An engineer defines the workflow in code, and the platform handles resource allocation, fault tolerance, and data sharding across thousands of GPUs. This abstraction allowed Meta to embed ML engineers directly into product teams rather than centralizing them, preventing the platform team from becoming a bottleneck while maintaining a unified infrastructure standard.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-facebook2016fblearner" class="csl-entry" role="listitem">
+Engineering, Meta. 2016. <em>Introducing FBLearner Flow: Facebook’s AI Backbone</em>. Engineering at Meta Blog.<a href="
+    https://engineering.fb.com/2016/05/09/core-infra/introducing-fblearner-flow-facebook-s-ai-backbone/
+  ">https://engineering.fb.com/2016/05/09/core-infra/introducing-fblearner-flow-facebook-s-ai-backbone/ </a>.
+</div></div><p>A defining characteristic of Meta’s architecture is its aggressive approach to <strong>feature freshness</strong>. For products like the News Feed, the value of a feature (for example, “user just clicked ‘like’ on a similar video”) decays within seconds. To meet Service Level Objectives (SLOs) requiring sub-second freshness, FBLearner integrates tightly with real-time stream processors. This necessitates a “lambda architecture” where the platform automatically manages the join logic between streaming features and historical batch data. The design decision to prioritize freshness introduced significant complexity in monitoring; standard metrics like CPU usage were insufficient to detect silent failures in feature streams. In response, Meta developed a tiered monitoring hierarchy that tracks statistical distributions of inputs and outputs. By alerting on “feature drift” (for example, the mean value of a feature shifting by more than 5 percent) rather than just system health, they reduced alert fatigue by 80 percent, ensuring on-call engineers only reacted to genuine data quality issues.</p>
 <p>To manage the risk of deploying thousands of models daily, FBLearner popularized the concept of <strong>“Shadow Mode”</strong> (or dark launching). No model promotes directly to production. Instead, candidate models run alongside the current production model for a mandatory period, often up to two weeks, receiving live traffic but having their output discarded. This shadow phase serves two purposes: it verifies the operational integrity of the model (latency, memory usage) and builds a statistically significant baseline for accuracy comparison. Only when a shadow model empirically outperforms the incumbent on key business metrics without violating latency constraints is it promoted. This rigorous, automated gatekeeping allows Meta to execute continuous retraining pipelines for their most critical models—retraining them hourly—while maintaining five-nines availability for the end-user application.</p>
 </section>
-<section id="sec-ml-operations-scale-netflix-ml-infrastructure" class="level3">
+<section id="sec-ml-operations-scale-netflix-ml-infrastructure" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-netflix-ml-infrastructure">Netflix ML infrastructure</h3>
-<p>Netflix’s ML infrastructure focuses on a unique “Model Zoo” architectural pattern, where a single user request—loading the homepage—triggers an ensemble of hundreds of distinct models. Unlike transactional systems where one model makes one decision, Netflix’s recommendation engine relies on specialized models for row ordering, artwork selection, search ranking, and “continue watching” predictions. The operational challenge here is the <strong>fan-out cost</strong>: running 200+ heavy deep learning models for every user request is computationally prohibitive. To solve this, Netflix employs a “distillation” strategy. Large, complex “teacher” models are trained offline to capture deep semantic patterns, and their knowledge is compressed into lighter, faster “student” models for online serving. This design trade-off sacrifices a marginal amount of accuracy for a massive reduction in inference latency and cost, making the personalized homepage viable at global scale.</p>
-<p>A specific problem Netflix tackles aggressively is the <strong>“Cold Start”</strong>—the inability to recommend content to a new user with no history, or to recommend a brand new show with no viewing data. Their infrastructure solves this using “online learning” bandits that dynamically balance exploration and exploitation. When a new show launches, the system allocates a small “budget” of impressions to test the title on different user cohorts, rapidly converging on the optimal audience. This requires an infrastructure capable of updating model weights in near real-time, bypassing the traditional daily batch training cycle. The system must also handle the “feedback loop” latency, ensuring that a user’s interaction with a new title is immediately reflected in their subsequent recommendations, a requirement that pushed Netflix to move key parts of their feature engineering into the serving layer itself.</p>
-<p>To validate these complex interactions, Netflix moved beyond standard A/B testing to <strong>“Interleaving.”</strong> In a traditional A/B test, Group A sees Ranking 1 and Group B sees Ranking 2. This requires huge sample sizes and long durations to detect small improvements. Interleaving mixes the results of Ranking 1 and Ranking 2 into a single list for the same user, tracking which source the user actually clicks. This method cancels out user-level variance and creates a direct head-to-head comparison. The infrastructure supports this by allowing the serving layer to merge ranked lists on the fly and log attribution data with high fidelity. While this increases the complexity of the logging and attribution pipelines, the quantitative outcome is dramatic: Netflix can detect statistically significant improvements with <span class="math inline">\(100\times\)</span> fewer users than traditional A/B testing, allowing them to iterate on ranking algorithms at a velocity that traditional testing frameworks could not support.</p>
-</section>
-<section id="sec-ml-operations-scale-google-vertex-ai" class="level3">
+<p>Netflix’s ML infrastructure focuses on a unique “Model Zoo” architectural pattern <span class="citation" data-cites="gomezuribe2015netflix">(<a href="#ref-gomezuribe2015netflix" role="doc-biblioref">Gomez-Uribe and Hunt 2015</a>)</span>, where a single user request—loading the homepage—triggers an ensemble of hundreds of distinct models. Unlike transactional systems where one model makes one decision, Netflix’s recommendation engine relies on specialized models for row ordering, artwork selection, search ranking, and “continue watching” predictions. The operational challenge here is the <strong>fan-out cost</strong>: running 200+ heavy deep learning models for every user request is computationally prohibitive. To solve this, Netflix employs a “distillation” strategy. Large, complex “teacher” models are trained offline to capture deep semantic patterns, and their knowledge is compressed into lighter, faster “student” models for online serving. This design trade-off sacrifices a marginal amount of accuracy for a massive reduction in inference latency and cost, making the personalized homepage viable at global scale.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-gomezuribe2015netflix" class="csl-entry" role="listitem">
+Gomez-Uribe, Carlos A., and Neil Hunt. 2015. <span>“The Netflix Recommender System: Algorithms, Business Value, and Innovation.”</span> <em>ACM Transactions on Management Information Systems</em> 6 (4): 1–19. <a href="https://doi.org/10.1145/2843948">https://doi.org/10.1145/2843948</a>.
+</div></div><p>A specific problem Netflix tackles aggressively is the <strong>“Cold Start”</strong>—the inability to recommend content to a new user with no history, or to recommend a brand new show with no viewing data. Their infrastructure solves this using “online learning” bandits that dynamically balance exploration and exploitation. When a new show launches, the system allocates a small “budget” of impressions to test the title on different user cohorts, rapidly converging on the optimal audience. This requires an infrastructure capable of updating model weights in near real-time, bypassing the traditional daily batch training cycle. The system must also handle the “feedback loop” latency, ensuring that a user’s interaction with a new title is immediately reflected in their subsequent recommendations, a requirement that pushed Netflix to move key parts of their feature engineering into the serving layer itself.</p>
+<p>To validate these complex interactions, Netflix moved beyond standard A/B testing <span class="citation" data-cites="netflix2017interleaving">(<a href="#ref-netflix2017interleaving" role="doc-biblioref">Blog 2017</a>)</span> to <strong>“Interleaving.”</strong> In a traditional A/B test, Group A sees Ranking 1 and Group B sees Ranking 2. This requires huge sample sizes and long durations to detect small improvements. Interleaving mixes the results of Ranking 1 and Ranking 2 into a single list for the same user, tracking which source the user actually clicks. This method cancels out user-level variance and creates a direct head-to-head comparison. The infrastructure supports this by allowing the serving layer to merge ranked lists on the fly and log attribution data with high fidelity. While this increases the complexity of the logging and attribution pipelines, the quantitative outcome is dramatic: Netflix can detect statistically significant improvements with <span class="math inline">\(100\times\)</span> fewer users than traditional A/B testing, allowing them to iterate on ranking algorithms at a velocity that traditional testing frameworks could not support.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-netflix2017interleaving" class="csl-entry" role="listitem">
+Blog, Netflix Technology. 2017. <em>Innovating Faster on Personalization Algorithms at Netflix Using Interleaving</em>. Netflix Tech Blog. <a href="https://netflixtechblog.com/interleaving-in-online-experiments-at-netflix-a04ee392ec55">https://netflixtechblog.com/interleaving-in-online-experiments-at-netflix-a04ee392ec55</a>.
+</div></div></section>
+<section id="sec-ml-operations-scale-google-vertex-ai" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-google-vertex-ai">Google vertex AI</h3>
 <p>Google Vertex AI represents the “Managed Platform” paradigm, where the primary design challenge is determining the correct <strong>level of abstraction</strong>. Google aimed to solve the “glue code” problem—where 95 percent of ML code is infrastructure boilerplate—by providing a unified control plane that spans data labeling, training, and serving. A key architectural decision was the integration of <strong>AutoML</strong> as a first-class citizen alongside custom training. This allows the platform to perform neural architecture search (NAS) to find the optimal model structure for a given budget. The operational trade-off here is “compute for human time”: rather than an engineer spending weeks tuning hyperparameters, the platform spins up hundreds of parallel trials. This requires a multi-tenant scheduler capable of managing “burst capacity,” allowing high-priority production jobs to preempt experimental AutoML trials without losing state, effectively maximizing cluster utilization.</p>
 <p>For the serving layer, Vertex AI addresses the <strong>“noisy neighbor”</strong> problem inherent in multi-tenant environments. When thousands of customers deploy models to the same underlying fleet of Tensor Processing Units (TPUs) and GPUs, resource contention can cause unpredictable latency spikes. Google solves this with a strict containerization strategy and a “prediction sidecar” architecture. Every model runs in an isolated container, but a shared sidecar proxy handles logging, monitoring, and request batching. This separation allows the platform to enforce strict resource quotas (CPU, RAM, Accelerator RAM) and provide auto-scaling that reacts to custom metrics like “request queue depth” alongside CPU load. The quantitative benefit is a predictable latency tail; by enforcing hard isolation boundaries, Vertex guarantees that a heavy batch job from one tenant does not degrade the real-time inference performance of another.</p>
-<p>Vertex also tackles the <strong>Feature Store</strong> problem with a focus on consistency and compliance. Built on the open-source Feast project but backed by Google’s Spanner and BigTable, the Vertex Feature Store provides point-in-time correctness. A common operational failure in ML is “training-serving skew” caused by data leakage—using future data to train a model. Vertex enforces a time-travel retrieval mechanism where the training pipeline can only request feature values that existed at the specific timestamp of the training example. This design decision adds storage overhead, as every version of a feature must be persisted, but it eliminates an entire class of silent bugs. Combined with a cost optimization layer that automatically suggests moving inference workloads to cheaper hardware based on utilization patterns, Vertex demonstrates how a platform can actively manage the “Total Cost of Model Ownership” rather than just providing raw compute.</p>
-</section>
-<section id="sec-ml-operations-scale-spotify-ml-platform" class="level3">
+<p>Vertex also tackles the <strong>Feature Store</strong> problem with a focus on consistency and compliance. Built on the open-source Feast project <span class="citation" data-cites="feast2019">(<a href="#ref-feast2019" role="doc-biblioref">Gojek and Google 2019</a>)</span> but backed by Google’s Spanner and BigTable, the Vertex Feature Store provides point-in-time correctness. A common operational failure in ML is “training-serving skew” caused by data leakage—using future data to train a model. Vertex enforces a time-travel retrieval mechanism where the training pipeline can only request feature values that existed at the specific timestamp of the training example. This design decision adds storage overhead, as every version of a feature must be persisted, but it eliminates an entire class of silent bugs. Combined with a cost optimization layer that automatically suggests moving inference workloads to cheaper hardware based on utilization patterns, Vertex demonstrates how a platform can actively manage the “Total Cost of Model Ownership” rather than just providing raw compute.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-feast2019" class="csl-entry" role="listitem">
+Gojek, and Google. 2019. <em>Feast: An Open Source Feature Store for Machine Learning</em>. Google Cloud Blog.<a href="
+    https://cloud.google.com/blog/products/ai-machine-learning/introducing-feast-an-open-source-feature-store-for-machine-learning
+  ">https://cloud.google.com/blog/products/ai-machine-learning/introducing-feast-an-open-source-feature-store-for-machine-learning </a>.
+</div></div></section>
+<section id="sec-ml-operations-scale-spotify-ml-platform" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-ml-operations-scale-spotify-ml-platform">Spotify ML platform</h3>
-<p>Spotify’s ML platform, largely built on top of Kubeflow, is designed to solve the <strong>“Exploration vs.&nbsp;Exploitation”</strong> dilemma at the scale of 500 million users. The core operational challenge is that optimizing strictly for immediate clicks (exploitation) creates “filter bubbles” that degrade long-term user retention. To counter this, the platform supports counterfactual evaluation and contextual bandit algorithms directly in the serving path. The architecture separates the “candidate generation” phase (retrieving 1,000 potential songs) from the “ranking” phase (ordering the top 10). The candidate generators are diverse—some are collaborative filtering models updated daily, while others are “algotorial” heuristics updated in real-time. This decoupling allows the platform to mix-and-match retrieval strategies without rewriting the heavy ranking logic, facilitating rapid experimentation with new content types like podcasts and audiobooks.</p>
-<p>A central component of their architecture is the <strong>“Paved Road”</strong> for model orchestration. Spotify uses a centralized Model Registry that enforces strict lineage tracking. Every model artifact in production is cryptographically linked to the specific dataset snapshot, code commit, and hyperparameter set used to create it. This rigorous tracking is essential for debugging “silent regressions.” If a user complains about repetitive recommendations, an engineer can trace the exact lineage of the responsible model to find that a specific data pipeline upstream was delayed. This lineage system also enables automated “canary deployments.” When a new model version is registered, the platform automatically deploys it to a small subset of users (for example, 1 percent) and compares business metrics (streams per session) against the control group. If the metrics drop, the rollback is automatic, preventing bad models from ever reaching the full user base.</p>
+<p>Spotify’s ML platform, largely built on top of Kubeflow, is designed to solve the <strong>“Exploration vs.&nbsp;Exploitation”</strong> dilemma at the scale of 500 million users. The core operational challenge is that optimizing strictly for immediate clicks (exploitation) creates “filter bubbles” that degrade long-term user retention. To counter this, the platform supports counterfactual evaluation and contextual bandit algorithms directly in the serving path. The architecture separates the “candidate generation” phase (retrieving 1,000 potential songs) from the “ranking” phase (ordering the top 10). The candidate generators are diverse—some are collaborative filtering models <span class="citation" data-cites="koren2009matrix">(<a href="#ref-koren2009matrix" role="doc-biblioref">Koren et al. 2009</a>)</span> updated daily, while others are “algotorial” heuristics updated in real-time. This decoupling allows the platform to mix-and-match retrieval strategies without rewriting the heavy ranking logic, facilitating rapid experimentation with new content types like podcasts and audiobooks.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-koren2009matrix" class="csl-entry" role="listitem">
+Koren, Yehuda, Robert Bell, and Chris Volinsky. 2009. <span>“Matrix Factorization Techniques for Recommender Systems.”</span> <em>Computer</em> 42 (8): 30–37. <a href="https://doi.org/10.1109/mc.2009.263">https://doi.org/10.1109/mc.2009.263</a>.
+</div><div id="ref-spotify2019mlinfra" class="csl-entry" role="listitem">
+Engineering, Spotify. 2019. <em>The Winding Road to Better Machine Learning Infrastructure Through TensorFlow Extended and Kubeflow</em>. Spotify Engineering Blog.<a href="
+    https://engineering.atspotify.com/2019/12/the-winding-road-to-better-machine-learning-infrastructure-through-tensorflow-extended-and-kubeflow
+  ">https://engineering.atspotify.com/2019/12/the-winding-road-to-better-machine-learning-infrastructure-through-tensorflow-extended-and-kubeflow </a>.
+</div></div><p>A central component of their architecture is the <strong>“Paved Road”</strong> for model orchestration <span class="citation" data-cites="spotify2019mlinfra">(<a href="#ref-spotify2019mlinfra" role="doc-biblioref">Engineering 2019</a>)</span>. Spotify uses a centralized Model Registry that enforces strict lineage tracking. Every model artifact in production is cryptographically linked to the specific dataset snapshot, code commit, and hyperparameter set used to create it. This rigorous tracking is essential for debugging “silent regressions.” If a user complains about repetitive recommendations, an engineer can trace the exact lineage of the responsible model to find that a specific data pipeline upstream was delayed. This lineage system also enables automated “canary deployments.” When a new model version is registered, the platform automatically deploys it to a small subset of users (for example, 1 percent) and compares business metrics (streams per session) against the control group. If the metrics drop, the rollback is automatic, preventing bad models from ever reaching the full user base.</p>
 <p>Latency constraints at Spotify are non-negotiable; playback must feel instantaneous. This forces a design trade-off where complex inference is often pre-computed. For the “Discover Weekly” playlist, the platform runs massive batch inference jobs on weekends, storing the results in a low-latency key-value store. However, for the “Home” screen, which must react to the song just listened to, they employ a hybrid approach. User embeddings are updated in near real-time using a streaming pipeline, but the heavy item-item similarity matrices are computed offline. This split architecture allows them to achieve sub-100 ms latency for the Home screen while still incorporating the user’s immediate history. By optimizing the “Time to Interactivity,” Spotify’s platform proves that the best ML infrastructure is invisible—delivering complex personalization so fast that it feels like a static page load.</p>
 <p>At Spotify, non-negotiable latency constraints force a design trade-off where complex inference is pre-computed, demonstrating how strict operational requirements shape system architecture. Yet even the most mature platforms, from Uber’s Michelangelo to Spotify’s orchestrators, face catastrophic failures that require rigorous, systematic incident response.</p>
 <div id="quiz-question-sec-ml-operations-scale-case-studies-8bfd" class="callout callout-quiz-question">

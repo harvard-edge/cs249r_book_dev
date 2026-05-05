@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-c6e67e663447326d1c3f52e730a1c254.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-72fb62c982774522e2407e732e81e95b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-bad894f6903d90188856202af6e7cbd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-c05db86be5dc4d62a51906f749ebab3a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../vol1/assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#1F407A">
@@ -266,14 +323,95 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-learning-objectives {
   --color1: #E8F2EA;
@@ -293,68 +431,23 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-war-story {
   --color1: #FEF2F2;
@@ -365,14 +458,23 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
 .callout-resource-exercises {
   --color1: #E0F2F1;
@@ -383,15 +485,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
 .callout-theorem {
   --color1: #F5F0FA;
   --color2: #6B46C1;
@@ -401,57 +494,147 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(107, 70, 193, 0.12);
   --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-quiz-answer {
+  details.callout-chapter-connection {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
   }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-quiz-answer code {
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
   details.callout-learning-objectives {
@@ -482,102 +665,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
   }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-example code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
   details.callout-war-story {
@@ -594,18 +707,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-videos {
+  details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-exercises {
@@ -622,20 +749,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
   details.callout-theorem {
     --text-color: #e6e6e6;
     --background-color: rgba(107, 70, 193, 0.12);
@@ -650,67 +763,38 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
 }
 </style>
 <style>
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
 details.callout-learning-objectives > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
@@ -718,53 +802,26 @@ details.callout-learning-objectives > summary::before {
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-resource-exercises > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Machine Learning Systems at Scale">
-<meta property="og:image" content="./contents/vol2/fleet_orchestration/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta property="og:image" content="../../../contents/vol2/fleet_orchestration/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta property="og:site_name" content="Machine Learning Systems at Scale">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Machine Learning Systems at Scale">
-<meta name="twitter:image" content="./contents/vol2/fleet_orchestration/assets/images/covers/cover-hardcover-book-vol2.png">
+<meta name="twitter:image" content="../../../contents/vol2/fleet_orchestration/assets/images/covers/cover-hardcover-book-vol2.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="b727508aec93ade4ae3d59e61f4e966e" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="./">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🚀 <strong>Volume II: At Scale.</strong> Distributed training, fleet operations, and responsible deployment. <a href="../../../">Start reading →</a><br> 📘 <strong>First time here?</strong> Start with <a href="../../../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1639,10 +1696,12 @@ window.Quarto = {
 <p>In the <strong>Fleet Stack</strong> (<strong><a href="../introduction/introduction.html#sec-vol2-introduction">Introduction</a></strong>), orchestration operates at the Distribution Layer, but its decisions are fundamentally constrained by the Infrastructure Layer. The scheduler must reason about physical realities: GPU heterogeneity, NVLink topology, rack power limits, and network bisection bandwidth. When scheduling goes wrong, debugging requires examining all four layers to identify whether the root cause is infrastructure (hardware constraints), distribution (algorithm limitations), serving (workload mismatch), or governance (policy misconfiguration). Orchestration is where physical infrastructure meets the demands of distributed algorithms, translating resource requests into placement decisions that respect both hardware topology and organizational policy.</p>
 <p>To make the scheduling problem concrete, consider a research organization operating a 10,000-GPU cluster. Training GPT-3 required 1,024 A100 GPUs running continuously for 34 days <span class="citation" data-cites="brown2020language">(<a href="#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>. Imagine 100 such training jobs queued, alongside thousands of smaller experiments and inference workloads all competing for the same resources. The system must decide which jobs run, when they run, and where they run. A naive first-come-first-served policy would let the first few large jobs monopolize the cluster for weeks, starving smaller experiments that researchers need to iterate quickly. A strict fair-share policy would fragment GPUs across many small allocations, preventing any large job from assembling the contiguous thousand-GPU block it needs. Neither extreme works. The scheduler must navigate a multi-dimensional trade-off space where every decision affects throughput, fairness, cost, and researcher productivity simultaneously.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-brown2020language" class="csl-entry" role="listitem">
-Brown, Tom B., Benjamin Mann, Nick Ryder, et al. 2020. <span>“Language Models Are Few-Shot Learners.”</span> <em>Advances in Neural Information Processing Systems</em> 33 (May): 1877–901. <a href="http://arxiv.org/abs/2005.14165v4">http://arxiv.org/abs/2005.14165v4</a>.
+Brown, Tom B., Benjamin Mann, Nick Ryder, et al. 2020. <span>“Language Models Are Few-Shot Learners.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em> 33 (May): 1877–901. <a href="http://arxiv.org/abs/2005.14165v4">http://arxiv.org/abs/2005.14165v4</a>.
 </div></div><p>The economic stakes make these decisions consequential at every scale. A 10,000-GPU cluster at $2 per GPU-hour costs $480,000 per day to operate, whether the GPUs are computing useful work or sitting idle in a queue. If scheduling inefficiencies leave 30 percent of GPUs idle, that translates to $144,000 per day in wasted capacity, or over $53 million annually. Conversely, improving utilization from 50 percent to 80 percent effectively adds 6,000 GPUs worth of productive capacity without purchasing additional hardware. At this scale, a one-percentage-point improvement in utilization is worth more annually than the salary of the engineer who achieves it. Scheduling is not operational overhead; it is one of the highest-leverage engineering investments in ML infrastructure.</p>
 <p>ML workloads present scheduling challenges that distinguish them fundamentally from traditional high-performance computing and cloud computing. <strong>Gang scheduling</strong><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> represents the most critical difference: a distributed training job requiring 1,024 GPUs cannot make progress with only 512. Unlike traditional HPC simulations that can often scale to whatever resources are available, synchronous data parallelism demands all-or-nothing allocation. Every worker must participate in every AllReduce operation, and a missing worker blocks all others. A scheduler that partially allocates resources creates deadlocks where multiple jobs each hold some GPUs while waiting for more, with none able to proceed. This all-or-nothing requirement means the scheduler cannot simply “pack jobs tightly” as a traditional bin packer would; it must reason about atomic, multi-resource allocations across the entire cluster.</p>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Gang Scheduling</strong>: Formalized by John Ousterhout in 1982 for parallel systems, where the “Ousterhout matrix” co-schedules related threads across processors in synchronized time slices. In ML clusters, the constraint is stricter: synchronous AllReduce requires <em>all</em> workers simultaneously, so partial allocation wastes 100 percent of held resources rather than merely degrading throughput. A 1,024-GPU job holding 900 GPUs while waiting for 124 more burns approximately $1,800/hour in idle capacity. </p></div></div><div id="callout-notebook-1.1" class="callout callout-notebook" title="The Physics of Deadlock">
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Gang Scheduling</strong>: Formalized by <span class="citation" data-cites="ousterhout1982scheduling">Ousterhout (<a href="#ref-ousterhout1982scheduling" role="doc-biblioref">1982</a>)</span> for parallel systems, where the “Ousterhout matrix” co-schedules related threads across processors in synchronized time slices. In ML clusters, the constraint is stricter: synchronous AllReduce requires <em>all</em> workers simultaneously, so partial allocation wastes 100 percent of held resources rather than merely degrading throughput. A 1,024-GPU job holding 900 GPUs while waiting for 124 more burns approximately $1,800/hour in idle capacity. </p><div id="ref-ousterhout1982scheduling" class="csl-entry" role="listitem">
+Ousterhout, John K. 1982. <span>“Scheduling Techniques for Concurrent Systems.”</span> <em>Proceedings of the 3rd International Conference on Distributed Computing Systems (ICDCS)</em>, 22–30. <a href="https://web.stanford.edu/~ouster/cgi-bin/papers/coscheduling.pdf">https://web.stanford.edu/~ouster/cgi-bin/papers/coscheduling.pdf</a>.
+</div></div></div><div id="callout-notebook-1.1" class="callout callout-notebook" title="The Physics of Deadlock">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.1: The Physics of Deadlock</strong></summary><div><strong>Problem</strong>: You have a 1024-GPU cluster. Two teams each submit a job requiring 512 GPUs. A naive scheduler (non-gang) allocates 256 GPUs to Team A and 256 to Team B, then waits for more GPUs to become available. What happens next?<p></p>
 <p><strong>The Math</strong>:</p>
 <ol type="1">
@@ -1671,7 +1730,11 @@ Brown, Tom B., Benjamin Mann, Nick Ryder, et al. 2020. <span>“Language Models 
 <p>State inconsistency emerges as a third challenge that compounds the first two. Resource state may differ between the scheduler’s view and reality on individual nodes. A GPU the scheduler believes is free may still be cleaning up from a previous job: flushing caches, deallocating device memory, running a zombie process from a failed container, or completing a CUDA driver reset after an error. Conversely, a GPU marked as “in use” may have been freed by a job that terminated between heartbeat intervals. This inconsistency means the scheduler operates on a <em>model</em> of cluster state that is always slightly stale, and the degree of staleness varies across nodes depending on heartbeat frequency, network latency, and the complexity of cleanup operations.</p>
 <p>Ordering without global time presents the fourth fundamental issue. Without a global clock, determining whether allocation A happened before allocation B across different nodes requires careful protocol design using logical clocks or consensus algorithms. Two jobs may both believe they “own” the same GPU if the system does not enforce ordering through consensus protocols or centralized coordination. This scenario is not theoretical: during recovery from a network partition, allocation messages from before and after the partition may arrive in the wrong order at different nodes, creating conflicting resource assignments that must be detected and resolved.</p>
 <p>These four challenges connect directly to the <strong>consistency, availability, partition-tolerance (CAP theorem)</strong><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>, which applies to cluster scheduling with particular force. A scheduler cannot simultaneously provide perfect consistency (every allocation reflects true cluster state), availability (every scheduling request gets a response), and partition tolerance (the system continues operating despite network failures). Production schedulers make different trade-offs along this spectrum, and those trade-offs shape their behavior in fundamental ways. Slurm prioritizes consistency, blocking allocations during uncertainty rather than risking conflicting assignments. This means Slurm may fail to schedule jobs during transient network issues, but the jobs it does schedule always have valid, non-conflicting resource assignments. Kubernetes prioritizes availability, using eventual consistency with reconciliation loops that continuously drive actual state toward desired state. This means Kubernetes remains responsive during partial failures, but may temporarily have inconsistent views of resource allocation that are resolved asynchronously. Custom ML schedulers often accept bounded inconsistency in exchange for scheduling throughput, using optimistic concurrency where conflicts are detected and resolved after the fact rather than prevented through locking.</p>
-<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>CAP Theorem</strong>: Conjectured by Eric Brewer (2000) and proven by Gilbert and Lynch (2002), CAP establishes that no distributed system can simultaneously guarantee Consistency, Availability, and Partition tolerance. For ML schedulers, this trade-off is acute: Slurm sacrifices availability (blocking allocations during uncertainty) to prevent double-booking GPUs worth thousands of dollars per hour, while Kubernetes sacrifices consistency (allowing temporary resource overcommit) to keep scheduling responsive during partial failures. </p></div></div></section>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>CAP Theorem</strong>: Conjectured by <span class="citation" data-cites="brewer2000towards">Brewer (<a href="#ref-brewer2000towards" role="doc-biblioref">2000</a>)</span> and proven by <span class="citation" data-cites="gilbert2002brewer">Gilbert and Lynch (<a href="#ref-gilbert2002brewer" role="doc-biblioref">2002</a>)</span>, CAP establishes that no distributed system can simultaneously guarantee Consistency, Availability, and Partition tolerance. For ML schedulers, this trade-off is acute: Slurm sacrifices availability (blocking allocations during uncertainty) to prevent double-booking GPUs worth thousands of dollars per hour, while Kubernetes sacrifices consistency (allowing temporary resource overcommit) to keep scheduling responsive during partial failures. </p><div id="ref-brewer2000towards" class="csl-entry" role="listitem">
+Brewer, Eric A. 2000. <span>“Towards Robust Distributed Systems (Abstract).”</span> <em>Proceedings of the Nineteenth Annual ACM Symposium on Principles of Distributed Computing</em>, July, 7. <a href="https://doi.org/10.1145/343477.343502">https://doi.org/10.1145/343477.343502</a>.
+</div><div id="ref-gilbert2002brewer" class="csl-entry" role="listitem">
+Gilbert, Seth, and Nancy Lynch. 2002. <span>“Brewer’s Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services.”</span> <em>ACM SIGACT News</em> 33 (2): 51–59. <a href="https://doi.org/10.1145/564585.564601">https://doi.org/10.1145/564585.564601</a>.
+</div></div></div></section>
 <section id="sec-fleet-orchestration-failure-rates" class="level3">
 <h3 class="anchored" data-anchor-id="sec-fleet-orchestration-failure-rates">Failure rates at scale</h3>
 <p>At scale, failure is normal operation, not exceptional. This principle, established in the reliability analysis of <strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong>, has direct consequences for scheduling: the scheduler must not merely tolerate failure but actively plan for it in every allocation decision. Component reliability does not change with cluster size, but aggregate system reliability degrades multiplicatively. With 99.9 percent annual GPU reliability (typical for datacenter hardware), a 4,096-GPU cluster experiences:</p>
@@ -1706,12 +1769,12 @@ Brown, Tom B., Benjamin Mann, Nick Ryder, et al. 2020. <span>“Language Models 
 <p>Backfill scheduling allows smaller jobs to fill gaps while larger jobs wait for contiguous resources, improving utilization without violating priority ordering. The insight is that small jobs can execute and complete in the gaps, freeing those resources before the large job’s target start time. Backfill scheduling requires estimating when current jobs will complete (to determine whether a backfill candidate will finish before the large job can start), which is why accurate runtime estimates are so important and why Tiresias’ approach of eliminating runtime estimates (discussed in <a href="#sec-fleet-orchestration-tiresias" class="quarto-xref">Section&nbsp;1.5.1</a>) represents a fundamental alternative.</p>
 <p>Periodic <strong>defragmentation</strong> migrates or preempts low-priority jobs to consolidate free resources into contiguous blocks, analogous to memory compaction in operating systems. The scheduler identifies nodes where partial allocations leave stranded resources, preempts the jobs occupying those resources, and re-schedules them on nodes where they can be packed more efficiently. The cost of defragmentation (preempting running work, which wastes compute between the last checkpoint and the preemption event) must be weighed against the benefit (enabling large jobs to start sooner, improving overall throughput). Production systems typically run defragmentation during low-demand periods (late night, weekends) when the impact of preemption is minimal.</p>
 <p>A third strategy, <strong>over-subscription</strong>, allows more jobs to be admitted than strictly fit, relying on statistical multiplexing to avoid simultaneous peak usage across all resource dimensions. If each job’s GPU utilization averages 70 percent (alternating between compute-intensive and data-loading phases), the cluster can support approximately 1.4<span class="math inline">\(\times\)</span> as many jobs as the strict GPU count would allow. Over-subscription works well when resource utilization is genuinely bursty and jobs’ peak usage periods are uncorrelated, but can cause severe performance degradation (thrashing, memory pressure, network congestion) when multiple jobs peak simultaneously. The key to safe over-subscription is monitoring actual utilization in real time and throttling admission when contention is detected. <a href="#fig-fragmentation-problem" class="quarto-xref">Figure&nbsp;1</a> illustrates this fragmentation problem.</p>
-<div id="fig-fragmentation-problem" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="8-by-8 heatmap of cluster GPU allocation. Rows are nodes, columns are GPU slots. Colored cells show jobs; gray shows free. Status panel indicates 19 free GPUs but no contiguous block of 8." data-fig-env="figure">
+<div id="fig-fragmentation-problem" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="8-by-8 heatmap of cluster GPU allocation. Rows are nodes, columns are GPU slots. Colored cells show jobs; gray shows free. Status panel indicates 19 free GPUs but no contiguous block of 8." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fragmentation-problem-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="bfcfabac" class="cell" data-execution_count="6">
+<div id="e13d4e1d" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_888/3593010188.py:46: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
+<pre><code>/tmp/ipykernel_889/3593010188.py:46: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
   base_cmap = plt.cm.get_cmap(cmap_name)</code></pre>
 </div>
 <div class="cell-output cell-output-display">
@@ -1732,7 +1795,7 @@ Figure&nbsp;1: <strong>The Fragmentation Problem</strong>. The heatmap shows a s
 <section id="sec-fleet-orchestration-gang-scheduling" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-fleet-orchestration-gang-scheduling">Gang scheduling</h3>
 <p>Partial allocation of multi-GPU jobs creates a failure mode unique to ML clusters: two jobs can each hold half the resources they need, blocking each other indefinitely while every allocated GPU sits idle. <a href="#fig-gang-scheduling-deadlock" class="quarto-xref">Figure&nbsp;2</a> contrasts this deadlock scenario with the atomic allocation approach that eliminates it.</p>
-<div id="fig-gang-scheduling-deadlock" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Two-panel diagram. Left panel shows jobs J1 and J2 each holding half of an 8-GPU pool and waiting for the other half, creating a deadlock. Right panel shows the same jobs running sequentially to completion under gang scheduling." data-fig-env="figure">
+<div id="fig-gang-scheduling-deadlock" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Two-panel diagram. Left panel shows jobs J1 and J2 each holding half of an 8-GPU pool and waiting for the other half, creating a deadlock. Right panel shows the same jobs running sequentially to completion under gang scheduling." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-gang-scheduling-deadlock-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/gang-deadlock.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The Distributed Deadlock (Hold and Wait). In a non-gang scheduler (left), job J1 acquires half the cluster and waits for the rest, while job J2 acquires the other half and waits for J1 to release its GPUs. Neither can proceed, and 100 percent of the cluster sits idle. Gang scheduling (right) solves this by mandating atomic allocation: a job is either granted its entire N-GPU requirement simultaneously or it waits in the queue without holding any resources."><img src="images/svg/gang-deadlock.svg" class="img-fluid figure-img"></a>
@@ -1743,7 +1806,7 @@ Figure&nbsp;2: <strong>The Distributed Deadlock (Hold and Wait)</strong>. In a n
 </figure>
 </div>
 <p>As <a href="#fig-gang-scheduling-deadlock" class="quarto-xref">Figure&nbsp;2</a> illustrates, gang scheduling addresses the most distinctive aspect of ML workload scheduling: the requirement for atomic, all-or-nothing resource allocation. The term comes from the idea that all members of a “gang” (the workers in a distributed training job) must be present before any useful work can begin. Gang scheduling ensures that all <span class="math inline">\(N\)</span> workers for a distributed training job start simultaneously. Without this guarantee, a job requesting 1,024 GPUs might receive 768 immediately while waiting indefinitely for the remaining 256, wasting the already-allocated resources. Worse, if two such jobs each receive partial allocations, neither can proceed, creating a classic <strong>hold-and-wait deadlock</strong><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>.</p>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Hold-and-Wait Deadlock</strong>: One of the four conditions identified by Coffman et al.&nbsp;(1971) that are jointly sufficient for deadlock. In GPU clusters, this condition is uniquely expensive: two jobs each holding 500 GPUs while waiting for 200 more strand 1,000 GPUs indefinitely, burning approximately $2,000/hour. Gang scheduling eliminates hold-and-wait by construction, requiring atomic all-or-nothing allocation at the cost of reduced packing flexibility. </p></div></div><p>The formal requirement is straightforward: for a job <span class="math inline">\(J\)</span> requesting <span class="math inline">\(N\)</span> GPUs, the scheduler must guarantee that either all <span class="math inline">\(N\)</span> GPUs are allocated atomically, or the job remains in the queue without holding any resources. This binary outcome eliminates deadlock by construction, since a job that holds no resources cannot block other jobs. Implementing this guarantee efficiently, however, is the challenge that defines much of cluster scheduling algorithm design.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Hold-and-Wait Deadlock</strong>: One of the four classical conditions jointly sufficient for deadlock in resource-allocation systems. In GPU clusters, this condition is uniquely expensive: two jobs each holding 500 GPUs while waiting for 200 more strand 1,000 GPUs indefinitely, burning approximately $2,000/hour. Gang scheduling eliminates hold-and-wait by construction, requiring atomic all-or-nothing allocation at the cost of reduced packing flexibility. </p></div></div><p>The formal requirement is straightforward: for a job <span class="math inline">\(J\)</span> requesting <span class="math inline">\(N\)</span> GPUs, the scheduler must guarantee that either all <span class="math inline">\(N\)</span> GPUs are allocated atomically, or the job remains in the queue without holding any resources. This binary outcome eliminates deadlock by construction, since a job that holds no resources cannot block other jobs. Implementing this guarantee efficiently, however, is the challenge that defines much of cluster scheduling algorithm design.</p>
 <p>Naive gang scheduling is wasteful in predictable ways. If the cluster has 900 free GPUs and a job requests 1,024, the 900 GPUs sit idle until 124 more become available, potentially wasting thousands of GPU-hours. <strong>Backfill scheduling</strong> addresses this by identifying jobs in the queue that can fit within the 900 available GPUs without delaying the large job’s expected start time. A 128-GPU job with estimated runtime of 2 hours can safely backfill if the 124 additional GPUs needed by the large job will become available within 2 hours anyway (from other completing jobs). The backfilled job uses resources that would otherwise be idle, improving utilization without violating the large job’s scheduling guarantee.</p>
 <p>The accuracy of runtime estimates determines backfill effectiveness, and this creates a game-theoretic challenge. If users consistently overestimate runtimes, backfill slots are artificially narrow and fewer jobs fit, reducing utilization. If users underestimate, backfilled jobs may still be running when the large job’s resources become available, forcing preemption that wastes the backfilled job’s progress. In practice, users have strong incentives to overestimate (to avoid being killed before completion) and weak incentives to estimate accurately, leading to systematic inflation that degrades backfill performance. Research schedulers like Tiresias <span class="citation" data-cites="gu2019tiresias">(<a href="#ref-gu2019tiresias" role="doc-biblioref">Gu et al. 2019</a>)</span> address this fundamental problem by eliminating the requirement for runtime estimates entirely, instead using observed resource consumption to dynamically adjust priority. This approach, discussed in detail in <a href="#sec-fleet-orchestration-tiresias" class="quarto-xref">Section&nbsp;1.5.1</a>, turns the runtime estimation problem from a user-facing burden into a system-level observation.</p>
 <div class="no-row-height column-margin column-container"></div><div id="callout-perspective-1.1" class="callout callout-perspective" title="The Economics of Idle GPUs">
@@ -1851,7 +1914,7 @@ Table&nbsp;1: <strong>Slurm Partition Configuration</strong>: Partitions organiz
 <p>As <a href="#tbl-fleet-orchestration-slurm-partitions" class="quarto-xref">Table&nbsp;1</a> shows, GPU allocation strategies significantly impact utilization, and Slurm provides several mechanisms for controlling GPU placement. The <code>--gres=gpu:N</code> flag requests N GPUs, but naive allocation can fragment nodes. If jobs request 6 GPUs on 8-GPU nodes, each job wastes 2 GPUs per node, reducing effective capacity to 75 percent. Slurm’s <code>SelectTypeParameters=CR_GPU</code> enables GPU-level scheduling, tracking individual GPU availability rather than treating nodes as indivisible units. The <code>--gpus-per-node</code> flag ensures jobs receive full nodes when NVLink communication patterns make partial-node allocation counterproductive, while <code>--gpus-per-task</code> distributes GPUs evenly across tasks for data-parallel workloads.</p>
 <p>The interaction between GPU allocation and node selection creates subtleties that affect both performance and utilization. A job requesting <code>--gpus=16 --gpus-per-node=8</code> will always receive exactly 2 complete nodes, ensuring all 8 GPUs within each node communicate via NVLink. The same job requesting <code>--gpus=16</code> without the per-node constraint might receive GPUs spread across 3 or 4 partially occupied nodes, degrading intra-node communication performance. For training jobs using tensor parallelism, the per-node constraint is essential; for data-parallel jobs that communicate only through AllReduce, the flexibility of unconstrained placement improves the scheduler’s ability to find valid allocations and reduces fragmentation.</p>
 <p>The <strong>fair-share scheduling</strong> mechanism prevents any single user or project from monopolizing resources over time. The core insight is that past usage should affect future priority: heavy users should yield to lighter users when the cluster is contended. The classic fair-share formula computes effective priority as:</p>
-<p><span id="eq-fleet-orchestration-fair-share"><span class="math display">\[ P_{\text{effective}} = P_{base} \times \frac{F_{\text{target}}}{F_{\text{actual}} + \epsilon}  \tag{1}\]</span></span></p>
+<p><span id="eq-fleet-orchestration-fair-share"><span class="math display">\[ P_{\text{effective}} = P_{\text{base}} \times \frac{F_{\text{target}}}{F_{\text{actual}} + \epsilon}  \tag{1}\]</span></span></p>
 <p>where <span class="math inline">\(F_{\text{target}}\)</span> represents the user’s allocated share (determined by organizational policy), <span class="math inline">\(F_{\text{actual}}\)</span> their recent resource consumption (measured in GPU-hours over a configurable time window), and <span class="math inline">\(\epsilon\)</span> is a small constant preventing division by zero for new users. This formula naturally deprioritizes heavy users while allowing burst access when resources are idle. A researcher who has consumed twice their fair share sees their priority halved, pushing new submissions behind colleagues who have used less. Conversely, a researcher who has used no resources recently receives maximum priority, allowing rapid access when they return to active work.</p>
 <p>The time decay of usage history determines how quickly the system “forgives” past heavy usage. A half-life of one week means that a researcher’s heavy usage from two weeks ago contributes only 25 percent to their current usage calculation. Short half-lives create rapid rebalancing but can lead to oscillatory behavior where users alternate between starving and gorging on resources. Long half-lives create stable priority ordering but may penalize researchers who completed a legitimate large project and now want resources for a smaller one. Most production clusters configure half-lives between 3 and 14 days, balancing responsiveness against stability.</p>
 <p>Preemption policies enable high-priority jobs to reclaim resources from running workloads, and for ML training, this requires careful coordination with the checkpoint infrastructure. Jobs receive <code>SIGTERM</code> with configurable grace periods, typically 60 to 300 seconds, to save checkpoints before receiving <code>SIGKILL</code>. The <code>PreemptMode=REQUEUE</code> setting automatically restarts preempted jobs from their last checkpoint, while <code>GraceTime</code> controls the checkpoint window. The checkpoint and recovery infrastructure developed in <strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong> makes this preemption practical; without reliable checkpointing, preemption would lose all progress since the last manually triggered save, making preemption economically ruinous for long-running training jobs.</p>
@@ -2099,7 +2162,7 @@ Table&nbsp;3: <strong>Slurm vs.&nbsp;Kubernetes for ML Workloads</strong>: The t
 <p>This hierarchy means that a 64-GPU job allocated entirely within a single rack (8 nodes, all under one leaf switch) will outperform the same job spread across 8 racks (1 node per rack, crossing spine switches for every AllReduce). The performance difference stems directly from the communication analysis in <strong><a href="../collective_communication/collective_communication.html#sec-collective-communication">Collective Communication</a></strong>: ring AllReduce latency scales with the slowest link in the ring, and cross-rack hops introduce both higher latency and increased contention risk. For synchronous training, every iteration waits for the slowest worker to complete its AllReduce, so even occasional cross-rack congestion events create persistent throughput degradation.</p>
 <p>The scheduler must therefore model the cluster not as a flat list of compute slots, but as a hierarchical graph with distinct bandwidth cliffs at each level (GPU, Node, Rack, and Pod) corresponding to the NVLink, InfiniBand, and spine-switch boundaries described earlier. Each boundary crossing introduces an order-of-magnitude bandwidth reduction, and at the rack and pod levels, network oversubscription (often 2:1 or 4:1 at the spine switches) further restricts bisection bandwidth beyond what the raw link speed suggests. A topology-aware scheduler explicitly optimizes for these constraints, treating “locality” as a first-class resource. For a distributed training job requiring 1,024 GPUs, a fragmented placement that scatters workers across random racks can degrade training throughput by 30 to 50 percent compared to a compact placement within a single pod.</p>
 <p><a href="#fig-topology-placement-paths" class="quarto-xref">Figure&nbsp;3</a> contrasts optimal and scattered placement for a 4-GPU tensor parallel group, showing how the communication path determines whether GPUs use a single leaf switch or must traverse slower leaf-spine-leaf hops.</p>
-<div id="fig-topology-placement-paths" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Two panels. Left (Topology-Unaware): 4-GPU job split across Rack A and Rack B via a Spine Switch with red dashed paths (3 hops, ~12 GB/s). Right (Topology-Aware): same job packed in one rack under Leaf-A (1 hop, ~50 GB/s)." data-fig-env="figure">
+<div id="fig-topology-placement-paths" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Two panels. Left (Topology-Unaware): 4-GPU job split across Rack A and Rack B via a Spine Switch with red dashed paths (3 hops, ~12 GB/s). Right (Topology-Aware): same job packed in one rack under Leaf-A (1 hop, ~50 GB/s)." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-topology-placement-paths-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/topology-placement.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Topology-Unaware vs.&nbsp;Topology-Aware Placement. A 4-GPU job placed across two racks (left, topology-unaware) must traverse leaf-spine-leaf hops: 3 switch hops per AllReduce message at about 12 GB/s effective bandwidth. The same 4-GPU job packed within one rack (right, topology-aware) uses a single leaf switch: 1 hop at about 50 GB/s, roughly 4x faster. A quantitative summary beneath the figure reports switch-hop counts and effective bandwidth."><img src="images/svg/topology-placement.svg" class="img-fluid figure-img"></a>
@@ -2117,10 +2180,10 @@ Figure&nbsp;3: <strong>Topology-Unaware vs.&nbsp;Topology-Aware Placement</stron
 <p><span id="eq-fleet-orchestration-locality-score"><span class="math display">\[ S_{\text{locality}} = \sum_{i &lt; j} w(d(g_i, g_j))  \tag{2}\]</span></span></p>
 <p>where <span class="math inline">\(g_i\)</span> and <span class="math inline">\(g_j\)</span> are GPUs assigned to the job, <span class="math inline">\(d(g_i, g_j)\)</span> is their topological distance (0 for same node, 1 for same rack, 2 for different racks), and <span class="math inline">\(w(\cdot)\)</span> is a weighting function that increases with distance. The scheduler minimizes this score when selecting an allocation from the set of feasible placements. The weighting function encodes the performance impact of each topology level: <span class="math inline">\(w(0) = 0\)</span> (same node, NVLink, no penalty), <span class="math inline">\(w(1) = 1\)</span> (same rack, one switch hop), <span class="math inline">\(w(2) = 10\)</span> (different racks, multiple switch hops). The tenfold weight difference between same-rack and cross-rack placements reflects the disproportionate performance impact of crossing spine switches.</p>
 <p>More sophisticated algorithms distinguish between parallelism strategies, recognizing that different communication patterns have different bandwidth and latency requirements. Tensor parallelism requires the highest bandwidth and lowest latency because it exchanges activation tensors at every layer; it should be confined to NVLink domains within a single node. Pipeline parallelism tolerates moderate latency because it sends activations between stages less frequently (once per microbatch per stage boundary rather than at every layer); it can span nodes within a rack where InfiniBand provides sufficient bandwidth. Data parallelism, with its bulk gradient synchronization that can overlap with computation, operates efficiently across racks because the communication is less latency-sensitive and can use the available bandwidth effectively. <a href="#fig-topology-placement" class="quarto-xref">Figure&nbsp;4</a> quantifies the impact: topology-aware scheduling can reduce AllReduce latency by 4.8<span class="math inline">\(\times\)</span> compared to random placement.</p>
-<div id="fig-topology-placement" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Bar chart comparing AllReduce latency for Random, Rack-Aware, Rail-Optimized, and Topology-Optimal placement. 4.8x speedup from Random to Topology-Optimal." data-fig-env="figure">
+<div id="fig-topology-placement" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Bar chart comparing AllReduce latency for Random, Rack-Aware, Rail-Optimized, and Topology-Optimal placement. 4.8x speedup from Random to Topology-Optimal." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-topology-placement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="bdbe5a9a" class="cell" data-execution_count="7">
+<div id="d079badc" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2224,7 +2287,7 @@ Figure&nbsp;4: <strong>Topology Placement Impact</strong>. Reducing AllReduce la
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: Elastic Training</strong></summary><div>
 <p><strong><em>Elastic Training</em></strong> is the capability of a distributed training job to dynamically adjust its worker count during execution without requiring a full restart.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It maximizes the <strong>System Duty Cycle (<span class="math inline">\(\eta\)</span>)</strong> by allowing training to continue through node failures and by absorbing idle capacity in the cluster. It requires <strong>Learning Rate Recalibration</strong> and gradient accumulation adjustment to maintain mathematical consistency as the global batch size changes.</li>
+<li><strong>Significance (Quantitative):</strong> It maximizes the <strong>System Duty Cycle (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> by allowing training to continue through node failures and by absorbing idle capacity in the cluster. It requires <strong>Learning Rate Recalibration</strong> and gradient accumulation adjustment to maintain mathematical consistency as the global batch size changes.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Standard Fault Tolerance</strong> (which relies on checkpoint-restart), Elastic Training is <strong>Always-Live</strong>: the optimization loop never stops, it only changes its parallel width.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that elasticity is “automatic.” In reality, it is a <strong>Distributed Coordination Problem</strong>: the training framework, the data loader, and the orchestrator must all synchronize their state to ensure that no data samples are lost or double-counted during worker scaling.</li>
 </ol>
@@ -2240,9 +2303,9 @@ Figure&nbsp;4: <strong>Topology Placement Impact</strong>. Reducing AllReduce la
 <p>Scale-up (adding workers) is the simpler direction but still requires coordination across the entire training group. The framework must redistribute the dataset across the new worker count (so no data shard is orphaned or duplicated), adjust the effective batch size or per-worker batch size (depending on the scaling strategy), initialize new workers with current model parameters (requiring a parameter broadcast from existing workers), and join new workers into the communication group (reconstructing the AllReduce ring or tree). The initialization step is the most expensive: transferring the full model state to a new worker over InfiniBand takes seconds for a 70B parameter model, during which the existing workers must either pause or buffer gradient updates.</p>
 <p>Scale-down (removing workers) is conceptually the reverse but operationally more challenging because it must handle both voluntary departures (the scheduler reclaiming resources) and involuntary departures (worker failure). The framework must redistribute work from departing workers to remaining ones, adjust batch size to maintain convergence properties, cleanly remove workers from the communication group, and optionally save a checkpoint to simplify recovery if scale-down was triggered by preemption. The critical requirement is that the communication group reconstruction is atomic with respect to gradient updates: no gradient update should be in flight during the transition, because a partially completed AllReduce with a changing participant set would produce incorrect gradients.</p>
 <p>Worker replacement (substituting failed workers) combines scale-down and scale-up atomically, removing the failed worker and adding a replacement without changing the total worker count. This operation is the most common in practice and is the foundation of fault-tolerant training, connecting directly to the elastic recovery concepts introduced in <strong><a href="../fault_tolerance/fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance and Reliability</a></strong>. Worker replacement must handle the additional complexity that the failed worker may not have completed its most recent communication, requiring the remaining workers to detect the incomplete operation (through timeouts) and reinitialize the communication group before adding the replacement.</p>
-<p>The mathematical implications of elastic scaling interact with the optimization dynamics of stochastic gradient descent in ways that affect convergence. The effective batch size changes with worker count according to <span class="math inline">\(B_{effective} = B_{per\_worker} \times N_{workers}\)</span>. Changing <span class="math inline">\(N_{workers}\)</span> mid-training alters the gradient noise level, which can affect convergence speed and final model quality. Two strategies handle this tension, each with distinct trade-offs.</p>
-<p>The first approach, constant batch size scaling, adjusts <span class="math inline">\(B_{per\_worker}\)</span> inversely with <span class="math inline">\(N_{workers}\)</span> to maintain <span class="math inline">\(B_{effective}\)</span> at its original value. When workers are added, each worker processes fewer samples per step; when workers are removed, each processes more. This approach preserves the optimization dynamics exactly (the gradient noise level is unchanged), but changes per-worker compute and memory requirements. If <span class="math inline">\(B_{per\_worker}\)</span> becomes too small after aggressive scale-up, per-GPU utilization drops because the batch cannot saturate the GPU’s compute units. If <span class="math inline">\(B_{per\_worker}\)</span> becomes too large after scale-down, it may exceed per-GPU memory capacity.</p>
-<p>The alternative, adaptive batch size scaling, keeps <span class="math inline">\(B_{per\_worker}\)</span> constant and adjusts the learning rate using scaling rules like the linear scaling rule of <span class="citation" data-cites="goyal2017accurate">Goyal et al. (<a href="#ref-goyal2017accurate" role="doc-biblioref">2017</a>)</span>, which increases the learning rate proportionally with batch size. This approach accepts changed optimization dynamics (larger batch sizes produce lower-variance gradient estimates, which may require different learning rate schedules) in exchange for simpler worker management (each worker’s compute and memory requirements remain constant regardless of group size). For many practical workloads, adaptive batch size with linear learning rate scaling produces equivalent convergence outcomes, but the interaction between batch size scaling and other training hyperparameters (warmup schedule, weight decay, momentum) requires careful tuning.</p>
+<p>The mathematical implications of elastic scaling interact with the optimization dynamics of stochastic gradient descent in ways that affect convergence. The effective batch size changes with worker count according to <span class="math inline">\(B_{\text{effective}} = B_{\text{per\_worker}} \times N_{\text{workers}}\)</span>. Changing <span class="math inline">\(N_{\text{workers}}\)</span> mid-training alters the gradient noise level, which can affect convergence speed and final model quality. Two strategies handle this tension, each with distinct trade-offs.</p>
+<p>The first approach, constant batch size scaling, adjusts <span class="math inline">\(B_{\text{per\_worker}}\)</span> inversely with <span class="math inline">\(N_{\text{workers}}\)</span> to maintain <span class="math inline">\(B_{\text{effective}}\)</span> at its original value. When workers are added, each worker processes fewer samples per step; when workers are removed, each processes more. This approach preserves the optimization dynamics exactly (the gradient noise level is unchanged), but changes per-worker compute and memory requirements. If <span class="math inline">\(B_{\text{per\_worker}}\)</span> becomes too small after aggressive scale-up, per-GPU utilization drops because the batch cannot saturate the GPU’s compute units. If <span class="math inline">\(B_{\text{per\_worker}}\)</span> becomes too large after scale-down, it may exceed per-GPU memory capacity.</p>
+<p>The alternative, adaptive batch size scaling, keeps <span class="math inline">\(B_{\text{per\_worker}}\)</span> constant and adjusts the learning rate using scaling rules like the linear scaling rule of <span class="citation" data-cites="goyal2017accurate">Goyal et al. (<a href="#ref-goyal2017accurate" role="doc-biblioref">2017</a>)</span>, which increases the learning rate proportionally with batch size. This approach accepts changed optimization dynamics (larger batch sizes produce lower-variance gradient estimates, which may require different learning rate schedules) in exchange for simpler worker management (each worker’s compute and memory requirements remain constant regardless of group size). For many practical workloads, adaptive batch size with linear learning rate scaling produces equivalent convergence outcomes, but the interaction between batch size scaling and other training hyperparameters (warmup schedule, weight decay, momentum) requires careful tuning.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-goyal2017accurate" class="csl-entry" role="listitem">
 Goyal, Priya, Piotr Dollár, Ross Girshick, et al. 2017. <span>“Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour.”</span> <em>CoRR</em> abs/1706.02677 (June). <a href="http://arxiv.org/abs/1706.02677v2">http://arxiv.org/abs/1706.02677v2</a>.
 </div></div></section>
@@ -2301,7 +2364,7 @@ Sergeev, Alexander, and Mike Del Balso. 2018. <span>“Horovod: Fast and Easy Di
 </section>
 <section id="sec-fleet-orchestration-elastic-scheduler-integration" class="level3">
 <h3 class="anchored" data-anchor-id="sec-fleet-orchestration-elastic-scheduler-integration">Scheduler integration</h3>
-<p>Elastic training’s value depends critically on scheduler integration. Without scheduler awareness, elastic training is merely a fault tolerance mechanism (replacing failed workers). With scheduler integration, it becomes a scheduling optimization that fundamentally changes the economics of cluster utilization. The scheduler must understand that elastic jobs can operate within a range of resource allocations, specified as <span class="math inline">\([N_{min}, N_{max}]\)</span> workers, enabling three key scheduling optimizations.</p>
+<p>Elastic training’s value depends critically on scheduler integration. Without scheduler awareness, elastic training is merely a fault tolerance mechanism (replacing failed workers). With scheduler integration, it becomes a scheduling optimization that fundamentally changes the economics of cluster utilization. The scheduler must understand that elastic jobs can operate within a range of resource allocations, specified as <span class="math inline">\([N_{\text{min}}, N_{\text{max}}]\)</span> workers, enabling three key scheduling optimizations.</p>
 <p>The most immediately valuable benefit is faster job start. An elastic job requesting 32 to 128 GPUs can start as soon as 32 GPUs are available, rather than waiting in the gang scheduling queue for 128 contiguous GPUs. In congested clusters where large-job queue times can be hours to days, starting immediately at reduced scale often completes the job sooner than waiting for full-scale allocation. Consider a job that completes in 24 hours at 128 GPUs or 72 hours at 32 GPUs: if the queue wait for 128 GPUs is more than 48 hours, starting immediately at 32 GPUs and scaling up as resources become available produces faster total completion. The scheduler can compute these trade-offs dynamically, choosing the start time and initial scale that minimizes expected total time (wait time plus execution time).</p>
 <p>Opportunistic scaling enables the scheduler to use elastic jobs as flexible capacity absorbers. When resources become available (other jobs complete, spot instances are provisioned, preempted jobs release resources), the scheduler can expand running elastic jobs to improve their throughput. When resources are needed (higher-priority job arrives, reserved capacity is reclaimed), the scheduler can shrink elastic jobs without preempting them entirely. This bidirectional flexibility converts elastic jobs into a buffer that absorbs utilization variance, smoothing the gap between allocated and productive capacity.</p>
 <p>Graceful preemption transforms the scheduler’s response to resource pressure. Instead of killing a training job outright to reclaim resources, the scheduler can request a scale-down, reducing the job’s resource allocation to release capacity for higher-priority work. The job continues with fewer workers, maintaining progress at reduced throughput rather than losing all progress since the last checkpoint and incurring restart overhead. This provides the scheduler with a continuous spectrum between “full resources” and “fully preempted,” rather than the binary choice of traditional scheduling. Graceful preemption composes well with checkpoint-based preemption: if the scheduler needs to reclaim all resources, it first scales the job down to its minimum size, then initiates a checkpoint-and-preempt sequence, minimizing the amount of lost work.</p>
@@ -2359,10 +2422,10 @@ Sergeev, Alexander, and Mike Del Balso. 2018. <span>“Horovod: Fast and Easy Di
 <h2 class="anchored" data-anchor-id="sec-fleet-orchestration-cost-optimization">Cost Optimization</h2>
 <p>A 10,000-GPU cluster represents a capital investment of roughly $300 million and consumes millions more in monthly power and cooling. If poor scheduling leaves 20 percent of those GPUs idling in fragmentation gaps or waiting for data, the company is incinerating $60 million of compute capacity. Cost optimization forces the fleet orchestrator to treat the cluster as a massive financial asset whose ROI must be maximized.</p>
 <p><a href="#fig-cost-idle-gpus" class="quarto-xref">Figure&nbsp;5</a> makes this waste concrete by plotting annual wasted cost as a function of cluster size and utilization level. At 10,000 GPUs with 50 percent utilization, the annual waste exceeds $87 million. Published measurements from production clusters suggest this is not hypothetical: Microsoft’s Philly cluster study <span class="citation" data-cites="jeon2019analysis">(<a href="#ref-jeon2019analysis" role="doc-biblioref">Jeon et al. 2019</a>)</span> measured median utilization of approximately 52 percent, and <span class="citation" data-cites="li2023perlmutter">Li et al. (<a href="#ref-li2023perlmutter" role="doc-biblioref">2023</a>)</span> found that 50 percent of jobs on NERSC’s Perlmutter supercomputer used less than 25 percent of allocated GPU memory. The gap between 30 percent and 70 percent utilization, shaded in the figure, represents the operational reality for most organizations. Moving from 50 percent to 70 percent utilization on a 10,000-GPU cluster saves over $35 million annually without purchasing a single additional GPU, making scheduling optimization one of the highest-leverage investments in ML infrastructure.</p>
-<div class="no-row-height column-margin column-container"></div><div id="fig-cost-idle-gpus" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" alt="Line chart of annual wasted cost in millions vs. cluster size with four utilization curves at 30, 50, 70, and 90 percent and shaded typical range." data-fig-env="figure">
+<div class="no-row-height column-margin column-container"></div><div id="fig-cost-idle-gpus" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" alt="Line chart of annual wasted cost in millions vs. cluster size with four utilization curves at 30, 50, 70, and 90 percent and shaded typical range." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-cost-idle-gpus-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="6f0aa78d" class="cell" data-execution_count="10">
+<div id="9027b4ea" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2905,10 +2968,10 @@ Table&nbsp;5: <strong>Inference Autoscaling Metrics</strong>: Custom metrics for
 <section id="sec-fleet-orchestration-debugging" class="level2">
 <h2 class="anchored" data-anchor-id="sec-fleet-orchestration-debugging">Debugging Cluster Utilization</h2>
 <p>A cluster dashboard shows average GPU utilization stuck at 60 percent, yet developers complain about three-day queue times for small debugging jobs. Hundreds of GPUs sit idle, but no jobs are starting. Bridging this gap between theoretical capacity and production reality requires methodical forensic analysis to untangle the interactions between hardware topology, scheduler policies, and user behavior. As <a href="#fig-utilization-paradox" class="quarto-xref">Figure&nbsp;6</a> illustrates, the relationship between utilization and wait time is highly nonlinear: operating above 80 percent causes wait times to explode.</p>
-<div id="fig-utilization-paradox" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Semi-log plot of job wait time vs. cluster utilization. Three curves for small, mixed, and large jobs. Wait times explode near 100 percent. Danger Zone shaded above 80 percent. A dashed line shows target utilization at 75 percent." data-fig-env="figure">
+<div id="fig-utilization-paradox" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Semi-log plot of job wait time vs. cluster utilization. Three curves for small, mixed, and large jobs. Wait times explode near 100 percent. Danger Zone shaded above 80 percent. A dashed line shows target utilization at 75 percent." data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-utilization-paradox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="aa5e4fa9" class="cell" data-execution_count="14">
+<div id="6d5eaaf6" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2935,11 +2998,11 @@ Table&nbsp;6: <strong>Cluster Hardware Inventory</strong>: Three procurement gen
 <div aria-describedby="tbl-fleet-orchestration-debug-inventory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 11%">
-<col style="width: 26%">
-<col style="width: 21%">
-<col style="width: 25%">
+<col style="width: 18%">
+<col style="width: 12%">
+<col style="width: 15%">
+<col style="width: 24%">
+<col style="width: 29%">
 </colgroup>
 <thead>
 <tr class="header">

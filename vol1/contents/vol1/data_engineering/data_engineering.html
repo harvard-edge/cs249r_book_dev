@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -275,43 +332,25 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(44, 82, 130, 0.12);
   --dark-title-background-color: rgba(44, 82, 130, 0.12);
 }
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-quiz-answer {
+.callout-learning-objectives {
   --color1: #E8F2EA;
   --color2: #4A7C59;
   --border-color: #4A7C59;
@@ -319,6 +358,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(74, 124, 89, 0.04);
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
 .callout-quiz-question {
   --color1: #F0F0F8;
@@ -338,33 +386,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
 .callout-war-story {
   --color1: #FEF2F2;
   --color2: #C53030;
@@ -374,23 +395,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-lighthouse {
   --color1: #FDF8E6;
@@ -401,14 +413,50 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(184, 134, 11, 0.12);
   --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-resource-videos {
   --color1: #E0F2F1;
@@ -419,6 +467,24 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
 .callout-takeaways {
   --color1: #FDF2F7;
   --color2: #BE185D;
@@ -427,15 +493,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(190, 24, 93, 0.04);
   --dark-background-color: rgba(190, 24, 93, 0.12);
   --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 </style>
 <style>
@@ -454,74 +511,60 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-notebook code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-slides {
+  details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-slides code {
+  details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-example {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
+  details.callout-learning-objectives {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
     --title-background-color: rgba(74, 124, 89, 0.12);
     border-color: #4A7C59;
   }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-quiz-answer code {
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-question {
@@ -552,48 +595,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
   details.callout-war-story {
     --text-color: #e6e6e6;
     --background-color: rgba(197, 48, 48, 0.12);
@@ -608,32 +609,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-perspective {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
   details.callout-lighthouse {
@@ -650,18 +637,74 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
+  details.callout-chapter-connection {
     --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-videos {
@@ -678,6 +721,34 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
   details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(190, 24, 93, 0.12);
@@ -692,40 +763,23 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
 }
 </style>
 <style>
 details.callout-notebook > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
 }
-details.callout-resource-slides > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-quiz-question > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
@@ -733,38 +787,41 @@ details.callout-quiz-question > summary::before {
 details.callout-checkpoint > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 details.callout-lighthouse > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
 details.callout-resource-videos > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
 details.callout-takeaways > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
 </style>
 
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/data_engineering/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/data_engineering/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/data_engineering/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/data_engineering/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1645,8 +1702,8 @@ window.Quarto = {
 <p> The “data as code” metaphor captures <em>what</em> data does (determines system behavior) but not <em>why</em> moving it is so expensive. To engineer data systems effectively, we must also treat data as a physical substance with measurable properties. Just as diverse materials have density and viscosity, datasets have <strong>Information Entropy</strong> and <strong>Data Gravity</strong>.</p>
 <section id="sec-data-engineering-data-gravity-adcb" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-data-gravity-adcb">Data gravity</h3>
-<p> Data gravity is the cost of movement. It is a function of volume (<span class="math inline">\(D_{\text{vol}}\)</span>) and network bandwidth (<span class="math inline">\(BW\)</span>). The time to move a petabyte dataset across a 10 Gbps link is fixed by physics (<span class="math inline">\(T = D_{vol}/BW \approx 9 \text{ days}\)</span>); the following “physics of data gravity” callout quantifies these transfer times for a 100 Gbps link. This gravity dictates architecture: because moving 1PB to the compute is slow and expensive, we must move the compute to the data. This explains the rise of “Data Lakehouse” architectures<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <span class="citation" data-cites="armbrust2021lakehouse">(<a href="#ref-armbrust2021lakehouse" role="doc-biblioref">Zaharia et al. 2021</a>)</span> where processing engines (Spark, Presto) run directly on storage nodes. In contrast, <strong>Data Mesh</strong> <span class="citation" data-cites="dehghani2022data">(<a href="#ref-dehghani2022data" role="doc-biblioref">Dehghani 2022</a>)</span> proposes decentralizing ownership to manage this scale organizationally, treating data as a product owned by domain teams.</p>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Data Lakehouse</strong>: Combines data lake storage (cheap, schema-less) with warehouse query semantics (ACID transactions, schema enforcement) using open table formats like Delta Lake and Apache Iceberg. For ML workloads, the lakehouse eliminates the extract, transform, load (ETL) copy between lake and warehouse, enabling direct feature computation on the storage layer where data already resides – a direct response to data gravity, since moving petabytes to a separate warehouse doubles the <span class="math inline">\(D_{\text{vol}}/BW\)</span> cost. </p></div><div id="ref-armbrust2021lakehouse" class="csl-entry" role="listitem">
+<p> Data gravity is the cost of movement. It is a function of volume (<span class="math inline">\(D_{\text{vol}}\)</span>) and network bandwidth (<span class="math inline">\(\text{BW}\)</span>). The time to move a petabyte dataset across a 10 Gbps link is fixed by physics (<span class="math inline">\(T = D_{vol}/BW \approx 9 \text{ days}\)</span>); the following “physics of data gravity” callout quantifies these transfer times for a 100 Gbps link. This gravity dictates architecture: because moving 1PB to the compute is slow and expensive, we must move the compute to the data. This explains the rise of “Data Lakehouse” architectures<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <span class="citation" data-cites="zaharia2021lakehouse">(<a href="#ref-zaharia2021lakehouse" role="doc-biblioref">Zaharia et al. 2021</a>)</span> where processing engines (Spark, Presto) run directly on storage nodes. In contrast, <strong>Data Mesh</strong> <span class="citation" data-cites="dehghani2022data">(<a href="#ref-dehghani2022data" role="doc-biblioref">Dehghani 2022</a>)</span> proposes decentralizing ownership to manage this scale organizationally, treating data as a product owned by domain teams.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Data Lakehouse</strong>: Combines data lake storage (cheap, schema-less) with warehouse query semantics (ACID transactions, schema enforcement) using open table formats like Delta Lake and Apache Iceberg. For ML workloads, the lakehouse eliminates the extract, transform, load (ETL) copy between lake and warehouse, enabling direct feature computation on the storage layer where data already resides – a direct response to data gravity, since moving petabytes to a separate warehouse doubles the <span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span> cost. </p></div><div id="ref-zaharia2021lakehouse" class="csl-entry" role="listitem">
 Zaharia, Matei, Ali Ghodsi, Reynold Xin, and Michael Armbrust. 2021. <span>“Lakehouse: A New Generation of Open Platforms That Unify Data Warehousing and Advanced Analytics.”</span> <em>Proceedings of CIDR</em> 8. <a href="http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf">http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf</a>.
 </div><div id="ref-dehghani2022data" class="csl-entry" role="listitem">
 Dehghani, Zhamak. 2022. <em>Data Mesh: Delivering Data-Driven Value at Scale</em>. O’Reilly Media.
@@ -1659,7 +1716,7 @@ Dehghani, Zhamak. 2022. <em>Data Mesh: Delivering Data-Driven Value at Scale</em
 <section id="sec-data-engineering-feeding-problem" class="level3">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-feeding-problem">The feeding problem: Flow rate and the “feeding tax”</h3>
 <p>Data Gravity establishes the cost of moving the entire mass; <strong>The Feeding Problem</strong> establishes the cost of delivering it. In the Hennessy &amp; Patterson tradition, we analyze this as a <strong>Flow Rate</strong> problem: the struggle to saturate a high-throughput “Machine” from a low-bandwidth “Data” source.</p>
-<p>According to the <strong>iron law</strong>, the system is only as fast as its slowest term. If a modern accelerator can process 76,098 samples per second, but the storage pipeline delivers only 250 MB/s, the expensive silicon sits idle. We quantify this as <strong>The Feeding Tax</strong>: the wall-clock time lost to I/O wait, which directly reduces the <strong>System Efficiency (<span class="math inline">\(\eta\)</span>)</strong> term. For a standard cloud volume, the feeding tax can exceed <strong>99 percent</strong>, meaning the GPU spends the majority of its time waiting for bits. This tax transforms the Data Pipeline from a simple storage concern into the primary regulator of the system’s Duty Cycle. To saturate a 300 TFLOPS processor, the pipeline must often sustain <strong>45.8 GB/s</strong> transfer rates—a requirement that forces the shift from traditional file systems to the specialized storage architectures we examine in <a href="#sec-data-engineering-ml-storage-systems-architecture-options-67fa" class="quarto-xref">Section&nbsp;1.7.1</a>.</p>
+<p>According to the <strong>iron law</strong>, the system is only as fast as its slowest term. If a modern accelerator can process 76,098 samples per second, but the storage pipeline delivers only 250 MB/s, the expensive silicon sits idle. We quantify this as <strong>The Feeding Tax</strong>: the wall-clock time lost to I/O wait, which directly reduces the <strong>System Efficiency (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> term. For a standard cloud volume, the feeding tax can exceed <strong>99 percent</strong>, meaning the GPU spends the majority of its time waiting for bits. This tax transforms the Data Pipeline from a simple storage concern into the primary regulator of the system’s Duty Cycle. To saturate a 300 TFLOPS processor, the pipeline must often sustain <strong>45.8 GB/s</strong> transfer rates—a requirement that forces the shift from traditional file systems to the specialized storage architectures we examine in <a href="#sec-data-engineering-ml-storage-systems-architecture-options-67fa" class="quarto-xref">Section&nbsp;1.7.1</a>.</p>
 <p>Underlying these physical properties is a fundamental constraint we call the <em>energy-movement invariant</em>: moving data always dominates the energy budget.</p>
 <div id="callout-perspective-1.1" class="callout callout-perspective" title="The Energy-Movement Invariant">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The Energy-Movement Invariant</strong></summary><div>A corollary of the <strong>iron law</strong> (<strong><a href="../introduction/introduction.html#sec-introduction-iron-law-ml-systems-c32a">Iron Law of ML Systems</a></strong>) for data engineering is that <strong>moving a bit costs 100–1,000<span class="math inline">\(\times\)</span> more energy than computing on it.</strong> While <strong><a href="../optimizations/model_compression.html#sec-model-compression">Model Compression</a></strong> examines the energy cost inside the processor, we must also consider the cost of the information flow from the external world. The following table quantifies just how dramatic these differences are:<p></p>
@@ -1761,8 +1818,10 @@ Dehghani, Zhamak. 2022. <em>Data Mesh: Delivering Data-Driven Value at Scale</em
 <section id="sec-data-engineering-data-cascades-systematic-foundations-matter-2efe" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-data-cascades-systematic-foundations-matter-2efe">Data cascades</h3>
 <p>Machine learning systems face a unique failure pattern called “Data Cascades,”<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> where poor data quality in early stages amplifies throughout the entire pipeline, causing downstream model failures, project termination, and potential user harm <span class="citation" data-cites="sambasivan2021everyone">(<a href="#ref-sambasivan2021everyone" role="doc-biblioref">Sambasivan et al. 2021</a>)</span>. Traditional software produces immediate errors when encountering bad inputs. ML systems degrade silently until quality issues become severe enough to necessitate complete system rebuilds.</p>
-<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Data Cascades</strong>: The failure is “silent” because it degrades model <em>inputs</em>, not model <em>code</em>—corrupted data passes all unit tests and appears healthy in system monitoring. Sambasivan et al.&nbsp;found that cascade issues take a median of four weeks to discover after introduction, during which the model continues making degraded predictions at full automation rate. Detection depends on comparing accuracy metrics against ground truth, which in many production pipelines happens only on a weekly or monthly review cycle. By that point, the root cause is so embedded across feature engineering, training, and serving that the only viable fix is often a complete system rebuild. </p></div></div><p><a href="#fig-cascades" class="quarto-xref">Figure&nbsp;1</a> shows how data quality errors introduced early in the workflow can propagate into later evaluation and deployment failures.</p>
-<div id="fig-cascades" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Timeline with seven stages from problem statement to deployment. Colored arcs show errors from data collection propagating to evaluation and deployment stages.">
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Data Cascades</strong>: The failure is “silent” because it degrades model <em>inputs</em>, not model <em>code</em>—corrupted data passes all unit tests and appears healthy in system monitoring. <span class="citation" data-cites="sambasivan2021everyone">Sambasivan et al. (<a href="#ref-sambasivan2021everyone" role="doc-biblioref">2021</a>)</span> found that cascade issues take a median of four weeks to discover after introduction, during which the model continues making degraded predictions at full automation rate. Detection depends on comparing accuracy metrics against ground truth, which in many production pipelines happens only on a weekly or monthly review cycle. By that point, the root cause is so embedded across feature engineering, training, and serving that the only viable fix is often a complete system rebuild. </p><div id="ref-sambasivan2021everyone" class="csl-entry" role="listitem">
+Sambasivan, Nithya, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen Paritosh, and Lora M Aroyo. 2021. <span>“<span>‘Everyone Wants to Do the Model Work, Not the Data Work’</span>: Data Cascades in High-Stakes AI.”</span> <em>Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems</em>, May 6, 1–15. <a href="https://doi.org/10.1145/3411764.3445518">https://doi.org/10.1145/3411764.3445518</a>.
+</div></div></div><p><a href="#fig-cascades" class="quarto-xref">Figure&nbsp;1</a> shows how data quality errors introduced early in the workflow can propagate into later evaluation and deployment failures.</p>
+<div id="fig-cascades" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Timeline with seven stages from problem statement to deployment. Colored arcs show errors from data collection propagating to evaluation and deployment stages." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-cascades-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="d36678971085266b0c5e2109b614068055a47970.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Data Quality Cascades: Errors introduced early in the machine learning workflow amplify across subsequent stages, increasing costs and potentially leading to flawed predictions or harmful outcomes. Source: [@sambasivan2021everyone]."><img src="data_engineering_files/mediabag/d36678971085266b0c5e2109b614068055a47970.svg" class="img-fluid figure-img"></a>
@@ -1787,10 +1846,10 @@ Figure&nbsp;1: <strong>Data Quality Cascades</strong>: Errors introduced early i
 </div>
 <p>Preventing these cascading failures requires more than ad hoc fixes; it demands a systematic framework that organizes data engineering decisions into four interdependent dimensions.</p>
 </section>
-<section id="sec-data-engineering-four-foundational-pillars-c119" class="level3">
+<section id="sec-data-engineering-four-foundational-pillars-c119" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-four-foundational-pillars-c119">Four foundational pillars</h3>
 <p>Every data engineering decision, from choosing storage formats to designing ingestion pipelines, should be evaluated against four principles. Study <a href="#fig-four-pillars" class="quarto-xref">Figure&nbsp;2</a> to see how these pillars surround and support the central ML data system—note especially the dashed trade-off lines connecting them, which highlight that strengthening one pillar can create tension with another. Balancing these interdependencies is the core challenge of systematic data engineering.</p>
-<div id="fig-four-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Four boxes labeled quality, reliability, scalability, and governance surround a central ML data system circle. Solid arrows connect each box to center showing contributions; dashed lines between boxes indicate trade-offs.">
+<div id="fig-four-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four boxes labeled quality, reliability, scalability, and governance surround a central ML data system circle. Solid arrows connect each box to center showing contributions; dashed lines between boxes indicate trade-offs." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-four-pillars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="a852e1ab1dbcf10ebcb8356be79059e249241ec7.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The Four Pillars of Data Engineering: Quality, Reliability, Scalability, and Governance form the foundational framework for ML data systems. Each pillar contributes essential capabilities (solid arrows), while trade-offs between pillars (dashed lines) require careful balancing: validation overhead affects throughput, consistency constraints limit distributed scale, privacy requirements impact performance, and bias mitigation may reduce available training data."><img src="data_engineering_files/mediabag/a852e1ab1dbcf10ebcb8356be79059e249241ec7.svg" class="img-fluid figure-img"></a>
@@ -1839,15 +1898,17 @@ Figure&nbsp;2: <strong>The Four Pillars of Data Engineering</strong>: Quality, R
 <p>Unlike ResNet (compute bound) or GPT-2 (bandwidth bound), DLRM is limited by <strong>memory capacity</strong> and the sheer logistics of storing and accessing massive lookup tables efficiently.</p>
 </div></details>
 </div>
-<p>Governance provides the framework within which quality, reliability, and scalability operate. A perfectly scalable, reliable, high-quality pipeline that violates the General Data Protection Regulation (GDPR) or perpetuates demographic biases creates liability rather than value. Data governance ensures systems operate within legal, ethical, and business constraints: privacy protection, bias mitigation, regulatory compliance, and clear data ownership. Governance also maintains the transparency and accountability necessary to demonstrate compliance when audited.</p>
-<p>When ML systems exhibit failures, the four pillars provide a diagnostic lens for identifying root causes. Model accuracy that degrades gradually, not through sudden breakage but through a slow downward trend, almost always traces to the quality pillar: data drift has shifted the serving distribution away from training, or label quality has degraded as annotator pools change. Pipeline failures that appear intermittent, succeeding most runs but crashing unpredictably, point to the reliability pillar, suggesting inadequate error handling, missing retry logic, or resource exhaustion under peak load. Training that takes too long despite adequate hardware implicates scalability: somewhere in the pipeline a bottleneck (a single-threaded transformation, an unpartitioned shuffle, a storage tier too slow for the data volume) prevents parallel resources from being used. Compliance gaps discovered during audits indicate governance debt: lineage tracking is incomplete, access controls are stale, or data retention policies have not kept pace with regulatory changes.</p>
+<p>Governance provides the framework within which quality, reliability, and scalability operate. A perfectly scalable, reliable, high-quality pipeline that violates the General Data Protection Regulation (GDPR) or perpetuates demographic biases creates liability rather than value. Data governance ensures systems operate within legal, ethical, and business constraints: privacy protection, bias mitigation, regulatory compliance, and clear data ownership <span class="citation" data-cites="bender2018data">(<a href="#ref-bender2018data" role="doc-biblioref">Bender and Friedman 2018</a>)</span>. Governance also maintains the transparency and accountability necessary to demonstrate compliance when audited.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-bender2018data" class="csl-entry" role="listitem">
+Bender, Emily M., and Batya Friedman. 2018. <span>“Data Statements for Natural Language Processing: Toward Mitigating System Bias and Enabling Better Science.”</span> <em>Transactions of the Association for Computational Linguistics</em> 6 (December): 587–604. <a href="https://doi.org/10.1162/tacl\_a\_00041">https://doi.org/10.1162/tacl\_a\_00041</a>.
+</div></div><p>When ML systems exhibit failures, the four pillars provide a diagnostic lens for identifying root causes. Model accuracy that degrades gradually, not through sudden breakage but through a slow downward trend, almost always traces to the quality pillar: data drift has shifted the serving distribution away from training, or label quality has degraded as annotator pools change. Pipeline failures that appear intermittent, succeeding most runs but crashing unpredictably, point to the reliability pillar, suggesting inadequate error handling, missing retry logic, or resource exhaustion under peak load. Training that takes too long despite adequate hardware implicates scalability: somewhere in the pipeline a bottleneck (a single-threaded transformation, an unpartitioned shuffle, a storage tier too slow for the data volume) prevents parallel resources from being used. Compliance gaps discovered during audits indicate governance debt: lineage tracking is incomplete, access controls are stale, or data retention policies have not kept pace with regulatory changes.</p>
 <p>The most insidious failures span multiple pillars. Features that differ between training and serving implicate both quality (the values are wrong) and reliability (the computation is inconsistent). Diagnosing such cross-pillar failures requires checking consistency contracts, comparing feature distributions across environments, and tracing transformation lineage, all techniques examined in detail throughout this chapter. The key diagnostic insight is that most practitioners instinctively investigate the model first, but production experience consistently shows that data infrastructure failures outnumber model failures by a wide margin.</p>
 </section>
 <section id="sec-data-engineering-framework-application-keyword-spotting-case-study-c8e9" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-framework-application-keyword-spotting-case-study-c8e9">KWS case study</h3>
 <p>Keyword Spotting (KWS) systems provide an ideal case study for applying our four-pillar framework to real-world data engineering challenges. These systems power voice-activated devices like smartphones and smart speakers, detecting specific wake words such as “OK, Google” or “Alexa” within continuous audio streams while operating under strict resource constraints.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></p>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Voice Match Enrollment</strong>: Setting up “OK Google” requires repeating the wake phrase several times, a micro-scale data collection pipeline running on-device. Even this single-user workflow exercises all four data engineering pillars: quality (re-record if ambient noise is too high), reliability (must succeed on first attempt), scalability (model must fit in the system on chip (SoC)’s always-on memory), and governance (voice prints stored locally, never uploaded). The enrollment constraint illustrates why data engineering is not just a cloud-scale problem – it applies wherever data determines system behavior. </p></div></div><p>As <a href="#fig-keywords" class="quarto-xref">Figure&nbsp;3</a> illustrates, a KWS system operates as a lightweight, always-on front-end that triggers more complex voice processing systems. Even this seemingly simple architecture surfaces interconnected challenges across all four pillars: Quality (accuracy across diverse environments), Reliability (consistent battery-powered operation), Scalability (severe memory constraints), and Governance (privacy protection). These constraints limit KWS systems to a few dozen languages: collecting high-quality, representative voice data for smaller linguistic populations proves prohibitively difficult. All four pillars must work together to achieve successful deployment.</p>
-<div id="fig-keywords" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Amazon Echo Dot smart speaker on the left. On the right, three speech bubbles illustrate a short exchange: the user says 'Alexa...' (wake word), the device replies 'Hi, VJ!', and the user follows with 'dim the lights' as a command.">
+<div id="fig-keywords" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Amazon Echo Dot smart speaker on the left. On the right, three speech bubbles illustrate a short exchange: the user says 'Alexa...' (wake word), the device replies 'Hi, VJ!', and the user follows with 'dim the lights' as a command." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-keywords-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/data_engineering_kws.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Keyword Spotting in Action: An Amazon Echo Dot responds to the wake word and follows the user’s command. Voice-activated devices use a lightweight, always-on wake-word detector that listens continuously and triggers the main voice assistant only after the keyword is spoken."><img src="images/png/data_engineering_kws.png" class="img-fluid figure-img"></a>
@@ -2046,10 +2107,14 @@ Table&nbsp;1: <strong>KWS Data Engineering Design Space</strong>: Each design ch
 <p><strong>The Engineering Lesson</strong>: Systematic design space analysis transformed intuition (“we need more data”) into quantified decisions (“750K real + 2M synthetic maximizes accuracy per dollar given memory constraints”).</p>
 </div></details>
 </div>
-<p>With optimal parameters selected from our design space, implementation requires combining multiple data collection approaches. Our KWS system demonstrates how these approaches work together across the project lifecycle. Pre-existing datasets like Google’s Speech Commands <span class="citation" data-cites="warden2018speech">(<a href="#ref-warden2018speech" role="doc-biblioref">Warden 2018</a>)</span> provide a foundation for initial development, offering carefully curated voice samples for common wake words. For multilingual coverage, the Multilingual Spoken Words Corpus (MSWC) <span class="citation" data-cites="mazumder2021multilingual">(<a href="#ref-mazumder2021multilingual" role="doc-biblioref"><span class="nocase">Mazumder et al.</span> 2021</a>)</span> extends this foundation to 50 languages with over 23 million examples. However, even these large-scale datasets often lack diversity in accents, environments, and recording conditions, necessitating additional strategies.</p>
+<p>With optimal parameters selected from our design space, implementation requires combining multiple data collection approaches. Our KWS system demonstrates how these approaches work together across the project lifecycle. Pre-existing datasets like Google’s Speech Commands <span class="citation" data-cites="warden2018speech">(<a href="#ref-warden2018speech" role="doc-biblioref">Warden 2018</a>)</span> provide a foundation for initial development, offering carefully curated voice samples for common wake words. For multilingual coverage, the Multilingual Spoken Words Corpus (MSWC) <span class="citation" data-cites="mazumder2021multilingual">(<a href="#ref-mazumder2021multilingual" role="doc-biblioref">Mazumder et al. 2021</a>)</span> extends this foundation to 50 languages with over 23 million examples. However, even these large-scale datasets often lack diversity in accents, environments, and recording conditions, necessitating additional strategies.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-warden2018speech" class="csl-entry" role="listitem">
 Warden, Pete. 2018. <span>“Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition.”</span> <em>arXiv Preprint arXiv:1804.03209</em>, ahead of print, April 9. <a href="https://doi.org/10.48550/arXiv.1804.03209">https://doi.org/10.48550/arXiv.1804.03209</a>.
-</div><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Amazon Mechanical Turk (MTurk)</strong>: A crowdsourcing platform that routes tasks to workers matching specific demographic or environmental profiles, enabling targeted acquisition of wake word recordings from specific accents, age groups, or noisy environments that synthetic data cannot authentically reproduce. The trade-off is cost vs.&nbsp;validation overhead: raw MTurk collection runs 10–50<span class="math inline">\(\times\)</span> cheaper per sample than professional field recording, but each submission requires acoustic quality verification (SNR, duration, speaker proximity) to prevent low-quality recordings from degrading the KWS model’s accuracy on precisely the underrepresented conditions the collection was designed to cover. </p></div></div><p>To address coverage gaps, web scraping supplements baseline datasets by gathering diverse voice samples from video platforms and speech databases, capturing natural speech patterns and wake word variations. Crowdsourcing platforms like Amazon Mechanical Turk<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> enable targeted collection of wake word samples across different demographics and environments. This approach is particularly valuable for underrepresented languages or specific acoustic conditions.</p>
+</div><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Amazon Mechanical Turk (MTurk)</strong>: A crowdsourcing platform that routes tasks to workers matching specific demographic or environmental profiles, enabling targeted acquisition of wake word recordings from specific accents, age groups, or noisy environments that synthetic data cannot authentically reproduce. The trade-off is cost vs.&nbsp;validation overhead: raw MTurk collection runs 10–50<span class="math inline">\(\times\)</span> cheaper per sample than professional field recording, but each submission requires acoustic quality verification (SNR, duration, speaker proximity) to prevent low-quality recordings from degrading the KWS model’s accuracy on precisely the underrepresented conditions the collection was designed to cover <span class="citation" data-cites="snow2008cheap">(<a href="#ref-snow2008cheap" role="doc-biblioref">Snow et al. 2008</a>)</span>. </p><div id="ref-snow2008cheap" class="csl-entry" role="listitem">
+Snow, Rion, Brendan O’Connor, Daniel Jurafsky, and Andrew Y. Ng. 2008. <span>“Cheap and Fast—but Is It Good? Evaluating Non-Expert Annotations for Natural Language Tasks.”</span> <em>Proceedings of the Conference on Empirical Methods in Natural Language Processing - EMNLP ’08</em>, 254. <a href="https://doi.org/10.3115/1613715.1613751">https://doi.org/10.3115/1613715.1613751</a>.
+</div></div><div id="ref-victor2019machine" class="csl-entry" role="listitem">
+Sheng, Victor S., and Jing Zhang. 2019. <span>“Machine Learning with Crowdsourcing: A Brief Summary of the Past Research and Future Directions.”</span> <em>Proceedings of the AAAI Conference on Artificial Intelligence</em> 33 (01): 9837–43. <a href="https://doi.org/10.1609/aaai.v33i01.33019837">https://doi.org/10.1609/aaai.v33i01.33019837</a>.
+</div></div><p>To address coverage gaps, web scraping supplements baseline datasets by gathering diverse voice samples from video platforms and speech databases, capturing natural speech patterns and wake word variations. Crowdsourcing platforms like Amazon Mechanical Turk<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> enable targeted collection of wake word samples across different demographics and environments <span class="citation" data-cites="victor2019machine">(<a href="#ref-victor2019machine" role="doc-biblioref">Sheng and Zhang 2019</a>)</span>. This approach is particularly valuable for underrepresented languages or specific acoustic conditions.</p>
 <p>Finally, synthetic data generation fills remaining gaps through speech synthesis <span class="citation" data-cites="werchniak2021exploring">(<a href="#ref-werchniak2021exploring" role="doc-biblioref">Werchniak et al. 2021</a>)</span> and audio augmentation, creating unlimited wake word variations across acoustic environments, speaker characteristics, and background conditions. The combination enables KWS systems that perform well across diverse real-world conditions.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-werchniak2021exploring" class="csl-entry" role="listitem">
 Werchniak, Andrew, Roberto Barra Chicote, Yuriy Mishchenko, et al. 2021. <span>“Exploring the Application of Synthetic Audio in Training Keyword Spotters.”</span> <em>ICASSP 2021 - 2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)</em>, June 6, 7993–96. <a href="https://doi.org/10.1109/icassp39728.2021.9413448">https://doi.org/10.1109/icassp39728.2021.9413448</a>.
@@ -2150,7 +2215,7 @@ Werchniak, Andrew, Roberto Barra Chicote, Yuriy Mishchenko, et al. 2021. <span>�
 </div></details>
 </div>
 <p>All cost figures reflect approximate 2024 cloud provider rates and are intended to convey relative magnitudes rather than exact pricing.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
-<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Pricing Ratios</strong>: The absolute dollar amounts in this chapter will shift with provider pricing, but the ratios between tiers are remarkably stable because they reflect physical constraints, not business decisions. S3 Glacier retrieval illustrates the pattern: standard ($0.01/GB, 3–5 hours), expedited ($0.03/GB, 1–5 minutes), and bulk (free, 5–12 hours) span a 30<span class="math inline">\(\times\)</span> cost range that maps directly to the <span class="math inline">\(D_{\text{vol}}/BW\)</span> trade-off in the iron law. Engineers who memorize ratios rather than prices make storage decisions that survive the next pricing revision. </p></div></div><div id="callout-checkpoint-1.2" class="callout callout-checkpoint" title="Four Pillars Framework">
+<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Pricing Ratios</strong>: The absolute dollar amounts in this chapter will shift with provider pricing, but the ratios between tiers are remarkably stable because they reflect physical constraints, not business decisions. S3 Glacier retrieval illustrates the pattern: standard ($0.01/GB, 3–5 hours), expedited ($0.03/GB, 1–5 minutes), and bulk (free, 5–12 hours) span a 30<span class="math inline">\(\times\)</span> cost range that maps directly to the <span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span> trade-off in the iron law. Engineers who memorize ratios rather than prices make storage decisions that survive the next pricing revision. </p></div></div><div id="callout-checkpoint-1.2" class="callout callout-checkpoint" title="Four Pillars Framework">
 <details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.2: Four Pillars Framework</strong></summary><div>
 <p>The Four Pillars provide a systems lens for every pipeline choice.</p>
 <p><strong>The Pillars</strong></p>
@@ -2225,7 +2290,7 @@ Beyer, Lucas, Olivier J. Hénaff, Alexander Kolesnikov, Xiaohua Zhai, and Aäron
 VentureBeat. 2024. <span>“3 Big Problems with Datasets in AI and Machine Learning.”</span> <em>VentureBeat</em>.<a href="
     https://venturebeat.com/uncategorized/3-big-problems-with-datasets-in-ai-and-machine-learning/
   ">https://venturebeat.com/uncategorized/3-big-problems-with-datasets-in-ai-and-machine-learning/ </a>.
-</div></div><div id="fig-misalignment" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Five model boxes labeled A through E at center all connect upward to one central training dataset repository. Arrows downward show shared limitations, biases, and blind spots propagating to all models.">
+</div></div><div id="fig-misalignment" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Five model boxes labeled A through E at center all connect upward to one central training dataset repository. Arrows downward show shared limitations, biases, and blind spots propagating to all models." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-misalignment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="aff456fd89f807820acf823581ac2efc29055375.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Shared Dataset Bias Propagation: Five models (A through E) all train on a single central dataset repository. Arrows show how shared limitations, biases, and blind spots propagate from the common dataset to every downstream model, leading to correlated failures across the ecosystem."><img src="data_engineering_files/mediabag/aff456fd89f807820acf823581ac2efc29055375.svg" class="img-fluid figure-img"></a>
@@ -2242,17 +2307,17 @@ Banbury, Colby, Emil Njor, Andrea Mattia Garavagno, et al. 2024. <span>“Wake V
 <section id="sec-data-engineering-scalability-cost-optimization-b9b3" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-scalability-cost-optimization-b9b3">Scalability and cost optimization</h3>
 <p>Quality-focused approaches face inherent scaling limitations. When scale requirements dominate, needing millions or billions of examples that manual curation cannot economically provide, web scraping and synthetic generation offer paths to massive datasets. Scalability requires understanding the economic models underlying different acquisition strategies: cost per labeled example, throughput limitations, and how these scale with data volume. Cost-effectiveness inverts with scale: what works at thousands of examples becomes prohibitive at millions, while high-setup-cost approaches amortize favorably at large volumes.</p>
-<p>Web scraping enables dataset construction at scales that manual curation cannot match. Major vision datasets like ImageNet <span class="citation" data-cites="imagenet_website">(<a href="#ref-imagenet_website" role="doc-biblioref">Deng et al. 2024</a>)</span> and OpenImages <span class="citation" data-cites="openimages_website">(<a href="#ref-openimages_website" role="doc-biblioref">Huang et al. 2022</a>)</span> were built through systematic scraping, and large language models depend on web-scale text corpora <span class="citation" data-cites="groeneveld2024olmo">(<a href="#ref-groeneveld2024olmo" role="doc-biblioref">Groeneveld et al. 2024</a>)</span>. Targeted scraping of domain-specific sources, such as code repositories <span class="citation" data-cites="chen2021evaluating">(<a href="#ref-chen2021evaluating" role="doc-biblioref">Chen et al. 2021</a>)</span>, further demonstrates the approach’s versatility. However, production systems that rely on continuous scraping face pipeline reliability challenges: website structure changes break extractors, rate limiting throttles collection throughput, and dynamic content introduces inconsistencies that degrade model performance. Scraped data can also contain unexpected noise, such as historical images appearing in contemporary searches (<a href="#fig-traffic-light" class="quarto-xref">Figure&nbsp;5</a>), requiring systematic validation and cleaning stages.</p>
+<p>Web scraping enables dataset construction at scales that manual curation cannot match. Major vision datasets like ImageNet <span class="citation" data-cites="imagenet_website">(<a href="#ref-imagenet_website" role="doc-biblioref">Deng et al. 2024</a>)</span> and OpenImages <span class="citation" data-cites="kuznetsova2020openimages">(<a href="#ref-kuznetsova2020openimages" role="doc-biblioref">Kuznetsova et al. 2020</a>)</span> were built through systematic scraping, and large language models depend on web-scale text corpora <span class="citation" data-cites="groeneveld2024olmo">(<a href="#ref-groeneveld2024olmo" role="doc-biblioref">Groeneveld et al. 2024</a>)</span>. Targeted scraping of domain-specific sources, such as code repositories <span class="citation" data-cites="chen2021evaluating">(<a href="#ref-chen2021evaluating" role="doc-biblioref">Chen et al. 2021</a>)</span>, further demonstrates the approach’s versatility. However, production systems that rely on continuous scraping face pipeline reliability challenges: website structure changes break extractors, rate limiting throttles collection throughput, and dynamic content introduces inconsistencies that degrade model performance. Scraped data can also contain unexpected noise, such as historical images appearing in contemporary searches (<a href="#fig-traffic-light" class="quarto-xref">Figure&nbsp;5</a>), requiring systematic validation and cleaning stages.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-imagenet_website" class="csl-entry" role="listitem">
 Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2024. <em><span>ImageNet</span></em>. <a href="https://www.image-net.org/">https://www.image-net.org/</a>.
-</div><div id="ref-openimages_website" class="csl-entry" role="listitem">
-Huang, Zongmo, Xiaorong Pu, Gongshun Tang, et al. 2022. <span>“BS-80K: The First Large Open-Access Dataset of Bone Scan Images.”</span> <em>Computers in Biology and Medicine</em> 151 (Pt A): 106221. <a href="https://doi.org/10.1016/j.compbiomed.2022.106221">https://doi.org/10.1016/j.compbiomed.2022.106221</a>.
+</div><div id="ref-kuznetsova2020openimages" class="csl-entry" role="listitem">
+Kuznetsova, Alina, Hassan Rom, Neil Alldrin, et al. 2020. <span>“The <span>Open Images Dataset V4</span>: Unified Image Classification, Object Detection, and Visual Relationship Detection at Scale.”</span> <em>International Journal of Computer Vision</em> 128: 1956–81. <a href="https://doi.org/10.1007/s11263-020-01316-z">https://doi.org/10.1007/s11263-020-01316-z</a>.
 </div><div id="ref-groeneveld2024olmo" class="csl-entry" role="listitem">
 Groeneveld, Dirk, Iz Beltagy, Pete Walsh, et al. 2024. <span>“OLMo: Accelerating the Science of Language Models.”</span> <em>arXiv Preprint arXiv:2402.00838</em>, February 1. <a href="http://arxiv.org/abs/2402.00838v4">http://arxiv.org/abs/2402.00838v4</a>.
 </div><div id="ref-chen2021evaluating" class="csl-entry" role="listitem">
 Chen, Mark, Jerry Tworek, Heewoo Jun, et al. 2021. <span>“Evaluating Large Language Models Trained on Code.”</span> <em>arXiv Preprint arXiv:2107.03374</em>, July 7. <a href="http://arxiv.org/abs/2107.03374v2">http://arxiv.org/abs/2107.03374v2</a>.
 </div></div><p>Consider what happens when scraping the web for “traffic light” images: search engines return not only modern LED signals but also historical photographs like the following one. A model trained on such data might learn that traffic lights are sometimes operated by uniformed officers standing in the street, a spurious correlation that would cause failures in any real-world deployment.</p>
-<div id="fig-traffic-light" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Historical black-and-white photograph from 1914 showing early traffic control with manual semaphore signals, illustrating how outdated images can appear in modern web scraping results.">
+<div id="fig-traffic-light" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Historical black-and-white photograph from 1914 showing early traffic control with manual semaphore signals, illustrating how outdated images can appear in modern web scraping results." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-traffic-light-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/jpg/1914_traffic.jpeg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Data Source Noise: A black-and-white photograph from 1914 showing early manual semaphore traffic signals, illustrating how historical images can appear in modern web scraping results for contemporary queries. Such anachronistic content requires systematic validation and filtering to prevent spurious correlations in training data. Source: Vox."><img src="images/jpg/1914_traffic.jpeg" class="img-fluid figure-img"></a>
@@ -2262,14 +2327,14 @@ Figure&nbsp;5: <strong>Data Source Noise</strong>: A black-and-white photograph 
 </figcaption>
 </figure>
 </div>
-<p>This example reveals why the quality pillar cannot be satisfied by scale alone: no amount of additional scraped data removes the need for validation that detects and filters anachronistic or contextually inappropriate content. Beyond technical quality challenges, legal and ethical constraints further bound what scraping can achieve. Not all websites permit scraping, and ongoing litigation around training data usage illustrates the consequences of non-compliance <span class="citation" data-cites="harvard_law_chatgpt">(<a href="#ref-harvard_law_chatgpt" role="doc-biblioref">School 2024</a>)</span>. Teams must document data provenance, ensure compliance with terms of service and copyright law, and apply anonymization procedures when scraping user-generated content.</p>
+<p>This example reveals why the quality pillar cannot be satisfied by scale alone: no amount of additional scraped data removes the need for validation that detects and filters anachronistic or contextually inappropriate content. Beyond technical quality challenges, legal and ethical constraints further bound what scraping can achieve. Not all websites permit scraping, and ongoing litigation around training data usage illustrates the consequences of non-compliance <span class="citation" data-cites="harvard_law_chatgpt">(<a href="#ref-harvard_law_chatgpt" role="doc-biblioref">Harvard Law School 2024</a>)</span>. Teams must document data provenance, ensure compliance with terms of service and copyright law, and apply anonymization procedures when scraping user-generated content.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-harvard_law_chatgpt" class="csl-entry" role="listitem">
-School, Harvard Law. 2024. <em>Does ChatGPT Violate New York Times Copyrights?</em> <a href="https://hls.harvard.edu/today/does-chatgpt-violate-new-york-times-copyrights/">https://hls.harvard.edu/today/does-chatgpt-violate-new-york-times-copyrights/</a>.
+Harvard Law School. 2024. <em>Does ChatGPT Violate New York Times Copyrights?</em> <a href="https://hls.harvard.edu/today/does-chatgpt-violate-new-york-times-copyrights/">https://hls.harvard.edu/today/does-chatgpt-violate-new-york-times-copyrights/</a>.
 </div><div id="ref-mturk_website" class="csl-entry" role="listitem">
 Amazon Web Services. 2024. <em>Amazon Mechanical Turk</em>. <a href="https://www.mturk.com/">https://www.mturk.com/</a>.
 </div></div><p>Crowdsourcing distributes annotation tasks across a global workforce, enabling rapid labeling at scales that in-house teams cannot match. Platforms like Amazon Mechanical Turk <span class="citation" data-cites="mturk_website">(<a href="#ref-mturk_website" role="doc-biblioref">Amazon Web Services 2024</a>)</span> demonstrated this at landmark scale with ImageNet, where distributed contributors categorized millions of images into thousands of classes <span class="citation" data-cites="alexnet2012">(<a href="#ref-alexnet2012" role="doc-biblioref">Krizhevsky et al. 2012</a>)</span>. Crowdsourcing offers two systems advantages: scalability through parallel microtask distribution, and diversity through the range of perspectives, cultural contexts, and linguistic variations that a global contributor pool introduces. This diversity directly improves model generalization across populations. Tasks can also be adjusted dynamically based on initial results, enabling iterative refinement of collection strategies as quality gaps emerge.</p>
 <p>Moving beyond human-generated data entirely, synthetic data generation represents the ultimate scalability solution, creating unlimited training examples through algorithmic generation rather than manual collection. This approach changes the economics of data acquisition by removing human labor from the equation. Follow the pipeline in <a href="#fig-synthetic-data" class="quarto-xref">Figure&nbsp;6</a> to see how synthetic data merges with historical datasets, producing training sets of a size and diversity that would be impractical to collect manually.</p>
-<div id="fig-synthetic-data" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Diagram showing historical data icon and simulation cloud icon both feeding into synthetic data generation process, producing an expanded combined training dataset.">
+<div id="fig-synthetic-data" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Diagram showing historical data icon and simulation cloud icon both feeding into synthetic data generation process, producing an expanded combined training dataset." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-synthetic-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="41d6b150f8796e24875509f62fcd0d7d35dd2c74.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Synthetic Data Augmentation: A four-node pipeline where historical data and simulation outputs feed into a synthetic data generation process, producing an expanded combined training dataset with greater size and diversity than either source alone. Source: AnyLogic [@anylogic_synthetic]."><img src="data_engineering_files/mediabag/41d6b150f8796e24875509f62fcd0d7d35dd2c74.svg" class="img-fluid figure-img"></a>
@@ -2281,9 +2346,13 @@ Figure&nbsp;6: <strong>Synthetic Data Augmentation</strong>: A four-node pipelin
 AnyLogic. 2024. <em>Synthetic Data for Artificial Intelligence</em>. <a href="https://www.anylogic.com/features/artificial-intelligence/synthetic-data/">https://www.anylogic.com/features/artificial-intelligence/synthetic-data/</a>.
 </div></div></figure>
 </div>
-<p>Synthetic data is particularly valuable for rare event coverage and data augmentation. Simulation environments enable controlled generation of edge cases that are impractical to collect naturally <span class="citation" data-cites="nvidia_simulation">(<a href="#ref-nvidia_simulation" role="doc-biblioref">NVIDIA 2024</a>)</span>, while augmentation techniques like SpecAugment <span class="citation" data-cites="park2019specaugment">(<a href="#ref-park2019specaugment" role="doc-biblioref">Park et al. 2019</a>)</span> introduce noise, pitch shifts, and temporal variations that improve model generalization across deployment conditions <span class="citation" data-cites="shorten2019survey">(<a href="#ref-shorten2019survey" role="doc-biblioref">Shorten and Khoshgoftaar 2019</a>)</span>. The following notebook explores <em>synthetic data generation</em> in practice.</p>
+<p>Synthetic data is particularly valuable for rare event coverage and data augmentation. Simulation environments enable controlled generation of edge cases that are impractical to collect naturally <span class="citation" data-cites="nvidia_simulation">(<a href="#ref-nvidia_simulation" role="doc-biblioref">NVIDIA 2024</a>)</span>, while augmentation techniques like AutoAugment <span class="citation" data-cites="Cubuk2019">(<a href="#ref-Cubuk2019" role="doc-biblioref">Cubuk et al. 2019</a>)</span>, RandAugment <span class="citation" data-cites="cubuk2020randaugment">(<a href="#ref-cubuk2020randaugment" role="doc-biblioref">Cubuk et al. 2020</a>)</span>, and SpecAugment <span class="citation" data-cites="park2019specaugment">(<a href="#ref-park2019specaugment" role="doc-biblioref">Park et al. 2019</a>)</span> introduce noise, pitch shifts, and temporal variations that improve model generalization across deployment conditions <span class="citation" data-cites="shorten2019survey">(<a href="#ref-shorten2019survey" role="doc-biblioref">Shorten and Khoshgoftaar 2019</a>)</span>. The following notebook explores <em>synthetic data generation</em> in practice.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-nvidia_simulation" class="csl-entry" role="listitem">
 NVIDIA. 2024. <em><span>NVIDIA</span> Omniverse and Simulation</em>. <a href="https://www.nvidia.com/en-us/omniverse/">https://www.nvidia.com/en-us/omniverse/</a>.
+</div><div id="ref-Cubuk2019" class="csl-entry" role="listitem">
+Cubuk, Ekin D., Barret Zoph, Dandelion Mané, Vijay Vasudevan, and Quoc V. Le. 2019. <span>“AutoAugment: Learning Augmentation Strategies from Data.”</span> <em>2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, June, 113–23. <a href="https://doi.org/10.1109/cvpr.2019.00020">https://doi.org/10.1109/cvpr.2019.00020</a>.
+</div><div id="ref-cubuk2020randaugment" class="csl-entry" role="listitem">
+Cubuk, Ekin D., Barret Zoph, Jonathon Shlens, and Quoc V. Le. 2020. <span>“Randaugment: Practical Automated Data Augmentation with a Reduced Search Space.”</span> <em>2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)</em>, June, 3008–17. <a href="https://doi.org/10.1109/cvprw50498.2020.00359">https://doi.org/10.1109/cvprw50498.2020.00359</a>.
 </div><div id="ref-park2019specaugment" class="csl-entry" role="listitem">
 Park, Daniel S., William Chan, Yu Zhang, et al. 2019. <span>“SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition.”</span> <em>arXiv Preprint arXiv:1904.08779</em>, April 18. <a href="http://arxiv.org/abs/1904.08779v3">http://arxiv.org/abs/1904.08779v3</a>.
 </div><div id="ref-shorten2019survey" class="csl-entry" role="listitem">
@@ -2333,7 +2402,7 @@ Oakden-Rayner, Luke, Jared Dunnmon, Gustavo Carneiro, and Christopher Re. 2020. 
 <h2 class="anchored" data-anchor-id="sec-data-engineering-data-pipeline-architecture-b527">Data Pipeline Architecture</h2>
 <p>In our compilation metaphor, pipeline architecture is the <em>compiler frontend</em>: it parses heterogeneous raw inputs into a uniform intermediate representation that downstream stages can process reliably. Audio files from crowdsourcing platforms, synthetic waveforms from generation systems, and real-world captures from deployed devices all enter the pipeline in different formats, and the pipeline must normalize, validate, and route them into a consistent internal representation. For KWS, this means handling continuous audio streams, maintaining low-latency processing for real-time keyword detection, and scaling from development environments to production deployments handling millions of concurrent streams.</p>
 <p>Orient yourself with <a href="#fig-pipeline-flow" class="quarto-xref">Figure&nbsp;7</a>, which maps the end-to-end pipeline across its distinct layers: data sources, ingestion, processing, labeling, storage, and ML training.</p>
-<div id="fig-pipeline-flow" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Three-tier flow diagram with raw data sources and APIs at top, batch and stream ingestion in middle layer, and data warehouse and storage destinations at bottom connected by arrows.">
+<div id="fig-pipeline-flow" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three-tier flow diagram with raw data sources and APIs at top, batch and stream ingestion in middle layer, and data warehouse and storage destinations at bottom connected by arrows." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pipeline-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="d0eceddf287ca386071ccfad6375378e64160a80.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Three-Stage Pipeline Flow: Raw data sources and APIs feed into batch and stream ingestion at the middle layer, then flow to data warehouse and storage destinations at the bottom. Each stage scales independently, enabling modular quality control across the pipeline."><img src="data_engineering_files/mediabag/d0eceddf287ca386071ccfad6375378e64160a80.svg" class="img-fluid figure-img"></a>
@@ -2350,8 +2419,8 @@ Figure&nbsp;7: <strong>Three-Stage Pipeline Flow</strong>: Raw data sources and 
 <h3 class="anchored" data-anchor-id="sec-data-engineering-quality-validation-monitoring-498f">Quality through validation and monitoring</h3>
 <p>A self-driving car company discovered that 15 percent of their LiDAR point-cloud labels were misaligned by 10–20 centimeters—enough to place pedestrian bounding boxes on empty sidewalk. The mislabeling had persisted for three months, silently degrading the perception model’s recall on pedestrians at crosswalks. No schema check flagged the error because every record was structurally valid; only statistical monitoring of label-to-sensor alignment distributions caught the drift.</p>
 <p>Quality represents the foundation of reliable ML systems, and this example illustrates why. Pipelines implement quality through systematic validation and monitoring at every stage. Data pipeline issues represent a major source of ML failures. Schema changes breaking downstream processing, distribution drift degrading model accuracy, and data corruption silently introducing errors account for a substantial fraction of production incidents <span class="citation" data-cites="sculley2015hidden">(<a href="#ref-sculley2015hidden" role="doc-biblioref">Sculley et al. 2015</a>)</span>. These failures are insidious because they rarely cause obvious system crashes; instead, they slowly degrade model performance in ways that become apparent only after affecting users. Achieving quality therefore demands proactive monitoring and validation that catches issues before they cascade into model failures.</p>
-<div class="no-row-height column-margin column-container"></div><div id="callout-war-story-1.1" class="callout callout-war-story" title="Microsoft Tay (2016)">
-<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.1: Microsoft Tay (2016)</strong></summary><div><strong>The Context</strong>: Microsoft launched “Tay,” an AI chatbot designed to learn from user interactions on Twitter in real-time.<p></p>
+<div class="no-row-height column-margin column-container"></div><div id="callout-war-story-1.1" class="callout callout-war-story" title="Microsoft Tay\index{Microsoft Tay} (2016)">
+<p></p><details class="callout-war-story fbx-simplebox fbx-default" open=""><summary><strong>War Story 1.1: Microsoft Tay\index{Microsoft Tay} (2016)</strong></summary><div><strong>The Context</strong>: Microsoft launched “Tay,” an AI chatbot designed to learn from user interactions on Twitter in real-time.<p></p>
 <p><strong>The Failure</strong>: The data pipeline ingested user tweets directly into the model’s retraining loop without sufficient filtering or “safety” checks. Users quickly realized this and coordinated a “data poisoning” attack, tweeting offensive and racist content at the bot.</p>
 <p><strong>The Consequence</strong>: Within 24 hours, the model had learned from this poisoned data and began generating hate speech autonomously. Microsoft had to shut down the service immediately, suffering significant reputational damage.</p>
 <p><strong>The Systems Lesson</strong>: Data pipelines are not just plumbing; they are the immune system of the model. Ingesting uncurated, user-generated content without robust filtering is a security vulnerability. “Garbage in, garbage out” happens at the speed of software.</p>
@@ -2367,14 +2436,14 @@ Figure&nbsp;7: <strong>Three-Stage Pipeline Flow</strong>: Raw data sources and 
 <p><strong>Methodology</strong></p>
 <ol type="1">
 <li><p><strong>Compute CDFs</strong>: Calculate Cumulative Distribution Functions for both datasets.</p></li>
-<li><p><strong>Calculate Statistic (<span class="math inline">\(D_{KS}\)</span>)</strong>: Find the maximum absolute difference between the CDFs. Let <span class="math inline">\(F_P(x)\)</span> and <span class="math inline">\(F_Q(x)\)</span> denote the cumulative distribution functions of the training (<span class="math inline">\(P\)</span>) and serving (<span class="math inline">\(Q\)</span>) datasets. <span class="math display">\[D_{KS} = \max_x |F_P(x) - F_Q(x)|\]</span></p></li>
-<li><p><strong>Determine Significance</strong>: Compare <span class="math inline">\(D_{KS}\)</span> to critical value <span class="math inline">\(D_{\text{crit}}\)</span> based on sample size <span class="math inline">\(n\)</span> and confidence level (<span class="math inline">\(\alpha = 0.05\)</span>). <span class="math display">\[D_{\text{crit}} \approx \frac{1.36}{\sqrt{n}}\]</span></p></li>
+<li><p><strong>Calculate Statistic (<span class="math inline">\(D_{\text{KS}}\)</span>)</strong>: Find the maximum absolute difference between the CDFs. Let <span class="math inline">\(F_P(x)\)</span> and <span class="math inline">\(F_Q(x)\)</span> denote the cumulative distribution functions of the training (<span class="math inline">\(P\)</span>) and serving (<span class="math inline">\(Q\)</span>) datasets. <span class="math display">\[D_{\text{KS}} = \max_x |F_P(x) - F_Q(x)|\]</span></p></li>
+<li><p><strong>Determine Significance</strong>: Compare <span class="math inline">\(D_{\text{KS}}\)</span> to critical value <span class="math inline">\(D_{\text{crit}}\)</span> based on sample size <span class="math inline">\(n\)</span> and confidence level (<span class="math inline">\(\alpha = 0.05\)</span>). <span class="math display">\[D_{\text{crit}} \approx \frac{1.36}{\sqrt{n}}\]</span></p></li>
 </ol>
 <p><strong>Example Calculation</strong></p>
 <ul>
 <li>Sample size <span class="math inline">\(n = 1000\)</span>.</li>
 <li>Critical value <span class="math inline">\(D_{\text{crit}} \approx 1.36 / \sqrt{1000}\)</span> ≈ 0.043.</li>
-<li>If observed max difference <span class="math inline">\(D_{KS} = 0.08\)</span>, then 0.08 &gt; 0.043 → <strong>Reject Null Hypothesis</strong>. Significant drift detected. Trigger retraining or investigation.</li>
+<li>If observed max difference <span class="math inline">\(D_{\text{KS}} = 0.08\)</span>, then 0.08 &gt; 0.043 → <strong>Reject Null Hypothesis</strong>. Significant drift detected. Trigger retraining or investigation.</li>
 </ul>
 </div></details>
 </div>
@@ -2470,7 +2539,9 @@ Gama, João, Indrė Žliobaitė, Albert Bifet, Mykola Pechenizkiy, and Abdelhami
 <section id="sec-data-engineering-label-quality-drift-1ce7" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-data-engineering-label-quality-drift-1ce7">Label quality drift</h4>
 <p>Label quality drift<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> represents a meta-level shift distinct from the three preceding distribution shifts: the reliability of ground truth labels degrades over time even when the underlying data distributions remain stable. This drift type proves particularly insidious because standard feature distribution monitoring fails to detect it. Crowdsourced labels may degrade as annotator pools change, training materials become outdated, or labeling guidelines evolve without corresponding model updates. Automated labeling systems accumulate errors as the models powering them drift from their original operating conditions. A recommendation system using click feedback as implicit labels may see label quality degrade as user behavior becomes more exploratory, as bot traffic patterns change, or as interface modifications alter how users interact with content.</p>
-<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Label Quality Drift</strong>: Degradation in annotation reliability over time, distinct from distribution shifts in the data itself. This drift type is invisible to standard feature monitoring because the features remain stable while the labels degrade – annotator fatigue, pool turnover, or guideline evolution silently corrupt the ground truth the model learns from. Detection requires monitoring inter-annotator agreement (<span class="math inline">\(\kappa\)</span>) over rolling time windows and comparing automated labels against periodic expert audits. </p></div><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Cohen’s Kappa (<span class="math inline">\(\kappa\)</span>)</strong>: Introduced by psychologist Jacob Cohen in 1960 to measure inter-rater agreement while correcting for chance agreement, which raw percentage agreement ignores. The correction matters: two annotators labeling 90 percent of images as “not spam” will agree 81 percent of the time by pure chance, making raw agreement a dangerously misleading quality metric. For ML label quality monitoring, <span class="math inline">\(\kappa\)</span> below 0.4 signals unreliable training data whose noise the model will inherit. </p></div></div><p>Detection requires monitoring annotation consistency rather than feature distributions. Inter-annotator agreement metrics like Cohen’s kappa<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> (<span class="math inline">\(\kappa\)</span>) provide quantitative assessment. Let <span class="math inline">\(p_o\)</span> represent observed agreement between annotators and <span class="math inline">\(p_e\)</span> represent agreement expected by chance. <a href="#eq-cohens-kappa" class="quarto-xref">Equation&nbsp;2</a> defines the statistic:</p>
+<div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Label Quality Drift</strong>: Degradation in annotation reliability over time, distinct from distribution shifts in the data itself. This drift type is invisible to standard feature monitoring because the features remain stable while the labels degrade – annotator fatigue, pool turnover, or guideline evolution silently corrupt the ground truth the model learns from. Detection requires monitoring inter-annotator agreement (<span class="math inline">\(\kappa\)</span>) over rolling time windows and comparing automated labels against periodic expert audits. </p></div><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Cohen’s Kappa (<span class="math inline">\(\kappa\)</span>)</strong>: Introduced by psychologist Jacob Cohen <span class="citation" data-cites="cohen1960coefficient">(<a href="#ref-cohen1960coefficient" role="doc-biblioref">Cohen 1960</a>)</span> to measure inter-rater agreement while correcting for chance agreement, which raw percentage agreement ignores. The correction matters: two annotators labeling 90 percent of images as “not spam” will agree 81 percent of the time by pure chance, making raw agreement a dangerously misleading quality metric. For ML label quality monitoring, <span class="math inline">\(\kappa\)</span> below 0.4 signals unreliable training data whose noise the model will inherit. </p><div id="ref-cohen1960coefficient" class="csl-entry" role="listitem">
+Cohen, Jacob. 1960. <span>“A Coefficient of Agreement for Nominal Scales.”</span> <em>Educational and Psychological Measurement</em> 20 (1): 37–46. <a href="https://doi.org/10.1177/001316446002000104">https://doi.org/10.1177/001316446002000104</a>.
+</div></div></div><p>Detection requires monitoring annotation consistency rather than feature distributions. Inter-annotator agreement metrics like Cohen’s kappa<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> (<span class="math inline">\(\kappa\)</span>) provide quantitative assessment. Let <span class="math inline">\(p_o\)</span> represent observed agreement between annotators and <span class="math inline">\(p_e\)</span> represent agreement expected by chance. <a href="#eq-cohens-kappa" class="quarto-xref">Equation&nbsp;2</a> defines the statistic:</p>
 <p><span id="eq-cohens-kappa"><span class="math display">\[
 \kappa = \frac{p_o - p_e}{1 - p_e}
 \tag{2}\]</span></span></p>
@@ -2502,10 +2573,10 @@ Kleppmann, Martin. 2016. <em>Designing Data-Intensive Applications: The Big Idea
 <p>Continuing the compilation analogy, ingestion is the <em>lexer</em>: it reads raw source (data streams) and tokenizes them into well-formed records that the rest of the pipeline can process.</p>
 <p>A critical and often overlooked constraint in ingestion design is the <strong>Input/Output (IO) Bottleneck</strong>. We invest heavily in expensive GPUs, but their utilization depends entirely on whether data arrives fast enough to keep them busy. Training speed is governed by a simple inequality: <span class="math inline">\(T_{\text{step}} = \max(T_{\text{compute}}, T_{io})\)</span>. If the data pipeline cannot decode images fast enough to keep the GPU busy, the expensive accelerator sits idle. This phenomenon creates a “Choke Point” where adding more GPUs yields zero speedup—a counterintuitive result that frustrates teams who expect linear scaling from hardware investments. This bottleneck frequently occurs in computer vision, where decoding high-resolution JPEG images on the CPU consumes more time than the GPU requires to perform the forward and backward passes of a lightweight model like ResNet-18. Typically, training ResNet-50 on an A100 requires at least 8 CPU workers just to keep the GPU from starving.</p>
 <p>Examine <a href="#fig-dataloader-choke-point" class="quarto-xref">Figure&nbsp;8</a> to see this <strong>Dataloader Choke Point</strong> in action. Notice the “Starvation Region” on the left where the CPU limits performance: no matter how powerful the GPU, training throughput is capped by data loading speed until enough workers are allocated to saturate the accelerator. Throughput levels are representative and vary by model and hardware.</p>
-<div id="fig-dataloader-choke-point" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Line chart of throughput vs. workers. Blue line (CPU) rises linearly. Red line (GPU) is flat. Where CPU < GPU, system is starved. Where CPU > GPU, system is saturated.">
+<div id="fig-dataloader-choke-point" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line chart of throughput vs. workers. Blue line (CPU) rises linearly. Red line (GPU) is flat. Where CPU < GPU, system is starved. Where CPU > GPU, system is saturated." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dataloader-choke-point-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="3aaa7280" class="cell" data-execution_count="7">
+<div id="97d0d57c" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2547,7 +2618,7 @@ Akidau, Tyler, Robert Bradshaw, Craig Chambers, et al. 2015. <span>“The Datafl
 <section id="sec-data-engineering-etl-elt-comparison-2e2b" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-data-engineering-etl-elt-comparison-2e2b">ETL and ELT comparison</h4>
 <p>Beyond choosing ingestion patterns based on timing requirements, designing effective data ingestion pipelines requires understanding the differences between Extract, Transform, Load (ETL)<a href="#fn14" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a> and Extract, Load, Transform (ELT)<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> approaches. The core distinction is ordering: ETL cleanses and structures data <em>before</em> it enters storage, ensuring only validated data reaches the warehouse; ELT loads raw data first and applies transformations <em>within</em> the target system, preserving flexibility at the cost of storing uncleaned data. Compare the two flows side by side in <a href="#fig-etl-vs-elt" class="quarto-xref">Figure&nbsp;9</a>—note where the “Transform” step falls relative to “Load” in each paradigm, as this ordering significantly impacts pipeline flexibility and efficiency. The choice between ETL and ELT affects where computational resources are consumed, how quickly data becomes available for analysis, and how easily transformation logic can evolve as requirements change.</p>
-<div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;<strong>Extract, Transform, Load (ETL)</strong>: Conventional ETL validates schema and data types—deterministic checks that either pass or fail. ML ETL must additionally validate <em>distributional properties</em>: that the distribution of values has not shifted in a way that degrades model performance, requiring statistical tests (KS test, PSI) rather than schema validation, where the pass/fail threshold is a business decision, not a technical one. The further trade-off is rigidity: changing feature computation logic requires reprocessing the entire dataset from raw sources, a cost that grows linearly with data volume. </p></div><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Extract, Load, Transform (ELT)</strong>: This approach enables the flexibility mentioned because transformation logic is just a query run inside the data warehouse, completely decoupled from the ingestion process. Changing a feature definition does not require a slow, expensive data pipeline rerun; it only requires modifying the query. This simple change in ordering reduces the iteration cycle for developing a new feature from hours (or days) of data reprocessing down to the minutes it takes to rewrite a SQL statement. </p></div></div><div id="fig-etl-vs-elt" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Side-by-side comparison showing ETL pipeline with extract, transform, then load sequence vs. ELT pipeline with extract, load, then transform sequence within the data warehouse.">
+<div class="no-row-height column-margin column-container"><div id="fn14"><p><sup>14</sup>&nbsp;<strong>Extract, Transform, Load (ETL)</strong>: Conventional ETL validates schema and data types—deterministic checks that either pass or fail. ML ETL must additionally validate <em>distributional properties</em>: that the distribution of values has not shifted in a way that degrades model performance, requiring statistical tests (KS test, PSI) rather than schema validation, where the pass/fail threshold is a business decision, not a technical one. The further trade-off is rigidity: changing feature computation logic requires reprocessing the entire dataset from raw sources, a cost that grows linearly with data volume. </p></div><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Extract, Load, Transform (ELT)</strong>: This approach enables the flexibility mentioned because transformation logic is just a query run inside the data warehouse, completely decoupled from the ingestion process. Changing a feature definition does not require a slow, expensive data pipeline rerun; it only requires modifying the query. This simple change in ordering reduces the iteration cycle for developing a new feature from hours (or days) of data reprocessing down to the minutes it takes to rewrite a SQL statement. </p></div></div><div id="fig-etl-vs-elt" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Side-by-side comparison showing ETL pipeline with extract, transform, then load sequence vs. ELT pipeline with extract, load, then transform sequence within the data warehouse." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-etl-vs-elt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="ecff59fc5f0797ded4b8d4637d9036cc3e85ac9f.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: ETL vs.&nbsp;ELT Comparison: Side-by-side view of two pipeline paradigms. ETL transforms data before loading into a data warehouse, while ELT loads raw data first and transforms within the warehouse. The choice depends on data volume, transformation complexity, and target storage capabilities."><img src="data_engineering_files/mediabag/ecff59fc5f0797ded4b8d4637d9036cc3e85ac9f.svg" class="img-fluid figure-img"></a>
@@ -2615,7 +2686,7 @@ Listing&nbsp;2: <strong>ETL vs.&nbsp;ELT Cost Comparison</strong>: Calculating s
 </div></details>
 </div>
 <p>When implementing streaming components within ETL/ELT architectures, distributed systems principles become critical. The CAP theorem (consistency, availability, partition-tolerance)<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>, which states that distributed systems cannot simultaneously guarantee Consistency (all nodes see the same data), Availability (the system remains operational), and Partition tolerance (the system continues despite network failures), constrains streaming system design choices. Apache Kafka<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a> emphasizes consistency and partition tolerance, making it well-suited for reliable event ordering but potentially experiencing availability issues during network partitions. Apache Pulsar emphasizes availability and partition tolerance, providing better fault tolerance but with relaxed consistency guarantees. Amazon Kinesis balances all three properties through careful configuration but requires understanding these trade-offs for proper deployment.</p>
-<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;<strong>CAP Theorem</strong>: Conjectured by Eric Brewer in 2000 <span class="citation" data-cites="brewer2000towards">(<a href="#ref-brewer2000towards" role="doc-biblioref">Brewer 2000</a>)</span> and formally proved by Gilbert and Lynch in 2002 <span class="citation" data-cites="gilbert2002brewer">(<a href="#ref-gilbert2002brewer" role="doc-biblioref">Gilbert and Lynch 2002</a>)</span>. Distributed systems cannot simultaneously guarantee Consistency, Availability, and Partition tolerance—one must be sacrificed. For ML storage architectures, this forces a concrete choice: a feature store prioritizing consistency (CP) guarantees training and serving see identical feature values but may become unavailable during network partitions, while one prioritizing availability (AP) stays operational but risks serving stale features that diverge from training data. </p><div id="ref-brewer2000towards" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn16"><p><sup>16</sup>&nbsp;<strong>CAP Theorem</strong>: Conjectured by <span class="citation" data-cites="brewer2000towards">Brewer (<a href="#ref-brewer2000towards" role="doc-biblioref">2000</a>)</span> and formally proved by <span class="citation" data-cites="gilbert2002brewer">Gilbert and Lynch (<a href="#ref-gilbert2002brewer" role="doc-biblioref">2002</a>)</span>. Distributed systems cannot simultaneously guarantee Consistency, Availability, and Partition tolerance—one must be sacrificed. For ML storage architectures, this forces a concrete choice: a feature store prioritizing consistency (CP) guarantees training and serving see identical feature values but may become unavailable during network partitions, while one prioritizing availability (AP) stays operational but risks serving stale features that diverge from training data. </p><div id="ref-brewer2000towards" class="csl-entry" role="listitem">
 Brewer, Eric A. 2000. <span>“Towards Robust Distributed Systems (Abstract).”</span> <em>Proceedings of the Nineteenth Annual ACM Symposium on Principles of Distributed Computing</em>, July 16, 7. <a href="https://doi.org/10.1145/343477.343502">https://doi.org/10.1145/343477.343502</a>.
 </div><div id="ref-gilbert2002brewer" class="csl-entry" role="listitem">
 Gilbert, Seth, and Nancy Lynch. 2002. <span>“Brewer’s Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services.”</span> <em>ACM SIGACT News</em> 33 (2): 51–59. <a href="https://doi.org/10.1145/564585.564601">https://doi.org/10.1145/564585.564601</a>.
@@ -2687,7 +2758,7 @@ Sculley, D., Gary Holt, Daniel Golovin, et al. 2015. <span>“Hidden Technical D
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: The Consistency Imperative</strong></summary><div>
 <p><strong><em>The Consistency Imperative</em></strong> is the axiom that <strong>Transformation Logic</strong> must be immutable across training and serving environments.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It predicts that performance degradation is proportional to the <strong>KL Divergence</strong> (<span class="math inline">\(D_{KL}(T \parallel T')\)</span>) between the training transformation (<span class="math inline">\(T\)</span>) and the serving transformation (<span class="math inline">\(T'\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> It predicts that performance degradation is proportional to the <strong>KL Divergence</strong> (<span class="math inline">\(D_{\text{KL}}(T \parallel T')\)</span>) between the training transformation (<span class="math inline">\(T\)</span>) and the serving transformation (<span class="math inline">\(T'\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Data Quality</strong>, which focuses on the <strong>Cleanliness</strong> of a single record, the Consistency Imperative focuses on the <strong>Alignment</strong> of the entire transformation pipeline.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that consistency is “fixed” by sharing code. In reality, it is a <strong>State Synchronization</strong> problem: parameters computed on training data (for example, means, standard deviations) must be stored and reused during serving.</li>
 </ol>
@@ -2722,7 +2793,7 @@ Kuhn, Max, and Kjell Johnson. 2013. <em>Applied Predictive Modeling</em>. Spring
 <p>Applying these processing concepts to our KWS system: the audio recordings flowing through our ingestion pipeline, whether from crowdsourcing, synthetic generation, or real-world captures, require careful cleaning to ensure reliable wake word detection. Raw audio data often contains imperfections that our problem definition anticipated: background noise from various environments (quiet bedrooms to noisy industrial settings), clipped signals from recording level issues, varying volumes across different microphones and speakers, and inconsistent sampling rates from diverse capture devices. The cleaning pipeline must standardize these variations while preserving the acoustic characteristics that distinguish wake words from background speech, a quality-preservation requirement that directly impacts our 98 percent accuracy target.</p>
 <p>Quality assessment for KWS extends the general principles with audio-specific metrics. Beyond checking for null values or schema conformance, our system tracks background noise levels (signal-to-noise ratio above 20 decibels), audio clarity scores (frequency spectrum analysis), and speaking rate consistency (wake word duration within 500-800 milliseconds). The quality assessment pipeline automatically flags recordings where background noise would prevent accurate detection, where wake words are spoken too quickly or unclearly for the model to distinguish them, or where clipping or distortion has corrupted the audio signal. This automated filtering ensures only high-quality samples reach model development. Recall how <a href="#fig-cascades" class="quarto-xref">Figure&nbsp;1</a> demonstrated the compounding effects of early data quality failures; this filtering prevents precisely those cascade failures by catching issues at the source.</p>
 <p>Transforming audio data for KWS involves converting raw waveforms into formats suitable for ML models while maintaining training-serving consistency. Raw audio waveforms (sequences of amplitude values sampled thousands of times per second) are high-dimensional and difficult for neural networks to process directly. Instead, we transform them into compact representations that emphasize the frequencies and temporal patterns most relevant to speech. To understand what this transformation produces, study <a href="#fig-spectrogram-example" class="quarto-xref">Figure&nbsp;10</a>: notice how the raw waveform (left) becomes a 2D image-like representation (right) where the horizontal axis is time, the vertical axis is frequency, and color intensity shows energy. These standardized feature representations, typically Mel-frequency cepstral coefficients (MFCCs)<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> or spectrograms,<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a> emphasize speech-relevant characteristics while reducing noise and variability across different recording conditions.</p>
-<div class="no-row-height column-margin column-container"><div id="fn21"><p><sup>21</sup>&nbsp;<strong>MFCC (Mel-Frequency Cepstral Coefficients)</strong>: This transformation achieves its compactness and noise resistance by applying mel-scale filtering, which selectively emphasizes the frequencies humans use to distinguish speech. This process reduces thousands of raw audio samples from a small time window (for example, 25 ms) into just 13–39 coefficients, the aggressive dimensionality reduction required for always-on, kilobyte-scale hardware. Any mismatch in the parameters governing this transformation between training and serving will create feature skew, degrading the model’s accuracy. </p></div><div id="fn22"><p><sup>22</sup>&nbsp;<strong>Spectrogram</strong>: The Short-Time Fourier Transform (STFT) computes this 2D representation, architecturally repurposing standard image-based convolutional neural networks (CNNs) for audio processing by converting the 1D waveform into a visual format. This repurposing creates a rigid dependency: any mismatch in STFT parameters (for example, a 25 ms vs.&nbsp;30 ms window) between training and serving invalidates the learned patterns, causing performance to collapse. </p></div></div><div id="fig-spectrogram-example" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t!" data-fig-env="figure" alt="Two plots side-by-side: a raw audio waveform (amplitude vs. time) on the left, and its corresponding spectrogram (frequency vs. time with power in dB as color) on the right.">
+<div class="no-row-height column-margin column-container"><div id="fn21"><p><sup>21</sup>&nbsp;<strong>MFCC (Mel-Frequency Cepstral Coefficients)</strong>: This transformation achieves its compactness and noise resistance by applying mel-scale filtering, which selectively emphasizes the frequencies humans use to distinguish speech. This process reduces thousands of raw audio samples from a small time window (for example, 25 ms) into just 13–39 coefficients, the aggressive dimensionality reduction required for always-on, kilobyte-scale hardware. Any mismatch in the parameters governing this transformation between training and serving will create feature skew, degrading the model’s accuracy. </p></div><div id="fn22"><p><sup>22</sup>&nbsp;<strong>Spectrogram</strong>: The Short-Time Fourier Transform (STFT) computes this 2D representation, architecturally repurposing standard image-based convolutional neural networks (CNNs) for audio processing by converting the 1D waveform into a visual format. This repurposing creates a rigid dependency: any mismatch in STFT parameters (for example, a 25 ms vs.&nbsp;30 ms window) between training and serving invalidates the learned patterns, causing performance to collapse. </p></div></div><div id="fig-spectrogram-example" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two plots side-by-side: a raw audio waveform (amplitude vs. time) on the left, and its corresponding spectrogram (frequency vs. time with power in dB as color) on the right." data-fig-env="figure" data-fig-pos="t!">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-spectrogram-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/kws_spectrogram.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;10: Audio feature transformation: A raw audio waveform (left) is converted into a spectrogram (right), a two-dimensional representation where the horizontal axis is time, the vertical axis is frequency, and color intensity indicates signal power. This transformation creates an image-like feature suitable for ML models."><img src="images/png/kws_spectrogram.png" class="img-fluid figure-img"></a>
@@ -2748,8 +2819,10 @@ Figure&nbsp;10: <strong>Audio feature transformation</strong>: A raw audio wavef
 <p>These challenges manifest when quality assessment must keep pace with incoming data, when feature engineering requires computing statistics across entire datasets before transforming individual records, and when transformation pipelines create bottlenecks at massive volumes. Processing must scale from development (gigabytes on laptops) through production (terabytes across clusters) while maintaining consistent behavior.</p>
 <p>To address these scaling bottlenecks, data must be partitioned across multiple computing resources, which introduces coordination challenges. Distributed coordination is constrained by network round-trip times: local operations complete in microseconds while network coordination requires milliseconds, creating a 1,000<span class="math inline">\(\times\)</span> latency difference. This constraint explains why operations requiring global coordination (like computing normalization statistics across 100 machines) create bottlenecks. Each partition computes local statistics quickly, but combining them requires information from all partitions.</p>
 <p>Data locality becomes critical at this scale. At 10 GB/s peak throughput, transferring one terabyte of training data across a network takes on the order of 100 seconds; reading the same amount from a 5 GB/s SSD takes on the order of 200 seconds. These are the same order of magnitude, which drives ML system design toward compute-follows-data architectures.<a href="#fn24" class="footnote-ref" id="fnref24" role="doc-noteref"><sup>24</sup></a> When processing nodes access local data at RAM speeds (50–200 GB/s) but must coordinate over networks limited to 1–10 GB/s, the bandwidth mismatch creates severe bottlenecks. Geographic distribution amplifies these challenges: cross-data center coordination must handle network latency (50–200 ms between regions), partial failures, and regulatory constraints preventing data from crossing borders. Understanding which operations parallelize easily vs.&nbsp;those requiring expensive coordination determines system architecture and performance characteristics. This overhead constitutes a <em>coordination tax</em> that limits distributed data processing.</p>
-<div class="no-row-height column-margin column-container"><div id="fn24"><p><sup>24</sup>&nbsp;<strong>MapReduce</strong>: Designed by Jeffrey Dean and Sanjay Ghemawat at Google (2004) to process the company’s multi-petabyte web index across thousands of commodity machines <span class="citation" data-cites="dean2004mapreduce">(<a href="#ref-dean2004mapreduce" role="doc-biblioref">Dean and Ghemawat 2008</a>)</span>. The key design decision was making data locality the scheduling primitive: the scheduler assigns map tasks to nodes that already hold the input data, eliminating network transfers that would otherwise dominate wall-clock time. This compute-follows-data architecture became the template for Hadoop, Spark, and every subsequent distributed data processing framework. </p><div id="ref-dean2004mapreduce" class="csl-entry" role="listitem">
-Dean, Jeffrey, and Sanjay Ghemawat. 2008. <span>“MapReduce: Simplified Data Processing on Large Clusters.”</span> <em>Communications of the ACM</em> 51 (1): 107–13. <a href="https://doi.org/10.1145/1327452.1327492">https://doi.org/10.1145/1327452.1327492</a>.
+<div class="no-row-height column-margin column-container"><div id="fn24"><p><sup>24</sup>&nbsp;<strong>MapReduce</strong>: Designed by Jeffrey Dean and Sanjay Ghemawat at Google (2004) to process the company’s multi-petabyte web index across thousands of commodity machines <span class="citation" data-cites="dean2004mapreduce">(<a href="#ref-dean2004mapreduce" role="doc-biblioref">Dean and Ghemawat 2004</a>)</span>. The key design decision was making data locality the scheduling primitive: the scheduler assigns map tasks to nodes that already hold the input data, eliminating network transfers that would otherwise dominate wall-clock time. This compute-follows-data architecture became the template for Hadoop, Spark, and every subsequent distributed data processing framework. </p><div id="ref-dean2004mapreduce" class="csl-entry" role="listitem">
+Dean, Jeffrey, and Sanjay Ghemawat. 2004. <span>“<span>MapReduce</span>: Simplified Data Processing on Large Clusters.”</span> <em>Proceedings of the 6th Symposium on Operating Systems Design and Implementation (OSDI)</em>, 137–50.<a href="
+    https://www.usenix.org/legacy/publications/library/proceedings/osdi04/tech/full_papers/dean/dean.pdf
+  ">https://www.usenix.org/legacy/publications/library/proceedings/osdi04/tech/full_papers/dean/dean.pdf </a>.
 </div></div></div><div id="callout-notebook-1.6" class="callout callout-notebook" title="The Coordination Tax">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.6: The Coordination Tax</strong></summary><div><strong>Problem</strong>: You are computing mean normalization across 1 TB of features distributed across 100 nodes. Is it faster to (A) gather all data to one node and compute, or (B) compute local means and aggregate?<p></p>
 <p><strong>Option A (Centralized)</strong>:</p>
@@ -2765,7 +2838,7 @@ Dean, Jeffrey, and Sanjay Ghemawat. 2008. <span>“MapReduce: Simplified Data Pr
 <li>Aggregate: <strong>negligible</strong></li>
 <li>Total: <strong>~0.01 seconds</strong> (10,000<span class="math inline">\(\times\)</span> faster)</li>
 </ul>
-<p><strong>The Engineering Lesson</strong>: Operations that <em>reduce</em> data (sum, mean, count) should always run locally first. Operations that <em>expand</em> data (joins, cross-products) face unavoidable network costs. Pipeline design should minimize data movement by pushing computation to where data resides, the compute-follows-data principle central to systems like MapReduce <span class="citation" data-cites="dean2004mapreduce">(<a href="#ref-dean2004mapreduce" role="doc-biblioref">Dean and Ghemawat 2008</a>)</span>, Spark <span class="citation" data-cites="zaharia2010spark">(<a href="#ref-zaharia2010spark" role="doc-biblioref">Zaharia et al. 2010</a>)</span>, and modern ML frameworks.</p>
+<p><strong>The Engineering Lesson</strong>: Operations that <em>reduce</em> data (sum, mean, count) should always run locally first. Operations that <em>expand</em> data (joins, cross-products) face unavoidable network costs. Pipeline design should minimize data movement by pushing computation to where data resides, the compute-follows-data principle central to systems like MapReduce <span class="citation" data-cites="dean2004mapreduce">(<a href="#ref-dean2004mapreduce" role="doc-biblioref">Dean and Ghemawat 2004</a>)</span>, Spark <span class="citation" data-cites="zaharia2010spark">(<a href="#ref-zaharia2010spark" role="doc-biblioref">Zaharia et al. 2010</a>)</span>, and modern ML frameworks.</p>
 </div></details>
 </div>
 <div class="no-row-height column-margin column-container"><div id="ref-zaharia2010spark" class="csl-entry" role="listitem">
@@ -2823,7 +2896,7 @@ Zaharia, Matei, Mosharaf Chowdhury, Michael J. Franklin, Scott Shenker, and Ion 
 <p>Classification labels represent the simplest form, categorizing images with a specific tag or (in multi-label classification) tags such as labeling an image as “car” or “pedestrian.” While conceptually straightforward, a production system processing millions of video frames must efficiently store and retrieve these labels. Storage requirements are modest (a single integer or string per image), but retrieval patterns matter: training often samples random subsets while validation requires sequential access to all labels, driving different indexing strategies.</p>
 <p>Bounding boxes extend beyond simple classification by identifying object locations, drawing a box around each object of interest. Our system now needs to track not just what objects exist, but where they are in each frame. This spatial information introduces new storage and processing challenges, especially when tracking moving objects across video frames. Each bounding box requires storing four coordinates (x, y, width, height) plus the object class, multiplying storage by 5<span class="math inline">\(\times\)</span> compared to classification. Bounding box annotation requires pixel-precise positioning that takes 10–20<span class="math inline">\(\times\)</span> longer than classification, dramatically affecting labeling throughput and cost.</p>
 <p>Segmentation maps provide the most comprehensive information by classifying objects at the pixel level, highlighting each object in a distinct color. For our traffic monitoring system, this might mean precisely outlining each vehicle, pedestrian, and road sign. These detailed annotations significantly increase our storage and processing requirements. A segmentation mask for a <span class="math inline">\(1920 \times 1080\)</span> image requires two million labels (one per pixel), compared to perhaps ten bounding boxes or a single classification label. This ~200,000<span class="math inline">\(\times\)</span> storage increase relative to bounding boxes, combined with the hours required per image for manual segmentation, makes this approach suitable only when pixel-level precision is essential.</p>
-<div id="fig-labels" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Four-row table showing label types for a dog on a blanket: classification (Dog, Blanket, No cat), a bounding box around the dog, a segmentation mask on the dog, and a text transcription.">
+<div id="fig-labels" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four-row table showing label types for a dog on a blanket: classification (Dog, Blanket, No cat), a bounding box around the dog, a segmentation mask on the dog, and a text transcription." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-labels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/cs249r_labels_new.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure&nbsp;11: Data annotation granularity: Four label types applied to the same image of a dog on a blanket: a classification label, a bounding box, a segmentation mask, and a free-text transcription. Each type progressively increases labeling cost and storage requirements while providing a richer training signal."><img src="images/png/cs249r_labels_new.png" class="img-fluid figure-img"></a>
@@ -2838,15 +2911,15 @@ Figure&nbsp;11: <strong>Data annotation granularity</strong>: Four label types a
 Johnson-Roberson, Matthew, Charles Barto, Rounak Mehta, Sharath Nittur Sridhar, Karl Rosaen, and Ram Vasudevan. 2017. <span>“Driving in the Matrix: Can Virtual Worlds Replace Human-Generated Annotations for Real World Tasks?”</span> <em>2017 IEEE International Conference on Robotics and Automation (ICRA)</em> (Singapore, Singapore), May, 746–53. <a href="https://doi.org/10.1109/icra.2017.7989092">https://doi.org/10.1109/icra.2017.7989092</a>.
 </div><div id="ref-ardila2020common" class="csl-entry" role="listitem">
 Ardila, Rosana, Megan Branson, Kelly Davis, et al. 2020. <span>“Common Voice: A Massively-Multilingual Speech Corpus.”</span> <em>Proceedings of the Twelfth Language Resources and Evaluation Conference</em>, 4218–22. <a href="https://aclanthology.org/2020.lrec-1.520">https://aclanthology.org/2020.lrec-1.520</a>.
-</div></div><p> Beyond these geometric labels, production systems must also manage rich metadata essential for quality control and debugging. The Common Voice dataset <span class="citation" data-cites="ardila2020common">(<a href="#ref-ardila2020common" role="doc-biblioref">Ardila et al. 2020</a>)</span> exemplifies this in speech recognition: tracking speaker demographics for fairness, recording quality metrics for filtering, and language information for multilingual support. If our traffic monitoring system fails in rainy conditions, weather metadata captured during collection pinpoints the coverage gap. This metadata requirement demonstrates how label type choice cascades through entire system design: the infrastructure must optimize storage for the chosen format, implement appropriate retrieval patterns, and track which model versions used which label versions to correlate quality improvements with performance gains.</p>
+</div></div><p>Beyond these geometric labels, production systems must also manage rich metadata essential for quality control and debugging. The Common Voice dataset <span class="citation" data-cites="ardila2020common">(<a href="#ref-ardila2020common" role="doc-biblioref">Ardila et al. 2020</a>)</span> exemplifies this in speech recognition: tracking speaker demographics for fairness, recording quality metrics for filtering, and language information for multilingual support. If our traffic monitoring system fails in rainy conditions, weather metadata captured during collection pinpoints the coverage gap. This metadata requirement demonstrates how label type choice cascades through entire system design: the infrastructure must optimize storage for the chosen format, implement appropriate retrieval patterns, and track which model versions used which label versions to correlate quality improvements with performance gains.</p>
 </section>
 <section id="sec-data-engineering-achieving-label-accuracy-consensus-7190" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-achieving-label-accuracy-consensus-7190">Label accuracy and consensus</h3>
-<p>In the labeling domain, quality centers on ensuring label accuracy despite the inherent subjectivity and ambiguity in many labeling tasks. Even with clear guidelines and careful system design, some fraction of labels will inevitably be incorrect <span class="citation" data-cites="northcutt2021pervasive">Thyagarajan et al. (<a href="#ref-thyagarajan2023multilabel" role="doc-biblioref">2022</a>)</span>. The challenge is not eliminating labeling errors entirely (an impossible goal) but systematically measuring and managing error rates to keep them within bounds that do not degrade model performance.</p>
+<p>In the labeling domain, quality centers on ensuring label accuracy despite the inherent subjectivity and ambiguity in many labeling tasks. Even with clear guidelines and careful system design, some fraction of labels will inevitably be incorrect <span class="citation" data-cites="northcutt2021pervasive thyagarajan2023multilabel">(<a href="#ref-northcutt2021pervasive" role="doc-biblioref">Northcutt et al. 2021</a>; <a href="#ref-thyagarajan2023multilabel" role="doc-biblioref">Thyagarajan et al. 2022</a>)</span>. The challenge is not eliminating labeling errors entirely (an impossible goal) but systematically measuring and managing error rates to keep them within bounds that do not degrade model performance.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-thyagarajan2023multilabel" class="csl-entry" role="listitem">
 Thyagarajan, Aditya, Elı́as Snorrason, Curtis G. Northcutt, and Jonas Mueller. 2022. <span>“Identifying Incorrect Annotations in Multi-Label Classification Data.”</span> In <em>CoRR</em>, abs/2211.13895. <a href="https://doi.org/10.48550/ARXIV.2211.13895">https://doi.org/10.48550/ARXIV.2211.13895</a>.
 </div></div><p>Labeling failures arise from two distinct sources requiring different engineering responses. <a href="#fig-hard-labels" class="quarto-xref">Figure&nbsp;12</a> presents concrete examples of both failure modes. The top rows show quality-based errors: motion-blurred photographs and low-resolution crops where the animal is so degraded that even expert annotators cannot determine the species with certainty, making the “correct” label fundamentally unknowable from the data alone. The bottom rows illustrate domain-expertise errors: the specimens are photographed clearly, but distinguishing visually similar subspecies or developmental stages demands specialist knowledge that general-purpose annotators lack. These different failure modes drive architectural decisions about annotator qualification, task routing, and consensus mechanisms: quality-based errors call for upstream data filtering, while expertise-based errors call for tiered annotator routing.</p>
-<div id="fig-hard-labels" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Six-panel grid of public-dataset label errors: MNIST digit (given 5, corrected 3); CIFAR-10 frog (given cat); CIFAR-100 crab (given lobster); Caltech-256 teapot (given ewer); ImageNet black stork (given white stork); QuickDraw eye (given tiger).">
+<div id="fig-hard-labels" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Six-panel grid of public-dataset label errors: MNIST digit (given 5, corrected 3); CIFAR-10 frog (given cat); CIFAR-100 crab (given lobster); Caltech-256 teapot (given ewer); ImageNet black stork (given white stork); QuickDraw eye (given tiger)." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-hard-labels-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/label-errors-examples_new.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;12: Labeling Ambiguity: How subjective or difficult examples, such as blurry images or rare species, can introduce errors during data labeling, highlighting the need for careful quality control and potentially expert annotation. Source: [@northcutt2021pervasive]."><img src="images/png/label-errors-examples_new.png" class="img-fluid figure-img"></a>
@@ -2867,7 +2940,7 @@ Northcutt, Curtis G., Anish Athalye, and Jonas Mueller. 2021. <span>“Pervasive
 <section id="sec-data-engineering-scaling-aiassisted-labeling-9360" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-scaling-aiassisted-labeling-9360">Scaling with AI-assisted labeling</h3>
 <p>The scalability pillar drives AI assistance as a force multiplier for human labeling rather than a replacement. Manual annotation alone cannot keep pace with modern ML systems’ data needs, while fully automated labeling lacks the nuanced judgment that humans provide. AI-assisted labeling occupies the space between these extremes: using automation to handle clear cases and accelerate annotation while preserving human judgment for ambiguous or high-stakes decisions. <a href="#fig-weak-supervision" class="quarto-xref">Figure&nbsp;13</a> maps this space as a decision hierarchy with four branches. Traditional supervision (fully manual labels) anchors one end with maximal precision but minimal throughput. Semi-supervised learning reduces the labeling burden by propagating labels from a small labeled set to a larger unlabeled corpus. Weak supervision replaces individual annotations with programmatic labeling functions that trade per-label accuracy for orders-of-magnitude gains in throughput. Transfer learning sidesteps the labeling problem entirely by reusing representations learned on a different task. Each path lower in the hierarchy trades labeling precision for scalability, and the subsections that follow examine the system design required to make each trade-off reliable.</p>
-<div id="fig-weak-supervision" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Hierarchical diagram with question about getting labeled data at top. Four branches: traditional supervision, semi supervised, weak supervision, and transfer learning. Active learning branches as cost-saving alternative.">
+<div id="fig-weak-supervision" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Hierarchical diagram with question about getting labeled data at top. Four branches: traditional supervision, semi supervised, weak supervision, and transfer learning. Active learning branches as cost-saving alternative." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-weak-supervision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="65e1305ec09c9a56d080076e30dcc76b33daa978.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure&nbsp;13: AI-Augmented Labeling Decision Hierarchy: A top-level question about obtaining labeled data branches into four paths: traditional supervision, semi-supervised learning, weak supervision, and transfer learning, with active learning as a cost-saving alternative. Lower-cost strategies trade labeling precision for throughput. Source: Stanford AI Lab."><img src="data_engineering_files/mediabag/65e1305ec09c9a56d080076e30dcc76b33daa978.svg" class="img-fluid figure-img"></a>
@@ -2878,12 +2951,14 @@ Figure&nbsp;13: <strong>AI-Augmented Labeling Decision Hierarchy</strong>: A top
 </figure>
 </div>
 <p>The key insight behind AI-assisted labeling is that human and machine intelligence excel at different aspects of the task. Humans provide judgment on ambiguous cases, catch subtle errors, and encode domain knowledge that models lack. Machines provide speed, consistency, and tireless attention to clear-cut cases. Modern systems orchestrate these complementary strengths through three primary approaches.</p>
-<p>Pre-annotation uses AI models to generate preliminary labels that humans then review and correct—transforming the task from “label from scratch” to “verify and fix.” This approach, often employing semi-supervised learning techniques <span class="citation" data-cites="chapelle2009semisupervised">(<a href="#ref-chapelle2009semisupervised" role="doc-biblioref">Chapelle et al. 2009</a>)</span>, reduces manual effort by 50–80 percent for many computer vision tasks. Programmatic labeling frameworks like Snorkel <span class="citation" data-cites="ratner2018snorkel">(<a href="#ref-ratner2018snorkel" role="doc-biblioref">Ratner et al. 2018</a>)</span> extend this further through weak supervision<a href="#fn29" class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a>, automatically generating initial labels at scale through rule-based heuristics, knowledge bases, and existing model outputs. In autonomous driving, pretrained object detection models label vehicles and pedestrians that human annotators verify and refine, handling the majority of clear cases automatically.</p>
+<p>Pre-annotation uses AI models to generate preliminary labels that humans then review and correct—transforming the task from “label from scratch” to “verify and fix.” This approach, often employing semi-supervised learning techniques <span class="citation" data-cites="chapelle2009semisupervised">(<a href="#ref-chapelle2009semisupervised" role="doc-biblioref">Thomas 2009</a>)</span>, reduces manual effort by 50–80 percent for many computer vision tasks. Programmatic labeling frameworks like Snorkel <span class="citation" data-cites="ratner2018snorkel ratner2017snorkel">(<a href="#ref-ratner2018snorkel" role="doc-biblioref">Ratner et al. 2018</a>; <a href="#ref-ratner2017snorkel" role="doc-biblioref">Ratner et al. 2017</a>)</span> extend this further through weak supervision<a href="#fn29" class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a>, automatically generating initial labels at scale through rule-based heuristics, knowledge bases, and existing model outputs. In autonomous driving, pretrained object detection models label vehicles and pedestrians that human annotators verify and refine, handling the majority of clear cases automatically.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-chapelle2009semisupervised" class="csl-entry" role="listitem">
-Chapelle, O., B. Scholkopf, and A. Zien Eds. 2009. <span>“Semi-Supervised Learning (Chapelle, o. Et Al., Eds.; 2006) [Book Reviews].”</span> <em>IEEE Transactions on Neural Networks</em> 20 (3): 542–42. <a href="https://doi.org/10.1109/tnn.2009.2015974">https://doi.org/10.1109/tnn.2009.2015974</a>.
+Thomas, Philippe. 2009. <span>“Review of "Semi-Supervised Learning" by o. Chapelle, b. Scholkopf, and a. Zien (MIT Press, 2006).”</span> <em>IEEE Transactions on Neural Networks</em> 20 (3): 542–42. <a href="https://doi.org/10.1109/tnn.2009.2015974">https://doi.org/10.1109/tnn.2009.2015974</a>.
 </div><div id="ref-ratner2018snorkel" class="csl-entry" role="listitem">
-Ratner, Alex, Braden Hancock, Jared Dunnmon, Roger Goldman, and Christopher Ré. 2018. <span>“Snorkel MeTaL: Weak Supervision for Multi-Task Learning.”</span> <em>Proceedings of the Second Workshop on Data Management for End-to-End Machine Learning</em>, June 15, 1–4. <a href="https://doi.org/10.1145/3209889.3209898">https://doi.org/10.1145/3209889.3209898</a>.
-</div><div id="fn29"><p><sup>29</sup>&nbsp;<strong>Weak Supervision</strong>: Introduced as the “data programming” paradigm by Ratner et al.&nbsp;at Stanford (2016), motivated by the observation that domain experts write heuristic rules faster than they label examples. This method exchanges manual annotation labor for the upfront effort of writing programmatic “labeling functions,” each of which can then label millions of data points at near-zero marginal cost, whereas manual labeling costs scale linearly with dataset size. </p></div></div><p>Large Language Models (LLMs) have further transformed labeling pipelines by generating rich text descriptions, creating labeling guidelines from examples, and explaining their reasoning for label assignments. Content moderation systems, for instance, use LLMs for initial content classification with explanations that human reviewers validate. However, LLM integration introduces systems challenges: inference costs ($0.01–$1 per example), API rate limits (100–10,000 requests per minute), and the need for systematic output validation since LLMs occasionally produce confident but incorrect labels. Many organizations adopt tiered approaches, using smaller specialized models for routine cases while reserving larger LLMs for complex scenarios requiring nuanced judgment.</p>
+Ratner, Alex, Braden Hancock, Jared Dunnmon, Roger Goldman, and Christopher Ré. 2018. <span>“Snorkel <span>MeTaL</span>: Weak Supervision for Multi-Task Learning: Weak Supervision for Multi-Task Learning.”</span> <em>Proceedings of the Second Workshop on Data Management for End-to-End Machine Learning</em>, June 15, 1–4. <a href="https://doi.org/10.1145/3209889.3209898">https://doi.org/10.1145/3209889.3209898</a>.
+</div><div id="ref-ratner2017snorkel" class="csl-entry" role="listitem">
+Ratner, Alexander, Stephen H. Bach, Henry Ehrenberg, Jason Fries, Sen Wu, and Christopher Ré. 2017. <span>“Snorkel: Rapid Training Data Creation with Weak Supervision.”</span> <em>Proceedings of the VLDB Endowment</em> 11 (3): 269–82. <a href="https://doi.org/10.14778/3157794.3157797">https://doi.org/10.14778/3157794.3157797</a>.
+</div><div id="fn29"><p><sup>29</sup>&nbsp;<strong>Weak Supervision</strong>: A “data programming” paradigm motivated by the observation that domain experts write heuristic rules faster than they label examples. This method exchanges manual annotation labor for the upfront effort of writing programmatic “labeling functions,” each of which can then label millions of data points at near-zero marginal cost, whereas manual labeling costs scale linearly with dataset size. </p></div></div><p>Large Language Models (LLMs) have further transformed labeling pipelines by generating rich text descriptions, creating labeling guidelines from examples, and explaining their reasoning for label assignments. Content moderation systems, for instance, use LLMs for initial content classification with explanations that human reviewers validate. However, LLM integration introduces systems challenges: inference costs ($0.01–$1 per example), API rate limits (100–10,000 requests per minute), and the need for systematic output validation since LLMs occasionally produce confident but incorrect labels. Many organizations adopt tiered approaches, using smaller specialized models for routine cases while reserving larger LLMs for complex scenarios requiring nuanced judgment.</p>
 <p>Methods such as active learning<a href="#fn30" class="footnote-ref" id="fnref30" role="doc-noteref"><sup>30</sup></a> complement these approaches by intelligently prioritizing which examples need human attention <span class="citation" data-cites="coleman2022similarity">(<a href="#ref-coleman2022similarity" role="doc-biblioref">Coleman et al. 2022</a>)</span>. These systems continuously analyze model uncertainty to identify valuable labeling candidates. Rather than labeling a random sample of unlabeled data, active learning selects examples where the current model is most uncertain or where labels would most improve model performance. The infrastructure must efficiently compute uncertainty metrics (often prediction entropy or disagreement between ensemble models), maintain task queues ordered by informativeness, and adapt prioritization strategies based on incoming labels. Consider a medical imaging system: active learning might identify unusual pathologies for expert review while handling routine cases through pre-annotation that experts merely verify. This approach can reduce required annotations by 50–90 percent compared to random sampling, though it requires careful engineering to prevent feedback loops where the model’s uncertainty biases which data gets labeled. The following analysis quantifies this <em>active learning multiplier</em> in concrete budget terms.</p>
 <div class="no-row-height column-margin column-container"><div id="fn30"><p><sup>30</sup>&nbsp;<strong>Active Learning</strong>: Inverts the traditional labeling paradigm: instead of randomly selecting examples to label, the model queries for the examples it needs most, typically those where prediction uncertainty is highest. This converts labeling from a data-proportional cost into a model-proportional cost, achieving target accuracy with 50–90 percent fewer labels than random sampling. The infrastructure trade-off is compute for labels: active learning adds inference cost (~$0.01/image) to select hard examples, but this 10<span class="math inline">\(\times\)</span> reduction in labeling spend makes otherwise budget-infeasible projects viable. </p></div><div id="ref-coleman2022similarity" class="csl-entry" role="listitem">
 Coleman, Cody, Edward Chou, Julian Katz-Samuels, et al. 2022. <span>“Similarity Search for Efficient Active Learning and Search of Rare Concepts.”</span> <em>Proceedings of the AAAI Conference on Artificial Intelligence</em> 36 (6): 6402–10. <a href="https://doi.org/10.1609/aaai.v36i6.20591">https://doi.org/10.1609/aaai.v36i6.20591</a>.
@@ -2909,14 +2984,14 @@ Krishnan, Rayan, Pranav Rajpurkar, and Eric J. Topol. 2022. <span>“Self-Superv
 </div></div></section>
 <section id="sec-data-engineering-case-study-automated-labeling-kws-systems-976d" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-case-study-automated-labeling-kws-systems-976d">Automated labeling in KWS</h3>
-<p>Our KWS case study has now progressed through problem definition (<a href="#sec-data-engineering-framework-application-keyword-spotting-case-study-c8e9" class="quarto-xref">Section&nbsp;1.2.3</a>), data collection, ingestion, and processing. At the labeling stage, we confront a challenge unique to speech systems at scale. Generating millions of labeled wake word samples without proportional human annotation cost requires moving beyond the manual and crowdsourced approaches we examined earlier. The Multilingual Spoken Words Corpus (MSWC) <span class="citation" data-cites="mazumder2021multilingual">(<a href="#ref-mazumder2021multilingual" role="doc-biblioref"><span class="nocase">Mazumder et al.</span> 2021</a>)</span> demonstrates how automated labeling addresses this challenge through its innovative approach to generating labeled wake word data, containing over 23.4 million one-second spoken examples across 340,000 keywords in 50 different languages.</p>
+<p>Our KWS case study has now progressed through problem definition (<a href="#sec-data-engineering-framework-application-keyword-spotting-case-study-c8e9" class="quarto-xref">Section&nbsp;1.2.3</a>), data collection, ingestion, and processing. At the labeling stage, we confront a challenge unique to speech systems at scale. Generating millions of labeled wake word samples without proportional human annotation cost requires moving beyond the manual and crowdsourced approaches we examined earlier. The Multilingual Spoken Words Corpus (MSWC) <span class="citation" data-cites="mazumder2021multilingual">(<a href="#ref-mazumder2021multilingual" role="doc-biblioref">Mazumder et al. 2021</a>)</span> demonstrates how automated labeling addresses this challenge through its innovative approach to generating labeled wake word data, containing over 23.4 million one-second spoken examples across 340,000 keywords in 50 different languages.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-mazumder2021multilingual" class="csl-entry" role="listitem">
-<span class="nocase">Mazumder, Mark, Sharad Chitlangia, Colby Banbury, et al.</span> 2021. <span>“Multilingual Spoken Words Corpus.”</span> <em>Thirty-Fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2)</em>.<a href="
+Mazumder, Mark, Sharad Chitlangia, Colby Banbury, et al. 2021. <span>“Multilingual Spoken Words Corpus.”</span> <em>Advances in Neural Information Processing Systems 35 (NeurIPS 2021) Datasets and Benchmarks Track</em>.<a href="
     https://datasets-benchmarks-proceedings.neurips.cc/paper_files/paper/2021/hash/fe131d7f5a6b38b23cc967316c13dae2-Abstract-round2.html
   ">https://datasets-benchmarks-proceedings.neurips.cc/paper_files/paper/2021/hash/fe131d7f5a6b38b23cc967316c13dae2-Abstract-round2.html </a>.
 </div></div><p>This scale makes manual annotation infeasible: 23.4 million examples at even 10 seconds per label would require approximately 65,000 person-hours, roughly 32.5 person-years of full-time effort. Achieving 98 percent accuracy across diverse environments requires millions of training examples covering acoustic variations (background noises, speaking styles, recording environments), and transparent sourcing across 50 languages ensures the technology serves diverse speaker populations.</p>
 <p>Walk through the pipeline in <a href="#fig-mswc" class="quarto-xref">Figure&nbsp;14</a> to see how this automated system works. It begins with paired sentence audio recordings and corresponding transcriptions from projects like <a href="https://commonvoice.mozilla.org/en">Common Voice</a> or multilingual captioned content platforms, processing these inputs through forced alignment<a href="#fn31" class="footnote-ref" id="fnref31" role="doc-noteref"><sup>31</sup></a> to identify precise word boundaries within continuous speech.</p>
-<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>Forced Alignment</strong>: Given a known transcription, the algorithm aligns specific words to audio frames with millisecond precision using dynamic programming (Viterbi algorithm), bypassing the harder problem of recognizing what was said. This distinction is what makes automated KWS corpus construction feasible: because the transcription is already known from paired text, forced alignment converts sentence-level audio into word-level training samples at negligible marginal cost – enabling datasets of millions of labeled keywords without proportional human annotation effort. </p></div></div><div id="fig-mswc" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Pipeline showing audio waveform and text transcript inputs processed through forced alignment stage, then segmented into individual one-second labeled keyword samples for KWS training.">
+<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>Forced Alignment</strong>: Given a known transcription, the algorithm aligns specific words to audio frames with millisecond precision using dynamic programming (Viterbi algorithm), bypassing the harder problem of recognizing what was said. This distinction is what makes automated KWS corpus construction feasible: because the transcription is already known from paired text, forced alignment converts sentence-level audio into word-level training samples at negligible marginal cost – enabling datasets of millions of labeled keywords without proportional human annotation effort. </p></div></div><div id="fig-mswc" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Pipeline showing audio waveform and text transcript inputs processed through forced alignment stage, then segmented into individual one-second labeled keyword samples for KWS training." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mswc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/data_engineering_kws2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure&nbsp;14: Multilingual Data Preparation: Forced alignment and segmentation transform paired audio-text data into labeled one-second segments, creating a large-scale corpus for training keyword spotting models across 50+ languages. This automated process enables scalable development of KWS systems by efficiently generating training examples from readily available speech resources like common voice and multilingual captioned content."><img src="images/png/data_engineering_kws2.png" class="img-fluid figure-img"></a>
@@ -3228,7 +3303,7 @@ Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2012. <span>“<span>I
 <p>The 500 MB/s figure represents SATA III sequential read throughput (the interface maximum is 600 MB/s). Real-world random read performance with small files can be significantly lower.</p>
 <p>This calculation illustrates the general principle governing data pipelines, as formalized in <a href="#eq-training-throughput" class="quarto-xref">Equation&nbsp;5</a> and <a href="#eq-data-supply" class="quarto-xref">Equation&nbsp;6</a>: <span id="eq-training-throughput"><span class="math display">\[\text{Training Throughput} = \min(\text{Compute Capacity}, \text{Data Supply Rate}) \tag{5}\]</span></span> <span id="eq-data-supply"><span class="math display">\[\text{Data Supply Rate} = \text{Storage Bandwidth} \times (1 - \text{Overhead}) \tag{6}\]</span></span> </p>
 <p>When storage bandwidth becomes the limiting factor, teams must either improve storage performance through faster media, parallelization, or caching, or reduce data movement requirements through compression, quantization, or architectural changes. Large language model training may require processing hundreds of gigabytes of text per hour, while computer vision models processing high-resolution imagery can demand sustained data rates exceeding 50 gigabytes per second across distributed clusters. These requirements explain the rise of specialized ML storage systems optimizing data loading pipelines: PyTorch DataLoader with multiple worker processes parallelizing I/O, TensorFlow tf.data API with prefetching and caching, and frameworks like NVIDIA DALI (Data Loading Library) that offload data augmentation to GPUs rather than loading pre-augmented data from storage.</p>
-<p>File format selection dramatically impacts the <strong>Data Term</strong> (<span class="math inline">\(\frac{D_{\text{vol}}}{BW}\)</span>) of the iron law. We can quantify this impact as <em>format efficiency</em> (<span class="math inline">\(\eta_{format}\)</span>), which acts as a multiplier on effective bandwidth.</p>
+<p>File format selection dramatically impacts the <strong>Data Term</strong> (<span class="math inline">\(\frac{D_{\text{vol}}}{BW}\)</span>) of the iron law. We can quantify this impact as <em>format efficiency</em> (<span class="math inline">\(\eta_{\text{format}}\)</span>), which acts as a multiplier on effective bandwidth.</p>
 <div id="callout-notebook-1.9" class="callout callout-notebook" title="Format Efficiency">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.9: Format Efficiency</strong></summary><div><strong>The Concept</strong>: Storage formats determine how much “waste” data you move to get the signal you need, as captured in <a href="#eq-effective-bandwidth" class="quarto-xref">Equation&nbsp;7</a>: <span id="eq-effective-bandwidth"><span class="math display">\[ \text{Effective Bandwidth} = \text{Physical Bandwidth} \times \eta_{\text{format}}  \tag{7}\]</span></span><p></p>
 <p><strong>Scenario</strong>: Training a fraud model using 20 features from a 100-column table.</p>
@@ -3374,8 +3449,6 @@ Listing&nbsp;4: <strong>Delta Lake Time Travel</strong>: Querying historical dat
 <p>Documentation debt accumulates when data provenance, meaning, and quality characteristics go unrecorded. Datasets without data cards <span class="citation" data-cites="gebru2021datasheets">(<a href="#ref-gebru2021datasheets" role="doc-biblioref">Gebru et al. 2021</a>)</span>, unlabeled columns, and undocumented transformations create debt that compounds when original authors leave organizations. A survey of production ML systems found that 40 percent of data quality incidents traced to misunderstanding data semantics due to missing documentation <span class="citation" data-cites="sambasivan2021everyone">(<a href="#ref-sambasivan2021everyone" role="doc-biblioref">Sambasivan et al. 2021</a>)</span>. The symptoms are unmistakable: columns whose meanings must be reverse-engineered from usage patterns, missing provenance records that block compliance audits, undocumented assumptions that cause silent failures when those assumptions change, and absent quality metrics that prevent informed dataset selection.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-gebru2021datasheets" class="csl-entry" role="listitem">
 Gebru, Timnit, Jamie Morgenstern, Briana Vecchione, et al. 2021. <span>“Datasheets for Datasets.”</span> <em>Communications of the ACM</em> 64 (12): 86–92. <a href="https://doi.org/10.1145/3458723">https://doi.org/10.1145/3458723</a>.
-</div><div id="ref-sambasivan2021everyone" class="csl-entry" role="listitem">
-Sambasivan, Nithya, Shivani Kapania, Hannah Highfill, Diana Akrong, Praveen Paritosh, and Lora M Aroyo. 2021. <span>“<span>‘Everyone Wants to Do the Model Work, Not the Data Work’</span>: Data Cascades in High-Stakes AI.”</span> <em>Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems</em>, May 6, 1–15. <a href="https://doi.org/10.1145/3411764.3445518">https://doi.org/10.1145/3411764.3445518</a>.
 </div></div></section>
 <section id="sec-data-engineering-schema-debt-e420" class="level4">
 <h4 class="anchored" data-anchor-id="sec-data-engineering-schema-debt-e420">Schema debt</h4>
@@ -3490,7 +3563,7 @@ Table&nbsp;5: <strong>Data Debt Metrics</strong>: Quantitative thresholds for de
 <section id="sec-data-engineering-debugging-data-pipelines-2f26" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-data-engineering-debugging-data-pipelines-2f26">Debugging data pipelines</h3>
 <p>When data debt comes due, it surfaces as model accuracy degradation, pipeline failures, or subgroup performance disparities. Effective debugging applies the diagnostic principles established throughout this chapter: data cascades (<a href="#sec-data-engineering-data-cascades-systematic-foundations-matter-2efe" class="quarto-xref">Section&nbsp;1.2.1</a>) remind us that root causes lie upstream of symptoms, training-serving skew (<a href="#sec-data-engineering-ensuring-trainingserving-consistency-c683" class="quarto-xref">Section&nbsp;1.5.1</a>) explains many deployment failures, and drift detection (<a href="#sec-data-engineering-detecting-responding-data-drift-509a" class="quarto-xref">Section&nbsp;1.4.3</a>) surfaces gradual degradation. <a href="#fig-debug-flowchart" class="quarto-xref">Figure&nbsp;15</a> synthesizes these concepts into an actionable diagnostic sequence:</p>
-<div id="fig-debug-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Vertical flowchart with four blue diamond decision nodes and red result boxes. Top diamond asks if accuracy degrades over time, leading to data drift result. Second asks if training accuracy exceeds validation, leading to overfitting. Third asks if validation exceeds production accuracy, leading to training-serving skew. Fourth asks about subgroup inconsistency, leading to bias. Gray box at bottom shows model architecture issue if all answers are no.">
+<div id="fig-debug-flowchart" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Vertical flowchart with four blue diamond decision nodes and red result boxes. Top diamond asks if accuracy degrades over time, leading to data drift result. Second asks if training accuracy exceeds validation, leading to overfitting. Third asks if validation exceeds production accuracy, leading to training-serving skew. Fourth asks about subgroup inconsistency, leading to bias. Gray box at bottom shows model architecture issue if all answers are no." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-debug-flowchart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="7a906a7c86dd8f54ffeb37ed20ce747b0b798f75.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-15" title="Figure&nbsp;15: Data Pipeline Debugging Flowchart: Four sequential decision nodes guide root cause diagnosis: (1) accuracy degrades over time leads to Data Drift, (2) training accuracy exceeds validation leads to Overfitting, (3) validation exceeds production accuracy leads to Training-Serving Skew, and (4) subgroup inconsistency leads to Bias. If all answers are no, the issue points to Model Architecture."><img src="data_engineering_files/mediabag/7a906a7c86dd8f54ffeb37ed20ce747b0b798f75.svg" class="img-fluid figure-img"></a>

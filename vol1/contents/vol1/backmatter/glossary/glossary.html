@@ -45,9 +45,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
@@ -132,8 +132,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -155,6 +178,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -194,7 +251,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -208,105 +265,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
 .callout-resource-slides {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -324,24 +282,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(27, 79, 114, 0.04);
   --dark-background-color: rgba(27, 79, 114, 0.12);
   --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
 .callout-checkpoint {
   --color1: #FFF8E7;
@@ -361,6 +301,78 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
 .callout-war-story {
   --color1: #FEF2F2;
   --color2: #C53030;
@@ -379,163 +391,54 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(30, 58, 95, 0.12);
   --dark-title-background-color: rgba(30, 58, 95, 0.12);
 }
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -562,34 +465,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
   details.callout-checkpoint {
@@ -620,6 +495,118 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
   details.callout-war-story {
     --text-color: #e6e6e6;
     --background-color: rgba(197, 48, 48, 0.12);
@@ -648,53 +635,84 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
 }
 </style>
 <style>
-details.callout-notebook > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-colab > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
 details.callout-resource-slides > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
 details.callout-definition > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
 details.callout-checkpoint > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
@@ -702,11 +720,50 @@ details.callout-checkpoint > summary::before {
 details.callout-resource-exercises > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_code.png");
+}
 details.callout-war-story > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
 details.callout-chapter-connection > summary::before {
   background-image: url("../../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
 </style>
 
@@ -742,12 +799,12 @@ window.Quarto = {
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
 <meta property="og:description" content="Volume I: Introduction to Machine Learning Systems. Foundations, development, optimization, and deployment.">
-<meta property="og:image" content="./contents/vol1/backmatter/glossary/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../../contents/vol1/backmatter/glossary/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
 <meta name="twitter:description" content="Volume I: Introduction to Machine Learning Systems. Foundations, development, optimization, and deployment.">
-<meta name="twitter:image" content="./contents/vol1/backmatter/glossary/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../../contents/vol1/backmatter/glossary/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -949,34 +1006,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -988,22 +1045,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1015,17 +1072,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1037,23 +1094,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1065,22 +1122,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1092,29 +1149,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1184,8 +1241,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1629,10 +1686,6 @@ Techniques for maximizing the number of samples processed per unit time when han
 <dd>
 Matrix computations that process multiple inputs simultaneously, converting matrix-vector operations into more efficient matrix-matrix operations to improve hardware utilization.
 </dd>
-<dt><strong>bayes error rate</strong></dt>
-<dd>
-The irreducible error inherent in a classification task due to noise or ambiguity in the data. Represents the theoretical lower bound on achievable error—no model, regardless of capacity or training data, can surpass this limit.
-</dd>
 <dt><strong>benchmark engineering</strong></dt>
 <dd>
 The systematic design and development of performance evaluation frameworks, involving test harness creation, metric selection, and result interpretation methodologies.
@@ -1770,10 +1823,6 @@ The phenomenon where the statistical relationship between input features and tar
 <dd>
 A dynamic optimization technique where different parts of a neural network are selectively activated based on input characteristics, reducing computational load by skipping unnecessary computations for specific inputs.
 </dd>
-<dt><strong>connectionism</strong></dt>
-<dd>
-An approach to AI modeling that emphasizes learning and intelligence emerging from simple interconnected units, serving as the theoretical foundation for neural networks and contrasting with symbolic AI approaches.
-</dd>
 <dt><strong>consensus labeling</strong></dt>
 <dd>
 A quality control approach that collects multiple annotations for the same data point to identify controversial cases and improve label reliability through inter-annotator agreement.
@@ -1781,10 +1830,6 @@ A quality control approach that collects multiple annotations for the same data 
 <dt><strong>containerization</strong></dt>
 <dd>
 Packaging applications and their dependencies into portable, isolated containers using tools like Docker to ensure consistent execution across different environments.
-</dd>
-<dt><strong>containerized microservices</strong></dt>
-<dd>
-Architectural pattern using lightweight containers to package individual services, enabling scalable, maintainable deployment of ML systems across distributed environments.
 </dd>
 <dt><strong>continuous integration</strong></dt>
 <dd>
@@ -1947,10 +1992,6 @@ The observation that as transistors became smaller, their power density remained
 <dd>
 A fully-connected neural network layer where each neuron receives input from all neurons in the previous layer, enabling comprehensive information integration across features.
 </dd>
-<dt><strong>dense matrix-matrix multiplication</strong></dt>
-<dd>
-The fundamental computational operation in neural networks that dominates training time, accounting for 60–90 percent of computation in typical models.
-</dd>
 <dt><strong>deployment constraints</strong></dt>
 <dd>
 Operational limitations such as hardware resources, network connectivity, regulatory requirements, and integration requirements that influence how machine learning models are implemented in production environments.
@@ -2084,17 +2125,9 @@ An architectural pattern where an encoder processes input into a compressed repr
 <dd>
 Comprehensive evaluation methodology that assesses entire AI system pipelines including data processing, model execution, post-processing, and infrastructure components.
 </dd>
-<dt><strong>energy bandwidth</strong></dt>
-<dd>
-The constraint in battery-powered systems where the energy cost of transmitting data exceeds the energy cost of processing it locally, dictating edge processing.
-</dd>
 <dt><strong>energy efficiency</strong></dt>
 <dd>
 The measure of computational work performed per unit of energy consumed, typically expressed as operations per joule and crucial for battery-powered and data center deployments
-</dd>
-<dt><strong>energy star</strong></dt>
-<dd>
-EPA certification program that establishes energy efficiency standards for computing equipment, requiring systems to meet strict efficiency requirements during operation and sleep modes.
 </dd>
 <dt><strong>epoch</strong></dt>
 <dd>
@@ -2270,10 +2303,6 @@ Ranking system that evaluates the world’s most powerful supercomputers based o
 <dd>
 The objective reality or actual state of the phenomenon being observed, used as the reference standard (labels) for training and evaluating machine learning models.
 </dd>
-<dt><strong>groupwise quantization</strong></dt>
-<dd>
-A quantization approach where parameters are divided into groups, with each group sharing quantization parameters, offering a balance between compression and accuracy by providing more granular control than layerwise methods.
-</dd>
 <dt><strong>gru</strong></dt>
 <dd>
 Gated Recurrent Unit, a simplified variant of LSTM that uses fewer gates while maintaining the ability to capture long-term dependencies in sequential data.
@@ -2298,10 +2327,6 @@ Specialized computing hardware designed to efficiently execute specific types of
 <dt><strong>hardware-aware design</strong></dt>
 <dd>
 The practice of designing neural network architectures specifically optimized for target hardware platforms, considering factors like memory hierarchy, compute units, and data movement patterns to maximize efficiency.
-</dd>
-<dt><strong>hdfs (hadoop distributed file system)</strong></dt>
-<dd>
-A distributed file system designed to store large datasets across clusters of commodity hardware, providing scalability and fault tolerance for big data applications.
 </dd>
 <dt><strong>hidden layer</strong></dt>
 <dd>
@@ -2364,10 +2389,6 @@ A metric quantifying the efficiency of data selection, defined as the ratio of m
 <dd>
 Practice of managing and provisioning computing infrastructure through machine-readable configuration files rather than manual processes, enabling version control and automation.
 </dd>
-<dt><strong>instruction set architecture (isa)</strong></dt>
-<dd>
-The interface between software and hardware that defines the set of instructions a processor can execute, including data types and addressing modes.
-</dd>
 <dt><strong>int8</strong></dt>
 <dd>
 8-bit integer numerical representation used in quantized neural networks, where model weights and activations are represented using 8-bit integers instead of 32-bit floating point, reducing memory usage by roughly 4<span class="math inline">\(\times\)</span> and accelerating inference on specialized hardware while attempting to maintain model accuracy.
@@ -2386,7 +2407,7 @@ Input/Output Operations Per Second; a storage performance metric measuring the n
 </dd>
 <dt><strong>iron law of ml systems</strong></dt>
 <dd>
-A quantitative framework decomposing ML system performance into three terms: Data (limited by bandwidth), Compute (limited by FLOPS), and Latency (limited by overhead). Formulated as <span class="math inline">\(T = D_{\text{vol}}/\text{BW} + O/(R_{\text{peak}} \cdot \eta) + L_{\text{lat}}\)</span>.
+A quantitative framework decomposing ML system performance into three terms: Data (limited by bandwidth), Compute (limited by FLOPS), and Latency (limited by overhead). Formulated as <span class="math inline">\(T = D_{\text{vol}}/\text{BW} + O/(R_{\text{peak}} \cdot \eta_{\text{hw}}) + L_{\text{lat}}\)</span>.
 </dd>
 <dt><strong>iterative pruning</strong></dt>
 <dd>
@@ -2422,10 +2443,6 @@ A small matrix of learnable weights used in convolutional layers to detect speci
 <dd>
 An optimization technique that combines multiple computational operations into a single kernel to reduce memory transfers and improve performance on parallel processors.
 </dd>
-<dt><strong>key performance indicators</strong></dt>
-<dd>
-Specific, measurable metrics used to evaluate the success and effectiveness of machine learning systems, such as accuracy, precision, recall, latency, and throughput.
-</dd>
 <dt><strong>keyword spotting (kws)</strong></dt>
 <dd>
 A technology that detects specific wake words or phrases in audio streams, typically used in voice-activated devices with constraints on power consumption and latency.
@@ -2439,10 +2456,6 @@ A model compression technique where a smaller “student” network learns to mi
 <section id="sec-glossary-l-cc81" class="level2">
 <h2 class="anchored" data-anchor-id="sec-glossary-l-cc81">L</h2>
 <dl>
-<dt><strong>l0-norm constraint</strong></dt>
-<dd>
-A regularization technique that counts the number of nonzero parameters in a model, used in structured pruning to directly control model sparsity by penalizing the number of active weights.
-</dd>
 <dt><strong>LAPACK</strong></dt>
 <dd>
 Linear Algebra Package that extends BLAS with higher-level linear algebra operations including matrix decompositions, eigenvalue problems, and linear system solutions, providing essential mathematical foundations for machine learning computations.
@@ -2524,10 +2537,6 @@ Long Short-Term Memory, a type of recurrent neural network architecture designed
 <dd>
 A subset of artificial intelligence that enables systems to automatically improve performance on tasks through experience and data rather than explicit programming.
 </dd>
-<dt><strong>machine learning accelerator (ml accelerator)</strong></dt>
-<dd>
-Specialized computing hardware designed to efficiently execute machine learning workloads through optimized matrix operations, memory hierarchies, and parallel processing units.
-</dd>
 <dt><strong>machine learning framework</strong></dt>
 <dd>
 A software platform that provides tools and abstractions for designing, training, and deploying machine learning models, bridging user applications with infrastructure through computational graphs, hardware optimization, and workflow orchestration. Examples include TensorFlow, PyTorch, and JAX.
@@ -2551,10 +2560,6 @@ Evaluation methodology that assesses complete machine learning models to underst
 <dt><strong>magnitude-based pruning</strong></dt>
 <dd>
 The most common pruning method that removes parameters with the smallest absolute values, based on the assumption that weights with smaller magnitudes contribute less to the model’s output
-</dd>
-<dt><strong>mapping optimization</strong></dt>
-<dd>
-The process of assigning neural network operations to hardware resources in a way that minimizes communication overhead and maximizes utilization of available compute units.
 </dd>
 <dt><strong>masking</strong></dt>
 <dd>
@@ -2721,14 +2726,6 @@ One of the first large-scale expert systems developed at Stanford in 1976 to dia
 <section id="sec-glossary-n-aec4" class="level2">
 <h2 class="anchored" data-anchor-id="sec-glossary-n-aec4">N</h2>
 <dl>
-<dt><strong>nas-generated architecture</strong></dt>
-<dd>
-Neural network architectures discovered through automated Neural Architecture Search rather than manual design, often achieving better efficiency-accuracy trade-offs through exhaustive exploration of design spaces.
-</dd>
-<dt><strong>network structure modification</strong></dt>
-<dd>
-Architectural changes to neural networks that improve efficiency, including techniques like depthwise separable convolutions, bottleneck layers, and efficient attention mechanisms that reduce computational complexity.
-</dd>
 <dt><strong>neural architecture search</strong></dt>
 <dd>
 An automated approach that uses machine learning algorithms to discover optimal neural network architectures by searching through possible combinations of layers, connections, and hyperparameters for specific constraints.
@@ -2973,10 +2970,6 @@ Residual Network, a deep convolutional architecture that introduced skip connect
 <dd>
 A specific 50-layer variant of the Residual Network architecture that serves as the canonical Lighthouse Model for compute-bound workloads, balancing depth and computational cost for vision benchmarks.
 </dd>
-<dt><strong>responsible engineering gap</strong></dt>
-<dd>
-The disparity between technical optimization success (for example, high benchmark accuracy) and responsible deployment outcomes (for example, fairness and safety in production).
-</dd>
 <dt><strong>retinal fundus photographs</strong></dt>
 <dd>
 Medical images of the interior surface of the eye, including the retina, optic disc, and blood vessels, commonly used for diagnosing eye diseases and training medical AI systems.
@@ -3038,10 +3031,6 @@ A machine learning approach that uses both labeled and unlabeled data for traini
 <dd>
 The proportion of actual positive cases correctly identified by a classification model, also known as true positive rate or recall; critical in medical applications where missing positive cases has severe consequences.
 </dd>
-<dt><strong>sequential neural networks</strong></dt>
-<dd>
-Neural network architectures designed to process data that occurs in sequences over time, maintaining a form of memory of previous inputs to inform current decisions, essential for tasks like predicting pedestrian movement patterns.
-</dd>
 <dt><strong>serverless</strong></dt>
 <dd>
 Cloud computing model where infrastructure is automatically managed by the provider, allowing code execution without server management concerns.
@@ -3086,10 +3075,6 @@ A parallel computing architecture that applies the same operation to multiple da
 <dd>
 An extension of SIMD that enables parallel execution across multiple independent threads, each maintaining its own state and program counter.
 </dd>
-<dt><strong>single-instance throughput</strong></dt>
-<dd>
-Performance measurement focusing on the rate at which a single model instance can process requests, contrasting with batch throughput metrics.
-</dd>
 <dt><strong>singular value decomposition</strong></dt>
 <dd>
 A matrix factorization technique that decomposes a matrix into the product of three matrices, commonly used in low-rank approximations to compress neural network layers by retaining only the most significant singular values.
@@ -3126,17 +3111,9 @@ An optimization technique for autoregressive language models where a smaller mod
 <dd>
 The physical speed limit of information transmission (approx. 200,000 km/s in fiber), creating an irreducible lower bound on network latency that necessitates edge computing for applications requiring sub-10 ms response times over long distances.
 </dd>
-<dt><strong>stage-specific metrics</strong></dt>
-<dd>
-Performance indicators tailored to individual lifecycle phases, such as data quality metrics during preparation, training convergence during modeling, and latency metrics during deployment.
-</dd>
 <dt><strong>static graph</strong></dt>
 <dd>
 A computational graph that is defined completely before execution begins, enabling comprehensive optimization and efficient deployment but requiring all operations to be specified upfront, limiting runtime flexibility.
-</dd>
-<dt><strong>static graphs vs.&nbsp;dynamic graphs</strong></dt>
-<dd>
-Two fundamental approaches to representing computations in ML frameworks: static graphs are defined before execution and enable optimization but limit flexibility, while dynamic graphs are built during execution allowing for flexible control flow but with potential optimization limitations.
 </dd>
 <dt><strong>static quantization</strong></dt>
 <dd>
@@ -3166,14 +3143,6 @@ The step size by which a convolutional filter moves across the input, controllin
 <dd>
 A pruning approach that removes entire computational units such as neurons, channels, or layers, producing smaller dense models that are more hardware-friendly than the sparse matrices created by unstructured pruning.
 </dd>
-<dt><strong>student system</strong></dt>
-<dd>
-One of the first AI programs from 1964 by Daniel Bobrow that demonstrated natural language understanding by converting English algebra word problems into mathematical equations, marking an important milestone in symbolic AI.
-</dd>
-<dt><strong>student-teacher learning</strong></dt>
-<dd>
-The core mechanism of knowledge distillation where a smaller student network learns from a larger teacher network, typically using soft targets that provide more information than hard classification labels.
-</dd>
 <dt><strong>supervised learning</strong></dt>
 <dd>
 A machine learning approach where models learn from labeled training examples to make predictions on new, unlabeled data.
@@ -3181,10 +3150,6 @@ A machine learning approach where models learn from labeled training examples to
 <dt><strong>symbolic ai</strong></dt>
 <dd>
 An approach to artificial intelligence that uses high-level symbolic representations of problems, logic, and search algorithms, dominant before the deep learning revolution and characterized by expert systems and rule-based reasoning.
-</dd>
-<dt><strong>symbolic programming</strong></dt>
-<dd>
-A programming paradigm where computations are represented as abstract symbols and expressions that are constructed first and executed later, allowing for comprehensive optimization but requiring explicit execution phases.
 </dd>
 <dt><strong>synthetic benchmark</strong></dt>
 <dd>
@@ -3270,10 +3235,6 @@ An extreme quantization technique that constrains weights to three values (typic
 <dt><strong>thermal throttling</strong></dt>
 <dd>
 A protective mechanism in mobile and embedded devices that reduces processor clock speed and performance to prevent overheating, often limiting the sustained performance of on-device ML inference.
-</dd>
-<dt><strong>threshold for activation</strong></dt>
-<dd>
-The input level at which a neuron begins to produce significant output, determined by the combination of weights, biases, and the chosen activation function, controlling when the neuron contributes to the network’s computation.
 </dd>
 <dt><strong>throughput</strong></dt>
 <dd>

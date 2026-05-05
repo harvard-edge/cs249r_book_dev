@@ -64,9 +64,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -154,8 +154,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -177,6 +200,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -216,7 +273,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -230,32 +287,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-learning-objectives {
   --color1: #E8F2EA;
@@ -266,96 +305,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
 .callout-lighthouse {
   --color1: #FDF8E6;
   --color2: #B8860B;
@@ -364,24 +313,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(184, 134, 11, 0.04);
   --dark-background-color: rgba(184, 134, 11, 0.12);
   --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
 .callout-theorem {
   --color1: #F5F0FA;
@@ -392,6 +323,69 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(107, 70, 193, 0.12);
   --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
 .callout-checkpoint {
   --color1: #FFF8E7;
   --color2: #D97706;
@@ -401,49 +395,84 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-definition {
+  details.callout-resource-slides {
     --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
+  details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
   details.callout-learning-objectives {
@@ -460,146 +489,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
   details.callout-lighthouse {
     --text-color: #e6e6e6;
     --background-color: rgba(184, 134, 11, 0.12);
@@ -612,34 +501,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
     color: #e6e6e6 !important;
   }
   details.callout-theorem {
@@ -656,6 +517,104 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-theorem code {
     color: #e6e6e6 !important;
   }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
   details.callout-checkpoint {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -670,65 +629,163 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
 }
 </style>
 <style>
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+details.callout-resource-slides > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
 details.callout-learning-objectives > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
 details.callout-lighthouse > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
 }
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
 }
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
 details.callout-checkpoint > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
 </style>
 
@@ -763,11 +820,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/introduction/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/introduction/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/introduction/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/introduction/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -969,34 +1026,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1008,22 +1065,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1035,17 +1092,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1057,23 +1114,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1085,22 +1142,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1112,29 +1169,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1204,8 +1261,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1619,8 +1676,12 @@ Table&nbsp;1: <strong>The Paradigm Shift from Software 1.0 to Software 2.0</stro
 </div></details>
 </div>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Stochastic Gradient Descent (SGD)</strong>: The algorithm implements the “compilation” of logic from data by processing one small, random data sample (a “batch”) at a time, instead of the entire dataset. This trade-off, statistical noise for computational speed, is the core engine of the training “compiler.” The choice of batch size becomes a critical compilation flag; a batch too small (for example, &lt; 32) fails to saturate the parallel processors of an accelerator, wasting over 90 percent of its potential computation. </p></div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Model Weights</strong>: The learned numerical parameters of a neural network, one value per connection between units. A GPT-3-scale model stores 175 billion such values, consuming 350 GB in FP16 precision. Because every inference request must load these weights through the memory hierarchy, weight count is the single largest determinant of both memory footprint (<span class="math inline">\(D_{\text{vol}}\)</span>) and serving cost (see <strong><a href="../nn_computation/nn_computation.html#sec-neural-computation">Neural Computation</a></strong>). </p></div></div><p>The critical implication: <em>Data is Source Code</em> (Principle <span class="math inline">\(\ref{pri-data-as-code}\)</span>). In traditional software, a programmer writes explicit logic (<code>if x &gt; 0 then y</code>). In machine learning, the programmer writes the <em>optimization meta-logic</em> (the training algorithm), but the actual operational logic is “compiled” from the training dataset through stochastic gradient descent<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and related optimization methods. The dataset serves as source code, the training pipeline as compiler, and the model weights<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> as binary executable.</p>
-<p>From a systems perspective, this represents a transition from <em>instruction-centric</em> to <em>data-centric</em> computing:</p>
-<ul>
+<p>From a systems perspective, this represents a transition from <em>instruction-centric</em> to <em>data-centric</em> computing <span class="citation" data-cites="ng2021datacentric">(<a href="#ref-ng2021datacentric" role="doc-biblioref">Ng 2021</a>)</span> :</p>
+<div class="no-row-height column-margin column-container"><div id="ref-ng2021datacentric" class="csl-entry" role="listitem">
+Ng, Andrew. 2021. <em>MLOps: From Model-Centric to Data-Centric AI</em>. DeepLearning.AI.<a href="
+    https://www.deeplearning.ai/wp-content/uploads/2021/06/MLOps-From-Model-centric-to-Data-centric-AI.pdf
+  ">https://www.deeplearning.ai/wp-content/uploads/2021/06/MLOps-From-Model-centric-to-Data-centric-AI.pdf </a>.
+</div></div><ul>
 <li><em>Instruction-centric computing</em> (traditional): Systems optimized for the efficient execution of hand-crafted logic. The programmer’s job is to write correct instructions.</li>
 <li><em>Data-centric computing</em> (ML): Systems optimized for the efficient ingestion of data and the iterative refinement of model parameters. The programmer’s job is to curate correct data.</li>
 </ul>
@@ -1671,9 +1732,11 @@ Table&nbsp;1: <strong>The Paradigm Shift from Software 1.0 to Software 2.0</stro
 </section>
 <section id="sec-introduction-ai-paradigm-evolution-ae2b" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-introduction-ai-paradigm-evolution-ae2b">AI Paradigm Evolution</h2>
-<p>AI’s evolution reveals a progression of bottlenecks, each overcome by systems innovations that expanded what was computationally possible. The field traces its origin to Alan Turing’s<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> 1950 paper “Computing Machinery and Intelligence” <span class="citation" data-cites="turing1950computing">(<a href="#ref-turing1950computing" role="doc-biblioref">Turing 1950</a>)</span>, which posed the foundational question: <em>Can machines think?</em> Early systems that attempted to answer this question, such as the Perceptron (1957) and ELIZA<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> (1966), ran into the limits of manual logic and mainframe-era hardware, resulting in brittleness. Subsequent eras hit the knowledge acquisition bottleneck: manual knowledge entry could not scale. Modern systems face a different constraint: computational throughput.</p>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Alan Turing</strong>: His 1950 “Imitation Game” reframed intelligence as an output-measurement problem: judge a system by what it <em>does</em>, not by what it <em>is</em>. This engineering-first stance persists in every ML systems metric we use today: accuracy, latency, throughput, and FLOPS-per-watt are all output measurements. The iron law decomposes performance into observable, measurable terms rather than internal architectural properties for exactly this reason. </p></div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>ELIZA</strong>: A 1966 natural language program that ran on 256 KB mainframes using pattern-matching rules with no learned state—its brittleness was a direct systems consequence of zero memory across turns. Every new input variation required a new hand-written rule, making maintenance cost grow faster than capability and foreshadowing the knowledge bottleneck that killed expert systems a decade later. </p></div><div id="fn7"><p><sup>7</sup>&nbsp;<strong>AI Winters as Systems Failures</strong>: The first AI winter (1974–1980) was precipitated by the 1973 Lighthill Report, which concluded that AI had failed to deliver on its promises. The underlying cause, however, was a mismatch between algorithm ambition and available compute. The second winter (1987–1993) was triggered by the collapse of the Lisp Machine market when cheaper general-purpose workstations undercut specialized AI hardware. Both winters are explicitly systems failures, not algorithmic dead ends: the algorithms were mathematically sound but required hardware that did not yet exist. The same compute-constraint pattern drove neural network research underground from 1969 (Minsky’s perceptron critique) to 1986 (backpropagation revival on faster hardware). </p></div></div><p>The timeline in <a href="#fig-ai-timeline" class="quarto-xref">Figure&nbsp;1</a> reveals a recurring pattern: periods of intense optimism followed by “AI winters”<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> when funding collapsed, each triggered by systems limitations that algorithms alone could not overcome. The boom-and-bust rhythm spanning seven decades follows a consistent pattern: each winter arrives precisely when the dominant paradigm hits its systems ceiling, and each resurgence follows a breakthrough in engineering infrastructure rather than in algorithms alone. Each era represents a paradigm shift attempting to overcome the limitations of the previous approach.</p>
-<div id="fig-ai-timeline" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t!" alt="Timeline from 1950 to 2020 with red line showing AI publication frequency. Gray bands mark two AI winters (1974 – 1980, 1987 – 1993). Callout boxes mark milestones: Turing 1950, Dartmouth 1956, Perceptron 1957, ELIZA 1966, Deep Blue 1997, GPT-3 2020.">
+<p>AI’s evolution reveals a progression of bottlenecks, each overcome by systems innovations that expanded what was computationally possible. The field traces its origin to Alan Turing’s<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> 1950 paper “Computing Machinery and Intelligence” <span class="citation" data-cites="turing1950computing">(<a href="#ref-turing1950computing" role="doc-biblioref">Turing 1950</a>)</span>, which posed the foundational question: <em>Can machines think?</em> Early systems that attempted to answer this question, such as the Perceptron (1957) and ELIZA<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> (1966) <span class="citation" data-cites="weizenbaum1966eliza">(<a href="#ref-weizenbaum1966eliza" role="doc-biblioref">Weizenbaum 1966</a>)</span>, ran into the limits of manual logic and mainframe-era hardware, resulting in brittleness. Subsequent eras hit the knowledge acquisition bottleneck: manual knowledge entry could not scale. Modern systems face a different constraint: computational throughput.</p>
+<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Alan Turing</strong>: His 1950 “Imitation Game” reframed intelligence as an output-measurement problem: judge a system by what it <em>does</em>, not by what it <em>is</em>. This engineering-first stance persists in every ML systems metric we use today: accuracy, latency, throughput, and FLOPS-per-watt are all output measurements. The iron law decomposes performance into observable, measurable terms rather than internal architectural properties for exactly this reason. </p></div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>ELIZA</strong>: A 1966 natural language program that ran on 256 KB mainframes using pattern-matching rules with no learned state—its brittleness was a direct systems consequence of zero memory across turns. Every new input variation required a new hand-written rule, making maintenance cost grow faster than capability and foreshadowing the knowledge bottleneck that killed expert systems a decade later. </p></div><div id="ref-weizenbaum1966eliza" class="csl-entry" role="listitem">
+Weizenbaum, Joseph. 1966. <span>“ELIZA–a Computer Program for the Study of Natural Language Communication Between Man and Machine.”</span> <em>Communications of the ACM</em> 9 (1): 36–45. <a href="https://doi.org/10.1145/365153.365168">https://doi.org/10.1145/365153.365168</a>.
+</div><div id="fn7"><p><sup>7</sup>&nbsp;<strong>AI Winters as Systems Failures</strong>: The first AI winter (1974–1980) was precipitated by the 1973 Lighthill Report, which concluded that AI had failed to deliver on its promises. The underlying cause, however, was a mismatch between algorithm ambition and available compute. The second winter (1987–1993) was triggered by the collapse of the Lisp Machine market when cheaper general-purpose workstations undercut specialized AI hardware. Both winters are explicitly systems failures, not algorithmic dead ends: the algorithms were mathematically sound but required hardware that did not yet exist. The same compute-constraint pattern drove neural network research underground from 1969 (Minsky’s perceptron critique) to 1986 (backpropagation revival on faster hardware). </p></div></div><p>The timeline in <a href="#fig-ai-timeline" class="quarto-xref">Figure&nbsp;1</a> reveals a recurring pattern: periods of intense optimism followed by “AI winters”<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> when funding collapsed, each triggered by systems limitations that algorithms alone could not overcome. The boom-and-bust rhythm spanning seven decades follows a consistent pattern: each winter arrives precisely when the dominant paradigm hits its systems ceiling, and each resurgence follows a breakthrough in engineering infrastructure rather than in algorithms alone. Each era represents a paradigm shift attempting to overcome the limitations of the previous approach.</p>
+<div id="fig-ai-timeline" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Timeline from 1950 to 2020 with red line showing AI publication frequency. Gray bands mark two AI winters (1974 – 1980, 1987 – 1993). Callout boxes mark milestones: Turing 1950, Dartmouth 1956, Perceptron 1957, ELIZA 1966, Deep Blue 1997, GPT-3 2020." data-fig-pos="t!" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-ai-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="1a2b1bcf22673243422531a2d66c6f5d48352a16.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: AI Development Timeline. A chronological curve traces AI research activity from the 1950s to the 2020s, with gray bands marking the two AI Winter periods (1974 to 1980, 1987 to 1993). Callout boxes highlight key milestones including the Turing Test [@turing1950computing], the Dartmouth conference [@mccarthy1956dartmouth], the Perceptron, ELIZA, Deep Blue, and GPT-3."><img src="introduction_files/mediabag/1a2b1bcf22673243422531a2d66c6f5d48352a16.svg" class="img-fluid figure-img"></a>
@@ -1694,7 +1757,7 @@ Turing, Alan M. 1950. <span>“Computing Machinery and Intelligence.”</span> <
 <div class="no-row-height column-margin column-container"><div id="fn8"><p><sup>8</sup>&nbsp;<strong>Dartmouth Conference (1956)</strong>: The workshop where John McCarthy coined “artificial intelligence.” Its participants focused almost entirely on algorithmic logic while ignoring the physical constraints of storage and compute. The same compute-agnostic assumption, that a better algorithm could always overcome a hardware limit, is precisely what this book exists to correct: every chapter that follows argues that systems constraints are first-class design variables, not afterthoughts. </p></div><div id="ref-mccarthy1956dartmouth" class="csl-entry" role="listitem">
 McCarthy, John, Marvin L. Minsky, Nathaniel Rochester, and Claude E. Shannon. 1955. <em>A Proposal for the Dartmouth Summer Research Project on Artificial Intelligence</em>. Dartmouth College. <a href="https://doi.org/10.1609/aimag.v27i4.1904">https://doi.org/10.1609/aimag.v27i4.1904</a>.
 </div><div id="fn9"><p><sup>9</sup>&nbsp;<strong>STUDENT</strong>: Daniel Bobrow’s 1964 MIT system exposed the core failure mode of symbolic AI: complexity grows faster than capability. Every new problem type required new hand-written parsing rules, so the system’s maintenance burden scaled superlinearly with coverage. Data-driven approaches break this trap by learning the mapping from examples rather than encoding it as rules, which is why the shift to statistical ML in the 1980s–90s was fundamentally a scaling breakthrough, not merely an accuracy improvement. </p></div><div id="ref-bobrow1964student" class="csl-entry" role="listitem">
-Bobrow, Daniel G. 1964. <span>“Natural Language Input for a Computer Problem Solving System.”</span> PhD thesis, Massachusetts Institute of Technology. <a href="https://dspace.mit.edu/handle/1721.1/12962">https://dspace.mit.edu/handle/1721.1/12962</a>.
+Bobrow, Daniel G. 1964. <span>“Natural Language Input for a Computer Problem Solving System.”</span> PhD thesis, Massachusetts Institute of Technology. <a href="https://dspace.mit.edu/handle/1721.1/6903">https://dspace.mit.edu/handle/1721.1/6903</a>.
 </div></div><div id="callout-example-1.2" class="callout callout-example" title="STUDENT (1964)">
 <details class="callout-example fbx-simplebox fbx-default" open=""><summary><strong>Example 1.2: STUDENT (1964)</strong></summary><div>
 <pre class="text"><code>Problem: "If the number of customers Tom gets is twice the
@@ -1729,13 +1792,15 @@ THEN
 </div></details>
 </div>
 <p>MYCIN outperformed junior doctors in specific tests but revealed the <strong>knowledge acquisition bottleneck</strong><a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>. Extracting implicit intuition from human experts and formalizing it into IF-THEN rules proved slow, error prone, and contradictory.</p>
-<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Knowledge Acquisition Bottleneck</strong>: Named by Feigenbaum in 1982, this bottleneck was fundamentally a throughput problem: knowledge elicitation consumed 70–80 percent of total expert system project time, and roughly 60 percent of expert system initiatives failed outright because the acquisition process could not scale. Unlike computational bottlenecks that yield to faster hardware, this one was bound by the serial bandwidth of human experts, the original “does not scale” constraint in AI and the direct motivation for the data-driven paradigm that followed. </p></div></div><p>Maintaining a system with thousands of conflicting rules became an intractable systems engineering problem. This failure demonstrated that scalable AI required systems to learn rules from data, rather than having them manually injected by engineers.</p>
+<div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Knowledge Acquisition Bottleneck</strong>: Named by Feigenbaum in 1982, this bottleneck was fundamentally a throughput problem: knowledge elicitation consumed 70–80 percent of total expert system project time, and roughly 60 percent of expert system initiatives failed outright because the acquisition process could not scale. Unlike computational bottlenecks that yield to faster hardware, this one was bound by the serial bandwidth of human experts, the original “does not scale” constraint in AI and the direct motivation for the data-driven paradigm that followed.</p></div></div><p>Maintaining a system with thousands of conflicting rules became an intractable systems engineering problem. This failure demonstrated that scalable AI required systems to learn rules from data, rather than having them manually injected by engineers.</p>
 </section>
 </section>
 <section id="sec-introduction-statistical-learning-era-feature-engineering-bottleneck-8cf5" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-introduction-statistical-learning-era-feature-engineering-bottleneck-8cf5">Statistical learning era: The feature engineering bottleneck</h3>
 <p> The 1990s marked the shift to probabilistic systems. Instead of hard-coded logic, systems estimated probabilities from data (<span class="math inline">\(P(Y|X)\)</span>). This transition was driven by the availability of digital data and the “unreasonable effectiveness”<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> of large datasets.</p>
-<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Unreasonable Effectiveness of Data</strong>: The principle that a simple statistical model fed with massive amounts of data often outperforms a more sophisticated model with less data. This validated the pivot from brittle, hand-crafted expert systems to probabilistic models by showing that engineering investment in data scaling yielded more accuracy than investment in algorithmic complexity alone. For language tasks of that era, increasing a training dataset by <span class="math inline">\(10\times\)</span> often reduced error rates more than switching to a completely new, more complex algorithm. </p></div></div><p>Spam filtering illustrates this shift. Rather than maintaining lists of forbidden words, statistical filters learned the probability that a word implies spam based on millions of examples.</p>
+<div class="no-row-height column-margin column-container"><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Unreasonable Effectiveness of Data</strong>: The principle that a simple statistical model fed with massive amounts of data often outperforms a more sophisticated model with less data <span class="citation" data-cites="halevy2009unreasonable">(<a href="#ref-halevy2009unreasonable" role="doc-biblioref">Halevy et al. 2009</a>)</span>. This validated the pivot from brittle, hand-crafted expert systems to probabilistic models by showing that engineering investment in data scaling yielded more accuracy than investment in algorithmic complexity alone. For language tasks of that era, increasing a training dataset by <span class="math inline">\(10\times\)</span> often reduced error rates more than switching to a completely new, more complex algorithm. </p><div id="ref-halevy2009unreasonable" class="csl-entry" role="listitem">
+Halevy, Alon, Peter Norvig, and Fernando Pereira. 2009. <span>“The Unreasonable Effectiveness of Data.”</span> <em>IEEE Intelligent Systems</em> 24 (2): 8–12. <a href="https://doi.org/10.1109/mis.2009.36">https://doi.org/10.1109/mis.2009.36</a>.
+</div></div></div><p>Spam filtering illustrates this shift. Rather than maintaining lists of forbidden words, statistical filters learned the probability that a word implies spam based on millions of examples.</p>
 <div id="callout-example-1.4" class="callout callout-example" title="Early Spam Detection Systems">
 <details class="callout-example fbx-simplebox fbx-default" open=""><summary><strong>Example 1.4: Early Spam Detection Systems</strong></summary><div>
 <pre class="text"><code>Rule-based (1980s):
@@ -1771,7 +1836,7 @@ Viola, P., and M. Jones. 2001. <span>“Rapid Object Detection Using a Boosted C
 <section id="sec-introduction-deep-learning-era-infrastructure-bottleneck-2f02" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-introduction-deep-learning-era-infrastructure-bottleneck-2f02">Deep learning era: The infrastructure bottleneck</h3>
 <p> Deep learning (2012 to present) removed the human feature engineering requirement. Neural networks learn representations directly from raw data (pixels, audio waveforms), enabling “end-to-end” learning. This shift was unlocked not by new algorithms (CNNs existed in the 1980s) but by <strong>systems co-design</strong>. The 2012 AlexNet breakthrough <span class="citation" data-cites="alexnet2012">(<a href="#ref-alexnet2012" role="doc-biblioref">Krizhevsky et al. 2012</a>)</span> occurred because algorithmic structure (parallel matrix operations) matched hardware capabilities (GPUs). With sixty million parameters distributed across two GTX 580 GPUs, AlexNet achieved 15.3 percent top-5 error, a 42 percent relative improvement over the next-best entry that year, not through algorithmic novelty but through hardware-algorithm alignment. <a href="#fig-alexnet" class="quarto-xref">Figure&nbsp;2</a> makes this co-design visible: the architecture’s two parallel processing streams exist not for any algorithmic reason but because a single GTX 580 GPU lacked sufficient memory, making the network’s very structure a product of its hardware constraints.</p>
-<div class="no-row-height column-margin column-container"></div><div id="fig-alexnet" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="3D diagram of AlexNet with two parallel GPU streams. Green blocks show convolutional layers decreasing from 224x224 input. Red kernels overlay green blocks. Right side shows three dense layers converging to 1000 outputs.">
+<div class="no-row-height column-margin column-container"></div><div id="fig-alexnet" class="quarto-float quarto-figure quarto-figure-center anchored" alt="3D diagram of AlexNet with two parallel GPU streams. Green blocks show convolutional layers decreasing from 224x224 input. Red kernels overlay green blocks. Right side shows three dense layers converging to 1000 outputs." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-alexnet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="f510bf01db0a5ac1029c7afaa34b9a7ddb7935fb.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: AlexNet Architecture. The network that launched the deep learning revolution at ImageNet 2012. Two parallel GPU streams process 224 \times 224 input images through convolutional layers (green blocks) that extract spatial features at decreasing resolutions, converging through three fully connected layers to one thousand output classes. With 60 million parameters trained across two GTX 580 GPUs, AlexNet achieved 15.3 percent top-5 error, a 42 percent relative improvement over the second-place entry."><img src="introduction_files/mediabag/f510bf01db0a5ac1029c7afaa34b9a7ddb7935fb.svg" class="img-fluid figure-img"></a>
@@ -1948,16 +2013,16 @@ Table&nbsp;3: <strong>AI Performance Evolution Across Paradigms</strong>: Each p
 <p>MMLU (Multitask Multiple-choice Language Understanding) is a standard benchmark for broad knowledge across many subjects; we formalize benchmarking in <strong><a href="../benchmarking/benchmarking.html#sec-benchmarking">Benchmarking</a></strong>.</p>
 <p>The table reveals two additional insights. Training time initially increased (hours to days) but then decreased (back to hours) as distributed systems enabled parallelization. The most dramatic improvements occurred at paradigm transitions (expert systems to statistical learning, statistical learning to deep learning) when new approaches unlocked the ability to use more computation effectively. The pattern validates Sutton’s observation: progress comes from finding ways to use more compute, not from encoding more human knowledge.</p>
 <p> The principle finds further validation across AI breakthroughs. In chess, IBM’s Deep Blue defeated world champion Garry Kasparov<a href="#fn15" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a> in 1997 <span class="citation" data-cites="campbell2002deep">(<a href="#ref-campbell2002deep" role="doc-biblioref">Campbell et al. 2002</a>)</span> not by encoding chess strategies, but through brute-force search evaluating millions of positions per second.</p>
-<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Deep Blue</strong>: IBM’s chess system defeated World Champion Garry Kasparov in 1997 not through strategic understanding but through raw computational power: 200 million positions per second on 480 custom chess processors. Deep Blue was the first public demonstration that purpose-built silicon (<span class="math inline">\(R_{\text{peak}}\)</span>) could substitute for human expertise, foreshadowing the domain-specific accelerator strategy that defines modern ML hardware. </p></div><div id="ref-campbell2002deep" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn15"><p><sup>15</sup>&nbsp;<strong>Deep Blue</strong>: IBM’s chess system <span class="citation" data-cites="campbell2002deep">(<a href="#ref-campbell2002deep" role="doc-biblioref">Campbell et al. 2002</a>)</span> defeated World Champion Garry Kasparov in 1997 not through strategic understanding but through raw computational power: 200 million positions per second on 480 custom chess processors. Deep Blue was the first public demonstration that purpose-built silicon (<span class="math inline">\(R_{\text{peak}}\)</span>) could substitute for human expertise, foreshadowing the domain-specific accelerator strategy that defines modern ML hardware.</p><div id="ref-campbell2002deep" class="csl-entry" role="listitem">
 Campbell, Murray, Jr. Hoane A.Joseph, and Feng-hsiung Hsu. 2002. <span>“Deep Blue.”</span> <em>Artificial Intelligence</em> 134 (1-2): 57–83. <a href="https://doi.org/10.1016/s0004-3702(01)00129-1">https://doi.org/10.1016/s0004-3702(01)00129-1</a>.
-</div><div id="fn16"><p><sup>16</sup>&nbsp;<strong>AlphaGo</strong>: Rather than learning from human games, AlphaGo generated its own training data through millions of self-play games, trading reliance on a limited expert corpus for the ability to explore the problem space at massive computational scale. The successor system, AlphaGo Zero, used this principle exclusively: it surpassed the original after just three days on four Tensor Processing Units (TPUs), winning 100 games to 0, but required roughly 5,000 TPU-hours of self-play compute, making infrastructure budget rather than human expertise the binding constraint. </p></div><div id="ref-silver2016mastering" class="csl-entry" role="listitem">
+</div></div><div id="fn16"><p><sup>16</sup>&nbsp;<strong>AlphaGo</strong>: Rather than learning from human games, AlphaGo generated its own training data through millions of self-play games, trading reliance on a limited expert corpus for the ability to explore the problem space at massive computational scale. The successor system, AlphaGo Zero, used this principle exclusively: it surpassed the original after just three days on four Tensor Processing Units (TPUs), winning 100 games to 0, but required roughly 5,000 TPU-hours of self-play compute, making infrastructure budget rather than human expertise the binding constraint.</p></div><div id="ref-silver2016mastering" class="csl-entry" role="listitem">
 Silver, David, Aja Huang, Chris J. Maddison, et al. 2016. <span>“Mastering the Game of Go with Deep Neural Networks and Tree Search.”</span> <em>Nature</em> 529 (7587): 484–89. <a href="https://doi.org/10.1038/nature16961">https://doi.org/10.1038/nature16961</a>.
 </div></div><p> In Go, DeepMind’s AlphaGo<a href="#fn16" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a> <span class="citation" data-cites="silver2016mastering">(<a href="#ref-silver2016mastering" role="doc-biblioref">Silver et al. 2016</a>)</span> achieved superhuman performance by learning from self-play rather than studying centuries of human Go wisdom.</p>
 <p>The lesson is “bitter” because our intuition misleads us. We naturally assume that encoding human expertise should be the path to artificial intelligence. Yet repeatedly, systems that use computation to learn from data outperform systems that rely on human knowledge given sufficient scale. The pattern has held across symbolic AI, statistical learning, and deep learning eras.</p>
 <p>Modern language models like GPT-4 and image generation systems like DALL-E illustrate this principle directly. Their capabilities emerge not from linguistic or artistic theories encoded by humans but from training general-purpose neural networks on vast amounts of data using substantial computational resources. Estimates for models at GPT-3’s scale suggest thousands of megawatt-hours of energy<a href="#fn17" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a> <span class="citation" data-cites="patterson2021carbon">(<a href="#ref-patterson2021carbon" role="doc-biblioref">Patterson et al. 2021</a>)</span>, and serving these models to millions of users demands data centers consuming power comparable to small cities.</p>
-<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;<strong>GPT-3 Training Energy</strong>: Patterson et al.&nbsp;estimated GPT-3’s single training run consumed approximately 1,287 MWh and emitted 552 tonnes of CO2-equivalent, roughly the annual electricity of 120 average US households. The energy cost is dominated not by arithmetic but by data movement through the memory hierarchy, making the <span class="math inline">\(D_{\text{vol}}/BW\)</span> term of the iron law, not the compute term, the primary driver of the power bill at this scale. </p></div><div id="ref-patterson2021carbon" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn17"><p><sup>17</sup>&nbsp;<strong>GPT-3 Training Energy</strong>: <span class="citation" data-cites="patterson2021carbon">Patterson et al. (<a href="#ref-patterson2021carbon" role="doc-biblioref">2021</a>)</span> estimated GPT-3’s single training run consumed approximately 1,287 MWh and emitted 552 tonnes of CO2-equivalent, roughly the annual electricity of 120 average US households. The energy cost is dominated not by arithmetic but by data movement through the memory hierarchy, making the <span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span> term of the iron law, not the compute term, the primary driver of the power bill at this scale. </p><div id="ref-patterson2021carbon" class="csl-entry" role="listitem">
 Patterson, David, Joseph Gonzalez, Quoc Le, et al. 2021. <span>“Carbon Emissions and Large Neural Network Training.”</span> <em>arXiv Preprint arXiv:2104.10350</em>, April 21. <a href="http://arxiv.org/abs/2104.10350v3">http://arxiv.org/abs/2104.10350v3</a>.
-</div><div id="fn18"><p><sup>18</sup>&nbsp;<strong>Memory Bandwidth</strong>: The rate at which a model’s parameters move from memory to the processor. The “thousands of megawatt-hours” of energy consumed by GPT-scale models are dominated not by computation but by the physically expensive process of fetching billions of weights through the memory hierarchy. Moving data from off-chip memory can consume over <span class="math inline">\(500\times\)</span> more energy than the actual arithmetic, making this bandwidth, not processor speed, the direct cause of the data center’s massive power draw. </p></div></div><p>The implication is that realizing the bitter lesson’s promise requires expertise in data engineering, hardware optimization, and systems coordination<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> that goes far beyond algorithmic innovation. We explore these hardware constraints quantitatively in <strong><a href="../hw_acceleration/hw_acceleration.html#sec-hardware-acceleration">Hardware Acceleration</a></strong>, where students will have the prerequisite background to analyze memory bandwidth limitations and their implications for system design.</p>
+</div></div><div id="fn18"><p><sup>18</sup>&nbsp;<strong>Memory Bandwidth</strong>: The rate at which a model’s parameters move from memory to the processor. The “thousands of megawatt-hours” of energy consumed by GPT-scale models are dominated not by computation but by the physically expensive process of fetching billions of weights through the memory hierarchy. Moving data from off-chip memory can consume over <span class="math inline">\(500\times\)</span> more energy than the actual arithmetic, making this bandwidth, not processor speed, the direct cause of the data center’s massive power draw. </p></div></div><p>The implication is that realizing the bitter lesson’s promise requires expertise in data engineering, hardware optimization, and systems coordination<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> that goes far beyond algorithmic innovation. We explore these hardware constraints quantitatively in <strong><a href="../hw_acceleration/hw_acceleration.html#sec-hardware-acceleration">Hardware Acceleration</a></strong>, where students will have the prerequisite background to analyze memory bandwidth limitations and their implications for system design.</p>
 <p>Sutton’s bitter lesson explains the motivation for ML systems engineering. If AI progress depends on our ability to scale computation effectively, then understanding <em>how</em> to build, deploy, and maintain these computational systems is essential for AI practitioners. Yet this understanding demands more than familiarity with any single technical domain. Computer Science advances ML algorithms, and Electrical Engineering develops specialized AI hardware, but neither discipline alone provides the engineering principles needed to deploy, optimize, and sustain ML systems at scale. The convergence of data management, algorithmic design, and infrastructure optimization into a single engineering challenge has given rise to a new discipline, one we define formally later in this chapter and develop across the entire book.</p>
 <p>The bitter lesson tells us <em>why</em> scale matters. The natural next question is what kind of systems make that scale practical. A precise characterization begins with a concrete example.</p>
 <div id="quiz-question-sec-introduction-bitter-lesson-79c7" class="callout callout-quiz-question">
@@ -1999,7 +2064,7 @@ Statista Research Department. 2024. <em>Number of Sent and Received e-Mails Per 
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Machine Learning Systems</strong></summary><div>
 <p><strong><em>Machine Learning Systems</em></strong> are software systems whose core behavior is determined by parameters learned from data rather than explicitly programmed rules, making performance a function of data quality, algorithm choice, and hardware capacity simultaneously.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> Every performance budget traces back to the iron law: <span class="math inline">\(T = D_{\text{vol}}/BW + O/(R_{\text{peak}} \cdot \eta) + L_{\text{lat}}\)</span>. In a production recommendation system serving 10 million requests per day, a 10 percent reduction in <span class="math inline">\(D_{\text{vol}}\)</span> per request (via feature compression) reduces total data movement proportionally, while a 2<span class="math inline">\(\times\)</span> increase in <span class="math inline">\(R_{\text{peak}}\)</span> (via hardware upgrade) only improves the compute term, meaning the binding constraint must be identified before any optimization investment yields returns.</li>
+<li><strong>Significance (Quantitative):</strong> Every performance budget traces back to the iron law: <span class="math inline">\(T = D_{\text{vol}}/\text{BW} + O/(R_{\text{peak}} \cdot \eta_{\text{hw}}) + L_{\text{lat}}\)</span>. In a production recommendation system serving 10 million requests per day, a 10 percent reduction in <span class="math inline">\(D_{\text{vol}}\)</span> per request (via feature compression) reduces total data movement proportionally, while a 2<span class="math inline">\(\times\)</span> increase in <span class="math inline">\(R_{\text{peak}}\)</span> (via hardware upgrade) only improves the compute term, meaning the binding constraint must be identified before any optimization investment yields returns.</li>
 <li><strong>Distinction (Durable):</strong> Unlike traditional software, whose correctness degrades only when code changes, an ML system’s accuracy degrades when the world changes. Model weights are fixed after deployment, but the distribution of inputs relative to what the model learned shifts continuously, eroding accuracy silently without any error or exception.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that an ML system is the model. Google’s 2015 audit of production ML systems found that model code comprises approximately five percent of total lines; the other 95 percent is data pipelines, serving infrastructure, and monitoring <span class="citation" data-cites="sculley2015hidden">(<a href="#ref-sculley2015hidden" role="doc-biblioref">Sculley et al. 2015</a>)</span>.</li>
 </ol>
@@ -2008,7 +2073,7 @@ Statista Research Department. 2024. <em>Number of Sent and Received e-Mails Per 
 <div class="no-row-height column-margin column-container"></div><p>Recall the <strong>Data · Algorithm · Machine (D·A·M) taxonomy</strong> introduced at the start of this chapter. We now formalize its diagnostic application: when performance stalls or behavior degrades, ask <em>“Which axis is the bottleneck?”</em></p>
 <div id="callout-definition-1.2" class="callout callout-definition" title="The D·A·M Taxonomy">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: The D·A·M Taxonomy</strong></summary><div>
-<p>The <strong><em>D·A·M Taxonomy</em></strong> is a diagnostic framework that classifies any machine learning system performance bottleneck along three axes: <strong>Data</strong> (<span class="math inline">\(D_{\text{vol}}\)</span>, <span class="math inline">\(BW\)</span>), <strong>Algorithm</strong> (<span class="math inline">\(O\)</span>, model architecture), and <strong>Machine</strong> (<span class="math inline">\(R_{\text{peak}}\)</span>, memory capacity). The goal is to identify which axis is the binding constraint.</p>
+<p>The <strong><em>D·A·M Taxonomy</em></strong> is a diagnostic framework that classifies any machine learning system performance bottleneck along three axes: <strong>Data</strong> (<span class="math inline">\(D_{\text{vol}}\)</span>, <span class="math inline">\(\text{BW}\)</span>), <strong>Algorithm</strong> (<span class="math inline">\(O\)</span>, model architecture), and <strong>Machine</strong> (<span class="math inline">\(R_{\text{peak}}\)</span>, memory capacity). The goal is to identify which axis is the binding constraint.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> The diagnostic power is concrete. A ResNet-50 inference run at batch size one is memory-bandwidth-bound (Machine axis): the A100’s 2 TB/s bandwidth moves 25 MB of weights per forward pass in 12.5 μs, while the 4 GFLOP compute finishes in 2 μs. This 6<span class="math inline">\(\times\)</span> gap means hardware upgrades to <span class="math inline">\(R_{\text{peak}}\)</span> yield no improvement until the bandwidth bottleneck is resolved first.</li>
 <li><strong>Distinction (Durable):</strong> Unlike traditional software performance analysis, which treats code and data as separate concerns, the D·A·M taxonomy recognizes that algorithm choice directly determines both the data volume required (a transformer needs orders of magnitude more data than a linear model to generalize) and the machine required to run it.</li>
@@ -2018,7 +2083,7 @@ Statista Research Department. 2024. <em>Number of Sent and Received e-Mails Per 
 </div>
 <p>The three components can be conceptualized as <strong>Data</strong> (the fuel), <strong>Algorithm</strong> (the blueprint), and <strong>Machine</strong> (the engine). Without any one component, the others remain theoretical. This conceptual relationship is termed the <strong>AI Triad</strong>, the recognition that these three elements are fundamentally interdependent.</p>
 <p>To visualize these interdependencies, consider the triangle in <a href="#fig-ai-triad" class="quarto-xref">Figure&nbsp;3</a>: the bidirectional arrows between Data, Algorithm, and Machine emphasize that no axis can be optimized in isolation. Each element shapes the possibilities of the others. The algorithm dictates both the computational demands for training and inference and the volume and structure of data required for effective learning. The data’s scale and complexity influence what machines are needed for storage and processing while determining which algorithms are feasible. The machine’s capabilities establish practical limits on both model scale and data processing capacity, creating a boundary within which the other axes must operate.</p>
-<div id="fig-ai-triad" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Triangle with circles at vertices labeled Algorithm (top), Data (left), and Machine (right). Double-headed purple arrows connect all three, showing bidirectional dependencies. Icons depict a neural network, database cylinders, and a cloud server.">
+<div id="fig-ai-triad" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Triangle with circles at vertices labeled Algorithm (top), Data (left), and Machine (right). Double-headed purple arrows connect all three, showing bidirectional dependencies. Icons depict a neural network, database cylinders, and a cloud server." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ai-triad-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="3dca05ed12b2de8112f5294c48fbf879bf81e9c6.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: The D·A·M Taxonomy: Interdependent relationship between Data, Algorithm, and Machine. Each node (dataset, model, and infrastructure) constrains the capabilities of the others. ML systems engineering is the discipline of balancing these three axes; optimizing one in isolation often shifts the system bottleneck to another rather than eliminating it."><img src="introduction_files/mediabag/3dca05ed12b2de8112f5294c48fbf879bf81e9c6.svg" class="img-fluid figure-img"></a>
@@ -2074,7 +2139,7 @@ Table&nbsp;4: <strong>The D·A·M Taxonomy</strong>: Every ML system comprises t
 <h3 class="anchored" data-anchor-id="sec-introduction-engineering-crux">The engineering crux: A hierarchy of architecture</h3>
 <p> Every machine learning system analyzed in this text is constructed from four hierarchical layers. This <strong>engineering crux</strong> transforms raw physical constraints into functional user applications, ensuring that a decision made at the silicon level is traceable to its impact on the final mission.</p>
 <ol type="1">
-<li><strong>Hardware (The Silicon)</strong>: The physical foundation (The Engine). This layer defines the raw capabilities: <span class="math inline">\(R_{\text{peak}}\)</span>, <span class="math inline">\(BW\)</span>, and memory capacity. We use real-world hardware “Twins” like the <strong>NVIDIA H100</strong> and <strong>ESP32-S3</strong>.</li>
+<li><strong>Hardware (The Silicon)</strong>: The physical foundation (The Engine). This layer defines the raw capabilities: <span class="math inline">\(R_{\text{peak}}\)</span>, <span class="math inline">\(\text{BW}\)</span>, and memory capacity. We use real-world hardware “Twins” like the <strong>NVIDIA H100</strong> and <strong>ESP32-S3</strong>.</li>
 <li><strong>Systems (The Platforms)</strong>: The integrated deployment unit (The Car). This layer defines the “Envelope” in which hardware operates: power budget, thermal limits, and node-level interconnects. Examples include the <strong>Training Cluster Node</strong> or the <strong>Sub-Watt Sensor Node</strong>.</li>
 <li><strong>Workloads (The Models)</strong>: The algorithmic demand (The Route). This layer defines the mathematical workload: operation count (<span class="math inline">\(O\)</span>), parameter volume (<span class="math inline">\(D_{\text{vol}}\)</span>), and data layout. We use <strong>Lighthouse Workloads</strong> like <strong>GPT-4</strong> and <strong>Wake Vision</strong>.</li>
 <li><strong>Missions (The Scenarios)</strong>: The application context (The Destination). This is the top of the stack, where a system is deployed to solve a specific problem. A <strong>Mission</strong>, such as the <strong>Smart Doorbell</strong>, introduces high-level requirements (for example, “one-year battery life”) that dictate the configuration of every layer below.</li>
@@ -2179,7 +2244,7 @@ Table&nbsp;4: <strong>The D·A·M Taxonomy</strong>: Every ML system comprises t
 <p>An autonomous vehicle’s perception system illustrates this distinction concretely. Traditional automotive software exhibits binary operational states: the engine control unit either manages fuel injection correctly or triggers diagnostic warnings. The failure mode remains observable through standard monitoring. An ML-based perception system presents a different challenge. The system’s accuracy in detecting pedestrians might decline from 95 percent to 85 percent over several months due to seasonal changes, as different lighting conditions, clothing patterns, or weather phenomena underrepresented in training data affect model performance. The vehicle continues operating, successfully detecting most pedestrians, yet the degraded performance creates safety risks that become apparent only through systematic monitoring of edge cases and comprehensive evaluation. Conventional error logging and alerting mechanisms remain silent while the system becomes measurably less safe.</p>
 <p>The magnitude of this degradation matters in safety-critical contexts. For autonomous vehicles, even 95 percent accuracy may be inadequate: safety-critical systems typically require 99.9 percent or higher reliability. The 10-percentage-point degradation from 95 percent to 85 percent is especially concerning because failures concentrate in edge cases where detection was already marginal, precisely the scenarios where human safety is most at risk.</p>
 <p>This silent degradation manifests across all three D·A·M axes. The data distribution shifts as the world changes: user behavior evolves, seasonal patterns emerge, and new edge cases appear. Meanwhile, the algorithms continue making predictions based on outdated learned patterns, unaware that their training distribution no longer matches operational reality. The machines faithfully serve these increasingly inaccurate predictions at scale, amplifying the problem across every user and every query.</p>
-<p>Because this failure mode is silent, crash logs cannot be relied upon for detection; mathematical approaches must be used. When failures do not announce themselves, quantitative signals are needed that connect measurable distribution shift to expected performance loss. Just as Patterson and Hennessy’s iron law <span class="citation" data-cites="patterson2021hardware">(<a href="#ref-patterson2021hardware" role="doc-biblioref">Patterson and Hennessy 2021</a>)</span> decomposed CPU performance into fundamental components, we can decompose ML system degradation into constituent factors. The <strong>Degradation Equation</strong> in <a href="#eq-degradation" class="quarto-xref">Equation&nbsp;3</a> captures how model performance evolves over time:</p>
+<p>Because this failure mode is silent, crash logs cannot be relied upon for detection; mathematical approaches must be used. When failures do not announce themselves, quantitative signals are needed that connect measurable distribution shift to expected performance loss. Just as Patterson and Hennessy’s iron law <span class="citation" data-cites="patterson2017hardware">(<a href="#ref-patterson2017hardware" role="doc-biblioref">Patterson and Hennessy 2017</a>)</span> decomposed CPU performance into fundamental components, we can decompose ML system degradation into constituent factors. The <strong>Degradation Equation</strong> in <a href="#eq-degradation" class="quarto-xref">Equation&nbsp;3</a> captures how model performance evolves over time:</p>
 <div class="no-row-height column-margin column-container"></div><p><span id="eq-degradation"><span class="math display">\[ \text{Accuracy}(t) \approx \text{Accuracy}_0 - \lambda \cdot D(P_t \| P_0)  \tag{3}\]</span></span></p>
 <p>where:</p>
 <ul>
@@ -2226,22 +2291,22 @@ Table&nbsp;4: <strong>The D·A·M Taxonomy</strong>: Every ML system comprises t
 <section id="sec-introduction-iron-law-ml-systems-c32a" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-introduction-iron-law-ml-systems-c32a">Iron Law of ML Systems</h2>
 <p> To reason about ML systems as engineers, we need more than qualitative descriptions. We need a quantitative framework that connects every layer of the stack. Just as classical mechanics is governed by Newton’s laws and processor performance is governed by the iron law of Processor Performance, machine learning system performance is governed by the <strong>iron law of ML systems</strong>, formalized in <a href="#eq-intro-iron-law" class="quarto-xref">Equation&nbsp;4</a>:</p>
-<p><span id="eq-intro-iron-law"><span class="math display">\[\text{Time}_{\text{total}} = \underbrace{ \frac{\text{Data} (D_{\text{vol}})}{\text{Bandwidth} (BW)} }_{\text{The Data Term}} + \underbrace{ \frac{\text{Ops} (O)}{\text{Peak} (R_{\text{peak}}) \times \text{Efficiency} (\eta)} }_{\text{The Compute Term}} + \underbrace{ \text{Overhead} (L_{\text{lat}}) }_{\text{The Latency Term}} \tag{4}\]</span></span></p>
+<p><span id="eq-intro-iron-law"><span class="math display">\[\text{Time}_{\text{total}} = \underbrace{ \frac{\text{Data} (D_{\text{vol}})}{\text{Bandwidth} (\text{BW})} }_{\text{The Data Term}} + \underbrace{ \frac{\text{Ops} (O)}{\text{Peak} (R_{\text{peak}}) \times \text{Efficiency} (\eta_{\text{hw}})} }_{\text{The Compute Term}} + \underbrace{ \text{Overhead} (L_{\text{lat}}) }_{\text{The Latency Term}} \tag{4}\]</span></span></p>
 <p><em>This equation is the mathematical spine of this book.</em> It decomposes the total time required for any ML task, whether training a model for weeks or serving an inference in milliseconds, into three terms that correspond directly to the physical constraints of the Dual Mandate introduced earlier:</p>
 <ol type="1">
-<li><strong>The Data Term (<span class="math inline">\(D_{\text{vol}}/BW\)</span>)</strong>: The physical cost of moving bits. <span class="math inline">\(D_{\text{vol}}\)</span> is the volume of data moved (bytes), and <span class="math inline">\(BW\)</span> is the memory or network bandwidth (bytes/sec). Whether loading terabytes from cloud storage or fetching weights from high-bandwidth memory, performance is often limited by I/O physics. This is addressed in <strong>Part I: Foundations</strong>.</li>
-<li><strong>The Compute Term (<span class="math inline">\(O / (R_{\text{peak}} \cdot \eta)\)</span>)</strong>: The cost of arithmetic. <span class="math inline">\(O\)</span> is the number of floating-point operations. <span class="math inline">\(R_{\text{peak}}\)</span> is the hardware’s theoretical peak throughput (FLOPS). <span class="math inline">\(\eta\)</span> (eta) is the utilization factor (<span class="math inline">\(0 \le \eta \le 1\)</span>), representing software efficiency. We address this in <strong>Part II: Build</strong> and <strong>Part III: Optimize</strong>.</li>
+<li><strong>The Data Term (<span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span>)</strong>: The physical cost of moving bits. <span class="math inline">\(D_{\text{vol}}\)</span> is the volume of data moved (bytes), and <span class="math inline">\(\text{BW}\)</span> is the memory or network bandwidth (bytes/sec). Whether loading terabytes from cloud storage or fetching weights from high-bandwidth memory, performance is often limited by I/O physics. This is addressed in <strong>Part I: Foundations</strong>.</li>
+<li><strong>The Compute Term (<span class="math inline">\(O / (R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span>)</strong>: The cost of arithmetic. <span class="math inline">\(O\)</span> is the number of floating-point operations. <span class="math inline">\(R_{\text{peak}}\)</span> is the hardware’s theoretical peak throughput (FLOPS). <span class="math inline">\(\eta_{\text{hw}}\)</span> (eta) is the utilization factor (<span class="math inline">\(0 \le \eta_{\text{hw}} \le 1\)</span>), representing software efficiency. We address this in <strong>Part II: Build</strong> and <strong>Part III: Optimize</strong>.</li>
 <li><strong>The Overhead Term (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong>: The irreducible “tax” of system orchestration, networking, and serialization. This fixed latency dominates in real-time deployment. We address this in <strong>Part IV: Deploy</strong>.</li>
 </ol>
 <div id="callout-perspective-1.4" class="callout callout-perspective" title="The iron law analogy">
-<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.4: The iron law analogy</strong></summary><div>We call this the “iron law” by analogy to Patterson &amp; Hennessy’s iron law of Processor Performance <span class="citation" data-cites="patterson2021hardware">(<a href="#ref-patterson2021hardware" role="doc-biblioref">Patterson and Hennessy 2021</a>)</span>. However, there are important differences. P&amp;H’s law is a <strong>multiplicative decomposition</strong> (a tautology factoring CPU time), whereas our equation is an <strong>additive first-order model</strong> that approximates performance under simplifying assumptions.<p></p>
+<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.4: The iron law analogy</strong></summary><div>We call this the “iron law” by analogy to Patterson &amp; Hennessy’s iron law of Processor Performance <span class="citation" data-cites="patterson2017hardware">(<a href="#ref-patterson2017hardware" role="doc-biblioref">Patterson and Hennessy 2017</a>)</span>. However, there are important differences. P&amp;H’s law is a <strong>multiplicative decomposition</strong> (a tautology factoring CPU time), whereas our equation is an <strong>additive first-order model</strong> that approximates performance under simplifying assumptions.<p></p>
 <p>The additive form assumes sequential execution; in practice, systems can <strong>overlap</strong> these terms, transforming the sum into a max as <a href="#eq-intro-iron-law-pipelined" class="quarto-xref">Equation&nbsp;5</a> shows:</p>
-<p><span id="eq-intro-iron-law-pipelined"><span class="math display">\[T_{\text{pipelined}} = \max\left(\frac{D_{\text{vol}}}{BW}, \frac{O}{R_{\text{peak}} \cdot \eta}\right) + L_{\text{lat}} \tag{5}\]</span></span></p>
+<p><span id="eq-intro-iron-law-pipelined"><span class="math display">\[T_{\text{pipelined}} = \max\left(\frac{D_{\text{vol}}}{BW}, \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}}\right) + L_{\text{lat}} \tag{5}\]</span></span></p>
 <p> We retain “iron law” because, like <strong>Amdahl’s Law</strong>, its value lies in <strong>diagnostic power</strong>: identifying which physical constraint dominates before optimizing. The iron law is useful precisely because it simplifies the complexity of the full stack into three manageable terms. <strong><a href="../backmatter/appendix_dam.html#sec-dam-taxonomy">The D·A·M Taxonomy</a></strong> presents the refined treatment, including pipelining and overlap techniques that transform the additive model into the max-based formulation used in practice.</p>
 </div></details>
 </div>
-<div class="no-row-height column-margin column-container"><div id="ref-patterson2021hardware" class="csl-entry" role="listitem">
-Patterson, David A., and John L. Hennessy. 2021. <em>Computer Architecture: A Quantitative Approach</em>. 6th ed. Morgan Kaufmann.
+<div class="no-row-height column-margin column-container"><div id="ref-patterson2017hardware" class="csl-entry" role="listitem">
+Patterson, David A., and John L. Hennessy. 2017. <em>Computer Architecture: A Quantitative Approach</em>. 6th ed. Morgan Kaufmann.
 </div><div id="fn20"><p><sup>20</sup>&nbsp;<strong>“All models are wrong, but some are useful”</strong>: Statistician George Box’s aphorism applies directly to the iron law: the additive decomposition ignores pipelining, memory hierarchy effects, and communication overhead. Yet this deliberate simplification is precisely what makes it diagnostic. Engineers who try to model every interaction before profiling never ship; engineers who identify which of three terms dominates ship systems that work.</p></div></div><p>As George Box famously said, “All models are wrong, but some are useful.”<a href="#fn20" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a></p>
 <p><strong><a href="../backmatter/appendix_machine.html#sec-machine-foundations">Machine Foundations</a></strong> develops the deeper mathematical treatment, including the Roofline Model that visualizes how data movement and computation trade off on specific hardware.</p>
 <p>Throughout this book, every optimization technique we study, from pruning to kernel fusion, is a method for manipulating one of these variables. The following notebook demonstrates this by <em>training GPT-3</em> as a worked example of the iron law in practice.</p>
@@ -2250,13 +2315,13 @@ Patterson, David A., and John L. Hennessy. 2021. <em>Computer Architecture: A Qu
 <p><strong>1. The Variables</strong>:</p>
 <ul>
 <li><strong>Ops (O)</strong>: <span class="math inline">\(\approx 3.14 \times 10^{23}\)</span> FLOPs (from paper).</li>
-<li><strong>Peak (Rpeak)</strong>: 312 TFLOPS (A100 FP16 tensor core peak).</li>
+<li><strong>Peak (<span class="math inline">\(R_{\text{peak}}\)</span>)</strong>: 312 TFLOPS (A100 FP16 tensor core peak).</li>
 <li><strong>Efficiency (η)</strong>: ≈ 45 percent (typical for large-scale distributed training).</li>
 <li><strong>Scale (N)</strong>: 1024 GPUs.</li>
 </ul>
 <p><strong>2. The Calculation</strong>:</p>
 <ul>
-<li><span class="math inline">\(\text{Time} \approx \frac{O}{N \cdot R_{\text{peak}} \cdot \eta}\)</span> <span class="math inline">\(\approx \frac{3.14 \times 10^{23}}{1024 \times (312 \times 10^{12}) \times 0.45}\)</span> <span class="math inline">\(\approx 25\ \text{days}\)</span></li>
+<li><span class="math inline">\(\text{Time} \approx \frac{O}{N \cdot R_{\text{peak}} \cdot \eta_{\text{hw}}}\)</span> <span class="math inline">\(\approx \frac{3.14 \times 10^{23}}{1024 \times (312 \times 10^{12}) \times 0.45}\)</span> <span class="math inline">\(\approx 25\ \text{days}\)</span></li>
 </ul>
 <p><strong>3. The Result</strong>: <strong>25 days</strong>.</p>
 <p><strong>The Systems Insight</strong>: If we improve software efficiency (η) from 45 percent to 60 percent through kernel fusion and better scheduling, training time drops to <strong>19 days</strong>, saving nearly 6 days of expensive compute time.</p>
@@ -2268,9 +2333,9 @@ Patterson, David A., and John L. Hennessy. 2021. <em>Computer Architecture: A Qu
 <p>The dominant term is data movement: <span class="math inline">\(E_{\text{move}} \gg E_{\text{compute}}\)</span>. Moving a byte of data from memory often costs 100<span class="math inline">\(\times\)</span> more energy than performing a floating-point operation on it. The physical reason is that data movement requires charging and discharging wires over macroscopic distances, while arithmetic is performed locally within a processing unit’s circuits. Therefore, <strong>minimizing data movement (<span class="math inline">\(D_{\text{vol}}\)</span>)</strong> is the primary lever for both speed <em>and</em> energy efficiency.</p>
 <p>The relationship between time, energy, and data movement forms the central analytical tool of this book.</p>
 <div id="callout-checkpoint-1.2" class="callout callout-checkpoint" title="The iron law">
-<p></p><details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.2: The iron law</strong></summary><div>The <strong>iron law</strong> (<span class="math inline">\(T \approx \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta} + L_{\text{lat}}\)</span>) is the analytical backbone of this book. Before proceeding, verify you can manipulate its terms:<p></p>
+<p></p><details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.2: The iron law</strong></summary><div>The <strong>iron law</strong> (<span class="math inline">\(T \approx \frac{D_{\text{vol}}}{BW} + \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}} + L_{\text{lat}}\)</span>) is the analytical backbone of this book. Before proceeding, verify you can manipulate its terms:<p></p>
 <ul class="task-list">
-<li><label><input type="checkbox"><strong>Data Term (<span class="math inline">\(D_{\text{vol}}/BW\)</span>)</strong>: Bound by memory bandwidth. Dominates in transformers and large language models where we move massive weights for every token.</label></li>
+<li><label><input type="checkbox"><strong>Data Term (<span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span>)</strong>: Bound by memory bandwidth. Dominates in transformers and large language models where we move massive weights for every token.</label></li>
 <li><label><input type="checkbox"><strong>Compute Term (<span class="math inline">\(O/R_{\text{peak}}\)</span>)</strong>: Bound by processor speed. Dominates in ConvNets (ResNet) where we reuse weights many times.</label></li>
 <li><label><input type="checkbox"><strong>Latency Term (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong>: Bound by physics and software overhead. Dominates in Inference and small-batch regimes.</label></li>
 </ul>
@@ -2294,10 +2359,10 @@ Table&nbsp;5: <strong>Lighthouse Models as Systems Detectives</strong>: Each wor
 <div aria-describedby="tbl-lighthouse-examples-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
+<col style="width: 37%">
+<col style="width: 14%">
 <col style="width: 18%">
-<col style="width: 18%">
-<col style="width: 23%">
-<col style="width: 39%">
+<col style="width: 29%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2343,7 +2408,7 @@ Table&nbsp;5: <strong>Lighthouse Models as Systems Detectives</strong>: Each wor
 </div>
 </figure>
 </div>
-<p>The iron law makes these differences precise. ResNet-50 applies the same small weight filters across millions of spatial positions, reusing each weight thousands of times; its <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta)\)</span> term dominates because the processor must sustain enormous arithmetic throughput while the data footprint remains modest. GPT-2, by contrast, loads billions of unique weight parameters for every token it generates, and each weight is used only once before the next must be fetched; its <span class="math inline">\(D_{\text{vol}}/BW\)</span> term dominates because memory bandwidth, not arithmetic, is the binding constraint. The same equation, applied to two different workloads, yields opposite diagnoses and therefore opposite optimization strategies: doubling <span class="math inline">\(R_{\text{peak}}\)</span> accelerates ResNet-50 but barely affects GPT-2, while doubling <span class="math inline">\(BW\)</span> has the reverse effect.</p>
+<p>The iron law makes these differences precise. ResNet-50 applies the same small weight filters across millions of spatial positions, reusing each weight thousands of times; its <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span> term dominates because the processor must sustain enormous arithmetic throughput while the data footprint remains modest. GPT-2, by contrast, loads billions of unique weight parameters for every token it generates, and each weight is used only once before the next must be fetched; its <span class="math inline">\(D_{\text{vol}}/\text{BW}\)</span> term dominates because memory bandwidth, not arithmetic, is the binding constraint. The same equation, applied to two different workloads, yields opposite diagnoses and therefore opposite optimization strategies: doubling <span class="math inline">\(R_{\text{peak}}\)</span> accelerates ResNet-50 but barely affects GPT-2, while doubling <span class="math inline">\(\text{BW}\)</span> has the reverse effect.</p>
 <p>Each archetype manifests different constraints along the D·A·M axes, ensuring that the principles developed throughout this text are tested against the diversity of real-world systems engineering challenges. Later in this chapter, these technical workloads are complemented with three deployment case studies, Waymo, FarmBeats, and AlphaFold, that illustrate how the same core challenges manifest in production systems under radically different constraints.</p>
 <p>To see these Lighthouse Models’ diagnostic power in action, consider the breakthrough moment that launched the deep learning era. The D·A·M taxonomy’s interdependencies become concrete in the 2012 AlexNet victory <span class="citation" data-cites="alexnet2012">(<a href="#ref-alexnet2012" role="doc-biblioref">Krizhevsky et al. 2012</a>)</span>, which reduced ImageNet<a href="#fn21" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a> <span class="citation" data-cites="deng2009imagenet">(<a href="#ref-deng2009imagenet" role="doc-biblioref">Deng et al. 2009</a>)</span> top-5 error from 26.2 percent to 15.3 percent not through algorithmic novelty alone but because convolutional neural networks’ parallel matrix operations aligned perfectly with GPU hardware capabilities.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-alexnet2012" class="csl-entry" role="listitem">
@@ -2384,7 +2449,7 @@ Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2009. <s
 <p>Training GPT-4-class models reportedly consumed over two million A100 GPU-days, representing millions of dollars in compute costs and substantial environmental impact. Many research institutions and companies cannot afford to compete through brute-force scaling. The reality motivates a complementary approach: rather than focusing solely on applying more compute, the field must also address how efficiently existing compute is used.</p>
 <p>The answer defines the efficiency framework. Three complementary dimensions map directly to our <strong>D·A·M taxonomy</strong> (<a href="#tbl-dam-taxonomy" class="quarto-xref">Table&nbsp;4</a>), and they matured in a revealing historical sequence. <strong>algorithmic efficiency</strong>, the earliest frontier, reduces computational requirements through better model design and training procedures. Techniques such as model compression (pruning, quantization, knowledge distillation), efficient architectures like MobileNet, and neural architecture search all deliver more capability per FLOP. As algorithms demanded ever more computation, <strong>compute efficiency</strong> became the second critical dimension. It maximizes hardware utilization by aligning algorithmic logic with machine physics, encompassing the evolution from general-purpose CPUs to specialized accelerators (GPUs, TPUs) and the hardware-software co-design principles that translate theoretical TFLOPS into real-world speedups. Most recently, <strong>data selection</strong> emerged as the third dimension, extracting more learning signal from limited examples and thereby reducing the data numerator of the iron law. Techniques including transfer learning, active learning, and curriculum design ensure every sample provides maximum learning value. Together, these three dimensions provide the engineering tools to overcome the Data, Algorithm, and Machine walls that pure scaling alone cannot address.</p>
 <p>These three dimensions did not emerge simultaneously; as <a href="#fig-evolution-efficiency" class="quarto-xref">Figure&nbsp;4</a> reveals, each progressed through distinct eras at different rates. Algorithmic efficiency led the way, compute efficiency followed as demand grew, and data-centric methods matured most recently. While history progressed from algorithmic breakthroughs to hardware acceleration to data-centric methods, Part III of this book reverses that sequence: we begin with data selection, then model compression, then hardware acceleration. This pedagogical order reflects how practitioners actually build systems: quality data is prerequisite to effective model optimization, and understanding the model is prerequisite to mapping it efficiently onto hardware.</p>
-<div id="fig-evolution-efficiency" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Timeline with three horizontal tracks from 1980 to 2023. Blue track shows algorithmic efficiency progressing through deep learning era to modern efficiency. Yellow shows compute efficiency from general-purpose through accelerated to sustainable computing. Green shows data selection from scarcity through big data to data-centric AI.">
+<div id="fig-evolution-efficiency" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Timeline with three horizontal tracks from 1980 to 2023. Blue track shows algorithmic efficiency progressing through deep learning era to modern efficiency. Yellow shows compute efficiency from general-purpose through accelerated to sustainable computing. Green shows data selection from scarcity through big data to data-centric AI." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-evolution-efficiency-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="8092379fa37792118da038349b1399b75db51740.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Historical Efficiency Trends. A three-track timeline from 1980 to 2023 shows parallel progress in Algorithmic Efficiency (blue), Compute Efficiency (yellow), and Data Selection (green). Each track progresses through distinct eras: algorithms advance from early methods through deep learning to modern efficiency techniques; compute evolves from general-purpose CPUs through accelerated hardware to sustainable computing; data practices shift from scarcity through big data to data-centric AI."><img src="introduction_files/mediabag/8092379fa37792118da038349b1399b75db51740.svg" class="img-fluid figure-img"></a>
@@ -2396,16 +2461,16 @@ Figure&nbsp;4: <strong>Historical Efficiency Trends.</strong> A three-track time
 </div>
 <p>The magnitude of efficiency improvements is measurable. Between 2012 and 2019, computational resources needed to train a neural network to achieve AlexNet-level performance on ImageNet classification decreased by approximately 44.5<span class="math inline">\(\times\)</span> <span class="citation" data-cites="hernandez2020measuring">(<a href="#ref-hernandez2020measuring" role="doc-biblioref">Hernandez and Brown 2020</a>)</span>. This improvement, which halved every 16 months, outpaced hardware efficiency gains predicted by Moore’s Law<a href="#fn22" class="footnote-ref" id="fnref22" role="doc-noteref"><sup>22</sup></a>, demonstrating that algorithmic innovation drives efficiency as much as hardware advances.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-hernandez2020measuring" class="csl-entry" role="listitem">
-Hernandez, Danny, and Tom B. Brown. 2020. <span>“Measuring the Algorithmic Efficiency of Neural Networks.”</span> <em>arXiv Preprint arXiv:2007.03051</em>, ahead of print, May 8. <a href="https://doi.org/10.48550/arxiv.2005.04305">https://doi.org/10.48550/arxiv.2005.04305</a>.
+Hernandez, Danny, and Tom B. Brown. 2020. <span>“Measuring the Algorithmic Efficiency of Neural Networks.”</span> <em>arXiv Preprint arXiv:2005.04305</em>, ahead of print, May 8. <a href="https://doi.org/10.48550/arxiv.2005.04305">https://doi.org/10.48550/arxiv.2005.04305</a>.
 </div><div id="fn22"><p><sup>22</sup>&nbsp;<strong>Moore’s Law</strong>: Gordon Moore’s 1965 observation that transistor density doubles approximately every two years. Over the same 2012–2019 window where algorithmic efficiency improved 44<span class="math inline">\(\times\)</span>, Moore’s Law delivered roughly 16<span class="math inline">\(\times\)</span> in transistor scaling, meaning algorithmic innovation closed more of the efficiency gap than hardware alone. Simultaneously, <em>demand</em> for training compute doubled every 3.4 months, outpacing both curves and forcing the shift to domain-specific accelerators. </p></div><div id="ref-amodei2018aicompute" class="csl-entry" role="listitem">
 Amodei, Dario, and Danny Hernandez. 2018. <span>“AI and Compute.”</span> <em>OpenAI Blog</em>. <a href="https://openai.com/research/ai-and-compute">https://openai.com/research/ai-and-compute</a>.
 </div></div><p>Simultaneously, the compute used in AI training increased by roughly five orders of magnitude from 2012 to 2018, doubling approximately every 3.4 months <span class="citation" data-cites="amodei2018aicompute">(<a href="#ref-amodei2018aicompute" role="doc-biblioref">Amodei and Hernandez 2018</a>)</span>. This exponential growth far exceeds Moore’s Law and explains <em>why</em> efficiency optimization is not optional. Without it, only the most resource-rich organizations could participate in AI development.</p>
 <p>These measurements emerge from rigorous empirical methodology that tracked training compute across hundreds of published models; <strong><a href="../benchmarking/benchmarking.html#sec-benchmarking">Benchmarking</a></strong> develops the measurement frameworks that enable such systematic analysis of ML system performance. Closing the Systems Gap is the primary objective of this textbook, requiring integrated expertise across the software and hardware stack.</p>
 <p>To appreciate the magnitude of these gains, consider the trajectory in <a href="#fig-algo-efficiency" class="quarto-xref">Figure&nbsp;5</a>: starting from AlexNet as the baseline, each successive architecture (VGG, ResNet, MobileNet, EfficientNet) achieves comparable accuracy with dramatically fewer computational resources, culminating in a 44.5<span class="math inline">\(\times\)</span> improvement over just eight years.</p>
-<div id="fig-algo-efficiency" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Scatter plot showing training efficiency factor from 2012 to 2020. Red dots mark models from AlexNet at 1x to EfficientNet at 44x. Dashed trend line curves upward. Labels identify VGG, ResNet, MobileNet, and ShuffleNet versions at their positions.">
+<div id="fig-algo-efficiency" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Scatter plot showing training efficiency factor from 2012 to 2020. Red dots mark models from AlexNet at 1x to EfficientNet at 44x. Dashed trend line curves upward. Labels identify VGG, ResNet, MobileNet, and ShuffleNet versions at their positions." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-algo-efficiency-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="9461a0bf" class="cell" data-execution_count="11">
+<div id="4e9613c7" class="cell" data-execution_count="11">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2421,10 +2486,10 @@ Figure&nbsp;5: <strong>Algorithmic Efficiency Trajectory.</strong> Training effi
 </figure>
 </div>
 <p>Efficiency gains tell only half the story. <a href="#fig-ai-training-compute-growth" class="quarto-xref">Figure&nbsp;6</a> reveals the countervailing trend: even as individual architectures become more efficient, the field’s total appetite for compute has grown exponentially, making efficiency optimization not a luxury but a necessity for continued progress.</p>
-<div id="fig-ai-training-compute-growth" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Scatter plot of Training Compute FLOPs vs. Year. Blue dots (2012 – 2018) show deep learning models like ResNet. Red dots (2018 – 2024) show large - scale models like GPT-4, rising much faster on the log scale.">
+<div id="fig-ai-training-compute-growth" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Scatter plot of Training Compute FLOPs vs. Year. Blue dots (2012 – 2018) show deep learning models like ResNet. Red dots (2018 – 2024) show large - scale models like GPT-4, rising much faster on the log scale." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ai-training-compute-growth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="5b5ff237" class="cell" data-execution_count="12">
+<div id="7559f75c" class="cell" data-execution_count="12">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -2484,7 +2549,7 @@ Figure&nbsp;6: <strong>The Era of Scale.</strong> Training Compute (FLOPs) vs.&n
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.3: AI Engineering</strong></summary><div>
 <p><strong><em>AI Engineering</em></strong> is the engineering discipline of designing, deploying, and maintaining systems whose outputs are inherently probabilistic (stochastic) to meet deterministic reliability targets by simultaneously satisfying constraints on all three D·A·M axes (Data quality, Algorithm correctness, Machine efficiency) in production.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> ML Research typically optimizes only the Algorithm axis (<span class="math inline">\(O\)</span> and convergence). AI Engineering jointly optimizes all three: it bounds <span class="math inline">\(D_{\text{vol}}\)</span> by data governance requirements, bounds <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta)\)</span> by latency SLOs, and bounds total power draw by energy and cost budgets. A production system that achieves 95 percent accuracy in research but violates a 100 ms p99 SLO is a failed system, regardless of its Algorithm score.</li>
+<li><strong>Significance (Quantitative):</strong> ML Research typically optimizes only the Algorithm axis (<span class="math inline">\(O\)</span> and convergence). AI Engineering jointly optimizes all three: it bounds <span class="math inline">\(D_{\text{vol}}\)</span> by data governance requirements, bounds <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span> by latency SLOs, and bounds total power draw by energy and cost budgets. A production system that achieves 95 percent accuracy in research but violates a 100 ms p99 SLO is a failed system, regardless of its Algorithm score.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>machine learning research</strong>, which targets a single objective (validation loss) on a static dataset, AI Engineering targets a multi-objective constraint surface (latency, throughput, accuracy, cost, fairness, and robustness) on a distribution that shifts continuously after deployment.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that AI Engineering is just “Software Engineering for ML.” The critical difference is that the system specification is probabilistic: an ML system’s output is statistically valid or invalid relative to a shifting distribution, not correct or incorrect relative to a fixed deterministic contract. This makes continuous monitoring a structural requirement, not an operational choice.</li>
 </ol>
@@ -2518,7 +2583,7 @@ Figure&nbsp;6: <strong>The Era of Scale.</strong> Training Compute (FLOPs) vs.&n
 <p>ML systems differ from traditional software in their development and operational lifecycle. Traditional software follows predictable patterns where developers write explicit instructions that execute deterministically. These systems build on decades of established practices: version control maintains precise code histories, continuous integration pipelines automate testing, and static analysis tools measure quality. This mature infrastructure enables reliable software development following well-defined engineering principles.</p>
 <p>Machine learning systems depart from this paradigm. While traditional systems execute explicit programming logic, ML systems derive their behavior from data patterns discovered through training. The shift from code to data as the primary behavior driver introduces complexities that existing software engineering practices cannot address. We address these challenges and specialized workflows in <strong><a href="../ml_workflow/ml_workflow.html#sec-ml-workflow">ML Workflow</a></strong>.</p>
 <p>Unlike traditional software’s linear progression from design through deployment, ML systems operate in continuous cycles. Follow the feedback loops in <a href="#fig-ml_lifecycle_overview" class="quarto-xref">Figure&nbsp;7</a> to see why: when monitoring detects performance degradation, the system does not simply receive a patch. It cycles back through data collection, preparation, training, and evaluation before redeployment, creating a never-ending loop that has no counterpart in traditional software engineering.</p>
-<div id="fig-ml_lifecycle_overview" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Flowchart showing cyclical ML lifecycle. Six boxes: data collection, preparation, model training, evaluation, deployment, monitoring . Two loops: E valuation returns to preparation; monitoring triggers collection.">
+<div id="fig-ml_lifecycle_overview" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Flowchart showing cyclical ML lifecycle. Six boxes: data collection, preparation, model training, evaluation, deployment, monitoring . Two loops: E valuation returns to preparation; monitoring triggers collection." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-ml_lifecycle_overview-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="e794416b6543ff689f3dd19eef179785a4ba988e.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: ML System Lifecycle. A six-box flowchart depicting Data Collection, Preparation, Model Training, Evaluation, Deployment, and Monitoring. Two feedback loops distinguish this cycle from linear software development: evaluation returns to preparation when results are insufficient, and monitoring triggers new data collection when performance degrades."><img src="introduction_files/mediabag/e794416b6543ff689f3dd19eef179785a4ba988e.svg" class="img-fluid figure-img"></a>
@@ -2534,10 +2599,10 @@ Figure&nbsp;7: <strong>ML System Lifecycle.</strong> A six-box flowchart depicti
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.6: The Engineering Missions: Application Scenarios</strong></summary><div>The top of the hierarchy transforms abstract systems into concrete engineering missions. Each mission inherits one of the four <strong>System Archetypes</strong> introduced in the Engineering Crux (<a href="#sec-introduction-engineering-crux" class="quarto-xref">Section&nbsp;1.4.1</a>) and pairs it with a Lighthouse Model. Throughout the book and its associated labs, we focus on these four <strong>Application Scenarios</strong>:<p></p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 23%">
-<col style="width: 19%">
-<col style="width: 19%">
-<col style="width: 38%">
+<col style="width: 44%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 27%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2640,7 +2705,9 @@ Table&nbsp;6: <strong>Efficiency Priorities by Deployment Context</strong>: Each
 <h3 class="anchored" data-anchor-id="sec-introduction-deployment-shapes-lifecycle-7667">How deployment shapes the lifecycle</h3>
 <p>The deployment spectrum represents more than different hardware configurations. Each deployment environment reshapes every stage of the ML lifecycle, from initial data collection through continuous operation and evolution, creating an interplay of constraints that traditional software rarely encounters.</p>
 <p>Consider how a single deployment decision cascades through the entire system. Latency-sensitive applications like autonomous vehicles or real-time fraud detection require edge or embedded architectures despite their resource constraints, while large language models naturally gravitate toward centralized cloud infrastructure. But this initial architectural choice determines far more than where computation happens. Cloud systems must optimize for cost efficiency at scale, balancing expensive GPU clusters, storage, and network bandwidth, which in turn shapes how often models are retrained, what historical data is retained, and how inference load is distributed. Edge and mobile systems face fixed resource limits that constrain model complexity and update frequency, forcing aggressive model compression<a href="#fn26" class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a> and careful scheduling. The strictest constraints arise in embedded and TinyML environments, where every byte of memory and milliwatt of power matters.</p>
-<div class="no-row-height column-margin column-container"><div id="fn26"><p><sup>26</sup>&nbsp;<strong>Model Compression</strong>: A required consequence of the architectural choice to deploy on the edge, directly trading a model’s predictive accuracy to satisfy a device’s fixed resource budget. This allows a model originally designed for a data center to run within the kilobyte-scale memory and milliwatt power envelope of an embedded system, often reducing its size by over 90 percent. </p></div><div id="fn27"><p><sup>27</sup>&nbsp;<strong>Federated Learning</strong>: A distributed training paradigm where models learn from data residing on decentralized devices without centralizing the raw information. This approach transforms the constraint of data locality into a privacy feature, but introduces new systems challenges: gradient aggregation across unreliable networks, non-IID data distributions across devices, and communication <span class="math inline">\(BW\)</span> that often dominates total training time. </p></div><div id="fn28"><p><sup>28</sup>&nbsp;<strong>A/B Testing</strong>: A statistical validation method that serves different model versions to distinct user segments, isolating the causal impact of a model change on business metrics. The “ease” the triggering sentence describes is cloud-specific: centralized traffic routing enables instant version switching and rollback. A typical experiment requires serving over 100,000 users to reliably detect a one percent change in a target metric, making A/B testing impractical on edge deployments with limited user pools. </p></div><div id="fn29"><p><sup>29</sup>&nbsp;<strong>OTA (Over-the-Air) Updates</strong>: The delivery mechanism for models on edge devices where, unlike cloud servers, updates are constrained by system hardware. The “careful bandwidth management” mentioned is a direct consequence of low-power, intermittent networks that cannot handle multi-gigabyte model packages. The “rollback capabilities” are also not free; they require enough on-device storage to hold both the current and the new model simultaneously, doubling the storage footprint. </p></div></div><p>Operational complexity increases as systems become more distributed. Centralized cloud architectures benefit from mature deployment tools and managed services, while edge and hybrid systems must coordinate data collection across sensors with varying connectivity, track models deployed across thousands of devices, handle staged rollouts with rollback capabilities, and aggregate monitoring signals from geographically distributed endpoints (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>). Data considerations introduce competing pressures: privacy requirements or data sovereignty regulations may push computation toward the edge through federated learning<a href="#fn27" class="footnote-ref" id="fnref27" role="doc-noteref"><sup>27</sup></a> approaches, while the need for large-scale training data pulls toward centralized cloud aggregation. Even model updates behave differently across the spectrum: cloud architectures enable easy A/B testing<a href="#fn28" class="footnote-ref" id="fnref28" role="doc-noteref"><sup>28</sup></a> and rapid iteration, while edge deployments require over-the-air updates<a href="#fn29" class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a> with careful bandwidth management and rollback capabilities.</p>
+<div class="no-row-height column-margin column-container"><div id="fn26"><p><sup>26</sup>&nbsp;<strong>Model Compression</strong>: A required consequence of the architectural choice to deploy on the edge, directly trading a model’s predictive accuracy to satisfy a device’s fixed resource budget. This allows a model originally designed for a data center to run within the kilobyte-scale memory and milliwatt power envelope of an embedded system, often reducing its size by over 90 percent. </p></div><div id="fn27"><p><sup>27</sup>&nbsp;<strong>Federated Learning</strong>: A distributed training paradigm where models learn from data residing on decentralized devices without centralizing the raw information <span class="citation" data-cites="li2020federated">(<a href="#ref-li2020federated" role="doc-biblioref">Li et al. 2020</a>)</span>. This approach transforms the constraint of data locality into a privacy feature, but introduces new systems challenges: gradient aggregation across unreliable networks, non-IID data distributions across devices, and communication <span class="math inline">\(\text{BW}\)</span> that often dominates total training time. </p><div id="ref-li2020federated" class="csl-entry" role="listitem">
+Li, Tian, Anit Kumar Sahu, Ameet Talwalkar, and Virginia Smith. 2020. <span>“Federated Learning: Challenges, Methods, and Future Directions.”</span> <em>IEEE Signal Processing Magazine</em> 37 (3): 50–60. <a href="https://doi.org/10.1109/msp.2020.2975749">https://doi.org/10.1109/msp.2020.2975749</a>.
+</div></div><div id="fn28"><p><sup>28</sup>&nbsp;<strong>A/B Testing</strong>: A statistical validation method that serves different model versions to distinct user segments, isolating the causal impact of a model change on business metrics. The “ease” the triggering sentence describes is cloud-specific: centralized traffic routing enables instant version switching and rollback. A typical experiment requires serving over 100,000 users to reliably detect a one percent change in a target metric, making A/B testing impractical on edge deployments with limited user pools. </p></div><div id="fn29"><p><sup>29</sup>&nbsp;<strong>OTA (Over-the-Air) Updates</strong>: The delivery mechanism for models on edge devices where, unlike cloud servers, updates are constrained by system hardware. The “careful bandwidth management” mentioned is a direct consequence of low-power, intermittent networks that cannot handle multi-gigabyte model packages. The “rollback capabilities” are also not free; they require enough on-device storage to hold both the current and the new model simultaneously, doubling the storage footprint. </p></div></div><p>Operational complexity increases as systems become more distributed. Centralized cloud architectures benefit from mature deployment tools and managed services, while edge and hybrid systems must coordinate data collection across sensors with varying connectivity, track models deployed across thousands of devices, handle staged rollouts with rollback capabilities, and aggregate monitoring signals from geographically distributed endpoints (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>). Data considerations introduce competing pressures: privacy requirements or data sovereignty regulations may push computation toward the edge through federated learning<a href="#fn27" class="footnote-ref" id="fnref27" role="doc-noteref"><sup>27</sup></a> approaches, while the need for large-scale training data pulls toward centralized cloud aggregation. Even model updates behave differently across the spectrum: cloud architectures enable easy A/B testing<a href="#fn28" class="footnote-ref" id="fnref28" role="doc-noteref"><sup>28</sup></a> and rapid iteration, while edge deployments require over-the-air updates<a href="#fn29" class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a> with careful bandwidth management and rollback capabilities.</p>
 <p>In practice, these trade-offs are rarely simple binary choices. Modern ML systems often adopt hybrid approaches that span the deployment spectrum. An autonomous vehicle performs real-time perception and control at the edge for latency reasons, uploads driving data to the cloud for model improvement, and periodically downloads updated models. A voice assistant runs wake-word detection on-device to preserve privacy and reduce latency but sends full speech to the cloud for complex natural language processing. The key insight is that a choice to deploy on embedded devices does not just constrain model size; it affects data collection strategies, training approaches, evaluation metrics, deployment mechanisms, and monitoring capabilities. These interconnected decisions demonstrate the D·A·M taxonomy in practice, where constraints along one axis create cascading effects throughout the system.</p>
 <p>To make these abstract trade-offs concrete, we examine three production systems that represent the extremes of the deployment spectrum. Each system faces the same core challenges (data quality, model complexity, and machine scale), but the constraints of their deployment environments force radically different engineering solutions.</p>
 <div id="quiz-question-sec-introduction-ml-system-lifecycle-849f" class="callout callout-quiz-question">
@@ -2684,7 +2751,7 @@ Table&nbsp;6: <strong>Efficiency Priorities by Deployment Context</strong>: Each
 <div class="no-row-height column-margin column-container"><div id="fn30"><p><sup>30</sup>&nbsp;<strong>Waymo</strong>: The hybrid deployment forces a synchronization challenge absent from pure cloud or pure edge systems: the on-vehicle model must be frozen during deployment for safety certification, while the cloud continuously trains improved versions on newly collected driving data. This creates a version gap where the deployed model may lag weeks behind the latest cloud-trained version, requiring rigorous regression testing before any OTA update can be pushed to a safety-critical fleet. </p></div></div><ul>
 <li><strong>FarmBeats</strong><a href="#fn31" class="footnote-ref" id="fnref31" role="doc-noteref"><sup>31</sup></a> is Microsoft Research’s precision agriculture platform, deploying ML models to farms with limited connectivity. FarmBeats represents the <em>resource-constrained edge</em> deployment pattern: models under 500 KB run inference on low-power devices using TV white-space bandwidth measured in kilobits per second.</li>
 </ul>
-<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>FarmBeats</strong>: The system demonstrates that the binding constraint for edge ML is often network <span class="math inline">\(BW\)</span> rather than compute or model quality. With TV white-space links measured in kilobits per second, even a 500 KB model update takes minutes to deliver, making model freshness rather than model accuracy the dominant failure mode in connectivity-constrained deployments. </p></div></div><ul>
+<div class="no-row-height column-margin column-container"><div id="fn31"><p><sup>31</sup>&nbsp;<strong>FarmBeats</strong>: The system demonstrates that the binding constraint for edge ML is often network <span class="math inline">\(\text{BW}\)</span> rather than compute or model quality. With TV white-space links measured in kilobits per second, even a 500 KB model update takes minutes to deliver, making model freshness rather than model accuracy the dominant failure mode in connectivity-constrained deployments. </p></div></div><ul>
 <li><strong>AlphaFold</strong> <span class="citation" data-cites="jumper2021highly">(<a href="#ref-jumper2021highly" role="doc-biblioref">Jumper et al. 2021</a>)</span> is DeepMind’s protein structure prediction system that solved a 50-year grand challenge in biology. AlphaFold represents the <em>compute-intensive cloud</em> deployment pattern: training required 128 TPUv3 cores for weeks, accessing the entire Protein Data Bank to predict structures for over 200 million proteins.</li>
 </ul>
 <div class="no-row-height column-margin column-container"><div id="ref-jumper2021highly" class="csl-entry" role="listitem">
@@ -2726,7 +2793,7 @@ Jumper, John, Richard Evans, Alexander Pritzel, et al. 2021. <span>“Highly Acc
 <h2 class="anchored" data-anchor-id="sec-introduction-fivepillar-framework-8118">Five-Pillar Framework</h2>
 <p>Industry surveys report that 60–85 percent of ML projects fail to reach production <span class="citation" data-cites="paleyes2022challenges">(<a href="#ref-paleyes2022challenges" role="doc-biblioref">Paleyes et al. 2022</a>)</span>, not because the algorithms are wrong but because no single team owns the full chain from data quality through model reliability to ethical governance. Silent performance degradation, data drift, model complexity, and ethical concerns each demand specialized engineering, yet they interact: a data quality failure degrades the model, which strains the serving infrastructure, which amplifies ethical risks. Traditional software engineering practices cannot address systems that degrade quietly rather than failing visibly. What is needed is a structured framework that assigns clear responsibility for each challenge category while ensuring coordination across all of them.</p>
 <div class="no-row-height column-margin column-container"></div><p>This work organizes ML systems engineering around five interconnected disciplines that directly address the challenge categories we have identified. <a href="#fig-pillars" class="quarto-xref">Figure&nbsp;8</a> presents this organizational structure: five engineering pillars, each targeting a distinct challenge category, resting on a shared foundation that reflects the physical and economic constraints every pillar must respect. Together, they represent the core engineering capabilities required to bridge the gap between research prototypes and production systems capable of operating reliably at scale. While these pillars organize the <em>practice</em> of ML engineering, they are supported by the foundational technical imperatives of <strong>Performance Optimization</strong> and <strong>Hardware Acceleration</strong> (covered in Part III), which provide the efficiency required to make large-scale training and deployment economically and physically viable.</p>
-<div id="fig-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t" alt="Greek temple with five pillars labeled Data Engineering, Model Training, Model Deployment, Operation &amp; Maintenance, Ethics &amp; Governance. A detail pillar on the left lists five foundational sections from Technical Foundation through Responsible Engr.">
+<div id="fig-pillars" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Greek temple with five pillars labeled Data Engineering, Model Training, Model Deployment, Operation &amp; Maintenance, Ethics &amp; Governance. A detail pillar on the left lists five foundational sections from Technical Foundation through Responsible Engr." data-fig-pos="t" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pillars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/png/book_pillars.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Five-Pillar Framework. A Greek-temple motif showing the five pillars of ML Systems Engineering: Data Engineering, Model Training, Model Deployment, Operation &amp; Maintenance, and Ethics &amp; Governance. A detail pillar on the left decomposes the technical foundations that run through every discipline: Technical Foundation, Efficiency &amp; Optimization, Benchmark &amp; Evaluation, Robustness &amp; Reliability, and Responsible &amp; Ethical Engineering."><img src="images/png/book_pillars.png" class="img-fluid figure-img"></a>

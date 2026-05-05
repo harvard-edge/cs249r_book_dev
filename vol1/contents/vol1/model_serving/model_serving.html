@@ -100,9 +100,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -190,8 +190,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -213,6 +236,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -252,7 +309,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -266,41 +323,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
 .callout-war-story {
   --color1: #FEF2F2;
@@ -311,51 +341,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
-}
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
 .callout-chapter-connection {
   --color1: #EFF6FF;
   --color2: #1E3A5F;
@@ -365,14 +350,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(30, 58, 95, 0.12);
   --dark-title-background-color: rgba(30, 58, 95, 0.12);
 }
-.callout-notebook {
-  --color1: #F2F7FF;
-  --color2: #2C5282;
-  --border-color: #2C5282;
-  --background-color: rgba(44, 82, 130, 0.04);
-  --title-background-color: rgba(44, 82, 130, 0.04);
-  --dark-background-color: rgba(44, 82, 130, 0.12);
-  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-resource-slides {
   --color1: #E0F2F1;
@@ -382,15 +367,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(32, 178, 170, 0.04);
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
 .callout-perspective {
   --color1: #F7F8FA;
@@ -410,15 +386,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
 .callout-theorem {
   --color1: #F5F0FA;
   --color2: #6B46C1;
@@ -427,6 +394,96 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(107, 70, 193, 0.04);
   --dark-background-color: rgba(107, 70, 193, 0.12);
   --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+}
+.callout-notebook {
+  --color1: #F2F7FF;
+  --color2: #2C5282;
+  --border-color: #2C5282;
+  --background-color: rgba(44, 82, 130, 0.04);
+  --title-background-color: rgba(44, 82, 130, 0.04);
+  --dark-background-color: rgba(44, 82, 130, 0.12);
+  --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-example {
   --color1: #F0F8F6;
@@ -440,60 +497,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-principle {
+  details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
   }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
+  details.callout-code code {
     color: #e6e6e6 !important;
   }
   details.callout-war-story {
@@ -510,76 +525,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
   details.callout-chapter-connection {
     --text-color: #e6e6e6;
     --background-color: rgba(30, 58, 95, 0.12);
@@ -594,18 +539,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(44, 82, 130, 0.12);
-    --title-background-color: rgba(44, 82, 130, 0.12);
-    border-color: #2C5282;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-slides {
@@ -620,20 +565,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
   details.callout-perspective {
@@ -664,20 +595,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
   details.callout-theorem {
     --text-color: #e6e6e6;
     --background-color: rgba(107, 70, 193, 0.12);
@@ -690,6 +607,146 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(44, 82, 130, 0.12);
+    --title-background-color: rgba(44, 82, 130, 0.12);
+    border-color: #2C5282;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
   details.callout-example {
@@ -709,47 +766,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 }
 </style>
 <style>
-details.callout-principle > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
 details.callout-chapter-connection > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+details.callout-lighthouse > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
 details.callout-perspective > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
@@ -757,11 +787,38 @@ details.callout-perspective > summary::before {
 details.callout-resource-exercises > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
-details.callout-lighthouse > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
 details.callout-theorem > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
 details.callout-example > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
@@ -799,11 +856,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/model_serving/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/model_serving/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/model_serving/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/model_serving/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -1005,34 +1062,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1044,22 +1101,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1071,17 +1128,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1093,23 +1150,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1121,22 +1178,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1148,29 +1205,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1240,8 +1297,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1692,7 +1749,7 @@ window.Quarto = {
 <section id="purpose" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="purpose">Purpose</h2>
 <p><em>Why does serving invert every optimization priority that made training successful?</em></p>
-<p>Training and serving demand opposite physics. Training maximizes throughput ((T), in samples per second): large batches and long epochs where latency spikes get absorbed invisibly. Serving minimizes latency ((L_{}), in milliseconds per request): individual requests answered fast enough that a single slow response is a <em>broken product</em>. Training amortizes hardware costs across billions of examples; serving pays a tax on every request, where small inefficiencies compound into operational debt. This inversion is why models that train beautifully often serve poorly: the batch-heavy architectures and memory-intensive optimizations designed to saturate accelerators during training are fundamentally ill-suited for the bursty, latency-critical, cost-sensitive reality of production traffic. But serving is more than a latency problem. A serving system must handle traffic that varies by orders of magnitude between peak and trough, route requests across model versions during progressive rollouts, degrade gracefully when upstream dependencies fail, and do all of this continuously—not for the duration of a training run but for the lifetime of the product. Every model that proved its value during training and survived compression and benchmarking eventually arrives at the serving layer—the deployment and integration stage of the ML lifecycle—where the question shifts from “does it work?” to “does it work <em>reliably, at scale, under production conditions, every second of every day</em>?” The serving infrastructure is where ML systems finally meet users, and the engineering that sustains that meeting is qualitatively different from the engineering that created the model.</p>
+<p>Training and serving demand opposite physics. Training maximizes throughput (<span class="math inline">\(T\)</span>, in samples per second): large batches and long epochs where latency spikes get absorbed invisibly. Serving minimizes latency (<span class="math inline">\(L_{\text{lat}}\)</span>, in milliseconds per request): individual requests answered fast enough that a single slow response is a <em>broken product</em>. Training amortizes hardware costs across billions of examples; serving pays a tax on every request, where small inefficiencies compound into operational debt. This inversion is why models that train beautifully often serve poorly: the batch-heavy architectures and memory-intensive optimizations designed to saturate accelerators during training are fundamentally ill-suited for the bursty, latency-critical, cost-sensitive reality of production traffic. But serving is more than a latency problem. A serving system must handle traffic that varies by orders of magnitude between peak and trough, route requests across model versions during progressive rollouts, degrade gracefully when upstream dependencies fail, and do all of this continuously—not for the duration of a training run but for the lifetime of the product. Every model that proved its value during training and survived compression and benchmarking eventually arrives at the serving layer—the deployment and integration stage of the ML lifecycle—where the question shifts from “does it work?” to “does it work <em>reliably, at scale, under production conditions, every second of every day</em>?” The serving infrastructure is where ML systems finally meet users, and the engineering that sustains that meeting is qualitatively different from the engineering that created the model.</p>
 <div id="callout-learning-objectives*-1.1" class="callout callout-learning-objectives">
 <details class="callout-learning-objectives fbx-simplebox fbx-default" open=""><summary><strong>Learning Objectives</strong></summary><div>
 <ul>
@@ -1720,10 +1777,10 @@ window.Quarto = {
 </ul>
 </div></details>
 </div>
-<div id="fig-tail-latency-explosion" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line plot showing latency growing with utilization. Blue line (mean) rises gradually then steeply. Red line (Tail, p99) curves upward sharply at 70 percent utilization. Shaded regions indicate “ Safe Zone ” and “ Danger Zone.”" data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-tail-latency-explosion" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Line plot showing latency growing with utilization. Blue line (mean) rises gradually then steeply. Red line (Tail, p99) curves upward sharply at 70 percent utilization. Shaded regions indicate “ Safe Zone ” and “ Danger Zone.”" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-tail-latency-explosion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="f104dbc3" class="cell" data-execution_count="1">
+<div id="4ac29791" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1755,10 +1812,10 @@ Figure&nbsp;1: <strong>The Tail Latency Explosion</strong>: Request Latency vs.&
 </div>
 <p>Trace the curve in <a href="#fig-tail-latency-explosion" class="quarto-xref">Figure&nbsp;1</a> and notice how latency remains manageable until utilization crosses roughly 70 percent, then explodes—this is <em>why</em> production systems must run at relatively low utilization (40–60 percent) to guarantee stable tail latency (p99). For a mathematical treatment of long-tailed distributions and why P99 latency becomes the <em>median</em> user experience at scale, see <strong><a href="../backmatter/appendix_data.html#sec-data-foundations-distributions-long-tail-901f">Distributions and the long tail</a></strong>. The curve is a simple queueing approximation intended for intuition rather than a specific workload.</p>
 <p>Beyond the technical limits of latency, the economics of serving have undergone a radical transformation. As models become more efficient and hardware becomes more specialized, the cost of “intelligence” is collapsing<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. To grasp the speed of this collapse, examine the log-scale price trajectory in <a href="#fig-intelligence-deflation" class="quarto-xref">Figure&nbsp;2</a>, which tracks public API list prices as a market proxy.</p>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Jevons Paradox</strong>: William Stanley Jevons observed in 1865 that efficiency improvements in coal-powered steam engines <em>increased</em> total coal consumption by making steam power economically viable for applications previously too costly. The same dynamic governs AI inference: each 10<span class="math inline">\(\times\)</span> cost reduction opens application classes that were economically infeasible at the previous price point, expanding aggregate demand by more than the efficiency gain. This is why cheaper inference reliably increases, not decreases, total GPU fleet demand—efficiency and demand are complements in AI, not substitutes. </p></div></div><div id="fig-intelligence-deflation" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line plot showing token pricing collapsing from $20/M tokens in 2020 to <$0.10/M tokens in 2025. Log scale highlights the deflationary trend with models from OpenAI, Anthropic, Google, and DeepSeek." data-fig-env="figure" data-fig-pos="htb">
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Jevons Paradox</strong>: William Stanley Jevons observed in 1865 that efficiency improvements in coal-powered steam engines <em>increased</em> total coal consumption by making steam power economically viable for applications previously too costly. The same dynamic governs AI inference: each 10<span class="math inline">\(\times\)</span> cost reduction opens application classes that were economically infeasible at the previous price point, expanding aggregate demand by more than the efficiency gain. This is why cheaper inference reliably increases, not decreases, total GPU fleet demand—efficiency and demand are complements in AI, not substitutes. </p></div></div><div id="fig-intelligence-deflation" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Line plot showing token pricing collapsing from $20/M tokens in 2020 to <$0.10/M tokens in 2025. Log scale highlights the deflationary trend with models from OpenAI, Anthropic, Google, and DeepSeek." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-intelligence-deflation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="67db1c2c" class="cell" data-execution_count="3">
+<div id="b1200769" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -1778,7 +1835,7 @@ Figure&nbsp;2: <strong>Intelligence Deflation</strong>: Cost per 1M output token
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.1: Model Serving</strong></summary><div>
 <p><strong><em>Model Serving</em></strong> is the operational phase that provides model predictions to end-users or downstream systems under strict latency constraints.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It inverts the throughput priority (<span class="math inline">\(\eta\)</span>) of training into a <strong>Latency Constraint (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong>, requiring an architectural stack designed to minimize the <strong>Tail Latency</strong> (p99) of individual inferences.</li>
+<li><strong>Significance (Quantitative):</strong> It inverts the throughput priority (<span class="math inline">\(\eta_{\text{hw}}\)</span>) of training into a <strong>Latency Constraint (<span class="math inline">\(L_{\text{lat}}\)</span>)</strong>, requiring an architectural stack designed to minimize the <strong>Tail Latency</strong> (p99) of individual inferences.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Model Training</strong>, which processes large, predictable batches of data, Model Serving must handle <strong>Stochastic Request Patterns</strong> and unpredictable load.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that serving is “just the forward pass.” In reality, it is a <strong>Distributed System Problem</strong>: the model execution is only one component of a stack that includes request routing, load balancing, and data transformation.</li>
 </ol>
@@ -1786,7 +1843,7 @@ Figure&nbsp;2: <strong>Intelligence Deflation</strong>: Cost per 1M output token
 </div>
 <p>The SLO<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> defines the latency target that shapes every architectural decision in the serving stack.</p>
 <div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Service Level Objective (SLO) vs.&nbsp;Service Level Agreement (SLA)</strong>: An SLO is an <em>internal</em> target (for example, “p99 latency under 50 ms”); an SLA is an <em>external</em> contractual commitment with financial penalties for violation. SLOs are set tighter than SLAs to provide a safety margin. For ML serving, both model accuracy and inference latency contribute to SLOs, creating multi-dimensional optimization targets where improving one dimension (for example, deploying a larger model for accuracy) can violate the other (latency). </p></div></div><p>Serving systems must execute a complete inference pipeline under latency constraints, not just the neural network computation. A common misconception is that “inference time” equals “serving time,” but the neural network is only one stage in a longer pipeline. Follow the stages in <a href="#fig-serving-inference-pipeline" class="quarto-xref">Figure&nbsp;3</a> from left to right: raw inputs pass through preprocessing (traditional computing), neural network inference (deep learning), and postprocessing (traditional computing) before producing final outputs. Any of these stages can become the latency bottleneck. <a href="#sec-model-serving-latency-budget-ef40" class="quarto-xref">Section&nbsp;1.3.1</a> quantifies exactly where time goes, revealing a counterintuitive result about which stages dominate.</p>
-<div id="fig-serving-inference-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Flow diagram showing six connected boxes: Raw Input, Preprocessing, Neural Network, Raw Output, Postprocessing, Final Output. Preprocessing and postprocessing are labeled Traditional Computing; neural network is labeled Deep Learning." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-serving-inference-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Flow diagram showing six connected boxes: Raw Input, Preprocessing, Neural Network, Raw Output, Postprocessing, Final Output. Preprocessing and postprocessing are labeled Traditional Computing; neural network is labeled Deep Learning." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-serving-inference-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="61a58ad9ff63689d2b400edf3ec33ca9cd53e170.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: The Inference Pipeline: ML serving systems transform raw inputs into final outputs through sequential stages: preprocessing, neural network computation, and postprocessing. The neural network represents just one component; preprocessing and postprocessing rely on traditional computing and often dominate total latency in optimized systems."><img src="model_serving_files/mediabag/61a58ad9ff63689d2b400edf3ec33ca9cd53e170.svg" class="img-fluid figure-img"></a>
@@ -1811,7 +1868,7 @@ Google. 2024. <em>Static Vs. Dynamic Inference</em>. Google Machine Learning Cra
 <section id="sec-model-serving-dynamic-inference-d2d5" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-dynamic-inference-d2d5">Dynamic inference</h4>
 <p>Dynamic inference (also called online or real-time inference) computes predictions on demand when requests arrive. This handles any input, including rare edge cases and novel combinations, and immediately reflects model updates. The cost is strict latency requirements that constrain model complexity and demand robust monitoring infrastructure.</p>
-<p>For our ResNet-50 image classifier, consider two deployment scenarios. A <strong>static approach</strong> suits a photo organization app that pre-classifies all images in a user’s library overnight. With 10,000 photos and 5 ms inference each, batch processing takes ~50 seconds total, and users see instant classification when browsing. A <strong>dynamic approach</strong> suits a content moderation API that must classify user-uploaded images in real-time, with each image requiring the full preprocessing→inference→postprocessing pipeline and a 100ms latency budget. Most production image classification systems use a <strong>hybrid approach</strong>: frequently requested images (popular products, known memes) are pre-classified and cached, while novel uploads trigger dynamic inference.</p>
+<p>For our ResNet-50 image classifier, consider two deployment scenarios. A <strong>static approach</strong> suits a photo organization app that pre-classifies all images in a user’s library overnight. With 10,000 photos and 5 ms inference each, batch processing takes ~50 seconds total, and users see instant classification when browsing. A <strong>dynamic approach</strong> suits a content moderation API that must classify user-uploaded images in real-time, with each image requiring the full preprocessing→inference→postprocessing pipeline and a 100 ms latency budget. Most production image classification systems use a <strong>hybrid approach</strong>: frequently requested images (popular products, known memes) are pre-classified and cached, while novel uploads trigger dynamic inference.</p>
 <p>The choice between static and dynamic serving has direct economic implications. Stricter latency requirements directly translate into higher infrastructure costs, and quantifying <em>the cost of latency</em> in dollar terms reveals how much infrastructure premium each millisecond of latency reduction demands.</p>
 <div id="notebook-cost-latency" class="callout callout-notebook" title="The Cost of Latency">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.1: The Cost of Latency</strong></summary><div>Latency constraints directly dictate infrastructure costs. Consider a GPU server renting for USD 4/hour.<p></p>
@@ -1944,26 +2001,26 @@ Table&nbsp;1: <strong>Serving Architecture Spectrum</strong>: The deployment par
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.3: ResNet-50 Across the Serving Spectrum</strong></summary><div>The same ResNet-50 architecture requires dramatically different serving strategies across deployment contexts:<p></p>
 <p><strong>Cloud:</strong></p>
 <ul>
-<li>Model format: TensorRT FP16 engine (51MB)</li>
-<li>Inference: 1.4ms at batch-1, 14ms at batch-16</li>
+<li>Model format: TensorRT FP16 engine (51 MB)</li>
+<li>Inference: 1.4 ms at batch-1, 14 ms at batch-16</li>
 <li>Throughput: 1,143 images/second (batched)</li>
-<li>Memory: 2GB VRAM (model + activations for batch-32)</li>
+<li>Memory: 2 GB VRAM (model + activations for batch-32)</li>
 </ul>
 <p><strong>Mobile:</strong></p>
 <ul>
-<li>Model format: TensorFlow Lite INT8 (26MB)</li>
-<li>Inference: 12ms at batch-1 (NPU), 45ms (CPU fallback)</li>
+<li>Model format: TensorFlow Lite INT8 (26 MB)</li>
+<li>Inference: 12 ms at batch-1 (NPU), 45 ms (CPU fallback)</li>
 <li>Throughput: ~80 images/second (single-stream)</li>
-<li>Memory: 150MB peak (shared with app)</li>
+<li>Memory: 150 MB peak (shared with app)</li>
 <li>Energy: 0.8mJ per inference (NPU), 4.2mJ (CPU)</li>
 </ul>
 <p><strong>TinyML:</strong></p>
 <ul>
-<li>Model format: Not feasible; ResNet-50 requires 26MB weights</li>
-<li>Alternative: MobileNetV2-0.35 quantized to INT8 (3.5MB)</li>
-<li>Inference: 120ms at batch-1</li>
+<li>Model format: Not feasible; ResNet-50 requires 26 MB weights</li>
+<li>Alternative: MobileNetV2-0.35 quantized to INT8 (3.5 MB)</li>
+<li>Inference: 120 ms at batch-1</li>
 <li>Throughput: ~8 images/second</li>
-<li>Memory: 320KB tensor arena (fits in 512KB SRAM)</li>
+<li>Memory: 320 KB tensor arena (fits in 512 KB SRAM)</li>
 <li>Energy: 12mJ per inference</li>
 </ul>
 <p><strong>Key insight</strong>: The “same model” claim is misleading: each deployment requires different optimization and often different architectures entirely. TinyML serving cannot use ResNet-50; it requires architectures designed for the constraints from the start.</p>
@@ -2026,7 +2083,7 @@ Table&nbsp;1: <strong>Serving Architecture Spectrum</strong>: The deployment par
 <p>Model optimization focuses on the mathematical artifact, while model serving requires a specialized software architecture to manage high-frequency request streams and hardware utilization. An inference server<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> (such as NVIDIA Triton, TensorFlow Serving, or TorchServe) is not a simple wrapper around a model script; it is a high-performance scheduler that manages concurrency, memory, and data movement.</p>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Inference Server</strong>: Google’s TensorFlow Serving (open-sourced February 2016) pioneered the separation of model logic from serving infrastructure; NVIDIA’s Triton (GA March 2019) extended this to multi-framework support. The critical design insight is that dynamic batching within these servers improves GPU utilization by up to 70 percent compared to naive single-request serving, transforming the GPU from an idle-waiting device into a throughput engine. Without this scheduler layer, serving a ResNet-50 at batch size one wastes 85 percent of available compute. </p></div></div><p>The internal anatomy of these servers reveals <em>how</em> they bridge the gap between irregular user traffic and the highly regular, batch-oriented requirements of accelerators. The core challenge is that user requests arrive unpredictably (one millisecond apart, then five seconds of silence), while GPUs perform best with steady streams of uniformly-sized batches.</p>
 <p>Every request traverses a multi-stage pipeline designed to maximize hardware throughput while minimizing latency overhead. Walk through the six stages in <a href="#fig-server-anatomy" class="quarto-xref">Figure&nbsp;4</a> to see how each component absorbs a different source of complexity.</p>
-<div id="fig-server-anatomy" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Flowchart showing six -stage inference server pipeline : client to network ingress to request queue (cylinder) to dynamic batcher, then down to inference runner to accelerator . Arrows connect stages sequentially." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-server-anatomy" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Flowchart showing six -stage inference server pipeline : client to network ingress to request queue (cylinder) to dynamic batcher, then down to inference runner to accelerator . Arrows connect stages sequentially." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-server-anatomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="accf6d9905693d67a8fa72d4f7b649adcd47932b.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Inference Server Anatomy: A modern inference server decouples network handling from accelerator execution through a staged pipeline. Each stage isolates a concern, from absorbing bursty traffic to forming efficient batches, so the hardware accelerator stays highly utilized despite irregular arrival patterns."><img src="model_serving_files/mediabag/accf6d9905693d67a8fa72d4f7b649adcd47932b.svg" class="img-fluid figure-img"></a>
@@ -2143,10 +2200,10 @@ Gujarati, Arpan, Reza Karber, Safraz Musaev, et al. 2020. <span>“Serving DNNs 
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.4: ResNet-50: Latency Budget Breakdown</strong></summary><div>A typical serving request for our ResNet-50 classifier shows the following latency distribution:<p></p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 14%">
-<col style="width: 20%">
-<col style="width: 32%">
-<col style="width: 32%">
+<col style="width: 9%">
+<col style="width: 46%">
+<col style="width: 22%">
+<col style="width: 21%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2267,9 +2324,7 @@ Gujarati, Arpan, Reza Karber, Safraz Musaev, et al. 2020. <span>“Serving DNNs 
 </div></details>
 </div>
 <p>Moving preprocessing to GPU can reduce total latency by 6<span class="math inline">\(\times\)</span> in some pipelines by eliminating CPU-GPU data transfers between stages <span class="citation" data-cites="nvidia_triton">(<a href="#ref-nvidia_triton" role="doc-biblioref">NVIDIA 2024b</a>)</span>.</p>
-<div class="no-row-height column-margin column-container"><div id="ref-nvidia_triton" class="csl-entry" role="listitem">
-NVIDIA. 2024b. <em><span>NVIDIA Triton</span> Inference Server</em>. <a href="https://developer.nvidia.com/triton-inference-server">https://developer.nvidia.com/triton-inference-server</a>.
-</div></div><p>Effective optimization targets the largest time consumers first.</p>
+<div class="no-row-height column-margin column-container"></div><p>Effective optimization targets the largest time consumers first.</p>
 <section id="sec-model-serving-serving-tax-bill-dc6c" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-serving-tax-bill-dc6c">The serving tax bill</h4>
 <p>Beyond the model execution itself, every request pays a “tax” to the serving infrastructure. <a href="#tbl-serving-tax" class="quarto-xref">Table&nbsp;2</a> quantifies these overheads for a typical high-performance inference request (for example, ResNet-50 classification).</p>
@@ -2355,8 +2410,8 @@ Table&nbsp;3: <strong>Resolution and Compute Bottleneck</strong>: ResNet-50 arit
 <table class="caption-top table">
 <colgroup>
 <col style="width: 14%">
-<col style="width: 35%">
-<col style="width: 39%">
+<col style="width: 36%">
+<col style="width: 38%">
 <col style="width: 10%">
 </colgroup>
 <thead>
@@ -2370,25 +2425,25 @@ Table&nbsp;3: <strong>Resolution and Compute Bottleneck</strong>: ResNet-50 arit
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(224 \times 224\)</span></strong></td>
-<td style="text-align: right;">12.5MB</td>
+<td style="text-align: right;">12.5 MB</td>
 <td style="text-align: right;">85 FLOPs/byte</td>
 <td style="text-align: left;">Compute</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(384 \times 384\)</span></strong></td>
-<td style="text-align: right;">36.8MB</td>
+<td style="text-align: right;">36.8 MB</td>
 <td style="text-align: right;">49 FLOPs/byte</td>
 <td style="text-align: left;">Transitional</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(512 \times 512\)</span></strong></td>
-<td style="text-align: right;">65.5MB</td>
+<td style="text-align: right;">65.5 MB</td>
 <td style="text-align: right;">28 FLOPs/byte</td>
 <td style="text-align: left;">Memory BW</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(640 \times 640\)</span></strong></td>
-<td style="text-align: right;">102.4MB</td>
+<td style="text-align: right;">102.4 MB</td>
 <td style="text-align: right;">18 FLOPs/byte</td>
 <td style="text-align: left;">Memory BW</td>
 </tr>
@@ -2414,7 +2469,7 @@ Table&nbsp;3: <strong>Resolution and Compute Bottleneck</strong>: ResNet-50 arit
 <section id="sec-model-serving-overlapping-io-compute-966c" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-overlapping-io-compute-966c">Overlapping I/O and compute</h4>
 <p>The two timing diagrams in <a href="#fig-serving-pipeline-timing" class="quarto-xref">Figure&nbsp;5</a> illustrate the impact of pipelining. In the serial case (A), each request must complete its entire lifecycle (Network <span class="math inline">\(\rightarrow\)</span> CPU Preprocessing <span class="math inline">\(\rightarrow\)</span> GPU Inference <span class="math inline">\(\rightarrow\)</span> Postprocessing) before the next request begins, and the grey idle gaps leave the GPU unused for more than 50 percent of the time. In the pipelined case (B), those gaps disappear.</p>
-<div id="fig-serving-pipeline-timing" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two timing diagrams. A (Serial): alternating CPU preprocessing, GPU inference, and idle blocks in sequence. B (Pipelined): two parallel rows where CPU preprocessing overlaps with GPU inference, eliminating idle time." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-serving-pipeline-timing" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Two timing diagrams. A (Serial): alternating CPU preprocessing, GPU inference, and idle blocks in sequence. B (Pipelined): two parallel rows where CPU preprocessing overlaps with GPU inference, eliminating idle time." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-serving-pipeline-timing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="3605741110bbdbdc65c774ef33f3e51361fb8f6f.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Request Pipelining: Pipelining hides latency by overlapping independent operations across different hardware resources. In pipelined execution (B), the CPU processes the next request’s data while the GPU executes the current request’s inference. This increases the GPU duty cycle toward 100 percent, effectively doubling or tripling throughput on the same hardware without changing the model."><img src="model_serving_files/mediabag/3605741110bbdbdc65c774ef33f3e51361fb8f6f.svg" class="img-fluid figure-img"></a>
@@ -2429,7 +2484,7 @@ Figure&nbsp;5: <strong>Request Pipelining</strong>: Pipelining hides latency by 
 <section id="sec-model-serving-systems-metric-hardware-duty-cycle-7530" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-systems-metric-hardware-duty-cycle-7530">The systems metric: Hardware duty cycle</h4>
 <p>In the “Quantitative Approach” to ML systems, we define the efficiency of a serving system by its ability to saturate the bottleneck resource. For most ML systems, this is the GPU’s compute cores or memory bandwidth. We quantify this in <a href="#eq-system-efficiency" class="quarto-xref">Equation&nbsp;2</a>:</p>
-<p><span id="eq-system-efficiency"><span class="math display">\[\text{System Efficiency} = \frac{\sum T_{\text{compute}}}{\text{Wall Clock Time} \times \text{Resource Count}} \tag{2}\]</span></span></p>
+<p><span id="eq-system-efficiency"><span class="math display">\[\text{System Efficiency\index{System Efficiency!hardware duty cycle}} = \frac{\sum T_{\text{compute}}}{\text{Wall Clock Time} \times \text{Resource Count}} \tag{2}\]</span></span></p>
 <p>If a ResNet-50 request takes 10 ms total (5 ms GPU, 5 ms CPU), a serial system achieves only fifty percent efficiency. By pipelining just two requests, efficiency approaches 100 percent (assuming the CPU can keep up with the GPU). If the CPU is too slow to feed the GPU, the system becomes CPU-bound, and further model optimization provides zero throughput gain—a direct application of Amdahl’s Law (introduced in <strong><a href="../ml_systems/ml_systems.html#sec-ml-systems">ML Systems</a></strong>) to serving: if preprocessing consumes fifty percent of latency, maximum speedup is 2<span class="math inline">\(\times\)</span> regardless of how fast the model runs.</p>
 </section>
 </section>
@@ -2451,17 +2506,17 @@ Listing&nbsp;1: <strong>ResNet-50 Postprocessing</strong>: Transforms raw logits
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ImageNet class</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> torch.softmax(</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    logits, dim<span class="op">=-</span><span class="dv">1</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>)  <span class="co"># Normalize to sum=1; ~0.05ms on GPU</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>)  <span class="co"># Normalize to sum=1; ~0.05 ms on GPU</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract top-5 predictions for multi-class response</span></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># topk returns (values, indices) sorted by probability</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>top5_probs, top5_indices <span class="op">=</span> probs.topk(<span class="dv">5</span>)  <span class="co"># ~0.02ms; GPU operation</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>top5_probs, top5_indices <span class="op">=</span> probs.topk(<span class="dv">5</span>)  <span class="co"># ~0.02 ms; GPU operation</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Map class indices to human-readable labels</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># IMAGENET_CLASSES: list of 1000 class names from synset mapping</span></span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> [</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    IMAGENET_CLASSES[i] <span class="cf">for</span> i <span class="kw">in</span> top5_indices</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>]  <span class="co"># ~0.01ms; CPU lookup</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>]  <span class="co"># ~0.01 ms; CPU lookup</span></span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Format response with predictions and metadata for API contract</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> {</span>
@@ -2524,17 +2579,17 @@ Listing&nbsp;1: <strong>ResNet-50 Postprocessing</strong>: Transforms raw logits
 <section id="sec-model-serving-littles-law-9352" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-model-serving-littles-law-9352">Little’s Law</h3>
 <p>Serving engineers need a tool that connects observable metrics to capacity requirements. The most celebrated result in queuing theory is Little’s Law,<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> which <a href="#eq-littles-law" class="quarto-xref">Equation&nbsp;3</a> expresses as a simple relationship between three quantities in any stable system: Concretely, a server targeting 1000 QPS with a 50ms SLO requires 50 concurrent request slots, which sets the hard memory floor for activation storage on that node.</p>
-<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;<strong>Little’s Law</strong>: John D.C. Little proved in 1961 that <span class="math inline">\(L = \lambda W\)</span> holds for <em>any</em> stable system regardless of arrival distribution, service distribution, or scheduling discipline. This universality is why it anchors ML capacity planning: the formula requires no assumptions about whether requests arrive in bursts, whether inference times vary, or whether the scheduler batches aggressively. The only requirement is stability (<span class="math inline">\(\lambda &lt; \mu\)</span>), and when that condition breaks, no amount of optimization prevents queue divergence. </p></div></div><p><span id="eq-littles-law"><span class="math display">\[L = \lambda \cdot W \tag{3}\]</span></span></p>
-<p>where <span class="math inline">\(L\)</span> is the average number of requests in the system, <span class="math inline">\(\lambda\)</span> is the arrival rate (requests per second), and <span class="math inline">\(W\)</span> is the average time each request spends in the system.</p>
+<div class="no-row-height column-margin column-container"><div id="fn9"><p><sup>9</sup>&nbsp;<strong>Little’s Law</strong>: John D.C. Little proved in 1961 that <span class="math inline">\(N_{\text{req}} = \lambda T_{\text{lat}}\)</span> holds for <em>any</em> stable system regardless of arrival distribution, service distribution, or scheduling discipline. This universality is why it anchors ML capacity planning: the formula requires no assumptions about whether requests arrive in bursts, whether inference times vary, or whether the scheduler batches aggressively. The only requirement is stability (<span class="math inline">\(\lambda &lt; \mu\)</span>), and when that condition breaks, no amount of optimization prevents queue divergence. </p></div></div><p><span id="eq-littles-law"><span class="math display">\[N_{\text{req}} = \lambda \cdot T_{\text{lat}} \tag{3}\]</span></span></p>
+<p>where <span class="math inline">\(N_{\text{req}}\)</span> is the average number of requests in the system, <span class="math inline">\(\lambda\)</span> is the arrival rate (requests per second), and <span class="math inline">\(T_{\text{lat}}\)</span> is the average time each request spends in the system.</p>
 <div id="callout-perspective-1.4" class="callout callout-perspective" title="Notation Alert: L vs. Latency">
-<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.4: Notation Alert: L vs. Latency</strong></summary><div>In queuing theory, <span class="math inline">\(L\)</span> traditionally denotes the <em>length</em> of the queue (number of items in the system), and <span class="math inline">\(W\)</span> denotes <em>wait time</em> (time in system per request). Elsewhere in this book, we use <span class="math inline">\(L_{\text{lat}}\)</span> for latency with descriptive subscripts (<span class="math inline">\(L_{\text{lat,wait}}\)</span>, <span class="math inline">\(L_{\text{lat,compute}}\)</span>) to denote latency components. To preserve standard queuing notation, we retain <span class="math inline">\(L\)</span> for queue length and <span class="math inline">\(W\)</span> for time in system in this section. In the batching analysis that follows (<a href="#sec-model-serving-dynamic-batching-latencythroughput-tradeoffs-986d" class="quarto-xref">Section&nbsp;1.6.3</a>), <span class="math inline">\(L_{\text{lat,wait}}\)</span> corresponds to the queueing wait component <span class="math inline">\(W_q\)</span>, and <span class="math inline">\(L_{\text{lat,compute}}\)</span> includes inference time.<p></p>
+<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.4: Notation Alert: L vs. Latency</strong></summary><div>In queuing theory, <span class="math inline">\(N_{\text{req}}\)</span> traditionally denotes the <em>length</em> of the queue (number of items in the system), and <span class="math inline">\(T_{\text{lat}}\)</span> denotes <em>wait time</em> (time in system per request). Elsewhere in this book, we use <span class="math inline">\(L_{\text{lat}}\)</span> for latency with descriptive subscripts (<span class="math inline">\(L_{\text{lat,wait}}\)</span>, <span class="math inline">\(L_{\text{lat,compute}}\)</span>) to denote latency components. To preserve standard queuing notation, we retain <span class="math inline">\(N_{\text{req}}\)</span> for queue length and <span class="math inline">\(T_{\text{lat}}\)</span> for time in system in this section. In the batching analysis that follows (<a href="#sec-model-serving-dynamic-batching-latencythroughput-tradeoffs-986d" class="quarto-xref">Section&nbsp;1.6.3</a>), <span class="math inline">\(L_{\text{lat,wait}}\)</span> corresponds to the queueing wait component <span class="math inline">\(W_q\)</span>, and <span class="math inline">\(L_{\text{lat,compute}}\)</span> includes inference time.<p></p>
 </div></details>
 </div>
 <p>This relationship holds regardless of arrival distribution, service time distribution, or scheduling policy. The following notebook quantifies this capacity relationship through a practical application of <em>Little’s Law</em>.</p>
 <div id="notebook-littles-law" class="callout callout-theorem" title="Little's Law">
 <details class="callout-theorem fbx-simplebox fbx-default" open=""><summary><strong>Theorem 1.1: Little's Law</strong></summary><div>
 <p><strong>The Capacity Physics</strong>: How much memory does a system need to serve 1,000 queries per second?</p>
-<p><strong>The Law</strong>: <span class="math inline">\(L = \lambda W\)</span> (Concurrency = Throughput<span class="math inline">\(\times\)</span> Latency) (see <strong><a href="../backmatter/appendix_machine.html#sec-machine-foundations-littles-law-21a3">Little's Law</a></strong> for the derivation).</p>
+<p><strong>The Law</strong>: <span class="math inline">\(N_{\text{req}} = \lambda T_{\text{lat}}\)</span> (Concurrency = Throughput<span class="math inline">\(\times\)</span> Latency) (see <strong><a href="../backmatter/appendix_machine.html#sec-machine-foundations-littles-law-21a3">Little's Law</a></strong> for the derivation).</p>
 <p><strong>Scenario</strong>:</p>
 <ul>
 <li><strong>Throughput Target (lambda)</strong>: 1,000 requests/sec.</li>
@@ -2544,7 +2599,7 @@ Listing&nbsp;1: <strong>ResNet-50 Postprocessing</strong>: Transforms raw logits
 <p><strong>The Constraint</strong>: The server <em>must</em> have enough RAM to hold 50 requests simultaneously (batch size + queue).</p>
 <ul>
 <li>If the GPU runs out of memory at batch size 32, the system physically <strong>cannot</strong> hit 1,000 QPS at 50 ms latency.</li>
-<li>The only options are to reduce latency (<span class="math inline">\(W\)</span>) or add more memory (<span class="math inline">\(L\)</span>).</li>
+<li>The only options are to reduce latency (<span class="math inline">\(T_{\text{lat}}\)</span>) or add more memory (<span class="math inline">\(N_{\text{req}}\)</span>).</li>
 </ul>
 </div></details>
 </div>
@@ -2554,13 +2609,13 @@ Listing&nbsp;1: <strong>ResNet-50 Postprocessing</strong>: Transforms raw logits
 <p>While Little’s Law relates queue depth to throughput, it does not account for the <strong>Batching Tax</strong>: the deliberate delay introduced to maximize hardware utilization. In the tradition of quantitative systems, we analyze this as a <strong>Queuing Delay</strong> problem.</p>
 <p>When an inference server batches requests, it introduces two distinct sources of latency:</p>
 <ol type="1">
-<li><strong>Batch Formation Delay (<span class="math inline">\(W_{form}\)</span>)</strong>: The time the first request in a batch waits for the last request to arrive.</li>
-<li><strong>Inference Inflation (<span class="math inline">\(W_{inf}\)</span>)</strong>: The increase in execution time when the GPU processes <span class="math inline">\(B\)</span> samples instead of 1.</li>
+<li><strong>Batch Formation Delay (<span class="math inline">\(W_{\text{form}}\)</span>)</strong>: The time the first request in a batch waits for the last request to arrive.</li>
+<li><strong>Inference Inflation (<span class="math inline">\(W_{\text{inf}}\)</span>)</strong>: The increase in execution time when the GPU processes <span class="math inline">\(B\)</span> samples instead of 1.</li>
 </ol>
 <p>The resulting <strong>Latency-Throughput Pareto Frontier</strong> is the set of configurations where one cannot improve throughput without paying a “Tax” in increased wait time. We can quantify the total wait time for a batch size <span class="math inline">\(B\)</span> and arrival rate <span class="math inline">\(\lambda\)</span> as <a href="#eq-batching-tax" class="quarto-xref">Equation&nbsp;4</a>:</p>
-<p><span id="eq-batching-tax"><span class="math display">\[ W_{total} \approx \underbrace{ \frac{B-1}{2\lambda} }_{\text{Formation Delay}} + \underbrace{ T_{inf}(B) }_{\text{Inference Time}}  \tag{4}\]</span></span></p>
-<p>This equation reveals the “Cost of Throughput.” Increasing <span class="math inline">\(B\)</span> to saturate the GPU amortizes the hardware cost, but inflates the per-request latency. Concretely, at 500 QPS, moving from batch-1 to batch-32 increases wait-time from <strong>0ms</strong> to <strong>31ms</strong>, contributing to a <strong>23<span class="math inline">\(\times\)</span></strong> total latency penalty (2.0ms → 46.0ms). For a systems engineer, this tax is the primary regulator of <strong>Economic Efficiency</strong>: the engineer chooses the batch size that maximizes throughput (minimizing cost per query) without violating the <strong>Latency SLO</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>).</p>
-<p>Little’s Law has immediate practical implications. If an inference service averages 10 ms per request (<span class="math inline">\(W = 0.01\)</span>s) and the system shows 50 concurrent requests on average (<span class="math inline">\(L = 50\)</span>), then the arrival rate must be <span class="math inline">\(\lambda = L/W = 5000\)</span> requests per second. Conversely, if the system must limit concurrent requests to 10 (perhaps due to GPU memory constraints) and the service time is 10 ms, it can sustain at most 1000 requests per second.</p>
+<p><span id="eq-batching-tax"><span class="math display">\[ W_{\text{total}} \approx \underbrace{ \frac{B-1}{2\lambda} }_{\text{Formation Delay}} + \underbrace{ T_{\text{inf}}(B) }_{\text{Inference Time}}  \tag{4}\]</span></span></p>
+<p>This equation reveals the “Cost of Throughput.” Increasing <span class="math inline">\(B\)</span> to saturate the GPU amortizes the hardware cost, but inflates the per-request latency. Concretely, at 500 QPS, moving from batch-1 to batch-32 increases wait-time from <strong>0 ms</strong> to <strong>31 ms</strong>, contributing to a <strong>23<span class="math inline">\(\times\)</span></strong> total latency penalty (2.0 ms → 46.0 ms). For a systems engineer, this tax is the primary regulator of <strong>Economic Efficiency</strong>: the engineer chooses the batch size that maximizes throughput (minimizing cost per query) without violating the <strong>Latency SLO</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>).</p>
+<p>Little’s Law has immediate practical implications. If an inference service averages 10 ms per request (<span class="math inline">\(T_{\text{lat}} = 0.01 \text{ s}\)</span>) and the system shows 50 concurrent requests on average (<span class="math inline">\(N_{\text{req}} = 50\)</span>), then the arrival rate must be <span class="math inline">\(\lambda = N_{\text{req}} / T_{\text{lat}} = 5000\)</span> requests per second. Conversely, if the system must limit concurrent requests to 10 (perhaps due to GPU memory constraints) and the service time is 10 ms, it can sustain at most 1000 requests per second.</p>
 </section>
 <section id="sec-model-serving-utilizationlatency-relationship-a2f0" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-model-serving-utilizationlatency-relationship-a2f0">The utilization-latency relationship</h3>
@@ -2637,7 +2692,7 @@ Table&nbsp;4: <strong>Utilization-Latency Relationship</strong>: Average <strong
 <section id="sec-model-serving-tail-latency-5376" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-model-serving-tail-latency-5376">Tail latency</h3>
 <p>Production SLOs typically specify percentile targets (p95, p99) rather than averages because tail latency determines user experience for the slowest requests <span class="citation" data-cites="dean2013tail">(<a href="#ref-dean2013tail" role="doc-biblioref">Dean and Barroso 2013</a>)</span>. For an M/M/1 queue, the p99 latency follows:</p>
-<div class="no-row-height column-margin column-container"></div><p><span id="eq-p99-latency"><span class="math display">\[W_{p99} \approx \frac{\text{service time}}{1 - \rho} \cdot \ln\left(\frac{1}{1 - 0.99}\right) \approx \frac{4.6 \cdot \text{service time}}{1 - \rho} \tag{6}\]</span></span></p>
+<div class="no-row-height column-margin column-container"></div><p><span id="eq-p99-latency"><span class="math display">\[W_{\text{p99}} \approx \frac{\text{service time}}{1 - \rho} \cdot \ln\left(\frac{1}{1 - 0.99}\right) \approx \frac{4.6 \cdot \text{service time}}{1 - \rho} \tag{6}\]</span></span></p>
 <p>At 70 percent utilization, p99 latency is approximately 15 times the service time (<span class="math inline">\(4.6/0.3 \approx 15.3\)</span>), while average latency is only 3.3 times. For the M/D/1 model (more representative of ML inference with near-constant service times), p99 values are roughly half these M/M/1 estimates. This explains <em>why</em> systems that seem healthy with low average latency can have unacceptable tail latency, since the average hides the experience of the unluckiest requests.</p>
 <section id="sec-model-serving-tail-scale-problem-958d" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-model-serving-tail-scale-problem-958d">The tail at scale problem</h4>
@@ -2653,7 +2708,7 @@ Table&nbsp;4: <strong>Utilization-Latency Relationship</strong>: Average <strong
 <li><strong>Peak expected traffic</strong>: 5,000 requests per second</li>
 <li><strong>Service time</strong> (TensorRT FP16): 5 ms</li>
 </ul>
-<p><strong>Step 1</strong>: Find safe utilization. From <a href="#eq-p99-latency" class="quarto-xref">Equation&nbsp;6</a>, <span class="math inline">\(W_{p99}\)</span> ≈ 4.6<span class="math inline">\(\times\)</span> service time / (1 − <span class="math inline">\(\rho\)</span>). Setting <span class="math inline">\(W_{p99}\)</span> ≤ 50 ms with 5 ms service time gives <span class="math inline">\(\rho\)</span> ≤ one − (4.6<span class="math inline">\(\times\)</span> 5)/50 = 0.54. However, the M/M/1 model is conservative for ML inference, which has near-deterministic service times (closer to M/D/1). For M/D/1 queues, average wait is roughly half of M/M/1 at the same utilization, allowing a higher safe operating point. Using the M/D/1-adjusted threshold yields <span class="math inline">\(\rho\)</span> ≤ 0.72 (72 percent maximum utilization).</p>
+<p><strong>Step 1</strong>: Find safe utilization. From <a href="#eq-p99-latency" class="quarto-xref">Equation&nbsp;6</a>, <span class="math inline">\(W_{\text{p99}}\)</span> ≈ 4.6<span class="math inline">\(\times\)</span> service time / (1 − <span class="math inline">\(\rho\)</span>). Setting <span class="math inline">\(W_{\text{p99}}\)</span> ≤ 50 ms with 5 ms service time gives <span class="math inline">\(\rho\)</span> ≤ one − (4.6<span class="math inline">\(\times\)</span> 5)/50 = 0.54. However, the M/M/1 model is conservative for ML inference, which has near-deterministic service times (closer to M/D/1). For M/D/1 queues, average wait is roughly half of M/M/1 at the same utilization, allowing a higher safe operating point. Using the M/D/1-adjusted threshold yields <span class="math inline">\(\rho\)</span> ≤ 0.72 (72 percent maximum utilization).</p>
 <p><strong>Step 2</strong>: Calculate required service rate. mu_required = 5,000 / 0.72 = 6944 requests/second</p>
 <p><strong>Step 3</strong>: Determine GPU count. Single V100 throughput at batch=16: 1,143 images/second</p>
 <p>GPUs needed = 6944 / 1,143 = 6.1 → 7 GPUs</p>
@@ -2707,9 +2762,9 @@ Dean, Jeffrey. 2012. <em>Achieving Rapid Response Times in Large Online Services
 <details class="callout-checkpoint fbx-simplebox fbx-default" open=""><summary><strong>Checkpoint 1.1: Queuing and SLO Headroom</strong></summary><div>
 <p>Latency SLOs are not enforced by “fast inference” alone; they are enforced by <em>headroom</em>.</p>
 <ul class="task-list">
-<li><label><input type="checkbox"><strong>Little’s Law</strong>: Can you use (L = W) to explain why rising queue depth implies rising latency even if per-request compute time is unchanged?</label></li>
-<li><label><input type="checkbox"><strong>Utilization cliff</strong>: Can you explain why latency grows non-linearly as utilization () approaches one, and why production systems target a conservative () rather than “100 percent busy”?</label></li>
-<li><label><input type="checkbox"><strong>Wait vs.&nbsp;compute</strong>: Given an end-to-end latency budget, can you separate (L_{}) from (L_{}) and explain which one queuing theory primarily predicts?</label></li>
+<li><label><input type="checkbox"><strong>Little’s Law</strong>: Can you use <span class="math inline">\(N_{\text{req}} = \lambda T_{\text{lat}}\)</span> to explain why rising queue depth implies rising latency even if per-request compute time is unchanged?</label></li>
+<li><label><input type="checkbox"><strong>Utilization cliff</strong>: Can you explain why latency grows non-linearly as utilization <span class="math inline">\(\rho\)</span> approaches one, and why production systems target a conservative <span class="math inline">\(\rho\)</span> rather than “100 percent busy”?</label></li>
+<li><label><input type="checkbox"><strong>Wait vs.&nbsp;compute</strong>: Given an end-to-end latency budget, can you separate <span class="math inline">\(L_{\text{lat,compute}}\)</span> from <span class="math inline">\(L_{\text{lat,wait}}\)</span> and explain which one queuing theory primarily predicts?</label></li>
 <li><label><input type="checkbox"><strong>Capacity planning</strong>: Can you explain why a throughput number is only “real” if requests still meet the percentile latency SLO under load?</label></li>
 </ul>
 </div></details>
@@ -2763,7 +2818,7 @@ Dean, Jeffrey. 2012. <em>Achieving Rapid Response Times in Large Online Services
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.3: Training-Serving Skew</strong></summary><div>
 <p><strong><em>Training-Serving Skew</em></strong> is the <strong>Distributional Divergence</strong> between the training and inference environments caused by inconsistent logic or state.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> It violates the <strong>Consistency Imperative</strong>, causing <strong>Silent Accuracy Degradation</strong> proportional to the difference in the transformation functions (<span class="math inline">\(f_{train}(x) \neq f_{serve}(x)\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> It violates the <strong>Consistency Imperative</strong>, causing <strong>Silent Accuracy Degradation</strong> proportional to the difference in the transformation functions (<span class="math inline">\(f_{\text{train}}(x) \neq f_{\text{serve}}(x)\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Data Drift</strong> (which is an <strong>External Shift</strong> in the environment), Training-Serving Skew is an <strong>Internal Failure</strong> of the engineering stack.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that skew is “found” by looking for errors. In reality, it is <strong>Invisible to Exceptions</strong>: the system runs perfectly and the latency is low, but the predictions are statistically wrong.</li>
 </ol>
@@ -2790,7 +2845,7 @@ Romero, Francisco, Qian Li, Neeraja J. Yadwadkar, and Christos Kozyrakis. 2021. 
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> It represents the fixed cost of <strong>State Hydration</strong> (loading weights, compiling graphs), which can take seconds or minutes, effectively blocking the system’s ability to scale elastically in response to traffic bursts.</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Inference Latency</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>), which is a <strong>Per-Request Cost</strong>, Cold Start is a <strong>Per-Replica Cost</strong> that occurs only during deployment or scaling events.</li>
-<li><strong>Common Pitfall:</strong> A frequent misconception is that Cold Start is “just loading weights.” In reality, it includes <strong>Graph Compilation</strong> and <strong>Memory Allocation</strong>, which can often take longer than the data transfer itself (<span class="math inline">\(BW\)</span>).</li>
+<li><strong>Common Pitfall:</strong> A frequent misconception is that Cold Start is “just loading weights.” In reality, it includes <strong>Graph Compilation</strong> and <strong>Memory Allocation</strong>, which can often take longer than the data transfer itself (<span class="math inline">\(\text{BW}\)</span>).</li>
 </ol>
 </div></details>
 </div>
@@ -2871,9 +2926,9 @@ Romero, Francisco, Qian Li, Neeraja J. Yadwadkar, and Christos Kozyrakis. 2021. 
 <section id="sec-model-serving-multimodel-serving-a9c1" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-model-serving-multimodel-serving-a9c1">Multi-model serving</h3>
 <p>Production systems often serve multiple models from a single machine, whether different model versions for A/B testing, ensemble components, or entirely different models sharing infrastructure. GPU memory becomes the limiting resource, requiring careful management strategies.</p>
-<p>Three strategies address multi-model memory management. Time-multiplexing loads one model at a time and swaps based on request routing—simple but introduces swap latency. Memory sharing partitions GPU memory among models, limiting concurrent execution count but enabling more models to remain resident. Model virtualization, as implemented by frameworks like Triton, manages model lifecycle automatically, loading and unloading models based on traffic patterns <span class="citation" data-cites="nvidia2024triton">(<a href="#ref-nvidia2024triton" role="doc-biblioref">NVIDIA 2024c</a>)</span>. The choice depends on request patterns: if models receive traffic evenly, concurrent loading works; if traffic is bursty and model-specific, time-multiplexing with intelligent preloading reduces average latency while maximizing GPU utilization.</p>
-<div class="no-row-height column-margin column-container"><div id="ref-nvidia2024triton" class="csl-entry" role="listitem">
-NVIDIA. 2024c. <em><span>NVIDIA Triton</span> Inference Server: Developer Documentation</em>. <a href="https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html">https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html</a>.
+<p>Three strategies address multi-model memory management. Time-multiplexing loads one model at a time and swaps based on request routing—simple but introduces swap latency. Memory sharing partitions GPU memory among models, limiting concurrent execution count but enabling more models to remain resident. Model virtualization, as implemented by frameworks like Triton, manages model lifecycle automatically, loading and unloading models based on traffic patterns <span class="citation" data-cites="nvidia_triton">(<a href="#ref-nvidia_triton" role="doc-biblioref">NVIDIA 2024b</a>)</span>. The choice depends on request patterns: if models receive traffic evenly, concurrent loading works; if traffic is bursty and model-specific, time-multiplexing with intelligent preloading reduces average latency while maximizing GPU utilization.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-nvidia_triton" class="csl-entry" role="listitem">
+NVIDIA. 2024b. <em><span>NVIDIA Triton</span> Inference Server</em>. <a href="https://developer.nvidia.com/triton-inference-server">https://developer.nvidia.com/triton-inference-server</a>.
 </div></div><section id="sec-model-serving-multistream-execution-1b1f" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-model-serving-multistream-execution-1b1f">Multi-stream execution</h4>
 <p>When multiple models or multiple instances of the same model must run concurrently on a single GPU, the hardware must partition resources between them. NVIDIA’s Multi-Instance GPU<a href="#fn18" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a> technology enables hardware-level isolation, dividing an A100 into up to seven independent GPU instances, each with dedicated memory and compute resources. MIG is available on A100, A30 (up to four instances), H100, H200, and newer data center GPUs. For older GPUs such as V100 or T4, CUDA stream scheduling provides time-multiplexed sharing without hardware isolation.</p>
@@ -2928,7 +2983,7 @@ Crankshaw, Daniel, Xin Wang, Guilio Zhou, Michael J. Franklin, Joseph E. Gonzale
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.5: Dynamic Batching</strong></summary><div>
 <p><strong><em>Dynamic Batching</em></strong> is the runtime optimization of trading <strong>Latency</strong> for <strong>Throughput</strong> under stochastic arrival patterns.</p>
 <ol type="1">
-<li><strong>Significance (Quantitative):</strong> By buffering requests into a <strong>Batching Window</strong>, the scheduler amortizes fixed overheads (<span class="math inline">\(L_{\text{lat}}\)</span>) across multiple inputs, pushing the system away from the memory-bound regime (<span class="math inline">\(BW\)</span>) toward the compute-bound regime (<span class="math inline">\(R_{\text{peak}}\)</span>).</li>
+<li><strong>Significance (Quantitative):</strong> By buffering requests into a <strong>Batching Window</strong>, the scheduler amortizes fixed overheads (<span class="math inline">\(L_{\text{lat}}\)</span>) across multiple inputs, pushing the system away from the memory-bound regime (<span class="math inline">\(\text{BW}\)</span>) toward the compute-bound regime (<span class="math inline">\(R_{\text{peak}}\)</span>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Static Batching</strong>, which is fixed during training, Dynamic Batching adaptively adjusts the batch size at <strong>Inference Time</strong> based on real-time traffic volume.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that batching “always helps.” In reality, there is a <strong>Latency-Throughput Pareto Frontier</strong>: if the batching window is too large, the increased <strong>Queuing Delay</strong> may violate the system’s SLO before the throughput gains are realized.</li>
 </ol>
@@ -3019,10 +3074,10 @@ Shen, Haichen, Lequn Chen, Yuchen Jin, et al. 2019. <span>“Nexus: A GPU Cluste
 </div></details>
 </div>
 <p>The <strong>“Knee”</strong> in <a href="#fig-throughput-latency-knee" class="quarto-xref">Figure&nbsp;6</a> marks, the point where the blue throughput curve begins to plateau just as the orange latency curve starts its sharp upward spike. This is the optimal operating point: push batch size beyond the knee and queuing delays dominate; staying below it leaves hardware capacity on the table. The numbers are representative rather than tied to a single benchmark.</p>
-<div id="fig-throughput-latency-knee" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Dual-axis line chart. Blue line (throughput) rises and plateaus. Orange line (latency) stays low then spikes upward. A vertical line marks the optimal point where throughput is high before latency explodes." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-throughput-latency-knee" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Dual-axis line chart. Blue line (throughput) rises and plateaus. Orange line (latency) stays low then spikes upward. A vertical line marks the optimal point where throughput is high before latency explodes." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-throughput-latency-knee-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="2ca5abb3" class="cell" data-execution_count="23">
+<div id="1d6e5175" class="cell" data-execution_count="23">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -3051,12 +3106,12 @@ Olston, Christopher, Noah Fiedel, Kiril Gorovoy, et al. 2017. <span>“TensorFlo
 <h3 class="anchored" data-anchor-id="sec-model-serving-dynamic-batching-latencythroughput-tradeoffs-986d">Dynamic batching latency-throughput trade-offs</h3>
 <p>Dynamic batching introduces a quantifiable tension between throughput optimization and latency constraints, revealing <em>why latency spikes under load</em> and enabling systematic configuration decisions rather than trial-and-error tuning.</p>
 <div id="callout-notebook-1.10" class="callout callout-notebook" title="Why Latency Spikes Under Load">
-<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.10: Why Latency Spikes Under Load</strong></summary><div><strong>Recall</strong> from <a href="#sec-model-serving-littles-law-9352" class="quarto-xref">Section&nbsp;1.4.2</a>: Little’s Law (<span class="math inline">\(L = \lambda W\)</span>) governs all stable queues. When hardware is saturated (throughput <span class="math inline">\(\lambda\)</span> is maxed out), any increase in traffic increases queue depth (<span class="math inline">\(L\)</span>). Since <span class="math inline">\(\lambda\)</span> cannot grow, <strong>latency (<span class="math inline">\(W\)</span>) must grow linearly with queue depth</strong>. This is why <strong>admission control</strong> (rejecting requests when <span class="math inline">\(L\)</span> exceeds a threshold) is the only way to preserve latency during overload.<p></p>
+<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.10: Why Latency Spikes Under Load</strong></summary><div><strong>Recall</strong> from <a href="#sec-model-serving-littles-law-9352" class="quarto-xref">Section&nbsp;1.4.2</a>: Little’s Law (<span class="math inline">\(N_{\text{req}} = \lambda T_{\text{lat}}\)</span>) governs all stable queues. When hardware is saturated (throughput <span class="math inline">\(\lambda\)</span> is maxed out), any increase in traffic increases queue depth (<span class="math inline">\(N_{\text{req}}\)</span>). Since <span class="math inline">\(\lambda\)</span> cannot grow, <strong>latency (<span class="math inline">\(T_{\text{lat}}\)</span>) must grow linearly with queue depth</strong>. This is why <strong>admission control</strong> (rejecting requests when <span class="math inline">\(L_{\text{lat}}\)</span> exceeds a threshold) is the only way to preserve latency during overload.<p></p>
 </div></details>
 </div>
 <p><a href="#eq-batching-latency" class="quarto-xref">Equation&nbsp;7</a> decomposes the total user-perceived latency for a batched request into two components:</p>
-<p><span id="eq-batching-latency"><span class="math display">\[L_{\text{lat}} = L_{\text{lat,wait}} + L_{\text{lat,compute}}(b) \tag{7}\]</span></span></p>
-<p>where <span class="math inline">\(L_{\text{lat,wait}}\)</span> is the time spent waiting in the batching queue (corresponding to <span class="math inline">\(L_{queue}\)</span> in the overall latency budget) and <span class="math inline">\(L_{\text{lat,compute}}(b)\)</span> is the inference time for batch size <span class="math inline">\(b\)</span> (encompassing <span class="math inline">\(L_{infer}\)</span> plus portions of <span class="math inline">\(L_{pre}\)</span> and <span class="math inline">\(L_{post}\)</span>). The batching window <span class="math inline">\(T\)</span> bounds wait time (<span class="math inline">\(L_{\text{lat,wait}} \leq T\)</span>), while batch size affects compute time through GPU utilization characteristics.</p>
+<p><span id="eq-batching-latency"><span class="math display">\[L_{\text{lat}} = L_{\text{lat,wait}} + L_{\text{lat,compute}}(B) \tag{7}\]</span></span></p>
+<p>where <span class="math inline">\(L_{\text{lat,wait}}\)</span> is the time spent waiting in the batching queue (corresponding to <span class="math inline">\(L_{\text{lat,queue}}\)</span> in the overall latency budget) and <span class="math inline">\(L_{\text{lat,compute}}(B)\)</span> is the inference time for batch size <span class="math inline">\(B\)</span> (encompassing <span class="math inline">\(L_{\text{lat,infer}}\)</span> plus portions of <span class="math inline">\(L_{\text{lat,pre}}\)</span> and <span class="math inline">\(L_{\text{lat,post}}\)</span>). The batching window <span class="math inline">\(T\)</span> bounds wait time (<span class="math inline">\(L_{\text{lat,wait}} \leq T\)</span>), while batch size affects compute time through GPU utilization characteristics.</p>
 <section id="sec-model-serving-queue-waiting-time-analysis-8d5c" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-queue-waiting-time-analysis-8d5c">Quantitative analysis of batching</h4>
 <p>For Poisson arrivals with rate <span class="math inline">\(\lambda\)</span> and batching window <span class="math inline">\(T\)</span>, requests arrive uniformly within the window. A request arriving at time <span class="math inline">\(t\)</span> within the window waits <span class="math inline">\(T - t\)</span> for the batch to close. <a href="#eq-avg-wait" class="quarto-xref">Equation&nbsp;8</a> shows that the average wait time is simply half the window:</p>
@@ -3128,10 +3183,10 @@ Table&nbsp;5: <strong>Batch Size Variability</strong>: At low traffic, batching 
 </section>
 <section id="sec-model-serving-throughput-maximization-strategy-27f5" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-throughput-maximization-strategy-27f5">Throughput maximization strategy</h4>
-<p>Throughput optimization requires maximizing the number of requests processed per unit time. For a system with service time <span class="math inline">\(S(b)\)</span> for batch size <span class="math inline">\(b\)</span>, throughput follows <a href="#eq-batch-throughput" class="quarto-xref">Equation&nbsp;10</a>:</p>
-<p><span id="eq-batch-throughput"><span class="math display">\[\text{Throughput}(b) = \frac{b}{T + S(b)} \tag{10}\]</span></span></p>
+<p>Throughput optimization requires maximizing the number of requests processed per unit time. For a system with service time <span class="math inline">\(S(B)\)</span> for batch size <span class="math inline">\(B\)</span>, throughput follows <a href="#eq-batch-throughput" class="quarto-xref">Equation&nbsp;10</a>:</p>
+<p><span id="eq-batch-throughput"><span class="math display">\[\text{Throughput}(B) = \frac{B}{T + S(B)} \tag{10}\]</span></span></p>
 <p>The numerator increases linearly with batch size while the denominator increases sub-linearly (due to GPU parallelism). This creates an optimal batch size that balances these competing effects.</p>
-<p>For ResNet-50 on a V100 GPU, service time approximately scales as <span class="math inline">\(S(b) = 5\text{ms} + 0.6b\)</span> (5 ms fixed overhead plus 0.6 ms per additional image in the batch). This linear approximation captures the dominant trend; actual service times may deviate slightly due to memory hierarchy effects. With <span class="math inline">\(T = 10\)</span>ms batching window:</p>
+<p>For ResNet-50 on a V100 GPU, service time approximately scales as <span class="math inline">\(S(B) = 5 \text{ ms} + 0.6 B\)</span> (5 ms fixed overhead plus 0.6 ms per additional image in the batch). This linear approximation captures the dominant trend; actual service times may deviate slightly due to memory hierarchy effects. With <span class="math inline">\(T = 10 \text{ ms}\)</span> batching window:</p>
 <div id="tbl-batching-throughput" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-batching-throughput-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -3199,7 +3254,7 @@ Table&nbsp;6: <strong>Batching Throughput Analysis</strong>: ResNet-50 throughpu
 <p>The throughput gains in <a href="#tbl-batching-throughput" class="quarto-xref">Table&nbsp;6</a> trace directly back to <em>the iron law of batching efficiency</em>, the framework established in <strong><a href="../training/training.html#sec-model-training-iron-law-training-performance-a53f">Iron Law of Training Performance</a></strong>, where batching amortizes the fixed overhead term.</p>
 <div id="callout-notebook-1.11" class="callout callout-notebook" title="The iron law of Batching Efficiency">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.11: The iron law of Batching Efficiency</strong></summary><div><strong>The iron law Connection:</strong> In serving, we maximize throughput by amortizing the <strong>Latency Term</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>), as shown in <a href="#eq-compute-time" class="quarto-xref">Equation&nbsp;11</a>:<p></p>
-<p><span id="eq-compute-time"><span class="math display">\[ T = \frac{O}{R_{\text{peak}} \cdot \eta} + L_{\text{lat}}  \tag{11}\]</span></span></p>
+<p><span id="eq-compute-time"><span class="math display">\[ T = \frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}} + L_{\text{lat}}  \tag{11}\]</span></span></p>
 <p><strong>Deriving the Sweet Spot:</strong></p>
 <ul>
 <li><strong>Case 1 (Batch 1):</strong> Overhead (5 ms) ≈ Compute (0.6 ms). Efficiency ≈ 10 percent. The GPU is mostly waiting.</li>
@@ -3212,28 +3267,28 @@ Table&nbsp;6: <strong>Batching Throughput Analysis</strong>: ResNet-50 throughpu
 <section id="sec-model-serving-latencyconstrained-optimization-8f66" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-latencyconstrained-optimization-8f66">Latency-constrained optimization</h4>
 <p>When latency SLOs provide the binding constraint, the optimization problem becomes finding the maximum batch size that meets the SLO. For a latency target <span class="math inline">\(L_{\text{lat,target}}\)</span> and average wait time <span class="math inline">\(T/2\)</span>, <a href="#eq-latency-constrained-batch" class="quarto-xref">Equation&nbsp;12</a> defines the maximum allowable batch size using a first-order <strong>average</strong> latency approximation:</p>
-<p><span id="eq-latency-constrained-batch"><span class="math display">\[b_{\text{max}} = \max\{b : \frac{T}{2} + S(b) \leq L_{\text{lat,target}}\} \tag{12}\]</span></span></p>
+<p><span id="eq-latency-constrained-batch"><span class="math display">\[B_{\text{max}} = \max\{B : \frac{T}{2} + S(B) \leq L_{\text{lat,target}}\} \tag{12}\]</span></span></p>
 <p>Consider a 50 ms p95 latency SLO for ResNet-50 serving (using this mean-based approximation as a starting point):</p>
-<p><strong>Scenario one: Conservative window (T = 5ms)</strong></p>
+<p><strong>Scenario one: Conservative window (T = 5 ms)</strong></p>
 <ul>
-<li>Average wait: 2ms</li>
-<li>Latency budget for inference: 48ms</li>
+<li>Average wait: 2 ms</li>
+<li>Latency budget for inference: 48 ms</li>
 <li>Maximum batch size: 70 (but typically capped at 32 for memory)</li>
 <li>Achieved throughput: ~1,140 img/s (batch=32)</li>
 </ul>
-<p><strong>Scenario two: Aggressive window (T = 25ms)</strong></p>
+<p><strong>Scenario two: Aggressive window (T = 25 ms)</strong></p>
 <ul>
-<li>Average wait: 12.5ms</li>
-<li>Latency budget for inference: 37.5ms</li>
+<li>Average wait: 12.5 ms</li>
+<li>Latency budget for inference: 37.5 ms</li>
 <li>Maximum batch size: 48</li>
 <li>Achieved throughput: ~1,280 img/s (batch=48)</li>
 </ul>
-<p>The aggressive window achieves only 12 percent higher throughput but increases average latency by 10ms and p99 latency by 20ms. Examine <a href="#tbl-batching-throughput" class="quarto-xref">Table&nbsp;6</a>: for latency-sensitive applications, the conservative window provides better user experience at modest throughput cost.</p>
+<p>The aggressive window achieves only 12 percent higher throughput but increases average latency by 10 ms and p99 latency by 20 ms. Examine <a href="#tbl-batching-throughput" class="quarto-xref">Table&nbsp;6</a>: for latency-sensitive applications, the conservative window provides better user experience at modest throughput cost.</p>
 </section>
 <section id="sec-model-serving-slo-violation-analysis-6ebf" class="level4">
 <h4 class="anchored" data-anchor-id="sec-model-serving-slo-violation-analysis-6ebf">SLO violation analysis</h4>
 <p>Batch size variability causes SLO violations even when mean latency appears safe. The p99 latency includes both worst-case wait time (full window) and worst-case batch size (governed by Poisson tail). <a href="#eq-p99-batch-latency" class="quarto-xref">Equation&nbsp;13</a> captures this relationship:</p>
-<p><span id="eq-p99-batch-latency"><span class="math display">\[L_{\text{lat,p99}} \approx T + S(b_{p99}) \tag{13}\]</span></span></p>
+<p><span id="eq-p99-batch-latency"><span class="math display">\[L_{\text{lat,p99}} \approx T + S(b_{\text{p99}}) \tag{13}\]</span></span></p>
 <p>where bp99 is the 99th percentile batch size. For lambda = 500 QPS and T = 10 ms:</p>
 <ul>
 <li>Mean batch size: 5</li>
@@ -3374,12 +3429,12 @@ Table&nbsp;7: <strong>Batching Pareto Frontier</strong>: Each configuration repr
 <p>The Pareto frontier in <a href="#tbl-pareto-batching" class="quarto-xref">Table&nbsp;7</a> illustrates why these guidelines matter: moving from a 2 ms to a 50 ms window improves throughput by only 52 percent while increasing p99 latency by 5.4<span class="math inline">\(\times\)</span>. Principled batching configuration avoids this region of diminishing returns by working backward from the latency budget. Allocating twenty to 30 percent of the SLO to batching wait time leaves the remainder for inference and overhead, which bounds the maximum window at <span class="math inline">\(T_{\text{max}} = 0.3 \times L_{\text{lat,SLO}}\)</span>. The traffic estimate that feeds this calculation should use the p95 arrival rate rather than the average, because batching windows tuned for average traffic produce oversized batches during spikes—precisely when SLO headroom matters most. GPU memory imposes a hard ceiling on batch size independent of the latency constraint, since activation memory scales linearly with the batch dimension. Finally, monitoring the actual batch size distribution in production reveals whether initial traffic assumptions hold; high variance signals that the window needs adaptive tuning rather than a fixed configuration.</p>
 <p>For ResNet-50 with 50 ms SLO and 500 QPS traffic:</p>
 <ul>
-<li>Latency budget for batching: 15ms</li>
-<li>Maximum window: 15ms</li>
+<li>Latency budget for batching: 15 ms</li>
+<li>Maximum window: 15 ms</li>
 <li>Expected batch size: 7.5</li>
 <li>Maximum batch size: 32 (memory limit)</li>
-<li>Configuration: T = 12ms, b_max = 32</li>
-<li>Predicted p99 latency: 43ms (within SLO)</li>
+<li>Configuration: T = 12 ms, b_max = 32</li>
+<li>Predicted p99 latency: 43 ms (within SLO)</li>
 <li>Predicted throughput: 1,180 img/s</li>
 </ul>
 </section>
@@ -3627,7 +3682,7 @@ Table&nbsp;9: <strong>Traffic Patterns and Batching Strategies</strong>: The fou
 <div aria-describedby="tbl-traffic-patterns-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 32%">
+<col style="width: 33%">
 <col style="width: 22%">
 <col style="width: 18%">
 <col style="width: 25%">
@@ -3740,7 +3795,7 @@ Table&nbsp;9: <strong>Traffic Patterns and Batching Strategies</strong>: The fou
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> They decompose user-perceived latency into <strong>Time to First Token (TTFT)</strong> (governed by the compute-bound <strong>Prefill Phase</strong>) and <strong>Time Per Output Token (TPOT)</strong> (governed by the memory-bandwidth-bound <strong>Decode Phase</strong>).</li>
 <li><strong>Distinction (Durable):</strong> Unlike <strong>Fixed-Output Metrics</strong> (for example, end-to-end latency), LLM metrics measure the <strong>Fluidity of Generation</strong>, acknowledging that the user experience depends on the <em>rhythm</em> of token arrival.</li>
-<li><strong>Common Pitfall:</strong> A frequent misconception is that a “fast model” has a low TTFT. In reality, a model can have a fast TTFT but a sluggish TPOT (if the <strong>memory wall (<span class="math inline">\(BW\)</span>)</strong> is the bottleneck), leading to a frustrating user experience where the answer starts quickly but “stutters” thereafter.</li>
+<li><strong>Common Pitfall:</strong> A frequent misconception is that a “fast model” has a low TTFT. In reality, a model can have a fast TTFT but a sluggish TPOT (if the <strong>memory wall (<span class="math inline">\(\text{BW}\)</span>)</strong> is the bottleneck), leading to a frustrating user experience where the answer starts quickly but “stutters” thereafter.</li>
 </ol>
 </div></details>
 </div>
@@ -3773,12 +3828,12 @@ Meister, Clara, Ryan Cotterell, and Tim Vieira. 2020. <span>“If Beam Search Is
 <div class="no-row-height column-margin column-container"><div id="fn26"><p><sup>26</sup>&nbsp;<strong>KV Cache (Key-Value Cache)</strong>: To avoid redundant work, the system caches the Key and Value vectors from previous tokens, which remain valid throughout generation. This design choice is the direct cause of the dynamic memory growth described; the cache’s size grows linearly with every generated token, making memory management, not computation, the primary constraint. For a 70B model, this state can consume over 1.3 MB per token, meaning a batch of 32 requests at an 8,000-token context requires ~330 GB of memory—far exceeding the model weights themselves. </p></div></div><p>The continuous batching and PagedAttention techniques covered in <a href="#sec-model-serving-continuous-batching-8bb6" class="quarto-xref">Section&nbsp;1.6.4</a> address these challenges.</p>
 <section id="sec-model-serving-prefix-caching-offloading" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-model-serving-prefix-caching-offloading">Prefix caching and memory offloading</h4>
-<p>The memory pressure from KV caches can be further mitigated through architectural strategies that exploit request patterns. <strong>Prefix Caching</strong> stores the KV cache of common instruction prefixes (such as a 2,000-token system prompt or a shared RAG context), allowing many independent requests to reuse the same pre-computed hidden states. This eliminates redundant prefill compute (<span class="math inline">\(R_{\text{peak}}\)</span>) and reduces memory traffic (<span class="math inline">\(BW\)</span>). For multi-turn conversations, this “caching of the past” allows the system to process only the <em>new</em> tokens in each turn.</p>
+<p>The memory pressure from KV caches can be further mitigated through architectural strategies that exploit request patterns. <strong>Prefix Caching</strong> stores the KV cache of common instruction prefixes (such as a 2,000-token system prompt or a shared RAG context), allowing many independent requests to reuse the same pre-computed hidden states. This eliminates redundant prefill compute (<span class="math inline">\(R_{\text{peak}}\)</span>) and reduces memory traffic (<span class="math inline">\(\text{BW}\)</span>). For multi-turn conversations, this “caching of the past” allows the system to process only the <em>new</em> tokens in each turn.</p>
 <p>When the aggregate KV cache exceeds GPU VRAM, systems can employ <strong>KV Cache Offloading</strong>. This strategy spills inactive or low-priority context windows to host CPU RAM or NVMe SSD, freeing VRAM for active generation. While retrieving offloaded context introduces a latency “tax” due to PCIe bandwidth limits (<a href="#sec-model-serving-model-swapping-host-memory-c54f" class="quarto-xref">Section&nbsp;1.5.5.2</a>), it prevents Out-of-Memory (OOM) failures and enables handling much larger context windows than the hardware could otherwise support.</p>
 <p>Advanced techniques including speculative decoding<a href="#fn27" class="footnote-ref" id="fnref27" role="doc-noteref"><sup>27</sup></a> and distributed parallelism are covered in specialized treatments of large-scale systems.</p>
 <div class="no-row-height column-margin column-container"><div id="fn27"><p><sup>27</sup>&nbsp;<strong>Speculative Decoding</strong>: A small “draft” model generates <span class="math inline">\(k\)</span> candidate tokens autoregressively; the large target model then verifies all <span class="math inline">\(k\)</span> in a single parallel forward pass. When the draft model’s proposals are accepted at rate <span class="math inline">\(\alpha\)</span>, effective throughput scales as <span class="math inline">\(k \cdot \alpha\)</span>—but verification is parallel, so wall-clock cost is approximately one large-model step regardless of <span class="math inline">\(k\)</span>. At <span class="math inline">\(\alpha = 0.8\)</span> with <span class="math inline">\(k = 4\)</span>, speculative decoding delivers roughly 3.2<span class="math inline">\(\times\)</span> throughput improvement over sequential decoding without modifying the target model. This breaks the serial autoregressive bottleneck at the runtime layer, not the architecture layer. </p></div></div><p>The computational intensity of managing KV caches across concurrent requests raises a broader question about the energy cost of each token generated. Unlike classification models where energy per inference is constant, LLM energy consumption scales with response length—every generated token requires reading the entire model from memory. Quantifying <em>the carbon cost of a chat</em> translates these hardware demands into energy and carbon metrics that make the environmental impact concrete.</p>
 <div id="notebook-carbon-chat" class="callout callout-notebook" title="The Carbon Cost of a Chat">
-<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.14: The Carbon Cost of a Chat</strong></summary><div><strong>Joules per Token: The Green Metric</strong>: As LLMs scale, energy efficiency becomes a first-class operational metric alongside latency. For an H100 GPU (700W TDP), we can quantify the energy footprint of serving:<p></p>
+<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.14: The Carbon Cost of a Chat</strong></summary><div><strong>Joules per Token: The Green Metric</strong>: As LLMs scale, energy efficiency becomes a first-class operational metric alongside latency. For an H100 GPU (700 W TDP), we can quantify the energy footprint of serving:<p></p>
 <ol type="1">
 <li><p><strong>Throughput</strong>: 114 concurrent requests<span class="math inline">\(\times\)</span> 7.5 tokens/sec/req ≈ <strong>855 tokens/sec</strong>.</p></li>
 <li><p><strong>Power</strong>: 700 W (GPU) + 300 W (Host/Overhead) = <strong>1000 W</strong>.</p></li>
@@ -3951,7 +4006,7 @@ Chen, Tianqi, Thierry Moreau, Ziheng Jiang, et al. 2018. <span>“TVM: An Automa
 <col style="width: 20%">
 <col style="width: 22%">
 <col style="width: 22%">
-<col style="width: 21%">
+<col style="width: 20%">
 <col style="width: 6%">
 </colgroup>
 <thead>
@@ -3967,32 +4022,32 @@ Chen, Tianqi, Thierry Moreau, Ziheng Jiang, et al. 2018. <span>“TVM: An Automa
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>FP32</strong></td>
-<td style="text-align: right;">2.8ms</td>
-<td style="text-align: right;">98MB</td>
+<td style="text-align: right;">2.8 ms</td>
+<td style="text-align: right;">98 MB</td>
 <td style="text-align: right;">76.13%</td>
 <td style="text-align: right;">0 percent</td>
 <td style="text-align: left;">None</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>FP16</strong></td>
-<td style="text-align: right;">1.4ms</td>
-<td style="text-align: right;">49MB</td>
+<td style="text-align: right;">1.4 ms</td>
+<td style="text-align: right;">49 MB</td>
 <td style="text-align: right;">76.13%</td>
 <td style="text-align: right;">85%</td>
 <td style="text-align: left;">None</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>INT8 (PTQ)</strong></td>
-<td style="text-align: right;">0.9ms</td>
-<td style="text-align: right;">25MB</td>
+<td style="text-align: right;">0.9 ms</td>
+<td style="text-align: right;">25 MB</td>
 <td style="text-align: right;">75.80%</td>
 <td style="text-align: right;">92%</td>
 <td style="text-align: left;">1,000 samples</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>INT8 (QAT)</strong></td>
-<td style="text-align: right;">0.9ms</td>
-<td style="text-align: right;">25MB</td>
+<td style="text-align: right;">0.9 ms</td>
+<td style="text-align: right;">25 MB</td>
 <td style="text-align: right;">76.05%</td>
 <td style="text-align: right;">92%</td>
 <td style="text-align: left;">Full retraining</td>
@@ -4335,10 +4390,10 @@ Harchol-Balter, Mor. 2013. <em>Performance Modeling and Design of Computer Syste
 <h3 class="anchored" data-anchor-id="sec-model-serving-production-case-study-serving-llama38b-0499">Production case study: Serving Llama-3-8B</h3>
 <p>To synthesize the principles of latency budgeting, memory management, and hardware efficiency, we analyze a complete production profile for a modern LLM serving workload. This case study demonstrates how physical constraints (memory bandwidth and capacity) translate directly into service-level metrics and unit economics.</p>
 <p>We begin with the bottleneck that dominates LLM serving costs: KV cache memory. The memory curves in <a href="#fig-kv-cache-growth" class="quarto-xref">Figure&nbsp;7</a> climb steeply, especially for larger batch sizes, illustrating <em>why</em> long-context serving is memory bound even on H100s using typical 70B-class assumptions.</p>
-<div id="fig-kv-cache-growth" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line chart showing memory usage increasing linearly with context length. Multiple lines for different batch sizes. Red dashed horizontal line marks GPU memory limit. Purple line for batch 32 crosses into OOM zone at 8k context." data-fig-env="figure" data-fig-pos="htb">
+<div id="fig-kv-cache-growth" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Line chart showing memory usage increasing linearly with context length. Multiple lines for different batch sizes. Red dashed horizontal line marks GPU memory limit. Purple line for batch 32 crosses into OOM zone at 8k context." data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-kv-cache-growth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="f9d842f7" class="cell" data-execution_count="35">
+<div id="7caa893e" class="cell" data-execution_count="35">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -4375,7 +4430,7 @@ Figure&nbsp;7: <strong>The KV-Cache Explosion</strong>: Memory usage vs.&nbsp;Co
 <p>The model generates 256 tokens sequentially. This phase is memory-bandwidth bound—the same IO-bound pattern seen in the DLRM embedding lookups (<a href="#sec-model-serving-latency-distribution-analysis-b0f8" class="quarto-xref">Section&nbsp;1.3.2</a>), but at a larger scale: the system must read the entire 3.5 GB weight tensor from VRAM to generate a single token.</p>
 <div id="callout-perspective-1.7" class="callout callout-perspective" title="The Physics of Token Generation">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.7: The Physics of Token Generation</strong></summary><div>Recall the <strong>Energy-Movement Invariant</strong> from <strong><a href="../data_engineering/data_engineering.html#sec-data-engineering">Data Engineering</a></strong>: moving a bit is 100–1,000<span class="math inline">\(\times\)</span> more expensive than computing on it. In the <strong>Decode Phase</strong>, this law determines the physical “cost per word.”<p></p>
-<p><strong>The memory wall for Generative AI</strong>: Because the decode phase has an arithmetic intensity of <span class="math inline">\(\approx 1\)</span> FLOP/byte (we must read every weight just to generate one token), performance is strictly limited by memory bandwidth (<span class="math inline">\(BW\)</span>), not compute. This relationship is captured in <a href="#eq-token-generation-time" class="quarto-xref">Equation&nbsp;18</a>:</p>
+<p><strong>The memory wall for Generative AI</strong>: Because the decode phase has an arithmetic intensity of <span class="math inline">\(\approx 1\)</span> FLOP/byte (we must read every weight just to generate one token), performance is strictly limited by memory bandwidth (<span class="math inline">\(\text{BW}\)</span>), not compute. This relationship is captured in <a href="#eq-token-generation-time" class="quarto-xref">Equation&nbsp;18</a>:</p>
 <p><span id="eq-token-generation-time"><span class="math display">\[ T_{\text{token}} \approx \frac{\text{Model Size (Bytes)}}{\text{Memory Bandwidth (Bytes/s)}}  \tag{18}\]</span></span></p>
 <p><strong>The Engineering Implication</strong>: Every token generation pays a massive “energy tax” to move the model’s logic from HBM into compute registers. For Llama-3-8B (3.5 GB int4), an A100 80 GB (2.0 TB/s HBM2e) generates tokens at <span class="math inline">\(\approx 1.7\)</span> ms/token. Adding more <em>compute cores</em> yields <strong>zero</strong> latency improvement; only faster memory (Physics) or smaller models (Algorithm) can speed up generation.</p>
 </div></details>
@@ -4449,13 +4504,13 @@ Figure&nbsp;7: <strong>The KV-Cache Explosion</strong>: Memory usage vs.&nbsp;Co
 <h2 class="anchored" data-anchor-id="sec-model-serving-fallacies-pitfalls-336b">Fallacies and Pitfalls</h2>
 <p>Serving inverts training priorities in ways that violate intuitions from batch processing. The nonlinear relationship between utilization and latency, the hidden costs of preprocessing, and the silent failure modes of training-serving skew cause violated SLOs, wasted optimization effort, and accuracy degradation invisible to standard monitoring.</p>
 <p><strong>Fallacy:</strong> <em>Reducing model inference latency proportionally reduces user-perceived latency.</em></p>
-<p>Engineers who optimize model inference expect proportional improvement in user-perceived latency, but serving systems introduce latency sources absent from offline benchmarks. Under load, queuing delay dominates: <a href="#eq-mm1-wait" class="quarto-xref">Equation&nbsp;5</a> shows that at 80 percent utilization with 5ms service time, average wait time is 20ms before inference even begins. Reducing inference from 5ms to 2ms changes service time but also shifts utilization from 80 percent to 32 percent, reducing queuing wait from 20ms to 0.9ms, a 21<span class="math inline">\(\times\)</span> queuing improvement that dwarfs the 3ms inference gain. This nonlinear interaction between inference speed and queuing behavior means the <em>system-level</em> speedup (25ms → 2.9ms, or 8.5<span class="math inline">\(\times\)</span>) far exceeds the <em>model-level</em> speedup (5ms → 2ms, or 2.5<span class="math inline">\(\times\)</span>). Conversely, teams that reduce inference by only 20 percent at high utilization see negligible user-facing improvement because queuing still dominates. Serving optimization requires analyzing the complete latency budget, including serialization, queuing, preprocessing, and postprocessing, under realistic load conditions rather than profiling inference latency in isolation.</p>
+<p>Engineers who optimize model inference expect proportional improvement in user-perceived latency, but serving systems introduce latency sources absent from offline benchmarks. Under load, queuing delay dominates: <a href="#eq-mm1-wait" class="quarto-xref">Equation&nbsp;5</a> shows that at 80 percent utilization with 5 ms service time, average wait time is 20 ms before inference even begins. Reducing inference from 5 ms to 2 ms changes service time but also shifts utilization from 80 percent to 32 percent, reducing queuing wait from 20 ms to 0.9 ms, a 21<span class="math inline">\(\times\)</span> queuing improvement that dwarfs the 3 ms inference gain. This nonlinear interaction between inference speed and queuing behavior means the <em>system-level</em> speedup (25 ms → 2.9 ms, or 8.5<span class="math inline">\(\times\)</span>) far exceeds the <em>model-level</em> speedup (5 ms → 2 ms, or 2.5<span class="math inline">\(\times\)</span>). Conversely, teams that reduce inference by only 20 percent at high utilization see negligible user-facing improvement because queuing still dominates. Serving optimization requires analyzing the complete latency budget, including serialization, queuing, preprocessing, and postprocessing, under realistic load conditions rather than profiling inference latency in isolation.</p>
 <p><strong>Pitfall:</strong> <em>Running serving infrastructure at high utilization to maximize cost efficiency.</em></p>
-<p>Teams target 90 percent utilization to minimize idle capacity. In production, latency degrades nonlinearly as utilization approaches capacity. <a href="#eq-mm1-wait" class="quarto-xref">Equation&nbsp;5</a> shows that at 90 percent utilization, average time in system reaches 10<span class="math inline">\(\times\)</span> service time. Moving from 70 percent to 90 percent utilization cuts infrastructure costs by 22 percent but triples average latency. For a 5ms inference service, p99 latency jumps from ~77ms to ~230ms (M/M/1 model). Systems provisioned for average load violate SLOs precisely when traffic increases during business-critical periods. Production systems targeting 60 to 70 percent utilization at peak load maintain the latency headroom needed to absorb traffic spikes.</p>
+<p>Teams target 90 percent utilization to minimize idle capacity. In production, latency degrades nonlinearly as utilization approaches capacity. <a href="#eq-mm1-wait" class="quarto-xref">Equation&nbsp;5</a> shows that at 90 percent utilization, average time in system reaches 10<span class="math inline">\(\times\)</span> service time. Moving from 70 percent to 90 percent utilization cuts infrastructure costs by 22 percent but triples average latency. For a 5 ms inference service, p99 latency jumps from ~77 ms to ~230 ms (M/M/1 model). Systems provisioned for average load violate SLOs precisely when traffic increases during business-critical periods. Production systems targeting 60 to 70 percent utilization at peak load maintain the latency headroom needed to absorb traffic spikes.</p>
 <p><strong>Fallacy:</strong> <em>Training accuracy guarantees serving accuracy.</em></p>
 <p>Engineers assume identical model weights preserve validation set performance. In production, preprocessing differences silently shift inputs outside the training distribution. <a href="#sec-model-serving-trainingserving-skew-7b99" class="quarto-xref">Section&nbsp;1.5.1</a> shows <em>how</em> training-serving skew causes accuracy degradation despite identical weights: PIL vs.&nbsp;OpenCV resize interpolation alone can shift accuracy by 0.5-1.0 percent, float64 vs.&nbsp;float32 normalization produces different values, or feature computation timing changes. A model achieving 95 percent validation accuracy drops to 90 percent in production from these preprocessing mismatches, a 5 percentage point loss invisible to latency monitoring. Standard monitoring checking exceptions and latency violations fails to detect this silent degradation. Production systems require either identical preprocessing code for training and serving, or statistical monitoring comparing input distributions to catch drift before accuracy degrades.</p>
 <p><strong>Pitfall:</strong> <em>Using average latency to evaluate serving system performance.</em></p>
-<p>Engineers monitor average latency because it trends smoothly and is simple to compute. In production, averages hide the slowest requests that determine user satisfaction. As <a href="#sec-model-serving-tail-latency-5376" class="quarto-xref">Section&nbsp;1.4.6</a> demonstrates, at 70 percent utilization with 5ms service time, average latency is 17ms while p99 reaches 77ms, a 4.6<span class="math inline">\(\times\)</span> gap invisible to mean-based monitoring. Teams optimizing average latency miss the tail that determines user satisfaction: the 1 percent of users experiencing 77ms delays often generate the most valuable transactions. Production SLOs specify percentile targets (p95, p99) precisely because averages mask tail behavior.</p>
+<p>Engineers monitor average latency because it trends smoothly and is simple to compute. In production, averages hide the slowest requests that determine user satisfaction. As <a href="#sec-model-serving-tail-latency-5376" class="quarto-xref">Section&nbsp;1.4.6</a> demonstrates, at 70 percent utilization with 5 ms service time, average latency is 17 ms while p99 reaches 77 ms, a 4.6<span class="math inline">\(\times\)</span> gap invisible to mean-based monitoring. Teams optimizing average latency miss the tail that determines user satisfaction: the 1 percent of users experiencing 77 ms delays often generate the most valuable transactions. Production SLOs specify percentile targets (p95, p99) precisely because averages mask tail behavior.</p>
 <p><strong>Fallacy:</strong> <em>Larger serving batches always improve throughput without affecting latency SLOs.</em></p>
 <p>Engineers maximize batch size assuming GPU saturation improves cost efficiency under production load. In serving systems, however, batching introduces a latency-throughput trade-off governed by queuing dynamics absent from offline benchmarks. Accumulating requests into larger batches increases wait time for early arrivals: a batch window of 10 ms means the first request waits 10 ms before inference begins, directly adding to p99 latency. For ResNet-50 on V100, increasing batch size from 16 to 32 improves throughput only 12 percent while nearly doubling per-batch inference time from 14 ms to 25 ms, and variable input sizes within a batch create padding overhead that wastes 15 to 30 percent of compute on padding tokens. <a href="#sec-model-serving-dynamic-batching-latencythroughput-tradeoffs-986d" class="quarto-xref">Section&nbsp;1.6.3</a> shows that for 50 ms p99 targets, batch sizes above 32 routinely violate SLOs because batch formation delay plus increased per-batch inference time exceeds the latency budget. Serving batch optimization requires jointly tuning batch size, batch timeout, and concurrency against latency SLOs under realistic traffic patterns, not maximizing throughput in isolation.</p>
 <p><strong>Pitfall:</strong> <em>Calibrating quantized models with training data rather than production traffic.</em></p>
@@ -5055,6 +5110,9 @@ Figure&nbsp;7: <strong>The KV-Cache Explosion</strong>: Memory usage vs.&nbsp;Co
 <p><a href="#quiz-question-sec-model-serving-summary-9635" class="answer-label" onclick="event.preventDefault();document.getElementById('quiz-question-sec-model-serving-summary-9635').scrollIntoView({behavior:'smooth',block:'start'});history.pushState(null,'','#quiz-question-sec-model-serving-summary-9635');">← Back to Questions</a></p>
 </div></details>
 </div>
+<p>z-end } ::: rly before a part begins. –&gt;</p>
+<p>z-end } ::: t begins. –&gt;</p>
+<p>z-end } :::</p>
 
 
 

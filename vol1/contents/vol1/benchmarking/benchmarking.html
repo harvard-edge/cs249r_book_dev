@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-d75f3b26dce688669a9be45368b49ad2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-8cd9d2405dca26792ede56ca04ea0c70.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-1da8ab3c0f248dcf0d14a3ac57cc7dc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-564ccb9bd98aa7a87cf9bc4693896f71.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
@@ -155,8 +155,31 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
   // Quarto's toggle updates localStorage but not <html>, so wrap it to
   // mirror the new value onto data-bs-theme; otherwise clicking the toggle
   // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
@@ -178,6 +201,40 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
   } else {
     wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
   }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
@@ -217,7 +274,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="./assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../../assets/images/icons/favicon.png" type="image/png">
 <link rel="manifest" href="../../../site.webmanifest">
 <link rel="apple-touch-icon" href="../../../assets/images/icons/favicon.png">
 <meta name="theme-color" content="#A51C30">
@@ -231,6 +288,33 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
 <script src="../../../assets/scripts/version-link.js" defer=""></script>
 <script src="../../../assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
 .callout-principle {
   --color1: #F3F2FA;
   --color2: #3D3B8E;
@@ -240,14 +324,32 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(61, 59, 142, 0.12);
   --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
-.callout-takeaways {
-  --color1: #FDF2F7;
-  --color2: #BE185D;
-  --border-color: #BE185D;
-  --background-color: rgba(190, 24, 93, 0.04);
-  --title-background-color: rgba(190, 24, 93, 0.04);
-  --dark-background-color: rgba(190, 24, 93, 0.12);
-  --dark-title-background-color: rgba(190, 24, 93, 0.12);
+.callout-checkpoint {
+  --color1: #FFF8E7;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #EFF6FF;
+  --color2: #1E3A5F;
+  --border-color: #1E3A5F;
+  --background-color: rgba(30, 58, 95, 0.04);
+  --title-background-color: rgba(30, 58, 95, 0.04);
+  --dark-background-color: rgba(30, 58, 95, 0.12);
+  --dark-title-background-color: rgba(30, 58, 95, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #D1D7E0;
+  --border-color: #D1D7E0;
+  --background-color: rgba(209, 215, 224, 0.04);
+  --title-background-color: rgba(209, 215, 224, 0.04);
+  --dark-background-color: rgba(209, 215, 224, 0.12);
+  --dark-title-background-color: rgba(209, 215, 224, 0.12);
 }
 .callout-war-story {
   --color1: #FEF2F2;
@@ -267,32 +369,14 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #D1D7E0;
-  --border-color: #D1D7E0;
-  --background-color: rgba(209, 215, 224, 0.04);
-  --title-background-color: rgba(209, 215, 224, 0.04);
-  --dark-background-color: rgba(209, 215, 224, 0.12);
-  --dark-title-background-color: rgba(209, 215, 224, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-takeaways {
+  --color1: #FDF2F7;
+  --color2: #BE185D;
+  --border-color: #BE185D;
+  --background-color: rgba(190, 24, 93, 0.04);
+  --title-background-color: rgba(190, 24, 93, 0.04);
+  --dark-background-color: rgba(190, 24, 93, 0.12);
+  --dark-title-background-color: rgba(190, 24, 93, 0.12);
 }
 .callout-perspective {
   --color1: #F7F8FA;
@@ -303,6 +387,15 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(74, 85, 104, 0.12);
   --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
 .callout-notebook {
   --color1: #F2F7FF;
   --color2: #2C5282;
@@ -311,6 +404,24 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --title-background-color: rgba(44, 82, 130, 0.04);
   --dark-background-color: rgba(44, 82, 130, 0.12);
   --dark-title-background-color: rgba(44, 82, 130, 0.12);
+}
+.callout-definition {
+  --color1: #F0F4F8;
+  --color2: #1B4F72;
+  --border-color: #1B4F72;
+  --background-color: rgba(27, 79, 114, 0.04);
+  --title-background-color: rgba(27, 79, 114, 0.04);
+  --dark-background-color: rgba(27, 79, 114, 0.12);
+  --dark-title-background-color: rgba(27, 79, 114, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-lighthouse {
   --color1: #FDF8E6;
@@ -348,63 +459,51 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-checkpoint {
-  --color1: #FFF8E7;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #EFF6FF;
-  --color2: #1E3A5F;
-  --border-color: #1E3A5F;
-  --background-color: rgba(30, 58, 95, 0.04);
-  --title-background-color: rgba(30, 58, 95, 0.04);
-  --dark-background-color: rgba(30, 58, 95, 0.12);
-  --dark-title-background-color: rgba(30, 58, 95, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-definition {
-  --color1: #F0F4F8;
-  --color2: #1B4F72;
-  --border-color: #1B4F72;
-  --background-color: rgba(27, 79, 114, 0.04);
-  --title-background-color: rgba(27, 79, 114, 0.04);
-  --dark-background-color: rgba(27, 79, 114, 0.12);
-  --dark-title-background-color: rgba(27, 79, 114, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
   details.callout-principle {
     --text-color: #e6e6e6;
     --background-color: rgba(61, 59, 142, 0.12);
@@ -419,18 +518,46 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-takeaways {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(190, 24, 93, 0.12);
-    --title-background-color: rgba(190, 24, 93, 0.12);
-    border-color: #BE185D;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
   }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-takeaways code {
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(30, 58, 95, 0.12);
+    --title-background-color: rgba(30, 58, 95, 0.12);
+    border-color: #1E3A5F;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(209, 215, 224, 0.12);
+    --title-background-color: rgba(209, 215, 224, 0.12);
+    border-color: #D1D7E0;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
     color: #e6e6e6 !important;
   }
   details.callout-war-story {
@@ -461,46 +588,18 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-takeaways {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(190, 24, 93, 0.12);
+    --title-background-color: rgba(190, 24, 93, 0.12);
+    border-color: #BE185D;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(209, 215, 224, 0.12);
-    --title-background-color: rgba(209, 215, 224, 0.12);
-    border-color: #D1D7E0;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
   details.callout-perspective {
@@ -517,6 +616,20 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-perspective code {
     color: #e6e6e6 !important;
   }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
   details.callout-notebook {
     --text-color: #e6e6e6;
     --background-color: rgba(44, 82, 130, 0.12);
@@ -529,6 +642,34 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
     color: #f0f0f0 !important;
   }
   details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(27, 79, 114, 0.12);
+    --title-background-color: rgba(27, 79, 114, 0.12);
+    border-color: #1B4F72;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
   details.callout-lighthouse {
@@ -587,98 +728,29 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(30, 58, 95, 0.12);
-    --title-background-color: rgba(30, 58, 95, 0.12);
-    border-color: #1E3A5F;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(27, 79, 114, 0.12);
-    --title-background-color: rgba(27, 79, 114, 0.12);
-    border-color: #1B4F72;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
 }
 </style>
 <style>
+details.callout-resource-exercises > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
+}
 details.callout-principle > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-takeaways > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
 }
 details.callout-war-story > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_war_story.png");
@@ -686,20 +758,23 @@ details.callout-war-story > summary::before {
 details.callout-quiz-question > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-takeaways > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 details.callout-perspective > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_perspective.png");
 }
+details.callout-theorem > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
+}
 details.callout-notebook > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../../../assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 details.callout-lighthouse > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_lighthouse.png");
@@ -712,24 +787,6 @@ details.callout-resource-videos > summary::before {
 }
 details.callout-resource-slides > summary::before {
   background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../../../assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
 </style>
 
@@ -764,11 +821,11 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Introduction to Machine Learning Systems">
-<meta property="og:image" content="./contents/vol1/benchmarking/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta property="og:image" content="../../../contents/vol1/benchmarking/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta property="og:site_name" content="Introduction to Machine Learning Systems">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Introduction to Machine Learning Systems">
-<meta name="twitter:image" content="./contents/vol1/benchmarking/assets/images/covers/cover-hardcover-book-vol1.png">
+<meta name="twitter:image" content="../../../contents/vol1/benchmarking/assets/images/covers/cover-hardcover-book-vol1.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -970,34 +1027,34 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -1009,22 +1066,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -1036,17 +1093,17 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -1058,23 +1115,23 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -1086,22 +1143,22 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -1113,29 +1170,29 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -1205,8 +1262,8 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0570135b026c6062a1e92f030dbc6e0a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">af210d57</code> • 2026-04-29 07:56 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="./">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6ae2d891</code> • 2026-05-04 22:10 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines. <a href="../../../">Start reading →</a><br> 🚀 <strong>Ready for scale?</strong> <a href="../../../../vol2/">Volume II: At Scale</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../../../tinytorch/">TinyTorch</a> (build) · <a href="../../../../kits/">Hardware Kits</a> (deploy) · <a href="../../../../mlsysim/">MLSys·im</a> (simulate)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1721,9 +1778,9 @@ Strathern, Marilyn. 1997. <span>“<span>‘Improving Ratings’</span>: Audit i
 <p> The earliest computing benchmarks revealed a problem that plagues evaluation to this day: gaming. Mainframe benchmarks like Whetstone (1976) and LINPACK (1979)<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> measured isolated operations (floating-point throughput, matrix solve speed), and vendors quickly learned to optimize specifically for these narrow tests rather than for practical performance. The resulting numbers looked impressive on paper but predicted little about how systems performed on actual workloads. SPEC CPU (1989) broke this cycle by pioneering the use of real application workloads, ensuring that evaluation reflected actual deployment scenarios rather than synthetic ideals. This lesson directly shapes ML benchmarking: optimization claims from <strong><a href="../optimizations/model_compression.html#sec-model-compression">Model Compression</a></strong> require validation on representative tasks, and MLPerf’s inclusion of real models like ResNet-50 and BERT ensures benchmarks capture deployment complexity rather than idealized test cases.</p>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>Whetstone and LINPACK</strong>: Whetstone (1972, published 1976) was named after the English Electric facility in Whetstone, Leicestershire, where the original ALGOL compiler was built; LINPACK (1979) was Jack Dongarra’s benchmark for dense linear systems, later adopted by the Top500 list in 1993. Both measured a single operation type so narrowly that compilers could be tuned to game the result – Whetstone’s floating-point loops became a test of compiler optimization rather than hardware performance. ML benchmarking inherited the same vulnerability: single-model benchmarks can be gamed through model-specific kernel tuning, which is why MLPerf requires multiple workloads spanning vision, language, and recommendation. </p></div></div><p>As deployment contexts diversified, a second limitation emerged: single-metric evaluation proved inadequate. Graphics benchmarks began measuring rendering quality alongside frame rate; mobile benchmarks added battery life as a co-equal concern with performance. The multi-objective challenges from <strong><a href="../introduction/introduction.html#sec-introduction">Introduction</a></strong> (balancing accuracy, latency, and energy) manifest directly in modern ML evaluation, where no single metric captures deployment viability.</p>
 <p>A third shift occurred when distributed computing revealed that component-level optimization fails to predict system-level performance. A CPU benchmark cannot predict cluster throughput when network communication dominates. ML training similarly depends on the interplay of accelerator compute (<strong><a href="../hw_acceleration/hw_acceleration.html#sec-hardware-acceleration">Hardware Acceleration</a></strong>), data pipelines, gradient synchronization, and storage throughput. MLPerf evaluates complete workflows, recognizing that performance emerges from component interactions, not from components in isolation.</p>
-<p> DAWNBench <span class="citation" data-cites="coleman2017dawnbench">(<a href="#ref-coleman2017dawnbench" role="doc-biblioref">Coleman et al. 2019</a>)</span> emerged as an early ML benchmark that pioneered time-to-accuracy evaluation, directly influencing MLPerf’s methodology for measuring training efficiency. These lessons culminate in MLPerf<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> (2018), which synthesizes representative workloads, multi-objective evaluation, and integrated measurement while addressing ML-specific challenges <span class="citation" data-cites="ranganathan2024twenty">(<a href="#ref-ranganathan2024twenty" role="doc-biblioref">Ranganathan and Hölzle 2024</a>)</span>.</p>
+<p> DAWNBench <span class="citation" data-cites="coleman2017dawnbench">(<a href="#ref-coleman2017dawnbench" role="doc-biblioref">Coleman et al. 2017</a>)</span> emerged as an early ML benchmark that pioneered time-to-accuracy evaluation, directly influencing MLPerf’s methodology for measuring training efficiency. These lessons culminate in MLPerf<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> (2018), which synthesizes representative workloads, multi-objective evaluation, and integrated measurement while addressing ML-specific challenges <span class="citation" data-cites="ranganathan2024twenty">(<a href="#ref-ranganathan2024twenty" role="doc-biblioref">Ranganathan and Hölzle 2024</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-coleman2017dawnbench" class="csl-entry" role="listitem">
-Coleman, Cody, Daniel Kang, Deepak Narayanan, et al. 2019. <span>“Analysis of DAWNBench, a Time-to-Accuracy Machine Learning Performance Benchmark.”</span> <em>ACM SIGOPS Operating Systems Review</em> 53 (1): 14–25. <a href="https://doi.org/10.1145/3352020.3352024">https://doi.org/10.1145/3352020.3352024</a>.
+Coleman, Cody, Deepak Narayanan, Daniel Kang, et al. 2017. <em><span>DAWNBench</span>: An End-to-End Deep Learning Benchmark and Competition</em>. <a href="https://dawn.cs.stanford.edu/benchmark/papers/nips17-dawnbench.pdf">https://dawn.cs.stanford.edu/benchmark/papers/nips17-dawnbench.pdf</a>.
 </div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>MLPerf</strong>: Founded in 2018 by researchers from Google, NVIDIA, Intel, Harvard, Stanford, and UC Berkeley, the name combines “ML” with “Perf” (performance), echoing SPEC’s benchmarking tradition. MLPerf’s design principles—representative workloads, full-system measurement, and open submission—directly address the gaming that plagued Whetstone and LINPACK: vendors who could previously report peak kernel throughput on cherry-picked problem sizes must now report end-to-end system performance on standardized tasks. </p></div><div id="ref-ranganathan2024twenty" class="csl-entry" role="listitem">
 Ranganathan, Parthasarathy, and Urs Hölzle. 2024. <span>“Twenty Five Years of Warehouse-Scale Computing.”</span> <em>IEEE Micro</em> 44 (5): 11–22. <a href="https://doi.org/10.1109/mm.2024.3409469">https://doi.org/10.1109/mm.2024.3409469</a>.
 </div></div><p> </p>
@@ -1732,7 +1789,7 @@ Ranganathan, Parthasarathy, and Urs Hölzle. 2024. <span>“Twenty Five Years of
 <h3 class="anchored" data-anchor-id="sec-benchmarking-energy-benchmarks-709a">Energy benchmarks</h3>
 <p> The multi-objective evaluation paradigm naturally extended to energy efficiency as computing diversified beyond mainframes with unlimited power budgets. Mobile devices demanded battery life optimization, while warehouse-scale systems faced energy costs rivaling hardware expenses. This shift established energy as a first-class metric alongside performance, spawning benchmarks like SPEC Power<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> for servers and Green500<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> for supercomputers.</p>
 <div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>SPEC Power</strong>: Introduced in 2007, SPEC Power measures performance per watt across 11 load levels from idle (0 percent) through 100 percent in 10 percent increments. This granularity matters for ML serving: inference workloads rarely sustain 100 percent load, and servers that are efficient at peak but wasteful at 30 percent utilization inflate the energy cost of real-world deployment, where average utilization typically hovers between 20–50 percent. </p></div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Green500</strong>: Started in 2007 as a counterpart to the Top500, Green500 ranks systems by FLOPS per watt rather than raw performance. The shift from less than 1 GFLOPS/watt in the early 2000s to over 60 GFLOPS/watt today reveals that efficiency gains have outpaced raw performance gains, a pattern ML systems inherit: the most cost-effective training clusters are not the fastest but the most efficient. </p></div><div id="ref-mlperf_power_website" class="csl-entry" role="listitem">
-MLCommons. 2024c. <em>MLPerf Power Measurement</em>. <a href="https://mlcommons.org/">https://mlcommons.org/</a>.
+MLCommons. 2024c. <em>MLPerf Power Measurement</em>. <a href="https://mlcommons.org/benchmarks/power/">https://mlcommons.org/benchmarks/power/</a>.
 </div></div><p> Diverse workload patterns and system configurations continue to challenge power benchmarking across computing environments. MLPerf Power <span class="citation" data-cites="mlperf_power_website">(<a href="#ref-mlperf_power_website" role="doc-biblioref">MLCommons 2024c</a>)</span> addresses this with specialized methodologies for measuring the energy impact of machine learning workloads, reflecting energy efficiency’s central role in AI system design.</p>
 <p>Energy benchmarking extends beyond hardware power measurement to include algorithmic efficiency. Model compression techniques (pruning, quantization, knowledge distillation) often achieve greater energy savings than hardware improvements alone. MobileNet architectures achieve approximately 13.7<span class="math inline">\(\times\)</span> fewer FLOPs vs.&nbsp;ResNet, translating to proportional energy reduction on hardware that efficiently exploits the smaller model <span class="citation" data-cites="howard2017mobilenets">(<a href="#ref-howard2017mobilenets" role="doc-biblioref">Howard et al. 2017</a>)</span>. These techniques, detailed in <strong><a href="../optimizations/model_compression.html#sec-model-compression">Model Compression</a></strong>, establish that energy-aware benchmarking must evaluate algorithmic efficiency alongside hardware power consumption; the specific energy breakdown of INT8 vs.&nbsp;FP32 is quantified in <a href="#sec-benchmarking-training-metrics-0f1a" class="quarto-xref">Section&nbsp;1.6.2</a>. As AI systems scale, this lesson becomes central to sustainable computing practices.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-howard2017mobilenets" class="csl-entry" role="listitem">
@@ -1753,10 +1810,10 @@ Table&nbsp;1: <strong>MLPerf Benchmark Suite Variants.</strong> Each variant add
 <div aria-describedby="tbl-mlperf-suites-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 15%">
-<col style="width: 13%">
-<col style="width: 35%">
-<col style="width: 35%">
+<col style="width: 36%">
+<col style="width: 10%">
+<col style="width: 26%">
+<col style="width: 26%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1909,7 +1966,7 @@ Jouppi, Norman P., Cliff Young, Nishant Patil, et al. 2017. <span>“In-Datacent
 </div><div id="ref-gebru2021datasheets" class="csl-entry" role="listitem">
 Gebru, Timnit, Jamie Morgenstern, Briana Vecchione, et al. 2021. <span>“Datasheets for Datasets.”</span> <em>Communications of the ACM</em> 64 (12): 86–92. <a href="https://doi.org/10.1145/3458723">https://doi.org/10.1145/3458723</a>.
 </div><div id="ref-hernandez2020measuring" class="csl-entry" role="listitem">
-Hernandez, Danny, and Tom B. Brown. 2020. <span>“Measuring the Algorithmic Efficiency of Neural Networks.”</span> <em>arXiv Preprint arXiv:2007.03051</em>, ahead of print, May 8. <a href="https://doi.org/10.48550/arxiv.2005.04305">https://doi.org/10.48550/arxiv.2005.04305</a>.
+Hernandez, Danny, and Tom B. Brown. 2020. <span>“Measuring the Algorithmic Efficiency of Neural Networks.”</span> <em>arXiv Preprint arXiv:2005.04305</em>, ahead of print, May 8. <a href="https://doi.org/10.48550/arxiv.2005.04305">https://doi.org/10.48550/arxiv.2005.04305</a>.
 </div></div><section id="sec-benchmarking-ml-measurement-challenges-60ea" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-benchmarking-ml-measurement-challenges-60ea">ML measurement challenges</h3>
 <p> The unique characteristics of ML systems create measurement challenges that many traditional benchmarks were not designed for. Unlike deterministic algorithms that produce identical outputs given the same inputs, ML systems exhibit inherent variability from multiple sources: algorithmic randomness from weight initialization and data shuffling, hardware thermal states affecting clock speeds, system load variations from concurrent processes, and environmental factors including network conditions and power management. This variability requires rigorous statistical methodology to distinguish genuine performance improvements from measurement noise.</p>
@@ -2034,10 +2091,10 @@ Mattson, Peter, Christine Cheng, Cody Coleman, et al. 2020. <span>“<span>MLPer
 </div></div><p>System benchmarks serve two functions. For practitioners, they enable informed hardware selection by providing comparative data across configurations. For manufacturers, they quantify generational improvements and guide accelerator development. The co-evolution has been dramatic: as GPU adoption grew, accuracy improved rapidly, demonstrating that hardware and algorithmic advances drive progress in tandem.</p>
 <div id="callout-definition-1.2" class="callout callout-definition" title="Machine Learning System Benchmarks">
 <details class="callout-definition fbx-simplebox fbx-default" open=""><summary><strong>Definition 1.2: Machine Learning System Benchmarks</strong></summary><div>
-<p><strong><em>Machine Learning System Benchmarks</em></strong> are standardized evaluation protocols that hold the workload and quality target constant while varying the hardware-software stack, measuring <span class="math inline">\(\eta = R_{\text{sustained}} / R_{\text{peak}}\)</span> and <span class="math inline">\(L_{\text{lat}}\)</span> to isolate infrastructure efficiency from algorithmic improvements.</p>
+<p><strong><em>Machine Learning System Benchmarks</em></strong> are standardized evaluation protocols that hold the workload and quality target constant while varying the hardware-software stack, measuring <span class="math inline">\(\eta_{\text{hw}} = R_{\text{sustained}} / R_{\text{peak}}\)</span> and <span class="math inline">\(L_{\text{lat}}\)</span> to isolate infrastructure efficiency from algorithmic improvements.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> The same ResNet-50 model can deliver 10<span class="math inline">\(\times\)</span> different throughput across hardware stacks and compiler configurations (from ~300 images/second on a CPU to ~3,000 images/second on an A100 with INT8 quantization), yet both implementations achieve identical ImageNet Top-1 accuracy. System benchmarks capture this 10<span class="math inline">\(\times\)</span> gap, which is entirely invisible to algorithmic benchmarks that only report accuracy.</li>
-<li><strong>Distinction (Durable):</strong> Unlike algorithmic benchmarks (which vary model architectures and training procedures to improve convergence accuracy), system benchmarks hold the algorithm fixed and vary the implementation (kernel libraries, quantization formats, batch sizes, and hardware generations) to measure how efficiently the hardware-software stack executes the iron law’s <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta)\)</span> term.</li>
+<li><strong>Distinction (Durable):</strong> Unlike algorithmic benchmarks (which vary model architectures and training procedures to improve convergence accuracy), system benchmarks hold the algorithm fixed and vary the implementation (kernel libraries, quantization formats, batch sizes, and hardware generations) to measure how efficiently the hardware-software stack executes the iron law’s <span class="math inline">\(O/(R_{\text{peak}} \cdot \eta_{\text{hw}})\)</span> term.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that a system benchmark result generalizes across workloads. An A100 that achieves 90 percent utilization on ResNet-50 (a compute-bound workload) may achieve only 40 percent utilization on a recommendation system (a memory-bandwidth-bound workload). System benchmarks are workload-specific; no single metric characterizes a hardware platform.</li>
 </ol>
 </div></details>
@@ -2050,7 +2107,7 @@ Choquette, Jack, Wishwesh Gandhi, Olivier Giroux, Nick Stam, and Ronny Krashinsk
 <div class="no-row-height column-margin column-container"><div id="fn10"><p><sup>10</sup>&nbsp;<strong>Roofline Model</strong>: Introduced by Samuel Williams, Andrew Waterman, and David Patterson at UC Berkeley in 2009 <span class="citation" data-cites="williams2009roofline">(<a href="#ref-williams2009roofline" role="doc-biblioref">Williams et al. 2009</a>)</span>, named for the visual shape of its performance ceiling. The model’s diagnostic power lies in a single number: the ridge point (peak FLOPS/peak bandwidth). Workloads below this threshold are memory bound and cannot benefit from faster arithmetic; workloads above it are compute bound and cannot benefit from faster memory. This diagnosis determines whether optimization effort should target the Data Term or the Compute Term of the iron law. </p><div id="ref-williams2009roofline" class="csl-entry" role="listitem">
 Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline: An Insightful Visual Performance Model for Multicore Architectures.”</span> <em>Communications of the ACM</em> 52 (4): 65–76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
 </div></div><div id="ref-pope2023efficiently" class="csl-entry" role="listitem">
-Pope, Reiner, Sholto Douglas, Aakanksha Chowdhery, et al. 2023. <span>“Efficiently Scaling Transformer Inference.”</span> <em>Proceedings of Machine Learning and Systems</em> 5: 606–24.<a href="
+Pope, Reiner, Sholto Douglas, Aakanksha Chowdhery, et al. 2023. <span>“Efficiently Scaling Transformer Inference.”</span> <em>Proceedings of Machine Learning and Systems (MLSys)</em> 5: 606–24.<a href="
     https://proceedings.mlsys.org/paper_files/paper/2023/hash/c4be71ab8d24cdfb45e3d06dbfca2780-Abstract-mlsys2023.html
   ">https://proceedings.mlsys.org/paper_files/paper/2023/hash/c4be71ab8d24cdfb45e3d06dbfca2780-Abstract-mlsys2023.html </a>.
 </div></div><p> </p>
@@ -2076,7 +2133,7 @@ Pope, Reiner, Sholto Douglas, Aakanksha Chowdhery, et al. 2023. <span>“Efficie
 </div></details>
 </div>
 <p>System benchmarks evaluate performance across scales, ranging from single-chip configurations to large distributed systems, and AI workloads including both training and inference tasks. This evaluation approach ensures that benchmarks accurately reflect real-world deployment scenarios and deliver insights that inform both hardware selection decisions and system architecture design. <a href="#fig-imagenet-gpus" class="quarto-xref">Figure&nbsp;1</a> reveals the striking correlation between GPU adoption and ImageNet classification error rates from 2010 to 2014: as GPU entries surged from 0 to 110, error rates plummeted from 28.2 percent to 7.3 percent, demonstrating how hardware capabilities and algorithmic advances drive progress in tandem.</p>
-<div id="fig-imagenet-gpus" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Dual-axis chart with blue line showing top-5 error rate declining from 28 percent to 7 percent and green bars showing GPU entries rising from 0 to 110 between 2010 and 2014." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-imagenet-gpus" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Dual-axis chart with blue line showing top-5 error rate declining from 28 percent to 7 percent and green bars showing GPU entries rising from 0 to 110 between 2010 and 2014.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-imagenet-gpus-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="8000f8b9988a956ceb96d6a74a7c9b10cb0b30b9.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: GPU Adoption and Error Reduction: As GPU entries in ImageNet surged from 0 to 110 between 2010 and 2014, top-5 error rates dropped from 28.2 percent to 7.3 percent, demonstrating the co-evolution of hardware capabilities and algorithmic advances."><img src="benchmarking_files/mediabag/8000f8b9988a956ceb96d6a74a7c9b10cb0b30b9.svg" class="img-fluid figure-img"></a>
@@ -2151,7 +2208,7 @@ IEEE Standards Association. 2019. <em><span>IEEE</span> 2416-2019: Standard for 
 </ul>
 <p>The optimization techniques from Part III operate at different granularities (kernel fusion targets micro performance, pruning affects macro model behavior, data curation determines end-to-end generalization) and validation must match. A micro benchmark might show kernel speedup while a macro benchmark reveals memory bottlenecks that negate the gain; an end-to-end benchmark might expose data pipeline stalls invisible at any other level.</p>
 <p>To visualize how these granularity levels map onto actual ML systems, <a href="#fig-granularity" class="quarto-xref">Figure&nbsp;2</a> breaks down the stack into four distinct evaluation scopes. Notice how each scope progressively expands the measurement boundary: micro-benchmarks isolate neural network layers, macro-benchmarks encompass complete models, application benchmarks add supporting compute, and end-to-end benchmarks capture the full deployment context including non-AI components.</p>
-<div id="fig-granularity" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Block diagram showing four evaluation layers: micro (kernels), macro (models), application (compute logic), and end-to-end (full deployment), connected by arrows to show expanding scope." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-granularity" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Block diagram showing four evaluation layers: micro (kernels), macro (models), application (compute logic), and end-to-end (full deployment), connected by arrows to show expanding scope.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-granularity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="9be26d8b8f745b832243d8cc55112c4a9ad640e8.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Benchmarking granularity: Four-panel block diagram showing micro, macro, application, and end-to-end evaluation layers. Each panel maps a distinct scope of assessment, from isolated kernel operations through full-system deployment, enabling targeted optimization at every level of the ML stack."><img src="benchmarking_files/mediabag/9be26d8b8f745b832243d8cc55112c4a9ad640e8.svg" class="img-fluid figure-img"></a>
@@ -2316,7 +2373,7 @@ Table&nbsp;3: <strong>Benchmarking Granularity Levels.</strong> Different benchm
 </figure>
 </div>
 <p>Why not just pick one granularity level and stick with it? Because a core tension exists between diagnostic precision and real-world fidelity. <a href="#fig-benchmark-tradeoffs" class="quarto-xref">Figure&nbsp;3</a> maps this trade-off, placing micro-benchmarks at the high-isolation end (precise but narrow) and end-to-end benchmarks at the high-representativeness end (realistic but harder to diagnose). Notice that no single point on this spectrum provides both: micro-benchmarks pinpoint exactly which kernel is slow but miss system-level bottlenecks, while end-to-end benchmarks capture production behavior but obscure root causes. The practical takeaway is that effective ML system evaluation requires combining insights from all three levels.</p>
-<div id="fig-benchmark-tradeoffs" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Scatter plot with four labeled points along a diagonal: micro-benchmarks at high isolation, macro-benchmarks, application benchmarks, and end-to-end benchmarks at high representativeness." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-benchmark-tradeoffs" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Scatter plot with four labeled points along a diagonal: micro-benchmarks at high isolation, macro-benchmarks, application benchmarks, and end-to-end benchmarks at high representativeness.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-benchmark-tradeoffs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="cafd1d6bac16645e3420cac4efae97ce1f0b1e1b.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Isolation vs.&nbsp;representativeness: The core trade-off in benchmarking granularity. Micro-benchmarks provide high diagnostic precision but limited real-world relevance, while end-to-end benchmarks capture realistic system behavior but offer less precise component-level insights. Effective ML system evaluation requires strategic combination of all four levels."><img src="benchmarking_files/mediabag/cafd1d6bac16645e3420cac4efae97ce1f0b1e1b.svg" class="img-fluid figure-img"></a>
@@ -2358,7 +2415,7 @@ Figure&nbsp;3: <strong>Isolation vs.&nbsp;representativeness</strong>: The core 
 <h2 class="anchored" data-anchor-id="sec-benchmarking-benchmark-components-97cc">Benchmark Components</h2>
 <p>Choosing between micro, macro, and end-to-end granularity determines what a benchmark can diagnose, but every benchmark at every granularity must still answer the same implementation questions: what task are we measuring, on what data, with which model, against which metrics, and under what rules? Micro-benchmarks require synthetic inputs that isolate specific computational patterns; macro-benchmarks demand representative datasets like ImageNet; end-to-end benchmarks must incorporate real-world data with all its noise and distributional shift. Despite this variation, all benchmarks share common implementation components that enable consistent evaluation.</p>
 <p>The essential components interconnect to form a complete evaluation pipeline. The workflow in <a href="#fig-benchmark-components" class="quarto-xref">Figure&nbsp;4</a> traces nine stages of an industrial audio anomaly detection benchmark, from problem definition through quantization to ARM embedded deployment. The serial dependency is the critical observation: the task definition constrains which datasets are valid, the dataset properties determine which model architectures are feasible, and the target hardware dictates quantization and compilation choices. Anomaly detection serves as an effective illustration precisely because it spans the full stack, coupling ML inference accuracy with embedded systems constraints such as memory footprint, power budget, and real-time latency. A benchmark that measured only classification accuracy or only inference speed would miss the interactions between these stages, where a decision at any point propagates forward and narrows every subsequent choice.</p>
-<div id="fig-benchmark-components" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram of a nine-stage benchmark workflow: task, dataset, model, metric, measurement, and analysis. Each stage includes an example." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-benchmark-components" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Diagram of a nine-stage benchmark workflow: task, dataset, model, metric, measurement, and analysis. Each stage includes an example.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-benchmark-components-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="1290d981db776567f565cbffb293d3a337effb74.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Benchmark workflow components: A nine-stage workflow for designing a machine learning benchmark, using an audio anomaly detection task as an example. The process flows from defining the task, dataset, model, and metrics to specifying measurement protocol and analysis methods."><img src="benchmarking_files/mediabag/1290d981db776567f565cbffb293d3a337effb74.svg" class="img-fluid figure-img"></a>
@@ -2380,7 +2437,7 @@ Everingham, Mark, Luc Van Gool, Christopher K. I. Williams, John Winn, and Andre
 </section>
 <section id="sec-benchmarking-standardized-datasets-123f" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-benchmarking-standardized-datasets-123f">Standardized datasets</h3>
-<p>A task definition is only as good as the data used to evaluate it. Standardized datasets ensure that all models undergo testing under identical conditions, enabling direct comparisons across different approaches—without them, every team would evaluate on private data, making cross-lab comparison impossible. In computer vision, ImageNet <span class="citation" data-cites="imagenet_website">(<a href="#ref-imagenet_website" role="doc-biblioref">Deng et al. 2024</a>)</span> <span class="citation" data-cites="deng2009imagenet">(<a href="#ref-deng2009imagenet" role="doc-biblioref">Deng et al. 2009</a>)</span>, COCO <span class="citation" data-cites="lin2014microsoft">(<a href="#ref-lin2014microsoft" role="doc-biblioref">Lin et al. 2014</a>)</span> <span class="citation" data-cites="lin2014microsoft">(<a href="#ref-lin2014microsoft" role="doc-biblioref">Lin et al. 2014</a>)</span>, and CIFAR-10 <span class="citation" data-cites="cifar10_website">(<a href="#ref-cifar10_website" role="doc-biblioref">Krizhevsky 2009</a>)</span> <span class="citation" data-cites="krizhevsky2009learning">(<a href="#ref-krizhevsky2009learning" role="doc-biblioref"><span class="nocase">Krizhevsky et al.</span> 2009</a>)</span> serve as reference standards; in natural language processing, SQuAD<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> <span class="citation" data-cites="squad_website">(<a href="#ref-squad_website" role="doc-biblioref">Rajpurkar et al. 2016b</a>)</span> <span class="citation" data-cites="rajpurkar2016squad">(<a href="#ref-rajpurkar2016squad" role="doc-biblioref">Rajpurkar et al. 2016a</a>)</span>, GLUE<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> <span class="citation" data-cites="wang2018glue">(<a href="#ref-wang2018glue" role="doc-biblioref">Wang et al. 2018</a>)</span> <span class="citation" data-cites="wang2018glue">(<a href="#ref-wang2018glue" role="doc-biblioref">Wang et al. 2018</a>)</span>, and WikiText <span class="citation" data-cites="wikitext_website">(<a href="#ref-wikitext_website" role="doc-biblioref">Merity 2016</a>)</span> <span class="citation" data-cites="merity2016pointer">(<a href="#ref-merity2016pointer" role="doc-biblioref">Merity et al. 2016</a>)</span> fulfill similar roles, each encompassing a range of complexities and edge cases.</p>
+<p>A task definition is only as good as the data used to evaluate it. Standardized datasets ensure that all models undergo testing under identical conditions, enabling direct comparisons across different approaches—without them, every team would evaluate on private data, making cross-lab comparison impossible. In computer vision, ImageNet <span class="citation" data-cites="imagenet_website">(<a href="#ref-imagenet_website" role="doc-biblioref">Deng et al. 2024</a>)</span> <span class="citation" data-cites="deng2009imagenet">(<a href="#ref-deng2009imagenet" role="doc-biblioref">Deng et al. 2009</a>)</span>, COCO <span class="citation" data-cites="lin2014microsoft">(<a href="#ref-lin2014microsoft" role="doc-biblioref">Lin et al. 2014</a>)</span> <span class="citation" data-cites="lin2014microsoft">(<a href="#ref-lin2014microsoft" role="doc-biblioref">Lin et al. 2014</a>)</span>, and CIFAR-10 <span class="citation" data-cites="cifar10_website">(<a href="#ref-cifar10_website" role="doc-biblioref">Krizhevsky 2009</a>)</span> <span class="citation" data-cites="krizhevsky2009learning">(<a href="#ref-krizhevsky2009learning" role="doc-biblioref"><span class="nocase">Krizhevsky et al.</span> 2009</a>)</span> serve as reference standards; in natural language processing, SQuAD<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> <span class="citation" data-cites="rajpurkar2016squad">(<a href="#ref-rajpurkar2016squad" role="doc-biblioref">Rajpurkar et al. 2016</a>)</span> <span class="citation" data-cites="rajpurkar2016squad">(<a href="#ref-rajpurkar2016squad" role="doc-biblioref">Rajpurkar et al. 2016</a>)</span>, GLUE<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a> <span class="citation" data-cites="wang2018glue">(<a href="#ref-wang2018glue" role="doc-biblioref">Wang et al. 2018</a>)</span> <span class="citation" data-cites="wang2018glue">(<a href="#ref-wang2018glue" role="doc-biblioref">Wang et al. 2018</a>)</span>, and WikiText <span class="citation" data-cites="wikitext_website">(<a href="#ref-wikitext_website" role="doc-biblioref">Merity 2016</a>)</span> <span class="citation" data-cites="merity2016pointer">(<a href="#ref-merity2016pointer" role="doc-biblioref">Merity et al. 2016</a>)</span> fulfill similar roles, each encompassing a range of complexities and edge cases.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-imagenet_website" class="csl-entry" role="listitem">
 Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2024. <em><span>ImageNet</span></em>. <a href="https://www.image-net.org/">https://www.image-net.org/</a>.
 </div><div id="ref-deng2009imagenet" class="csl-entry" role="listitem">
@@ -2388,11 +2445,9 @@ Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. 2009. <s
 </div><div id="ref-lin2014microsoft" class="csl-entry" role="listitem">
 Lin, Tsung-Yi, Michael Maire, Serge Belongie, et al. 2014. <span>“Microsoft COCO: Common Objects in Context.”</span> In <em>Computer Vision – ECCV 2014</em>. Springer International Publishing. <a href="https://doi.org/10.1007/978-3-319-10602-1\_48">https://doi.org/10.1007/978-3-319-10602-1\_48</a>.
 </div><div id="ref-krizhevsky2009learning" class="csl-entry" role="listitem">
-<span class="nocase">Krizhevsky, Alex, Geoffrey Hinton, et al.</span> 2009. <span>“Learning Multiple Layers of Features from Tiny Images.”</span> <em>University of Toronto Technical Report</em>.
-</div><div id="fn12"><p><sup>12</sup>&nbsp;<strong>SQuAD (Stanford Question Answering Dataset)</strong>: Introduced in 2016 with 100,000+ question-answer pairs from Wikipedia. AI systems exceeded the 86.8 percent human F1 baseline by 2018, but this “superhuman” result illustrates a benchmarking failure mode: the task’s extractive format (answers are text spans within the passage) makes it easier than open-ended question answering, inflating perceived capability relative to production NLP systems. </p></div><div id="ref-squad_website" class="csl-entry" role="listitem">
-Rajpurkar, Pranav, Jian Zhang, Konstantin Lopyrev, and Percy Liang. 2016b. <span>“<span>SQuAD</span>: 100,000+ Questions for Machine Comprehension of Text.”</span> <em>Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing</em>, November, 2383–92. <a href="https://doi.org/10.18653/v1/D16-1264">https://doi.org/10.18653/v1/D16-1264</a>.
-</div><div id="ref-rajpurkar2016squad" class="csl-entry" role="listitem">
-Rajpurkar, Pranav, Jian Zhang, Konstantin Lopyrev, and Percy Liang. 2016a. <span>“SQuAD: 100,000+ Questions for Machine Comprehension of Text.”</span> <em>arXiv Preprint arXiv:1606.05250</em>, June 16, 2383–92. <a href="https://doi.org/10.18653/v1/d16-1264">https://doi.org/10.18653/v1/d16-1264</a>.
+<span class="nocase">Krizhevsky, Alex, Geoffrey Hinton, et al.</span> 2009. <span>“Learning Multiple Layers of Features from Tiny Images.”</span> Master's thesis. <em>University of Toronto Technical Report</em>.
+</div><div id="fn12"><p><sup>12</sup>&nbsp;<strong>SQuAD (Stanford Question Answering Dataset)</strong>: Introduced in 2016 with 100,000+ question-answer pairs from Wikipedia. AI systems exceeded the 86.8 percent human F1 baseline by 2018, but this “superhuman” result illustrates a benchmarking failure mode: the task’s extractive format (answers are text spans within the passage) makes it easier than open-ended question answering, inflating perceived capability relative to production NLP systems. </p></div><div id="ref-rajpurkar2016squad" class="csl-entry" role="listitem">
+Rajpurkar, Pranav, Jian Zhang, Konstantin Lopyrev, and Percy Liang. 2016. <span>“SQuAD: 100,000+ Questions for Machine Comprehension of Text.”</span> <em>arXiv Preprint arXiv:1606.05250</em>, June 16, 2383–92. <a href="https://doi.org/10.18653/v1/d16-1264">https://doi.org/10.18653/v1/d16-1264</a>.
 </div><div id="fn13"><p><sup>13</sup>&nbsp;<strong>GLUE</strong>: GLUE’s saturation arc is the canonical benchmark obsolescence case study. Introduced in 2018 with a human baseline of 87.1 percent, BERT <span class="citation" data-cites="devlin2019bert">(<a href="#ref-devlin2019bert" role="doc-biblioref">Devlin et al. 2019</a>)</span> reached 80.2 percent within months and models exceeded the human baseline by mid-2019—less than one year after launch. This is Goodhart’s Law in action: once GLUE became a target, it ceased to be a good measure, as models learned to exploit dataset artifacts rather than develop genuine language understanding. The pattern forced the creation of SuperGLUE and now BIG-bench, each requiring progressively harder tasks. </p><div id="ref-devlin2019bert" class="csl-entry" role="listitem">
 Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. <span>“BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding.”</span> <em>Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)</em>, 4171–86. <a href="https://aclanthology.org/N19-1423/">https://aclanthology.org/N19-1423/</a>.
 </div></div><div id="ref-wikitext_website" class="csl-entry" role="listitem">
@@ -2525,7 +2580,7 @@ Table&nbsp;4: <strong>ML Benchmarking Metric Taxonomy.</strong> Metrics organize
 <div class="no-row-height column-margin column-container"><div id="ref-sokolova2009systematic" class="csl-entry" role="listitem">
 Sokolova, Marina, and Guy Lapalme. 2009. <span>“A Systematic Analysis of Performance Measures for Classification Tasks.”</span> <em>Information Processing &amp;Amp; Management</em> 45 (4): 427–37. <a href="https://doi.org/10.1016/j.ipm.2009.03.002">https://doi.org/10.1016/j.ipm.2009.03.002</a>.
 </div><div id="fn17"><p><sup>17</sup>&nbsp;<strong>BLEU (Bilingual Evaluation Understudy)</strong>: Introduced by IBM in 2002, BLEU measures translation quality via n-gram overlap with human references (0–100 scale; 30+ useful, 50+ good). BLEU is a canonical example of Goodhart’s Law in ML: optimizing for n-gram matches produces fluent-sounding but semantically incorrect translations, because the metric rewards surface-level word patterns rather than meaning preservation. </p></div><div id="ref-papineni2002bleu" class="csl-entry" role="listitem">
-Papineni, Kishore, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2001. <span>“BLEU: A Method for Automatic Evaluation of Machine Translation.”</span> <em>Proceedings of the 40th Annual Meeting on Association for Computational Linguistics - ACL ’02</em>, 311. <a href="https://doi.org/10.3115/1073083.1073135">https://doi.org/10.3115/1073083.1073135</a>.
+Papineni, Kishore, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2001. <span>“<span>BLEU</span>: A Method for Automatic Evaluation of Machine Translation: A Method for Automatic Evaluation of Machine Translation.”</span> <em>Proceedings of the 40th Annual Meeting on Association for Computational Linguistics - ACL ’02</em>, 311–18. <a href="https://doi.org/10.3115/1073083.1073135">https://doi.org/10.3115/1073083.1073135</a>.
 </div></div><p>However, as models transition from research to production deployment, implementation metrics become equally important. Model size, measured in parameters or memory footprint, directly affects deployment feasibility across different hardware platforms. Processing latency, typically measured in milliseconds per inference, determines whether the model meets real-time requirements. Energy consumption, measured in watts or joules per inference, indicates operational efficiency. These practical considerations reflect the growing need for solutions that balance accuracy with computational efficiency. The operational challenges of maintaining these metrics in production environments are explored in deployment strategies (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>).</p>
 <p>Consequently, the selection of appropriate metrics requires careful consideration of both task requirements and deployment constraints. A single metric rarely captures all relevant aspects of performance in real-world scenarios. For instance, in anomaly detection systems, high accuracy alone may not indicate good performance if the model generates frequent false alarms. Similarly, a fast model with poor accuracy fails to provide practical value.</p>
 <p> This multi-metric evaluation approach appears in our anomaly detection system, which reports performance across multiple dimensions: model size (270 Kparameters), processing speed (10.4 ms/inference), and detection accuracy (0.86 AUC). This combination of metrics ensures the model meets both technical and operational requirements in real-world deployment scenarios.</p>
@@ -2733,7 +2788,7 @@ Papineni, Kishore, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2001. <span>“BLE
 <h2 class="anchored" data-anchor-id="sec-benchmarking-training-vs-inference-evaluation-a3be">Training vs.&nbsp;Inference</h2>
 <p>Training and inference pursue fundamentally different objectives, and these contrasting goals create evaluation requirements so different that separate benchmarking frameworks emerged for each: MLPerf Training and MLPerf Inference. The critical question is whether theoretical TFLOPS translate to practical time-to-train or queries-per-second. Training seeks optimal parameters through iterative refinement (<strong><a href="../training/training.html#sec-model-training">Model Training</a></strong>), processing billions of examples over hours or days, stressing memory bandwidth, multi-GPU scaling, and sustained throughput. Inference applies those parameters to individual inputs under deployment strategies (<strong><a href="../ml_ops/ml_ops.html#sec-ml-operations">ML Operations</a></strong>), often within millisecond deadlines, stressing latency consistency, cold-start time, and power efficiency.</p>
 <p>The differences cascade through every aspect of system design. Training involves bidirectional computation (forward and backward passes), while inference performs single forward passes with fixed parameters. Memory allocation diverges sharply: training requires simultaneous access to parameters, gradients, optimizer states, and activations, creating 3–4<span class="math inline">\(\times\)</span> memory overhead compared to inference. Training employs mixed-precision computation and gradient compression to manage this overhead, while inference uses more aggressive precision reduction (detailed in <a href="#sec-benchmarking-inference-metrics-78d4" class="quarto-xref">Section&nbsp;1.7.2</a>) and techniques like post-training quantization and knowledge distillation. Resource utilization patterns also contrast: training targets sustained GPU saturation, whereas inference contends with variable request patterns that leave hardware underutilized, as the roofline analysis in <a href="#sec-benchmarking-system-benchmarks-393c" class="quarto-xref">Section&nbsp;1.2.2</a> demonstrated.</p>
-<p>Energy costs follow different patterns. Training energy costs are amortized across model lifetime and measured in total energy per trained model; estimates for large training runs can reach the scale of thousands of megawatt-hours (GPT-3 has been estimated at roughly 1,287 MWh) <span class="citation" data-cites="patterson2021carbon">(<a href="#ref-patterson2021carbon" role="doc-biblioref">Patterson et al. 2021</a>)</span>. Inference energy costs accumulate per query and can become a dominant operational consideration at scale. A durable way to reason about per-query energy is the identity (E = P t). For example, a 300 W accelerator running a 10 ms inference consumes (300 = 3.0) joules, which is about (0.0008) Wh; at 100 ms, that becomes about (0.0083) Wh.</p>
+<p>Energy costs follow different patterns. Training energy costs are amortized across model lifetime and measured in total energy per trained model; estimates for large training runs can reach the scale of thousands of megawatt-hours (GPT-3 has been estimated at roughly 1,287 MWh) <span class="citation" data-cites="patterson2021carbon">(<a href="#ref-patterson2021carbon" role="doc-biblioref">Patterson et al. 2021</a>)</span>. Inference energy costs accumulate per query and can become a dominant operational consideration at scale. A durable way to reason about per-query energy is the identity <span class="math inline">\(E = P \times t\)</span>. For example, a 300 W accelerator running a 10 ms inference consumes <span class="math inline">\(300 \times 0.01 = 3.0\)</span> joules, which is about 0.0008 Wh; at 100 ms, that becomes about 0.0083 Wh.</p>
 <div class="no-row-height column-margin column-container"></div><p>The training-vs.-inference distinction guides benchmark design by highlighting which metrics matter most for each phase and how evaluation methodologies must differ. Training benchmarks emphasize convergence time and scaling efficiency; inference benchmarks prioritize latency consistency and resource efficiency across diverse deployment scenarios. We examine training benchmarks first, because the quality of the trained model sets the ceiling for everything inference can deliver.</p>
 <div id="quiz-question-sec-benchmarking-training-vs-inference-evaluation-a3be" class="callout callout-quiz-question">
 <details class="callout-quiz-question fbx-simplebox fbx-default"><summary><strong>Self-Check: Question</strong></summary><div>
@@ -2767,8 +2822,8 @@ Brown, Tom B., Benjamin Mann, Nick Ryder, et al. 2020. <span>“Language Models 
 <p><strong><em>ML Training Benchmarks</em></strong> measure the <strong>Rate of Convergence</strong> per unit of resource (time, energy, cost).</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> They validate the system’s ability to sustain high <strong>Arithmetic Intensity</strong> across distributed accelerators while managing the <strong>Communication Overhead</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>) of gradient synchronization.</li>
-<li><strong>Distinction (Durable):</strong> Unlike <strong>Inference Benchmarks</strong>, which focus on <strong>Input-Output Latency</strong>, Training Benchmarks focus on <strong>Throughput (<span class="math inline">\(\eta\)</span>)</strong> and <strong>Total Training Time (<span class="math inline">\(T_{train}\)</span>)</strong>.</li>
-<li><strong>Common Pitfall:</strong> A frequent misconception is that training benchmarks only measure “how fast the GPU runs.” In reality, for large models, the <strong>Interconnect Bandwidth (<span class="math inline">\(BW\)</span>)</strong> and the <strong>Fault Tolerance Overhead</strong> are often more critical to the benchmark result than the raw FLOPs.</li>
+<li><strong>Distinction (Durable):</strong> Unlike <strong>Inference Benchmarks</strong>, which focus on <strong>Input-Output Latency</strong>, Training Benchmarks focus on <strong>Throughput (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong> and <strong>Total Training Time (<span class="math inline">\(T_{\text{train}}\)</span>)</strong>.</li>
+<li><strong>Common Pitfall:</strong> A frequent misconception is that training benchmarks only measure “how fast the GPU runs.” In reality, for large models, the <strong>Interconnect Bandwidth (<span class="math inline">\(\text{BW}\)</span>)</strong> and the <strong>Fault Tolerance Overhead</strong> are often more critical to the benchmark result than the raw FLOPs.</li>
 </ol>
 </div></details>
 </div>
@@ -2778,7 +2833,7 @@ MLCommons. 2024d. <em>MLPerf Training Benchmark</em>. <a href="https://mlcommons
 </div></div><section id="sec-benchmarking-training-benchmark-motivation-f365" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-benchmarking-training-benchmark-motivation-f365">Training benchmark motivation</h3>
 <p>The impact of standardized training measurement is striking. <a href="#fig-mlperf-training-improve" class="quarto-xref">Figure&nbsp;5</a> demonstrates that performance improvements across successive MLPerf Training benchmark versions have consistently outpaced Moore’s Law, with ResNet training speedups exceeding 30<span class="math inline">\(\times\)</span> over five years while semiconductor scaling would predict only 6.6<span class="math inline">\(\times\)</span>. This exponential improvement illustrates a core principle: what gets measured gets improved. The standardized benchmarking framework creates competitive pressure that drives rapid optimization across the entire ML computing stack.</p>
-<div id="fig-mlperf-training-improve" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Line chart with nine model benchmarks from 2018 to 2024 showing relative performance gains, with most exceeding the Moore's law baseline of 6.6x. Mask R-CNN shows the largest gain, up to 48x." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-mlperf-training-improve" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Line chart with nine model benchmarks from 2018 to 2024 showing relative performance gains, with most exceeding the Moore's law baseline of 6.6x. Mask R-CNN shows the largest gain, up to 48x.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-mlperf-training-improve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="0e9940eea8fef86e764b93d7fdb3583ee1565cab.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: MLPerf Training Progress: Standardized benchmarks reveal that machine learning training performance consistently surpasses Moore’s Law, indicating substantial gains from systems-level optimizations. These trends emphasize how focused measurement and iterative improvement drive rapid advancements in ML training efficiency and scalability. Source: [@tschand2024mlperf]."><img src="benchmarking_files/mediabag/0e9940eea8fef86e764b93d7fdb3583ee1565cab.svg" class="img-fluid figure-img"></a>
@@ -2815,7 +2870,7 @@ Figure&nbsp;5: <strong>MLPerf Training Progress</strong>: Standardized benchmark
 <div id="callout-notebook-1.6" class="callout callout-notebook" title="Scaling Efficiency Calculation">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.6: Scaling Efficiency Calculation</strong></summary><div><strong>Problem</strong>: A team trains ResNet-50 on ImageNet. Single-GPU training takes 24 hours. With 8 GPUs, training takes 4 hours. Is this good scaling? Where did the efficiency go?<p></p>
 <p><strong>Step 1</strong>: Define scaling efficiency. For <strong>strong scaling</strong> (fixed problem size, more processors), let <span class="math inline">\(T(1)\)</span> be the training time on a single GPU, <span class="math inline">\(T(N)\)</span> the training time on <span class="math inline">\(N\)</span> GPUs, and <span class="math inline">\(N\)</span> the GPU count. <a href="#eq-scaling-efficiency" class="quarto-xref">Equation&nbsp;3</a> defines efficiency:</p>
-<p><span id="eq-scaling-efficiency"><span class="math display">\[\text{Scaling Efficiency}(N) = \frac{T(1)}{N \times T(N)} \times 100\% \tag{3}\]</span></span></p>
+<p><span id="eq-scaling-efficiency"><span class="math display">\[\eta_{\text{scaling}} = \frac{T(1)}{N \times T(N)} \times 100\% \tag{3}\]</span></span></p>
 <p><strong>Step 2</strong>: Calculate efficiency. Efficiency(8) = 24 hours / (8 × 4 hours) × 100% = 24/32 = <strong>75 percent</strong></p>
 <p>With perfect scaling, 8 GPUs would complete in 3 hours (24/8). The actual 4 hours represents 75 percent efficiency.</p>
 <p><strong>Step 3</strong>: Account for the efficiency loss. The “missing” 25 percent decomposes into measurable overhead:</p>
@@ -3120,17 +3175,17 @@ Table&nbsp;5: <strong>Training Benchmark Dimensions.</strong> Key categories and
 <p><strong><em>ML Inference Benchmarks</em></strong> quantify the system’s ability to meet <strong>Latency Constraints</strong> (<span class="math inline">\(L_{\text{lat}}\)</span>) under load.</p>
 <ol type="1">
 <li><strong>Significance (Quantitative):</strong> They measure the <strong>Tail Latency</strong> (p99) and <strong>Jitter</strong> of the serving stack, validating its suitability for interactive applications.</li>
-<li><strong>Distinction (Durable):</strong> Unlike <strong>Training Benchmarks</strong>, which prioritize <strong>Throughput (<span class="math inline">\(\eta\)</span>)</strong>, Inference Benchmarks prioritize <strong>Response Time</strong> and <strong>Determinism</strong>.</li>
+<li><strong>Distinction (Durable):</strong> Unlike <strong>Training Benchmarks</strong>, which prioritize <strong>Throughput (<span class="math inline">\(\eta_{\text{hw}}\)</span>)</strong>, Inference Benchmarks prioritize <strong>Response Time</strong> and <strong>Determinism</strong>.</li>
 <li><strong>Common Pitfall:</strong> A frequent misconception is that “Average Latency” is a sufficient benchmark. In reality, for production systems, the <strong>Tail at Scale</strong> (the slowest one percent of requests) is what defines the user experience and the system’s reliability.</li>
 </ol>
 </div></details>
 </div>
 <p> Unlike training, which runs on dedicated data center hardware, inference must be optimized for dramatically diverse deployment scenarios—from real-time applications like autonomous driving and conversational AI to mobile devices, IoT systems, and embedded processors. This diversity extends to hardware: while GPUs and TPUs dominate training, inference workloads often require specialized accelerators like NPUs, FPGAs, and dedicated inference chips such as Google’s Edge TPU<a href="#fn25" class="footnote-ref" id="fnref25" role="doc-noteref"><sup>25</sup></a>. Inference benchmarks evaluate how well hardware selection, model optimization, and data pipeline design work together across these deployment environments.</p>
 <div class="no-row-height column-margin column-container"><div id="fn25"><p><sup>25</sup>&nbsp;<strong>Edge TPU</strong>: Google’s two-watt AI accelerator delivering 4 TOPS for ~$25 per unit. The Edge TPU illustrates a benchmarking constraint specific to fixed-function accelerators: it supports only quantized TensorFlow Lite models with specific operator types, so its 4 TOPS rating applies only to the subset of models that map fully to its hardware. Models requiring even one unsupported operator fall back to the host CPU at orders-of-magnitude lower throughput. </p></div></div><p>Scaling inference workloads across cloud servers, edge platforms, mobile devices, and tinyML systems introduces additional complexity. <a href="#fig-power-differentials" class="quarto-xref">Figure&nbsp;6</a> reveals the staggering power consumption differentials among these systems—spanning over ten orders of magnitude from microwatts in tiny embedded devices to hundreds of kilowatts in data center training clusters. The ranges are representative rather than exhaustive. This spread explains why no single benchmark can serve all deployment contexts: a metric meaningful for data center optimization (kilowatts per rack) becomes irrelevant for battery-powered edge devices (milliwatts per inference). Inference benchmarks must evaluate the trade-offs between latency, cost, and energy efficiency within each scale to assist organizations in making informed deployment decisions.</p>
-<div id="fig-power-differentials" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Dumbbell chart on a logarithmic watts axis: Tiny 5.6 µW to 167 mW, Edge 3.9 W to 1.1 kW, Datacenter 267 W to 6.3 kW, Training 5.5 kW to 498 kW." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-power-differentials" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Dumbbell chart on a logarithmic watts axis: Tiny 5.6 µW to 167 mW, Edge 3.9 W to 1.1 kW, Datacenter 267 W to 6.3 kW, Training 5.5 kW to 498 kW.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-power-differentials-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="68395e15" class="cell" data-execution_count="14">
+<div id="5df3c102" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -3505,9 +3560,13 @@ Reddi, Vijay Janapa, Christine Cheng, David Kanter, et al. 2019. <span>“MLPerf
 </section>
 <section id="sec-benchmarking-mlperf-mobile-83cc" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-benchmarking-mlperf-mobile-83cc">MLPerf Mobile</h4>
-<p>MLPerf Mobile <span class="citation" data-cites="mlperf_mobile_website">(<a href="#ref-mlperf_mobile_website" role="doc-biblioref">MLCommons 2024b</a>)</span> extends MLPerf’s evaluation framework to smartphones and other mobile devices. Unlike cloud-based inference, mobile inference operates under strict power and memory constraints, requiring models to be optimized for efficiency without sacrificing responsiveness. The benchmark measures latency and responsiveness for real-time AI tasks, such as camera-based scene detection, speech recognition, and augmented reality applications. MLPerf Mobile has become an industry standard for assessing AI performance on flagship smartphones and mobile AI chips, helping developers optimize models for on-device AI workloads.</p>
+<p>MLPerf Mobile <span class="citation" data-cites="mlperf_mobile_website">(<a href="#ref-mlperf_mobile_website" role="doc-biblioref">MLCommons 2024b</a>)</span> extends MLPerf’s evaluation framework to smartphones and other mobile devices. Unlike cloud-based inference, mobile inference operates under strict power and memory constraints <span class="citation" data-cites="janapa2022mlperf">(<a href="#ref-janapa2022mlperf" role="doc-biblioref"><span class="nocase">Janapa Reddi et al.</span> 2022</a>)</span>, requiring models to be optimized for efficiency without sacrificing responsiveness. The benchmark measures latency and responsiveness for real-time AI tasks, such as camera-based scene detection, speech recognition, and augmented reality applications. MLPerf Mobile has become an industry standard for assessing AI performance on flagship smartphones and mobile AI chips, helping developers optimize models for on-device AI workloads.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-mlperf_mobile_website" class="csl-entry" role="listitem">
 MLCommons. 2024b. <em>MLPerf Mobile Benchmark</em>. <a href="https://mlcommons.org/en/mlperf-mobile/">https://mlcommons.org/en/mlperf-mobile/</a>.
+</div><div id="ref-janapa2022mlperf" class="csl-entry" role="listitem">
+<span class="nocase">Janapa Reddi, Vijay et al.</span> 2022. <span>“MLPerf Mobile V2. 0: An Industry-Standard Benchmark Suite for Mobile Machine Learning.”</span> <em>Proceedings of Machine Learning and Systems</em> 4: 806–23.<a href="
+    https://proceedings.mlsys.org/paper_files/paper/2022/hash/a2b2702ea7e682c5ea2c20e8f71efb0c-Abstract.html
+  ">https://proceedings.mlsys.org/paper_files/paper/2022/hash/a2b2702ea7e682c5ea2c20e8f71efb0c-Abstract.html </a>.
 </div></div></section>
 <section id="sec-benchmarking-mlperf-client-c48d" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-benchmarking-mlperf-client-c48d">MLPerf Client</h4>
@@ -3762,7 +3821,7 @@ Table&nbsp;10: <strong>Power Consumption Spectrum.</strong> Machine learning dep
 <section id="sec-benchmarking-power-measurement-boundaries-982c" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-benchmarking-power-measurement-boundaries-982c">Power measurement boundaries</h3>
 <p>To address these measurement challenges, we must understand how power consumption is measured at different system scales, from TinyML devices to full-scale data center inference nodes. <a href="#fig-power-diagram" class="quarto-xref">Figure&nbsp;7</a> lays out the distinct measurement boundaries for each scenario—pay attention to the color coding: components in green fall inside the energy accounting boundary, while components with red dashed outlines are explicitly excluded from power measurements. This distinction matters because where the boundary is drawn determines what counts as “efficient.”</p>
-<div id="fig-power-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="System diagram showing four measurement boundaries: Tiny SoC with compute units, inference SoC with accelerators and DRAM, inference node with cooling and NIC, and training rack with compute nodes." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-power-diagram" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="System diagram showing four measurement boundaries: Tiny SoC with compute units, inference SoC with accelerators and DRAM, inference node with cooling and NIC, and training rack with compute nodes.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-power-diagram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="2f27a3d63756a0dd6171e785d4a263e07cf63b4b.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;7: Power Measurement Boundaries: MLPerf defines system boundaries for power measurement, ranging from single-chip devices to full data center nodes, to enable fair comparisons of energy efficiency across diverse hardware platforms. These boundaries delineate which components’ power consumption is included in reported metrics, impacting the interpretation of performance results. Source: [@tschand2024mlperf]."><img src="benchmarking_files/mediabag/2f27a3d63756a0dd6171e785d4a263e07cf63b4b.svg" class="img-fluid figure-img"></a>
@@ -3812,7 +3871,7 @@ Lange, Klaus-Dieter. 2009a. <span>“Identifying Shades of Green: The SPECpower 
 <p>MLPerf Power <span class="citation" data-cites="tschand2024mlperf">(<a href="#ref-tschand2024mlperf" role="doc-biblioref">Tschand et al. 2024</a>)</span> is a standard methodology for measuring energy efficiency in machine learning systems. This comprehensive benchmarking framework provides accurate assessment of power consumption across diverse ML deployments. At the data center level, it measures power usage in large-scale AI workloads, where energy consumption optimization directly impacts operational costs. For edge computing, it evaluates power efficiency in consumer devices like smartphones and laptops, where battery life constraints are critical. In tiny inference scenarios, it assesses energy consumption for ultra-low-power AI systems, particularly IoT sensors and microcontrollers operating with strict power budgets.</p>
 <div class="no-row-height column-margin column-container"></div><p>The MLPerf Power methodology applies the standardized evaluation principles discussed earlier, adapting to various hardware architectures from general-purpose CPUs to specialized AI accelerators. Meaningful cross-platform comparisons are ensured while maintaining measurement integrity across different computing scales.</p>
 <p>The benchmark has accumulated thousands of reproducible measurements submitted by industry organizations, demonstrating their latest hardware capabilities and the sector-wide focus on energy-efficient AI technology. Examine the three panels in <a href="#fig-power-trends" class="quarto-xref">Figure&nbsp;8</a> to track how energy efficiency has evolved across system scales through successive MLPerf versions. The gains are not uniform—compare the data center panel against the tiny deployment panel to see where the most dramatic efficiency improvements have occurred and where progress has been more incremental.</p>
-<div id="fig-power-trends" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Three line charts showing normalized energy efficiency across MLPerf versions: data center models up to 378x gain, edge models up to 4x, and tiny models up to 1070x improvement." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-power-trends" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Three line charts showing normalized energy efficiency across MLPerf versions: data center models up to 378x gain, edge models up to 4x, and tiny models up to 1070x improvement.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-power-trends-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="bd1fa88de3878b7645967da526cba64eb8100a82.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;8: Energy Efficiency Gains: Successive MLPerf inference benchmark versions show energy efficiency (samples per watt) improving up to 378\times for data center workloads and 1070\times for tinyML deployments across successive releases. Standardized measurement protocols enable meaningful cross-platform comparisons, driving sector-wide progress toward sustainable AI. Source: [@tschand2024mlperf]."><img src="benchmarking_files/mediabag/bd1fa88de3878b7645967da526cba64eb8100a82.svg" class="img-fluid figure-img"></a>
@@ -3875,10 +3934,10 @@ Krizhevsky, Alex. 2009. <em>Learning Multiple Layers of Features from Tiny Image
 <p>Statistical methodology and deployment alignment address how we measure and what we optimize for. A third category of limitations emerges from the physical systems being measured. Hardware behavior depends on environmental conditions, architectural compatibility, and operational context in ways that complicate fair comparison.</p>
 <p>Environmental conditions affect benchmarks in measurable ways. Benchmark results depend on physical conditions (ambient temperature, humidity, altitude) and operational context (background processes, network load, power supply stability) in subtle but measurable ways. Elevated temperatures trigger thermal throttling that reduces computational speed; background processes compete for resources and alter performance characteristics. Ensuring valid benchmarks requires controlling these factors to the extent possible (temperature-controlled environments, standardized system states, documented background loads) and, when full control is impractical (as in distributed or cloud-based benchmarking), detailed reporting of conditions so that others can account for potential variations when interpreting results.</p>
 <p> The hardware lottery<a href="#fn34" class="footnote-ref" id="fnref34" role="doc-noteref"><sup>34</sup></a> <span class="citation" data-cites="hooker2021hardware">(<a href="#ref-hooker2021hardware" role="doc-biblioref">Hooker 2021</a>)</span> presents another critical issue. The success of a machine learning model is often dictated not only by its architecture and training data but also by how well it aligns with the underlying hardware. Some models perform exceptionally well not because they are inherently superior but because they map naturally onto GPU or TPU parallel processing capabilities. Other promising architectures may be systematically overlooked because they do not fit dominant hardware platforms.</p>
-<div class="no-row-height column-margin column-container"><div id="fn34"><p><sup>34</sup>&nbsp;<strong>Hardware Lottery</strong>: Coined by Sara Hooker in 2021 to describe how algorithmic success depends on alignment with available hardware. The transformer succeeded partly because its dense matrix multiplications map perfectly to GPU Tensor Cores, while graph neural networks and sparse mixture-of-experts models remain underexplored because they map poorly to current silicon. For benchmarking, this means hardware-specific leaderboards systematically favor hardware-aligned architectures, potentially obscuring algorithms that would dominate on different hardware. </p></div><div id="ref-hooker2021hardware" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn34"><p><sup>34</sup>&nbsp;<strong>Hardware Lottery</strong>: Coined by <span class="citation" data-cites="hooker2021hardware">Hooker (<a href="#ref-hooker2021hardware" role="doc-biblioref">2021</a>)</span> to describe how algorithmic success depends on alignment with available hardware. The transformer succeeded partly because its dense matrix multiplications map perfectly to GPU Tensor Cores, while graph neural networks and sparse mixture-of-experts models remain underexplored because they map poorly to current silicon. For benchmarking, this means hardware-specific leaderboards systematically favor hardware-aligned architectures, potentially obscuring algorithms that would dominate on different hardware. </p><div id="ref-hooker2021hardware" class="csl-entry" role="listitem">
 Hooker, Sara. 2021. <span>“The Hardware Lottery.”</span> <em>Communications of the ACM</em> 64 (12): 58–65. <a href="https://doi.org/10.1145/3467017">https://doi.org/10.1145/3467017</a>.
-</div></div><p>Hardware compatibility dependence introduces subtle but significant biases into benchmarking results. A model that is highly efficient on a specific GPU may perform poorly on a CPU or a custom AI accelerator. <a href="#fig-hw-lottery" class="quarto-xref">Figure&nbsp;9</a> makes this hardware dependence concrete by comparing model performance across different platforms. Follow the arrow between the CPU and DSP plots: multi-hardware models show comparable results to “MobileNetV3 Large min” on both the CPU <code>uint8</code> and GPU configurations, but demonstrate significant accuracy improvements over the MobileNetV3 Large baseline when run on the EdgeTPU and DSP hardware. This reveals that the “best” model depends entirely on deployment target: a conclusion impossible to reach from single-platform benchmarks.</p>
-<div id="fig-hw-lottery" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Four scatter plots comparing model accuracy vs. latency across CPU, GPU, EdgeTPU, and DSP, showing that performance depends on the hardware target. An arrow highlights how models perform differently on EdgeTPU and DSP." data-fig-pos="htb" data-fig-env="figure">
+</div></div></div><p>Hardware compatibility dependence introduces subtle but significant biases into benchmarking results. A model that is highly efficient on a specific GPU may perform poorly on a CPU or a custom AI accelerator. <a href="#fig-hw-lottery" class="quarto-xref">Figure&nbsp;9</a> makes this hardware dependence concrete by comparing model performance across different platforms. Follow the arrow between the CPU and DSP plots: multi-hardware models show comparable results to “MobileNetV3 Large min” on both the CPU <code>uint8</code> and GPU configurations, but demonstrate significant accuracy improvements over the MobileNetV3 Large baseline when run on the EdgeTPU and DSP hardware. This reveals that the “best” model depends entirely on deployment target: a conclusion impossible to reach from single-platform benchmarks.</p>
+<div id="fig-hw-lottery" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Four scatter plots comparing model accuracy vs. latency across CPU, GPU, EdgeTPU, and DSP, showing that performance depends on the hardware target. An arrow highlights how models perform differently on EdgeTPU and DSP.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-hw-lottery-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="5f83d3d48c1ffd616633e3df25a7337bed81aecd.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;9: Hardware-Dependent Accuracy: Model performance varies significantly across hardware platforms, indicating that architectural efficiency is not solely determined by design but also by hardware compatibility. Multi-hardware models exhibit comparable accuracy to MobileNetV3 Large on CPU and GPU configurations, yet achieve substantial gains on EdgeTPU and DSP, emphasizing the importance of hardware-aware model optimization for specialized computing environments. Source: [@chu2021discovering]."><img src="benchmarking_files/mediabag/5f83d3d48c1ffd616633e3df25a7337bed81aecd.svg" class="img-fluid figure-img"></a>
@@ -3917,7 +3976,7 @@ Wang, Alex, Yada Pruksachatkun, Nikita Nangia, et al. 2019. <span>“SuperGLUE: 
 </div><div id="ref-liang2022helm" class="csl-entry" role="listitem">
 Liang, Percy, Rishi Bommasani, Tony Lee, et al. 2022. <span>“Holistic Evaluation of Language Models.”</span> <em>arXiv Preprint arXiv:2211.09110</em>, November 16. <a href="http://arxiv.org/abs/2211.09110v2">http://arxiv.org/abs/2211.09110v2</a>.
 </div></div><p>Benchmark evolution extends beyond the addition of new tasks to encompass new dimensions of performance measurement. While traditional AI benchmarks emphasized accuracy and throughput, modern applications demand evaluation across multiple criteria: fairness, robustness, scalability, and energy efficiency. <a href="#fig-sciml-graph" class="quarto-xref">Figure&nbsp;10</a> makes these disparate requirements concrete by mapping scientific applications across data rate and computation time. The visualization reveals a striking pattern: Large Hadron Collider sensors must process data at rates approaching 10<span class="math inline">\(^{14}\)</span> bytes per second with nanosecond-scale computation times, while mobile applications operate at 10<span class="math inline">\(^{4}\)</span> bytes per second with longer computational windows—a span of 10 orders of magnitude on each axis. This range of requirements necessitates specialized benchmarks. For example, edge AI applications require benchmarks like MLPerf that specifically evaluate performance under resource constraints, and scientific application domains need their own “Fast ML for Science” benchmarks <span class="citation" data-cites="duarte2022fastml">(<a href="#ref-duarte2022fastml" role="doc-biblioref">Duarte et al. 2022</a>)</span>.</p>
-<div id="fig-sciml-graph" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Log-scale scatter plot of data rate vs. computation time, showing scientific applications from LHC sensors at 10^14 B/s and microsecond-scale latency to mobile devices at 10^4 B/s and second-scale latency." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-sciml-graph" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Log-scale scatter plot of data rate vs. computation time, showing scientific applications from LHC sensors at 10^14 B/s and microsecond-scale latency to mobile devices at 10^4 B/s and second-scale latency.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-sciml-graph-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="9c0e88d715d94ae98fde712a6c06514c913a0afb.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;10: Performance Spectrum: Scientific applications and edge devices demand vastly different computational resources, spanning multiple orders of magnitude in data rates and latency requirements. Consequently, traditional benchmarks focused solely on accuracy are insufficient; specialized evaluation metrics and benchmarks like MLPerf become essential for optimizing AI systems across diverse deployment scenarios. Source: [@duarte2022fastml]."><img src="benchmarking_files/mediabag/9c0e88d715d94ae98fde712a6c06514c913a0afb.svg" class="img-fluid figure-img"></a>
@@ -3990,10 +4049,12 @@ Duarte, Javier, Nhan Tran, Ben Hawks, et al. 2022. <span>“FastML Science Bench
 <p> Recall from <a href="#fig-imagenet-gpus" class="quarto-xref">Figure&nbsp;1</a> that ImageNet error rates plummeted alongside GPU adoption. <a href="#fig-imagenet-challenge" class="quarto-xref">Figure&nbsp;11</a> adds the architectural milestones to that same progression, tracing error reduction from 28.2 percent in 2010 to 3.57 percent by 2015 on the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) <span class="citation" data-cites="russakovsky2015imagenet">(<a href="#ref-russakovsky2015imagenet" role="doc-biblioref">Russakovsky et al. 2015</a>)</span>. The introduction of AlexNet<a href="#fn35" class="footnote-ref" id="fnref35" role="doc-noteref"><sup>35</sup></a> in 2012 reduced the error rate from 25.8 percent to 16.4 percent. Subsequent models like ZFNet, VGGNet, GoogleNet, and ResNet<a href="#fn36" class="footnote-ref" id="fnref36" role="doc-noteref"><sup>36</sup></a> continued this trend, with ResNet achieving 3.57 percent by 2015 <span class="citation" data-cites="russakovsky2015imagenet">(<a href="#ref-russakovsky2015imagenet" role="doc-biblioref">Russakovsky et al. 2015</a>)</span>. This progression established the baselines against which model compression techniques are evaluated—a pruned ResNet must demonstrate how much accuracy it sacrifices for a given efficiency gain.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-russakovsky2015imagenet" class="csl-entry" role="listitem">
 Russakovsky, Olga, Jia Deng, Hao Su, et al. 2015. <span>“ImageNet Large Scale Visual Recognition Challenge.”</span> <em>International Journal of Computer Vision</em> 115 (3): 211–52. <a href="https://doi.org/10.1007/s11263-015-0816-y">https://doi.org/10.1007/s11263-015-0816-y</a>.
-</div><div id="fn35"><p><sup>35</sup>&nbsp;<strong>AlexNet</strong>: The eight-layer CNN (60M parameters) that cut ImageNet top-5 error from 25.8 percent to 16.4 percent in 2012, trained on two GTX 580 GPUs with 3 GB memory each. AlexNet established the benchmarking paradigm that persists today: accuracy on a fixed dataset as the primary metric, with hardware configuration as a secondary specification. Every subsequent ImageNet result is implicitly compared against this baseline. </p></div><div id="fn36"><p><sup>36</sup>&nbsp;<strong>ResNet</strong>: Introduced by Kaiming He et al.&nbsp;in 2015, skip connections enabled 152+ layer networks and achieved 3.57 percent top-5 ImageNet error (ensemble), surpassing the estimated 5.1 percent human error rate. ResNet-50 became the de facto MLPerf Training reference model because its moderate size (25.6M parameters) and well-understood compute profile (3.8 GFLOPS per image) make it sensitive to both hardware and software optimizations without requiring multi-node setups. </p></div></div><div id="fig-imagenet-challenge" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Line graph showing ImageNet top-5 error decreasing from 28.2 percent in 2010 to 3.57 percent in 2015, with model labels marking AlexNet, ZFNet, VGGNet, GoogleNet, and ResNet milestones." data-fig-pos="htb" data-fig-env="figure">
+</div><div id="fn35"><p><sup>35</sup>&nbsp;<strong>AlexNet</strong>: The eight-layer CNN (60M parameters) that cut ImageNet top-5 error from 25.8 percent to 16.4 percent in 2012, trained on two GTX 580 GPUs with 3 GB memory each. AlexNet established the benchmarking paradigm that persists today: accuracy on a fixed dataset as the primary metric, with hardware configuration as a secondary specification. Every subsequent ImageNet result is implicitly compared against this baseline. </p></div><div id="fn36"><p><sup>36</sup>&nbsp;<strong>ResNet</strong>: Introduced by <span class="citation" data-cites="he2016deep">He et al. (<a href="#ref-he2016deep" role="doc-biblioref">2016</a>)</span>, skip connections enabled 152+ layer networks and achieved 3.57 percent top-5 ImageNet error (ensemble), surpassing the estimated 5.1 percent human error rate. ResNet-50 became the de facto MLPerf Training reference model because its moderate size (25.6M parameters) and well-understood compute profile (3.8 GFLOPS per image) make it sensitive to both hardware and software optimizations without requiring multi-node setups. </p><div id="ref-he2016deep" class="csl-entry" role="listitem">
+He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2016. <span>“Deep Residual Learning for Image Recognition.”</span> <em>2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>, June, 770–78. <a href="https://doi.org/10.1109/cvpr.2016.90">https://doi.org/10.1109/cvpr.2016.90</a>.
+</div></div></div><div id="fig-imagenet-challenge" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Line graph showing ImageNet top-5 error decreasing from 28.2 percent in 2010 to 3.57 percent in 2015, with model labels marking AlexNet, ZFNet, VGGNet, GoogleNet, and ResNet milestones.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-imagenet-challenge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="212c25c5" class="cell" data-execution_count="17">
+<div id="4311948b" class="cell" data-execution_count="17">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -4097,7 +4158,9 @@ Frankle, Jonathan, and Michael Carbin. 2019. <span>“The Lottery Ticket Hypothe
 <h4 class="anchored" data-anchor-id="sec-benchmarking-large-language-model-benchmarks-4ec7">Large language model benchmarks</h4>
 <p>The compression evaluation framework applies well to models with well-defined accuracy metrics: classification accuracy, detection mAP, segmentation IoU. Large language models present unique benchmarking challenges because their outputs resist such clean quantification. Unlike classification tasks where ground truth is well-defined, language model evaluation must assess open-ended generation quality, factual accuracy, reasoning capability, and safety—dimensions that resist simple quantification.</p>
 <p> Knowledge benchmarks like MMLU (Massive Multitask Language Understanding)<a href="#fn39" class="footnote-ref" id="fnref39" role="doc-noteref"><sup>39</sup></a> evaluate factual knowledge across fifty-seven subjects. Scores range from 25 percent (random guessing) to 90 percent+ for frontier models; human experts average 89.8 percent. However, MMLU’s multiple-choice format tests recognition rather than generation, potentially overestimating real-world capability since a model might select the correct answer from options while being unable to produce it unprompted.</p>
-<div class="no-row-height column-margin column-container"><div id="fn39"><p><sup>39</sup>&nbsp;<strong>MMLU (Massive Multitask Language Understanding)</strong>: Introduced by Hendrycks et al.&nbsp;with 15,908 multiple-choice questions across fifty-seven subjects. MMLU’s benchmarking limitation is its format: multiple-choice recognition is fundamentally easier than open-ended generation, so models scoring 80 percent+ on MMLU may perform substantially worse on equivalent free-form questions, creating a gap between benchmark scores and production capability. </p></div><div id="fn40"><p><sup>40</sup>&nbsp;<strong>HELM (Holistic Evaluation of Language Models)</strong>: Stanford’s 2022 evaluation framework testing thirty-plus models across seven dimensions (accuracy, calibration, robustness, fairness, bias, toxicity, efficiency). HELM’s contribution is methodological: by evaluating models that score similarly on accuracy but diverge on calibration or toxicity, it demonstrates that single-metric leaderboards systematically hide failure modes that matter for production deployment. </p></div></div><p>Holistic benchmarks like HELM (Holistic Evaluation of Language Models)<a href="#fn40" class="footnote-ref" id="fnref40" role="doc-noteref"><sup>40</sup></a> address single-metric limitations by evaluating across seven dimensions: accuracy, calibration, robustness, fairness, bias, toxicity, and efficiency. This reveals trade-offs invisible to accuracy-only evaluation; a model achieving high accuracy may exhibit poor calibration or elevated toxicity. The same multi-dimensional principle from classification (accuracy alone is insufficient) applies with greater force to generative models.</p>
+<div class="no-row-height column-margin column-container"><div id="fn39"><p><sup>39</sup>&nbsp;<strong>MMLU (Massive Multitask Language Understanding)</strong>: Introduced by <span class="citation" data-cites="hendrycks2021mmlu">Hendrycks et al. (<a href="#ref-hendrycks2021mmlu" role="doc-biblioref">2020</a>)</span> with 15,908 multiple-choice questions across fifty-seven subjects. MMLU’s benchmarking limitation is its format: multiple-choice recognition is fundamentally easier than open-ended generation, so models scoring 80 percent+ on MMLU may perform substantially worse on equivalent free-form questions, creating a gap between benchmark scores and production capability. </p><div id="ref-hendrycks2021mmlu" class="csl-entry" role="listitem">
+Hendrycks, Dan, Collin Burns, Steven Basart, et al. 2020. <span>“Measuring Massive Multitask Language Understanding.”</span> <em>arXiv Preprint</em>, September 7. <a href="http://arxiv.org/abs/2009.03300v3">http://arxiv.org/abs/2009.03300v3</a>.
+</div></div><div id="fn40"><p><sup>40</sup>&nbsp;<strong>HELM (Holistic Evaluation of Language Models)</strong>: Stanford’s 2022 evaluation framework testing thirty-plus models across seven dimensions (accuracy, calibration, robustness, fairness, bias, toxicity, efficiency). HELM’s contribution is methodological: by evaluating models that score similarly on accuracy but diverge on calibration or toxicity, it demonstrates that single-metric leaderboards systematically hide failure modes that matter for production deployment. </p></div></div><p>Holistic benchmarks like HELM (Holistic Evaluation of Language Models)<a href="#fn40" class="footnote-ref" id="fnref40" role="doc-noteref"><sup>40</sup></a> address single-metric limitations by evaluating across seven dimensions: accuracy, calibration, robustness, fairness, bias, toxicity, and efficiency. This reveals trade-offs invisible to accuracy-only evaluation; a model achieving high accuracy may exhibit poor calibration or elevated toxicity. The same multi-dimensional principle from classification (accuracy alone is insufficient) applies with greater force to generative models.</p>
 <p>Generation-specific metrics capture properties absent from discriminative benchmarks:</p>
 <p></p>
 <ul>
@@ -4142,7 +4205,7 @@ Xu, Ruijie, Zengzhi Wang, Run-Ze Fan, and Pengfei Liu. 2024. <span>“Benchmarki
 Koh, Pang Wei, Shiori Sagawa, Henrik Marklund, et al. 2021. <span>“WILDS: A Benchmark of in-the-Wild Distribution Shifts.”</span> In <em>Proceedings of the 38th International Conference on Machine Learning, ICML 2021, 18-24 July 2021, Virtual Event</em>, edited by Marina Meila and Tong Zhang, vol. 139. Proceedings of Machine Learning Research. PMLR. <a href="http://proceedings.mlr.press/v139/koh21a.html">http://proceedings.mlr.press/v139/koh21a.html</a>.
 </div></div><p> Given these challenges, shift detection methods become essential for production monitoring. Statistical tests like the Kolmogorov-Smirnov test or Maximum Mean Discrepancy (MMD) on input features can detect covariate shift—when the distribution of inputs changes even if the relationship between inputs and outputs remains stable. Monitoring model confidence distributions can detect when the model encounters inputs unlike anything in training. The goal is early detection: identifying distribution shift before it causes catastrophic performance degradation, enabling intervention through model updates, data collection, or deployment constraints.</p>
 <p>Distribution alignment challenges highlight a persistent tension in ML development: should we fix the data and iterate on models, or fix the model and iterate on data? <a href="#fig-model-vs-data" class="quarto-xref">Figure&nbsp;12</a> places these two paradigms side by side, revealing exactly where the feedback loop differs. In the model-centric diagram, the iteration cycle targets the architecture while the data remains static; in the data-centric diagram, the architecture stays fixed while the cycle targets data quality. Research increasingly demonstrates that methodical dataset enhancement can yield superior performance gains compared to model refinements alone—challenging the conventional emphasis on architectural innovation.</p>
-<div id="fig-model-vs-data" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Side-by-side diagrams: model-centric AI shows data cylinders feeding CPU with feedback loop to model, data-centric AI shows feedback loop to data instead. Double arrow indicates complementary approaches." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-model-vs-data" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Side-by-side diagrams: model-centric AI shows data cylinders feeding CPU with feedback loop to model, data-centric AI shows feedback loop to data instead. Double arrow indicates complementary approaches.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-model-vs-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="e55d31a2ba51d5d490a3bbeebd7fdb4c7979b3e5.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;12: Development Paradigms: Model-centric AI prioritizes architectural innovation with fixed datasets, while data-centric AI systematically improves dataset quality (annotations, diversity, and bias) with consistent model architectures to achieve performance gains. Modern research indicates that strategic data enhancement often yields greater improvements than solely refining model complexity."><img src="benchmarking_files/mediabag/e55d31a2ba51d5d490a3bbeebd7fdb4c7979b3e5.svg" class="img-fluid figure-img"></a>
@@ -4160,7 +4223,7 @@ Gadre, Samir Yitzhak, Gabriel Ilharco, Alex Fang, et al. 2023. <span>“DataComp
 </div><div id="ref-northcutt2021pervasive" class="csl-entry" role="listitem">
 Northcutt, Curtis G., Anish Athalye, and Jonas Mueller. 2021. <span>“Pervasive Label Errors in Test Sets Destabilize Machine Learning Benchmarks.”</span> <em>arXiv Preprint arXiv:2103.14749</em> 34 (March): 19075–90. <a href="https://doi.org/10.48550/arxiv.2103.14749">https://doi.org/10.48550/arxiv.2103.14749</a>.
 </div></div><p>A persistent challenge in data benchmarking emerges from dataset saturation. When models achieve near-perfect accuracy on benchmarks like ImageNet, practitioners must distinguish whether performance gains represent genuine advances in AI capability or merely optimization to existing test sets. As the timeline in <a href="#fig-dataset-saturation" class="quarto-xref">Figure&nbsp;13</a> illustrates, AI systems have surpassed human performance across multiple benchmarks—first in handwriting recognition in the early 2000s, then speech and image recognition, and finally reading comprehension and language understanding by 2020. Each crossing renders the corresponding benchmark less useful as a differentiator.</p>
-<div id="fig-dataset-saturation" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Line chart showing five AI capabilities crossing human performance baseline from 1998 to 2020: handwriting, speech, image recognition, reading comprehension, and language understanding." data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-dataset-saturation" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="htb" data-fig-env="figure" alt="Line chart showing five AI capabilities crossing human performance baseline from 1998 to 2020: handwriting, speech, image recognition, reading comprehension, and language understanding.">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-dataset-saturation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="f799c6e9a415e12af084450129dfe12a5a7a7461.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure&nbsp;13: Dataset Saturation: AI systems surpass human performance on five benchmark capabilities: handwriting recognition, speech recognition, image recognition, reading comprehension, and language understanding, each crossing the human baseline between 1998 and 2020. This saturation underscores the need for dynamic benchmarks that remain challenging as model capabilities improve. Source: [@kiela2021dynabench]."><img src="benchmarking_files/mediabag/f799c6e9a415e12af084450129dfe12a5a7a7461.svg" class="img-fluid figure-img"></a>
