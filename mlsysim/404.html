@@ -44,9 +44,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="/mlsysim/site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="/mlsysim/site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="/mlsysim/site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="/mlsysim/site_libs/bootstrap/bootstrap-88ea151f5fd980d7f78b27f4c21145a3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="/mlsysim/site_libs/bootstrap/bootstrap-dark-f3b06db5eaeff2de81833f6ce2fbf8f6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="/mlsysim/site_libs/bootstrap/bootstrap-88ea151f5fd980d7f78b27f4c21145a3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="/mlsysim/site_libs/bootstrap/bootstrap-3cc999bd636482e40a41220deadcb748.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="/mlsysim/site_libs/bootstrap/bootstrap-dark-58a5cd4236014ac54288e64e8044f4e2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="/mlsysim/site_libs/bootstrap/bootstrap-3cc999bd636482e40a41220deadcb748.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -85,10 +85,19 @@ ul.task-list li input[type="checkbox"] {
 (function () {
   'use strict';
   var STORAGE_KEY = 'quarto-color-scheme';
+  // Quarto's toggle writes 'alternate'/'default' (alternate = dark, the
+  // layered sheet); sibling non-Quarto sites write 'dark'/'light'. Both
+  // hit the same key, so we accept either. Quarto's own startup still
+  // checks `=== 'alternate'`, so we mirror onto <html> rather than rewrite.
+  function normalize(v) {
+    if (v === 'dark' || v === 'alternate') return 'dark';
+    if (v === 'light' || v === 'default') return 'light';
+    return null;
+  }
   function preferredScheme() {
     try {
-      var stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === 'dark' || stored === 'light') return stored;
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) return n;
     } catch (e) {}
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
@@ -101,13 +110,91 @@ ul.task-list li input[type="checkbox"] {
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
+  // Quarto's toggle updates localStorage but not <html>, so wrap it to
+  // mirror the new value onto data-bs-theme; otherwise clicking the toggle
+  // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
+  // stylesheet until the next reload.
+  function syncFromStorage() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) apply(n);
+    } catch (e) {}
+  }
+  function wrapToggle() {
+    var orig = window.quartoToggleColorScheme;
+    if (typeof orig !== 'function' || orig.__mlsbWrapped) return;
+    var wrapped = function () { var r = orig.apply(this, arguments); syncFromStorage(); return r; };
+    wrapped.__mlsbWrapped = true;
+    window.quartoToggleColorScheme = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
+  } else {
+    wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
+  }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
-    var next = ev.newValue;
-    if (next !== 'dark' && next !== 'light') return;
-    apply(next);
+    var n = normalize(ev.newValue);
+    if (n) apply(n);
   });
   if (window.matchMedia) {
     try {
@@ -144,6 +231,10 @@ ul.task-list li input[type="checkbox"] {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
 <meta name="theme-color" content="#0284C7">
+<!-- Release identity (rendered into the footer pill below).
+     The publish workflow drops release-manifest.json at the
+     site root before deploy. -->
+<meta name="release-manifest" content="/mlsysim/release-manifest.json">
 
 
 <link rel="stylesheet" href="/mlsysim/styles/landing.css">
@@ -331,7 +422,7 @@ ul.task-list li input[type="checkbox"] {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="/mlsysim/index.html" class="navbar-brand navbar-brand-logo">
@@ -390,6 +481,11 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="/mlsysim/mlsysim-paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im Paper (PDF)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/mlsysim/slides.html"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Tutorial Slides</span></a>
   </li>  
     </ul>
   </li>
@@ -542,7 +638,7 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/#mission"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
@@ -623,9 +719,9 @@ ul.task-list li input[type="checkbox"] {
 </div>
       </div> <!-- /container-fluid -->
     </nav>
-  <div id="quarto-announcement" data-announcement-id="adcd3e21d22f20bc9924ed6605fde426" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">5e104b74</code> • 2026-04-27 15:45 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build. <a href="./">Get started →</a><br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="eae564b81786223446d21b4abd68f554" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">6cad2a17</code> • 2026-05-13 16:08 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build. <a href="./">Get started →</a><br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore) · <a href="../staffml/">StaffML</a> (practice) · <a href="../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1301,10 +1397,151 @@ ul.task-list li input[type="checkbox"] {
     </div>
   </div>
 </footer>
+<!--
+  MLSysBook release-pill — shared footer snippet for Quarto + static sites.
+
+  Renders a small "v0.1.0 · Apr 26, 2026" pill from a deployed
+  release-manifest.json. The pill is best-effort chrome: silent on any
+  fetch failure (manifest missing, offline, CORS). Use at any site that
+  emits a manifest via scripts/version/release.py emit-manifest.
+
+  ── Per-project setup (one of two patterns) ──
+
+  Pattern A — Quarto, configured via _quarto.yml:
+
+      project:
+        resources:
+          - ../shared/release/release-pill.html
+      format:
+        html:
+          include-in-header:
+            - text: |
+                <meta name="release-manifest" content="/<project-base>/release-manifest.json">
+          include-after-body:
+            - file: ../shared/release/release-pill.html
+
+  The meta tag tells the snippet where to find the manifest. The
+  ``include-after-body`` injects the snippet into every rendered page.
+
+  Pattern B — Next.js / hand-rolled HTML:
+
+      <meta name="release-manifest" content="/release-manifest.json" />
+      // in footer:
+      <span data-release-pill></span>
+      <script src="/release-pill.js"></script>
+
+  (See shared/release/release-pill.js for the standalone JS form.)
+
+  NOTE: Do NOT use a nested `<!-- ... -->` HTML comment in this docstring
+  block. HTML disallows nested comments, so the inner `--&gt;` would
+  terminate the outer comment early and cause the example markup below
+  it (the `<span data-release-pill="">` and `<script src="/mlsysim/…release-pill.js">`)
+  to leak into the rendered page — producing a 404 on every Quarto site
+  that includes this snippet via `include-after-body`. Use `//`-style
+  pseudo-comments inside the documentation block instead.
+
+  ── Manifest contract ──
+
+  The manifest is the JSON written by scripts/version/release.py
+  emit-manifest. Required keys: releaseId, releaseHash. Optional but
+  recommended: buildDate, project. Anything else is ignored.
+
+  ── Why runtime fetch instead of build-time templating ──
+
+  Build-time templating (Lua filter, Quarto partial with variable
+  interpolation) would be deterministic and faster but requires
+  per-project Lua/template machinery. Runtime fetch is project-agnostic
+  and works identically across Quarto, Next.js, and plain HTML. The
+  ~50ms fetch cost happens once per page-load and is invisible because
+  the pill is below the fold. If a future project needs the version
+  visible above the fold, it should bake at build time (StaffML does
+  this for its citation card).
+-->
+
+<span class="release-pill" data-release-pill aria-live="polite">
+  <noscript><a href="#">release</a></noscript>
+</span>
+
+<style>
+  .release-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--bs-secondary, var(--release-pill-color, #6c757d));
+  }
+  .release-pill a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .release-pill a:hover {
+    color: var(--bs-link-color, #0d6efd);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .release-pill-date {
+    opacity: 0.7;
+  }
+</style>
+
+<script>
+  (function () {
+    var el = document.querySelector('[data-release-pill]');
+    if (!el) return;
+
+    // Manifest URL resolution order:
+    //   1. data-manifest attribute on the pill (per-page override)
+    //   2. <meta name="release-manifest" content="..."> in <head>
+    //   3. './release-manifest.json' relative to current page (fallback)
+    var meta = document.querySelector('meta[name="release-manifest"]');
+    var manifestPath =
+      el.getAttribute('data-manifest') ||
+      (meta && meta.getAttribute('content')) ||
+      './release-manifest.json';
+
+    var linkHref = el.getAttribute('data-link') || '#release';
+
+    fetch(manifestPath, { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (m) {
+        if (!m || !m.releaseId || !m.releaseHash) return;
+        var date = m.buildDate
+          ? new Date(m.buildDate).toLocaleDateString('en-US',
+              { year: 'numeric', month: 'short', day: 'numeric' })
+          : '';
+        var shortHash = String(m.releaseHash).slice(0, 7);
+        var title =
+          (m.project ? m.project + ' ' : '') +
+          'v' + m.releaseId +
+          (date ? ' · built ' + date : '') +
+          ' · hash ' + shortHash;
+        var a = document.createElement('a');
+        a.href = linkHref;
+        a.title = title;
+        a.setAttribute('aria-label',
+          'Release v' + m.releaseId + (date ? ', built ' + date : ''));
+        var v = document.createElement('span');
+        v.className = 'release-pill-version';
+        v.textContent = 'v' + m.releaseId;
+        a.appendChild(v);
+        if (date) {
+          var d = document.createElement('span');
+          d.className = 'release-pill-date';
+          d.textContent = ' · ' + date;
+          a.appendChild(d);
+        }
+        el.innerHTML = '';
+        el.appendChild(a);
+      })
+      .catch(function () { /* silent: best-effort chrome */ });
+  })();
+</script>
 <script src="/mlsysim/scripts/subscribe-modal.js" defer=""></script>
 
 
 
 
-<script src="/mlsysim/site_libs/quarto-html/zenscroll-min.js"></script>
+</span><script src="/mlsysim/site_libs/quarto-html/zenscroll-min.js"></script>
 </body></html>
