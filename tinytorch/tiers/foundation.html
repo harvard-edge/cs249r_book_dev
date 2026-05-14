@@ -81,9 +81,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-71de3334cd825594183cd561264b9c59.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-16ee52ca2cd2a0f5a1df4b1be5018362.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-71de3334cd825594183cd561264b9c59.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-12a797fad844d7052ce8cae05ac1433c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-17577cde5b019b06008d5001c2124469.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-12a797fad844d7052ce8cae05ac1433c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -121,10 +121,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 (function () {
   'use strict';
   var STORAGE_KEY = 'quarto-color-scheme';
+  // Quarto's toggle writes 'alternate'/'default' (alternate = dark, the
+  // layered sheet); sibling non-Quarto sites write 'dark'/'light'. Both
+  // hit the same key, so we accept either. Quarto's own startup still
+  // checks `=== 'alternate'`, so we mirror onto <html> rather than rewrite.
+  function normalize(v) {
+    if (v === 'dark' || v === 'alternate') return 'dark';
+    if (v === 'light' || v === 'default') return 'light';
+    return null;
+  }
   function preferredScheme() {
     try {
-      var stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === 'dark' || stored === 'light') return stored;
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) return n;
     } catch (e) {}
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
@@ -137,13 +146,91 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     html.setAttribute('data-bs-theme', scheme);
     html.setAttribute('data-quarto-color-scheme', scheme);
     html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
   }
   apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
+  // Quarto's toggle updates localStorage but not <html>, so wrap it to
+  // mirror the new value onto data-bs-theme; otherwise clicking the toggle
+  // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
+  // stylesheet until the next reload.
+  function syncFromStorage() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) apply(n);
+    } catch (e) {}
+  }
+  function wrapToggle() {
+    var orig = window.quartoToggleColorScheme;
+    if (typeof orig !== 'function' || orig.__mlsbWrapped) return;
+    var wrapped = function () { var r = orig.apply(this, arguments); syncFromStorage(); return r; };
+    wrapped.__mlsbWrapped = true;
+    window.quartoToggleColorScheme = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
+  } else {
+    wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
+  }
   window.addEventListener('storage', function (ev) {
     if (ev.key !== STORAGE_KEY) return;
-    var next = ev.newValue;
-    if (next !== 'dark' && next !== 'light') return;
-    apply(next);
+    var n = normalize(ev.newValue);
+    if (n) apply(n);
   });
   if (window.matchMedia) {
     try {
@@ -178,19 +265,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../vol1/assets/images/icons/favicon.png" type="image/png">
+
+<!--
+  navbar-theme-toggle-relocate — moves the Quarto theme toggle into the
+  navbar's right-side .navbar-nav group at page load, so it collapses into
+  the hamburger menu alongside Subscribe/Star/Support/GitHub at narrow widths
+  instead of being stranded in the middle by Quarto's mx-auto brand layout.
+
+  Why JS: Quarto auto-injects the toggle into .quarto-navbar-tools (outside
+  .navbar-collapse). CSS can't move DOM nodes between containers, and CSS
+  positioning hacks (absolute/right: 50px) fight Bootstrap's responsive
+  layout below 992px. Moving the node once at startup is the standard
+  approach used across Quarto-based sites with the same problem.
+-->
+<script>
+(function () {
+  'use strict';
+  function relocateThemeToggle() {
+    var tools = document.querySelector('.quarto-navbar-tools');
+    if (!tools) return;
+    var toggle = tools.querySelector('.quarto-color-scheme-toggle');
+    if (!toggle) return;
+    var navRight = document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav.ms-auto'
+    ) || document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav:last-of-type'
+    );
+    if (!navRight) return;
+    var li = document.createElement('li');
+    li.className = 'nav-item navbar-theme-toggle-item';
+    toggle.classList.add('nav-link');
+    li.appendChild(toggle);
+    navRight.appendChild(li);
+    tools.style.display = 'none';
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relocateThemeToggle);
+  } else {
+    relocateThemeToggle();
+  }
+})();
+</script>
+
+<!--
+  navbar-brand-href-fix — force the navbar brand link to the ecosystem root
+  (../../) on every subsite.
+
+  Quarto sets each subsite's `site-url` to `../../<subsite>/`
+  and then relativizes any navbar.href value that lives inside the
+  site-url's domain. The shared `href: ../../` in
+  navbar-common.yml therefore gets emitted as `./index.html`, which on
+  vol1/vol2/tinytorch/etc. resolves to *that subsite's* root rather than
+  the ecosystem landing page. Override the brand link href in JS after
+  Quarto's render: this is a one-line user-experience fix that does not
+  fight Quarto's URL machinery.
+-->
+<script>
+(function () {
+  'use strict';
+  function fixBrandHref() {
+    var brand = document.querySelectorAll(
+      '.navbar .navbar-brand, .navbar .navbar-brand-logo'
+    );
+    for (var i = 0; i < brand.length; i++) {
+      brand[i].setAttribute('href', '../../');
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fixBrandHref);
+  } else {
+    fixBrandHref();
+  }
+})();
+</script>
 <link rel="apple-touch-icon" href="../assets/images/logos/logo-tinytorch.png">
 <meta name="theme-color" content="#D4740C">
+<!-- Release identity (rendered into the footer pill below).
+     The publish workflow drops release-manifest.json at
+     /tinytorch/release-manifest.json before deploy; preview
+     and local renders silently no-op. -->
+<meta name="release-manifest" content="/tinytorch/release-manifest.json">
 
 
 <meta property="og:title" content="Foundation Tier (Modules 01-08) – TinyTorch">
 <meta property="og:description" content="An interactive course for building machine learning systems from the ground up. Learn by implementing your own PyTorch-style framework with hands-on coding, real datasets, and production-ready practices.">
-<meta property="og:image" content="./tiers/assets/images/logos/logo-tinytorch.png">
+<meta property="og:image" content="../tiers/assets/images/logos/logo-tinytorch.png">
 <meta property="og:site_name" content="TinyTorch">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:title" content="Foundation Tier (Modules 01-08) – TinyTorch">
 <meta name="twitter:description" content="An interactive course for building machine learning systems from the ground up. Learn by implementing your own PyTorch-style framework with hands-on coding, real datasets, and production-ready practices.">
-<meta name="twitter:image" content="./tiers/assets/images/logos/logo-tinytorch.png">
+<meta name="twitter:image" content="../tiers/assets/images/logos/logo-tinytorch.png">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -369,7 +534,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../index.html" class="navbar-brand navbar-brand-logo">
@@ -454,34 +619,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -493,22 +658,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../mlsysim/"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../../mlsysim/"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -520,17 +685,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -542,23 +707,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -570,22 +735,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -597,29 +762,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/#mission"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -628,9 +793,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+    <a class="nav-link" href="../#subscribe"> <i class="bi bi-envelope" role="img">
 </i> 
-<span class="menu-text">Support</span></a>
+<span class="menu-text">Subscribe</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
@@ -638,9 +803,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Star</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../#subscribe"> <i class="bi bi-envelope" role="img">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
 </i> 
-<span class="menu-text">Subscribe</span></a>
+<span class="menu-text">Support</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
@@ -688,9 +853,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         </a>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="7209342ce3074b0c5fd6d3df93d33fa9" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">efb71ac5</code> • 2026-04-27 15:42 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🔥 <strong>TinyTorch</strong> — build your own ML framework from scratch; the companion framework to the textbook. <a href="./">Start building →</a><br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (simulate) · <a href="../labs/">Labs</a> (explore)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="c1dc8b193ceca4e572bc367803d37925" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">408413db</code> • 2026-05-14 10:27 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🔥 <strong>TinyTorch</strong> — build your own ML framework from scratch; the companion framework to the textbook.<br> 📘 <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../mlsysim/">MLSys·im</a> (model) · <a href="../../labs/">Labs</a> (explore) · <a href="../../staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -1213,7 +1378,7 @@ Figure&nbsp;1: <strong>Foundation Module Dependencies.</strong> Tensors and acti
 </section>
 <section id="what-you-can-build-after-this-tier" class="level2">
 <h2 class="anchored" data-anchor-id="what-you-can-build-after-this-tier">What You Can Build After This Tier</h2>
-<div id="fig-foundation-milestones" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Horizontal timeline with three red year pills (1958, 1969, 1986) dropping to three blue milestone cards: Perceptron with binary classification and gradient descent; XOR Crisis Solved with hidden layers enabling non-linear learning; MLP Revival reaching 95%+ on MNIST via backpropagation." data-fig-pos="htb">
+<div id="fig-foundation-milestones" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Horizontal timeline with three red year pills (1958, 1969, 1986) dropping to three blue milestone cards: Perceptron with binary classification and gradient descent; XOR Crisis Solved with hidden layers enabling non-linear learning; MLP Revival reaching 95%+ on MNIST via backpropagation." data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-foundation-milestones-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="../assets/images/svg/tiers-foundation-milestones.svg" class="img-fluid figure-img">
@@ -2063,9 +2228,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script>
 // Inject subtitle + framework version chip under sidebar logo.
-// The chip's `v0.1.10` is sourced from tinytorch/settings.ini and kept in
-// sync by the tinytorch-publish-live workflow's UPDATE_VERSION step on
-// each release. Update marker for sed: TINYTORCH_VERSION_CHIP.
+// The chip's version literal is sourced from tinytorch/settings.ini and
+// kept in sync by the tinytorch-publish-live workflow's UPDATE_VERSION
+// step on each release. Update marker for sed: TINYTORCH_VERSION_CHIP.
 document.addEventListener('DOMContentLoaded', function() {
   const sidebarLogo = document.querySelector('.sidebar-logo');
   if (!sidebarLogo) return;
@@ -2088,7 +2253,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chip.href = 'https://github.com/harvard-edge/cs249r_book/releases?q=tinytorch';
   chip.target = '_blank';
   chip.rel = 'noopener';
-  chip.innerHTML = '🔥 TinyTorch v0.1.10 →'; // TINYTORCH_VERSION_CHIP
+  chip.innerHTML = '🔥 TinyTorch v0.1.11 →'; // TINYTORCH_VERSION_CHIP
 
   chipWrap.appendChild(chip);
   subtitle.parentNode.insertBefore(chipWrap, subtitle.nextSibling);
@@ -2148,6 +2313,148 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #F59E0B !important;
 }
 </style>
+<!--
+  MLSysBook release-pill — shared footer snippet for Quarto + static sites.
+
+  Renders a small "v0.1.0 · Apr 26, 2026" pill from a deployed
+  release-manifest.json. The pill is best-effort chrome: silent on any
+  fetch failure (manifest missing, offline, CORS). Use at any site that
+  emits a manifest via scripts/version/release.py emit-manifest.
+
+  ── Per-project setup (one of two patterns) ──
+
+  Pattern A — Quarto, configured via _quarto.yml:
+
+      project:
+        resources:
+          - ../shared/release/release-pill.html
+      format:
+        html:
+          include-in-header:
+            - text: |
+                <meta name="release-manifest" content="/<project-base>/release-manifest.json">
+          include-after-body:
+            - file: ../shared/release/release-pill.html
+
+  The meta tag tells the snippet where to find the manifest. The
+  ``include-after-body`` injects the snippet into every rendered page.
+
+  Pattern B — Next.js / hand-rolled HTML:
+
+      <meta name="release-manifest" content="/release-manifest.json" />
+      // in footer:
+      <span data-release-pill></span>
+      <script src="/release-pill.js"></script>
+
+  (See shared/release/release-pill.js for the standalone JS form.)
+
+  NOTE: This docstring must not contain literal HTML-comment delimiters
+  (open or close). HTML disallows nested comments, so an inner close
+  delimiter would terminate this outer comment early and leak the
+  example markup below it (the span and script tags) into the rendered
+  page — producing a 404 on every Quarto site that includes the snippet
+  via include-after-body. The earlier version of this note tripped that
+  exact bug; if you need to describe HTML-comment syntax, do it without
+  using the literal characters.
+
+  ── Manifest contract ──
+
+  The manifest is the JSON written by scripts/version/release.py
+  emit-manifest. Required keys: releaseId, releaseHash. Optional but
+  recommended: buildDate, project. Anything else is ignored.
+
+  ── Why runtime fetch instead of build-time templating ──
+
+  Build-time templating (Lua filter, Quarto partial with variable
+  interpolation) would be deterministic and faster but requires
+  per-project Lua/template machinery. Runtime fetch is project-agnostic
+  and works identically across Quarto, Next.js, and plain HTML. The
+  ~50ms fetch cost happens once per page-load and is invisible because
+  the pill is below the fold. If a future project needs the version
+  visible above the fold, it should bake at build time (StaffML does
+  this for its citation card).
+-->
+
+<span class="release-pill" data-release-pill="" aria-live="polite">
+  <noscript><a href="#">release</a></noscript>
+</span>
+
+<style>
+  .release-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--bs-secondary, var(--release-pill-color, #6c757d));
+  }
+  .release-pill a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .release-pill a:hover {
+    color: var(--bs-link-color, #0d6efd);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .release-pill-date {
+    opacity: 0.7;
+  }
+</style>
+
+<script>
+  (function () {
+    var el = document.querySelector('[data-release-pill]');
+    if (!el) return;
+
+    // Manifest URL resolution order:
+    //   1. data-manifest attribute on the pill (per-page override)
+    //   2. <meta name="release-manifest" content="..."> in <head>
+    //   3. './release-manifest.json' relative to current page (fallback)
+    var meta = document.querySelector('meta[name="release-manifest"]');
+    var manifestPath =
+      el.getAttribute('data-manifest') ||
+      (meta && meta.getAttribute('content')) ||
+      './release-manifest.json';
+
+    var linkHref = el.getAttribute('data-link') || '#release';
+
+    fetch(manifestPath, { cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (m) {
+        if (!m || !m.releaseId || !m.releaseHash) return;
+        var date = m.buildDate
+          ? new Date(m.buildDate).toLocaleDateString('en-US',
+              { year: 'numeric', month: 'short', day: 'numeric' })
+          : '';
+        var shortHash = String(m.releaseHash).slice(0, 7);
+        var title =
+          (m.project ? m.project + ' ' : '') +
+          'v' + m.releaseId +
+          (date ? ' · built ' + date : '') +
+          ' · hash ' + shortHash;
+        var a = document.createElement('a');
+        a.href = linkHref;
+        a.title = title;
+        a.setAttribute('aria-label',
+          'Release v' + m.releaseId + (date ? ', built ' + date : ''));
+        var v = document.createElement('span');
+        v.className = 'release-pill-version';
+        v.textContent = 'v' + m.releaseId;
+        a.appendChild(v);
+        if (date) {
+          var d = document.createElement('span');
+          d.className = 'release-pill-date';
+          d.textContent = ' · ' + date;
+          a.appendChild(d);
+        }
+        el.innerHTML = '';
+        el.appendChild(a);
+      })
+      .catch(function () { /* silent: best-effort chrome */ });
+  })();
+</script>
 
 
 
