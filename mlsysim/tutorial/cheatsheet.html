@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>infra.infra – MLSys·im — Machine Learning Systems</title>
+<title>cheatsheet – MLSys·im — Machine Learning Systems</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -67,6 +67,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
+<link href="../laws-explained.html" rel="next">
+<link href="../tutorial/exercises.html" rel="prev">
 <link href="../logo.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -832,7 +834,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/index.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorial/exercises.html">Self-Paced Tutorial</a></li><li class="breadcrumb-item"><a href="../tutorial/cheatsheet.html">Cheat Sheet</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -1041,13 +1043,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
  <span class="menu-text">Self-Paced Tutorial</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../tutorial/exercises.html" class="sidebar-item-text sidebar-link">
@@ -1056,7 +1058,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../tutorial/cheatsheet.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorial/cheatsheet.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Cheat Sheet</span></a>
   </div>
 </li>
@@ -1313,22 +1315,526 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mlsysim.infra.Infra" id="toc-mlsysim.infra.Infra" class="nav-link active" data-scroll-target="#mlsysim.infra.Infra">infra.Infra</a></li>
+  <li><a href="#mlsysim-cheat-sheet" id="toc-mlsysim-cheat-sheet" class="nav-link active" data-scroll-target="#mlsysim-cheat-sheet">mlsysim Cheat Sheet</a>
+  <ul>
+  <li><a href="#the-iron-law-of-ml-training" id="toc-the-iron-law-of-ml-training" class="nav-link" data-scroll-target="#the-iron-law-of-ml-training">The Iron Law of ML Training</a></li>
+  <li><a href="#the-5-key-equations" id="toc-the-5-key-equations" class="nav-link" data-scroll-target="#the-5-key-equations">The 5 Key Equations</a>
+  <ul class="collapse">
+  <li><a href="#roofline-bottleneck" id="toc-roofline-bottleneck" class="nav-link" data-scroll-target="#roofline-bottleneck">1. Roofline Bottleneck</a></li>
+  <li><a href="#kv-cache-memory-pagedattention" id="toc-kv-cache-memory-pagedattention" class="nav-link" data-scroll-target="#kv-cache-memory-pagedattention">2. KV-Cache Memory (PagedAttention)</a></li>
+  <li><a href="#ring-allreduce-communication" id="toc-ring-allreduce-communication" class="nav-link" data-scroll-target="#ring-allreduce-communication">3. Ring AllReduce Communication</a></li>
+  <li><a href="#chinchilla-scaling-law" id="toc-chinchilla-scaling-law" class="nav-link" data-scroll-target="#chinchilla-scaling-law">4. Chinchilla Scaling Law</a></li>
+  <li><a href="#carbon-footprint" id="toc-carbon-footprint" class="nav-link" data-scroll-target="#carbon-footprint">5. Carbon Footprint</a></li>
+  </ul></li>
+  <li><a href="#efficiency-parameter-guide" id="toc-efficiency-parameter-guide" class="nav-link" data-scroll-target="#efficiency-parameter-guide">Efficiency Parameter Guide</a></li>
+  <li><a href="#quick-api-reference" id="toc-quick-api-reference" class="nav-link" data-scroll-target="#quick-api-reference">Quick API Reference</a>
+  <ul class="collapse">
+  <li><a href="#single-node-roofline" id="toc-single-node-roofline" class="nav-link" data-scroll-target="#single-node-roofline">1. Single-Node Roofline</a></li>
+  <li><a href="#llm-serving-prefill-decode" id="toc-llm-serving-prefill-decode" class="nav-link" data-scroll-target="#llm-serving-prefill-decode">2. LLM Serving (Prefill + Decode)</a></li>
+  <li><a href="#distributed-training-3d-parallelism" id="toc-distributed-training-3d-parallelism" class="nav-link" data-scroll-target="#distributed-training-3d-parallelism">3. Distributed Training (3D Parallelism)</a></li>
+  <li><a href="#compression-quantization-pruning" id="toc-compression-quantization-pruning" class="nav-link" data-scroll-target="#compression-quantization-pruning">4. Compression (Quantization / Pruning)</a></li>
+  <li><a href="#sustainability-and-economics" id="toc-sustainability-and-economics" class="nav-link" data-scroll-target="#sustainability-and-economics">5. Sustainability and Economics</a></li>
+  </ul></li>
+  <li><a href="#the-22-walls-at-a-glance" id="toc-the-22-walls-at-a-glance" class="nav-link" data-scroll-target="#the-22-walls-at-a-glance">The 22 Walls at a Glance</a></li>
+  <li><a href="#hardware-quick-reference" id="toc-hardware-quick-reference" class="nav-link" data-scroll-target="#hardware-quick-reference">Hardware Quick Reference</a></li>
+  <li><a href="#model-quick-reference" id="toc-model-quick-reference" class="nav-link" data-scroll-target="#model-quick-reference">Model Quick Reference</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/index.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorial/exercises.html">Self-Paced Tutorial</a></li><li class="breadcrumb-item"><a href="../tutorial/cheatsheet.html">Cheat Sheet</a></li></ol></nav></header>
 
 
 
 
 
-<section id="mlsysim.infra.Infra" class="level1">
-<h1>infra.Infra</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>infra.Infra()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="mlsysim-cheat-sheet" class="level1">
+<h1>mlsysim Cheat Sheet</h1>
+<p>Single-page reference for the ISCA tutorial.</p>
+<hr>
+<section id="the-iron-law-of-ml-training" class="level2">
+<h2 class="anchored" data-anchor-id="the-iron-law-of-ml-training">The Iron Law of ML Training</h2>
+<pre><code>Time = FLOPs / (N x Peak_FLOPS x MFU x eta_scaling x Goodput)</code></pre>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 28%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+<th>Typical Range</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FLOPs</td>
+<td>Total operations for the workload</td>
+<td>6PD for training (Chinchilla)</td>
+</tr>
+<tr class="even">
+<td>N</td>
+<td>Number of accelerators</td>
+<td>1 to 100,000+</td>
+</tr>
+<tr class="odd">
+<td>Peak_FLOPS</td>
+<td>Hardware peak (per device)</td>
+<td>312 TFLOPS (H100 FP16)</td>
+</tr>
+<tr class="even">
+<td>MFU</td>
+<td>Model FLOPs Utilization</td>
+<td>0.30 - 0.55</td>
+</tr>
+<tr class="odd">
+<td>eta_scaling</td>
+<td>Scaling efficiency (communication overhead)</td>
+<td>0.70 - 0.95</td>
+</tr>
+<tr class="even">
+<td>Goodput</td>
+<td>Fraction of time doing useful work (1 - failures - checkpoints)</td>
+<td>0.85 - 0.98</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="the-5-key-equations" class="level2">
+<h2 class="anchored" data-anchor-id="the-5-key-equations">The 5 Key Equations</h2>
+<section id="roofline-bottleneck" class="level3">
+<h3 class="anchored" data-anchor-id="roofline-bottleneck">1. Roofline Bottleneck</h3>
+<pre><code>T = max(FLOPs / Peak_effective, Bytes / BW_effective)</code></pre>
+<p>If compute time &gt; memory time, you are <strong>compute-bound</strong> (increase FLOPS). If memory time &gt; compute time, you are <strong>memory-bound</strong> (increase bandwidth).</p>
+</section>
+<section id="kv-cache-memory-pagedattention" class="level3">
+<h3 class="anchored" data-anchor-id="kv-cache-memory-pagedattention">2. KV-Cache Memory (PagedAttention)</h3>
+<pre><code>KV_bytes = 2 x L x H_kv x D_head x S x B x bytes_per_param</code></pre>
+<p>L = layers, H_kv = KV heads, D_head = head dimension, S = sequence length, B = batch size. Factor of 2 accounts for both Key and Value tensors.</p>
+</section>
+<section id="ring-allreduce-communication" class="level3">
+<h3 class="anchored" data-anchor-id="ring-allreduce-communication">3. Ring AllReduce Communication</h3>
+<pre><code>T_allreduce = 2(N-1)/N x M/BW + 2(N-1) x alpha</code></pre>
+<p>N = workers, M = message bytes, BW = link bandwidth, alpha = per-message latency. As N grows large, volume term approaches 2M/BW (bandwidth-optimal).</p>
+</section>
+<section id="chinchilla-scaling-law" class="level3">
+<h3 class="anchored" data-anchor-id="chinchilla-scaling-law">4. Chinchilla Scaling Law</h3>
+<pre><code>C = 6PD        (compute-optimal training cost)
+P* = sqrt(C/120)  (optimal parameter count for budget C)</code></pre>
+<p>P = parameters, D = tokens, C = total FLOPs. Training is compute-optimal when D ~ 20P (20 tokens per parameter).</p>
+</section>
+<section id="carbon-footprint" class="level3">
+<h3 class="anchored" data-anchor-id="carbon-footprint">5. Carbon Footprint</h3>
+<pre><code>CO2_kg = Energy_kWh x PUE x Carbon_Intensity_gCO2/kWh / 1000</code></pre>
+<p>PUE = Power Usage Effectiveness (1.0 = perfect, 1.1 = typical hyperscale). Carbon intensity varies 100x by region (1 gCO2/kWh hydro vs.&nbsp;800 gCO2/kWh coal).</p>
+<hr>
+</section>
+</section>
+<section id="efficiency-parameter-guide" class="level2">
+<h2 class="anchored" data-anchor-id="efficiency-parameter-guide">Efficiency Parameter Guide</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 29%">
+<col style="width: 11%">
+<col style="width: 20%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Description</th>
+<th>Low</th>
+<th>Typical</th>
+<th>High</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>efficiency</code></td>
+<td>MFU (fraction of peak FLOPS achieved)</td>
+<td>0.10</td>
+<td>0.30-0.50</td>
+<td>0.65</td>
+</tr>
+<tr class="even">
+<td><code>mfu</code></td>
+<td>Same as efficiency, used in fleet solvers</td>
+<td>0.10</td>
+<td>0.35</td>
+<td>0.55</td>
+</tr>
+<tr class="odd">
+<td>Batch=1 inference</td>
+<td>LLM decode (memory-bound)</td>
+<td>0.01</td>
+<td>0.05</td>
+<td>0.15</td>
+</tr>
+<tr class="even">
+<td>Batched inference</td>
+<td>LLM prefill / CNN inference</td>
+<td>0.20</td>
+<td>0.40</td>
+<td>0.60</td>
+</tr>
+<tr class="odd">
+<td>Training (single node)</td>
+<td>Typical training loop</td>
+<td>0.20</td>
+<td>0.40</td>
+<td>0.55</td>
+</tr>
+<tr class="even">
+<td>Training (distributed)</td>
+<td>Large cluster with comms</td>
+<td>0.15</td>
+<td>0.30</td>
+<td>0.45</td>
+</tr>
+<tr class="odd">
+<td>FlashAttention</td>
+<td>Fused attention kernel</td>
+<td>0.50</td>
+<td>0.60</td>
+<td>0.70</td>
+</tr>
+<tr class="even">
+<td>TinyML (MCU)</td>
+<td>Microcontroller inference</td>
+<td>0.05</td>
+<td>0.15</td>
+<td>0.30</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="quick-api-reference" class="level2">
+<h2 class="anchored" data-anchor-id="quick-api-reference">Quick API Reference</h2>
+<section id="single-node-roofline" class="level3">
+<h3 class="anchored" data-anchor-id="single-node-roofline">1. Single-Node Roofline</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Engine, Hardware, Models</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>profile <span class="op">=</span> Engine.solve(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Llama3_8B,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.H100,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    precision<span class="op">=</span><span class="st">"fp16"</span>,       <span class="co"># "fp32", "fp16", "int8", "int4", "fp8"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    efficiency<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    is_training<span class="op">=</span><span class="va">False</span>,      <span class="co"># True for training memory/FLOPs</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: PerformanceProfile with .latency, .throughput, .bottleneck,</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#          .memory_footprint, .mfu, .energy, .feasible</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="llm-serving-prefill-decode" class="level3">
+<h3 class="anchored" data-anchor-id="llm-serving-prefill-decode">2. LLM Serving (Prefill + Decode)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> ServingModel, Hardware, Models</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> ServingModel().solve(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Llama3_8B,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.H100,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">4096</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    precision<span class="op">=</span><span class="st">"fp16"</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: ServingResult with .ttft, .itl, .kv_cache_size,</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#          .total_memory_required, .feasible</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="distributed-training-3d-parallelism" class="level3">
+<h3 class="anchored" data-anchor-id="distributed-training-3d-parallelism">3. Distributed Training (3D Parallelism)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> DistributedModel, Models, Systems</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> DistributedModel().solve(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Llama3_70B,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    fleet<span class="op">=</span>Systems.Clusters.Research_256,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">1024</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    tp_size<span class="op">=</span><span class="dv">8</span>, pp_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    precision<span class="op">=</span><span class="st">"fp16"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    efficiency<span class="op">=</span><span class="fl">0.4</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    overlap_comm<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: DistributedResult with .scaling_efficiency,</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#          .step_latency_total, .dp_communication_latency,</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">#          .bubble_fraction, .effective_throughput, .parallelism</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="compression-quantization-pruning" class="level3">
+<h3 class="anchored" data-anchor-id="compression-quantization-pruning">4. Compression (Quantization / Pruning)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> CompressionModel, Hardware, Models</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> CompressionModel().solve(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Llama3_8B,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.H100,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    method<span class="op">=</span><span class="st">"quantization"</span>,  <span class="co"># "quantization", "pruning", "distillation"</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    target_bitwidth<span class="op">=</span><span class="dv">4</span>,      <span class="co"># 4, 8, 16</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: CompressionResult with .compression_ratio, .compressed_size_gb,</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">#          .memory_savings_pct, .inference_speedup, .estimated_accuracy_delta</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="sustainability-and-economics" class="level3">
+<h3 class="anchored" data-anchor-id="sustainability-and-economics">5. Sustainability and Economics</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> SustainabilityModel, EconomicsModel, Systems, Infra</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fleet <span class="op">=</span> Systems.Clusters.Research_256</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>co2 <span class="op">=</span> SustainabilityModel().solve(fleet, duration_days<span class="op">=</span><span class="dv">30</span>, datacenter<span class="op">=</span>Infra.Quebec, mfu<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: SustainabilityResult with .total_energy_kwh, .carbon_footprint_kg,</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#          .water_usage_liters, .pue</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>tco <span class="op">=</span> EconomicsModel().solve(fleet, duration_days<span class="op">=</span><span class="dv">365</span>, mfu<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns: EconomicsResult with .tco_usd, .capex_usd, .total_opex_usd,</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#          .opex_energy_usd, .carbon_footprint_kg</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="the-22-walls-at-a-glance" class="level2">
+<h2 class="anchored" data-anchor-id="the-22-walls-at-a-glance">The 22 Walls at a Glance</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 30%">
+<col style="width: 55%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Wall</th>
+<th>One-Liner</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Compute</td>
+<td>Peak FLOPS ceiling of a single accelerator</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Memory</td>
+<td>HBM capacity and bandwidth ceilings</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Software</td>
+<td>Gap between peak and achieved FLOPS (MFU)</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Serving</td>
+<td>LLM inference: compute-bound prefill vs.&nbsp;memory-bound decode</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Batching</td>
+<td>Static batching wastes memory through KV-cache fragmentation</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Streaming</td>
+<td>Wafer-scale shifts bottleneck from HBM to injection interconnect</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Tail Latency</td>
+<td>P99 latency grows non-linearly as utilization approaches 1.0</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Ingestion</td>
+<td>Storage I/O must supply data at the rate the accelerator consumes it</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Transformation</td>
+<td>CPU preprocessing cannot keep pace with accelerator throughput</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Locality</td>
+<td>Network topology limits bisection bandwidth between nodes</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Complexity</td>
+<td>Chinchilla scaling laws govern compute-optimal training</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Reasoning</td>
+<td>Inference-time compute scales with reasoning chain length</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Fidelity</td>
+<td>Compression trades model fidelity for efficiency</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Communication</td>
+<td>Distributed training requires synchronization across N nodes</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Fragility</td>
+<td>Component failures are inevitable at scale (MTBF/N)</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>Multi-tenant</td>
+<td>Shared clusters introduce queueing delays</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Capital</td>
+<td>Total cost of ownership bounds what is economically feasible</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Sustainability</td>
+<td>Energy consumption converts to carbon and water footprint</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Checkpoint</td>
+<td>Periodic state saves impose I/O burst penalties on training MFU</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Safety</td>
+<td>Privacy and fairness guarantees impose computational overhead</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>Sensitivity</td>
+<td>Identifies the binding constraint via numerical partial derivatives</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Synthesis</td>
+<td>Inverse Roofline: derive hardware specs from an SLA target</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="hardware-quick-reference" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-quick-reference">Hardware Quick Reference</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Accelerator</th>
+<th>Peak FP16 (TFLOPS)</th>
+<th>HBM (GiB)</th>
+<th>BW (TB/s)</th>
+<th>TDP (W)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>V100</td>
+<td>125</td>
+<td>32</td>
+<td>0.9</td>
+<td>300</td>
+</tr>
+<tr class="even">
+<td>A100</td>
+<td>312</td>
+<td>80</td>
+<td>2.0</td>
+<td>400</td>
+</tr>
+<tr class="odd">
+<td>H100</td>
+<td>989</td>
+<td>80</td>
+<td>3.35</td>
+<td>700</td>
+</tr>
+<tr class="even">
+<td>H200</td>
+<td>989</td>
+<td>141*</td>
+<td>4.8</td>
+<td>700</td>
+</tr>
+<tr class="odd">
+<td>B200</td>
+<td>2,250</td>
+<td>192</td>
+<td>8.0</td>
+<td>1,000</td>
+</tr>
+<tr class="even">
+<td>nRF52840</td>
+<td>0.000064</td>
+<td>0.001 (1 MB flash)</td>
+<td>0.000064</td>
+<td>0.015</td>
+</tr>
+</tbody>
+</table>
+<p>*H200 capacity listed as 141 GB in registry (non-binary).</p>
+<p>Access via: <code>Hardware.A100</code>, <code>Hardware.H100</code>, <code>Hardware.Tiny.nRF52840</code>, etc.</p>
+<hr>
+</section>
+<section id="model-quick-reference" class="level2">
+<h2 class="anchored" data-anchor-id="model-quick-reference">Model Quick Reference</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Parameters</th>
+<th>Architecture</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ResNet-50</td>
+<td>25.6M</td>
+<td>CNN</td>
+<td><code>Models.ResNet50</code></td>
+</tr>
+<tr class="even">
+<td>Llama-3-8B</td>
+<td>8.03B</td>
+<td>Transformer</td>
+<td><code>Models.Llama3_8B</code></td>
+</tr>
+<tr class="odd">
+<td>Llama-3-70B</td>
+<td>70.6B</td>
+<td>Transformer</td>
+<td><code>Models.Llama3_70B</code></td>
+</tr>
+<tr class="even">
+<td>GPT-3</td>
+<td>175B</td>
+<td>Transformer</td>
+<td><code>Models.GPT3</code></td>
+</tr>
+<tr class="odd">
+<td>DS-CNN (KWS)</td>
+<td>26K</td>
+<td>CNN</td>
+<td><code>Models.Tiny.DS_CNN</code></td>
+</tr>
+<tr class="even">
+<td>MobileNetV2</td>
+<td>3.4M</td>
+<td>CNN</td>
+<td><code>Models.MobileNetV2</code></td>
+</tr>
+</tbody>
+</table>
 
 
+</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
@@ -1745,6 +2251,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
   });
   </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/exercises.html" class="pagination-link" aria-label="Tutorial Exercises">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Tutorial Exercises</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../laws-explained.html" class="pagination-link" aria-label="Laws Explained">
+        <span class="nav-page-text">Laws Explained</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
