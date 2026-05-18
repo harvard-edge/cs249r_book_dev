@@ -561,7 +561,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./getting-started.html"><i class="bi bi-rocket" role="img">
+    <a class="dropdown-item" href="./getting-started.html"><i class="bi bi-play-circle" role="img">
 </i> 
  <span class="dropdown-text">Getting Started</span></a>
   </li>  
@@ -843,7 +843,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="39468e00f216bbeb332b8900e283ba5c" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">361752e7</code> • 2026-05-16 10:39 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">de7f2bdb</code> • 2026-05-18 03:36 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore) · <a href="../staffml/">StaffML</a> (practice) · <a href="../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1002,6 +1002,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="./tutorials/10_gpu_vs_wafer.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">GPU vs.&nbsp;Wafer-Scale</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorials/11_training_memory_capacity_moe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Training Memory, Serving Capacity, and MoE</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -1206,12 +1212,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./agentic-mcp.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Agentic Workflows &amp; MCP</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="./contributing.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Contributing to MLSYSIM</span></a>
   </div>
@@ -1297,12 +1297,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">MLSys·im Paper (PDF)</span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./vision-0.1.0.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">The Rockstar 0.1.0 Vision</span></a>
-  </div>
-</li>
       </ul>
   </li>
     </ul>
@@ -1323,6 +1317,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#yaml-cluster-evaluation" id="toc-yaml-cluster-evaluation" class="nav-link" data-scroll-target="#yaml-cluster-evaluation">YAML Cluster Evaluation</a></li>
   </ul></li>
+  <li><a href="#mlsysim-serve" id="toc-mlsysim-serve" class="nav-link" data-scroll-target="#mlsysim-serve"><code>mlsysim serve</code></a></li>
   <li><a href="#mlsysim-schema" id="toc-mlsysim-schema" class="nav-link" data-scroll-target="#mlsysim-schema"><code>mlsysim schema</code></a></li>
   <li><a href="#mlsysim-optimize" id="toc-mlsysim-optimize" class="nav-link" data-scroll-target="#mlsysim-optimize"><code>mlsysim optimize</code></a>
   <ul>
@@ -1359,7 +1354,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>MLSys·im ships an agent-ready CLI built on <a href="https://typer.tiangolo.com/">Typer</a> and <a href="https://rich.readthedocs.io/">Rich</a>. It follows the <a href="./architecture.html">3-Tier Command Mapping</a>: <code>eval</code> maps to Models, <code>optimize</code> maps to Optimizers, and <code>zoo</code> maps to the registries.</p>
+<p>MLSys·im ships an automation-friendly CLI built on <a href="https://typer.tiangolo.com/">Typer</a> and <a href="https://rich.readthedocs.io/">Rich</a>. It follows the <a href="./architecture.html">3-Tier Command Mapping</a>: <code>eval</code> maps to Models, <code>optimize</code> maps to Optimizers, and <code>zoo</code> maps to the registries.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -1370,7 +1365,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Every command supports <code>-o json</code> for machine-parseable output and <code>-o markdown</code> for reports. The default is <code>text</code> (human-readable Rich tables). AI agents should always use <code>-o json</code>.</p>
+<p>Commands support <code>-o json</code> for machine-parseable output; report-oriented commands also support <code>-o markdown</code>. The default is <code>text</code> (human-readable Rich tables). Use <code>-o json</code> in scripts and CI jobs. You can place the output flag before the command (<code>mlsysim -o json eval ...</code>) or on the command itself (<code>mlsysim eval ... -o json</code>).</p>
 </div>
 </div>
 <hr>
@@ -1459,7 +1454,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>-o, --output</code></td>
-<td style="text-align: left;">Output format: <code>text</code>, <code>json</code>, <code>markdown</code></td>
+<td style="text-align: left;">Output format: <code>text</code>, <code>json</code>, <code>markdown</code>; <code>html</code> is available for <code>eval</code> and <code>optimize</code></td>
 <td style="text-align: left;"><code>text</code></td>
 </tr>
 <tr class="even">
@@ -1572,6 +1567,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: left;">Model FLOPs Utilization (0.0–1.0)</td>
 <td style="text-align: left;"><code>0.5</code></td>
 </tr>
+<tr class="even">
+<td style="text-align: left;"><code>-o, --output</code></td>
+<td style="text-align: left;">Output format: <code>text</code>, <code>json</code>, <code>markdown</code>, or <code>html</code></td>
+<td style="text-align: left;"><code>text</code></td>
+</tr>
 </tbody>
 </table>
 <p><strong>Examples:</strong></p>
@@ -1609,12 +1609,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <hr>
 </section>
 </section>
+<section id="mlsysim-serve" class="level2">
+<h2 class="anchored" data-anchor-id="mlsysim-serve"><code>mlsysim serve</code></h2>
+<p>Analyze LLM serving performance directly. Use this when you care about the two-phase serving lifecycle rather than generic single-node roofline throughput.</p>
+<pre><code>mlsysim serve [OPTIONS] MODEL HARDWARE</code></pre>
+<p><strong>Arguments:</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Argument</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Required</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>MODEL</code></td>
+<td style="text-align: left;">Transformer model name (e.g., <code>Llama3_8B</code>)</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>HARDWARE</code></td>
+<td style="text-align: left;">Hardware name (e.g., <code>H100</code>)</td>
+<td style="text-align: left;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Options:</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 44%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Flag</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>-s, --seq-len</code></td>
+<td style="text-align: left;">Sequence length / context window</td>
+<td style="text-align: left;"><code>2048</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-b, --batch-size</code></td>
+<td style="text-align: left;">Batch size</td>
+<td style="text-align: left;"><code>1</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>-p, --precision</code></td>
+<td style="text-align: left;">Numerical precision: <code>fp32</code>, <code>fp16</code>, <code>fp8</code>, <code>int8</code>, <code>int4</code></td>
+<td style="text-align: left;"><code>fp16</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-e, --efficiency</code></td>
+<td style="text-align: left;">Compute efficiency (0.0-1.0)</td>
+<td style="text-align: left;"><code>0.5</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>--prefill-chunk-tokens</code></td>
+<td style="text-align: left;">Chunk prefill by this token budget to estimate a max decode-stall proxy</td>
+<td style="text-align: left;">none</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>-o, --output</code></td>
+<td style="text-align: left;">Output format: <code>text</code>, <code>json</code>, or <code>markdown</code></td>
+<td style="text-align: left;"><code>text</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TTFT, ITL, KV-cache, and memory feasibility</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> serve Llama3_8B H100 <span class="at">--seq-len</span> 4096</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Sarathi-Serve-style chunked prefill proxy for long prompts</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> serve Llama3_8B H100 <span class="at">--seq-len</span> 8192 <span class="at">--prefill-chunk-tokens</span> 512 <span class="at">-o</span> json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
 <section id="mlsysim-schema" class="level2">
 <h2 class="anchored" data-anchor-id="mlsysim-schema"><code>mlsysim schema</code></h2>
-<p>Export JSON Schema for configuration files. Feed these to your IDE for autocompletion or to an LLM agent for structured generation.</p>
+<p>Export JSON Schema for configuration files. Feed these to your IDE or validation tooling for autocompletion and static checks.</p>
 <pre><code>mlsysim schema [OPTIONS]</code></pre>
 <p><strong>Options:</strong></p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 66%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Flag</th>
@@ -1626,17 +1711,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: left;"><code>--type</code></td>
 <td style="text-align: left;">Schema type: <code>hardware</code>, <code>workload</code>, or <code>plan</code></td>
 </tr>
+<tr class="even">
+<td style="text-align: left;"><code>-o, --output</code></td>
+<td style="text-align: left;">Accepted values: <code>text</code> or <code>json</code>; schema output is always JSON</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Examples:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the hardware YAML schema for IDE autocompletion</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> hardware <span class="op">&gt;</span> hardware.schema.json</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the workload schema</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> workload <span class="op">&gt;</span> workload.schema.json</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the full cluster plan schema (for mlsys.yaml files)</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> plan <span class="op">&gt;</span> plan.schema.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the hardware YAML schema for IDE autocompletion</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> hardware <span class="op">&gt;</span> hardware.schema.json</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the workload schema</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> workload <span class="op">&gt;</span> workload.schema.json</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the full cluster plan schema (for mlsys.yaml files)</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> plan <span class="op">&gt;</span> plan.schema.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 <section id="mlsysim-optimize" class="level2">
@@ -1664,8 +1753,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p><strong>Example:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the best parallelism strategy for a 70B model on 256 H100s</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize parallelism cluster.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the best parallelism strategy for a 70B model on 256 H100s</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize parallelism cluster.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="mlsysim-optimize-batching" class="level3">
 <h3 class="anchored" data-anchor-id="mlsysim-optimize-batching"><code>mlsysim optimize batching</code></h3>
@@ -1693,8 +1782,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p><strong>Example:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Max batch size for 50ms P99 at 100 QPS</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize batching cluster.yaml <span class="at">--sla-ms</span> 50 <span class="at">--qps</span> 100</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Max batch size for 50ms P99 at 100 QPS</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize batching cluster.yaml <span class="at">--sla-ms</span> 50 <span class="at">--qps</span> 100</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="mlsysim-optimize-placement" class="level3">
 <h3 class="anchored" data-anchor-id="mlsysim-optimize-placement"><code>mlsysim optimize placement</code></h3>
@@ -1717,8 +1806,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p><strong>Example:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find cheapest region with $150/ton carbon penalty</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize placement cluster.yaml <span class="at">--carbon-tax</span> 150</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find cheapest region with $150/ton carbon penalty</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> optimize placement cluster.yaml <span class="at">--carbon-tax</span> 150</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
@@ -1745,11 +1834,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="bring-your-own-yaml" class="level2">
 <h2 class="anchored" data-anchor-id="bring-your-own-yaml">Bring Your Own YAML</h2>
 <p>Instead of using registry names, you can pass custom hardware or workload YAML files directly to <code>eval</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Custom chip spec against a Zoo model</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval Llama3_8B ./my_custom_chip.yaml <span class="at">--batch-size</span> 32</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Both custom</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval ./my_model.yaml ./my_chip.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Custom chip spec against a Zoo model</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval Llama3_8B ./my_custom_chip.yaml <span class="at">--batch-size</span> 32</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Both custom</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval ./my_model.yaml ./my_chip.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>See <a href="./getting-started.html#defining-custom-models">Getting Started — Defining Custom Models</a> for the model definition format.</p>
 
 

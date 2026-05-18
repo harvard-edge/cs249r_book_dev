@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="Use MLSys·im to explain training memory pressure, size a serving deployment, and model MoE routing imbalance without leaving the analytical framework.">
 
-<title>Agentic Workflows &amp; MCP – MLSys·im — Machine Learning Systems</title>
+<title>Training Memory, Serving Capacity, and MoE – MLSys·im — Machine Learning Systems</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -61,29 +62,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./contributing.html" rel="next">
-<link href="./extending-the-engine.html" rel="prev">
-<link href="./logo.svg" rel="icon" type="image/svg+xml">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-cb303b6f3ea4c66946d03e825423c748.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-e8a283dfbe0e2dd271ac72275eca2c6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-946f105cc32450fa6f9d9dedd7a95a73.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-e8a283dfbe0e2dd271ac72275eca2c6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorials/12_design_space_exploration.html" rel="next">
+<link href="../tutorials/10_gpu_vs_wafer.html" rel="prev">
+<link href="../logo.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-cb303b6f3ea4c66946d03e825423c748.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-1eb2a280a64a1f5f4b84ce19fa1dd180.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-e8a283dfbe0e2dd271ac72275eca2c6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-946f105cc32450fa6f9d9dedd7a95a73.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e8a283dfbe0e2dd271ac72275eca2c6e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -266,7 +267,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="../vol1/assets/images/icons/favicon.png" type="image/png">
+<link rel="icon" href="../../vol1/assets/images/icons/favicon.png" type="image/png">
 
 <!--
   navbar-theme-toggle-relocate — moves the Quarto theme toggle into the
@@ -311,11 +312,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <!--
   navbar-brand-href-fix — force the navbar brand link to the ecosystem root
-  (../) on every subsite.
+  (../../) on every subsite.
 
-  Quarto sets each subsite's `site-url` to `../<subsite>/`
+  Quarto sets each subsite's `site-url` to `../../<subsite>/`
   and then relativizes any navbar.href value that lives inside the
-  site-url's domain. The shared `href: ../` in
+  site-url's domain. The shared `href: ../../` in
   navbar-common.yml therefore gets emitted as `./index.html`, which on
   vol1/vol2/tinytorch/etc. resolves to *that subsite's* root rather than
   the ecosystem landing page. Override the brand link href in JS after
@@ -330,7 +331,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       '.navbar .navbar-brand, .navbar .navbar-brand-logo'
     );
     for (var i = 0; i < brand.length; i++) {
-      brand[i].setAttribute('href', '../');
+      brand[i].setAttribute('href', '../../');
     }
   }
   if (document.readyState === 'loading') {
@@ -347,7 +348,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="release-manifest" content="/mlsysim/release-manifest.json">
 
 
-<link rel="stylesheet" href="styles/landing.css">
+<link rel="stylesheet" href="../styles/landing.css">
 <meta property="og:title" content="MLSys·im — ML Systems Infrastructure Modeling">
 <meta property="og:description" content="Predict ML system performance, cost, and carbon from first principles. Companion to the ML Systems textbook.">
 <meta property="og:site_name" content="MLSys·im — Machine Learning Systems">
@@ -535,11 +536,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./assets/images/logo.png" alt="" class="navbar-logo light-content">
-    <img src="./assets/images/logo.png" alt="" class="navbar-logo dark-content">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo light-content">
+    <img src="../assets/images/logo.png" alt="" class="navbar-logo dark-content">
     </a>
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">Machine Learning Systems</span>
     </a>
   </div>
@@ -555,45 +556,45 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-mlsys·im">    
         <li>
-    <a class="dropdown-item" href="./index.html"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../index.html"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im Home</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./getting-started.html"><i class="bi bi-rocket" role="img">
+    <a class="dropdown-item" href="../getting-started.html"><i class="bi bi-play-circle" role="img">
 </i> 
  <span class="dropdown-text">Getting Started</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./cli-reference.html"><i class="bi bi-terminal" role="img">
+    <a class="dropdown-item" href="../cli-reference.html"><i class="bi bi-terminal" role="img">
 </i> 
  <span class="dropdown-text">CLI Reference</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./tutorials/index.html"><i class="bi bi-journal-code" role="img">
+    <a class="dropdown-item" href="../tutorials/index.html"><i class="bi bi-journal-code" role="img">
 </i> 
  <span class="dropdown-text">Tutorials</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./zoo/index.html"><i class="bi bi-collection" role="img">
+    <a class="dropdown-item" href="../zoo/index.html"><i class="bi bi-collection" role="img">
 </i> 
  <span class="dropdown-text">The Zoo</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./api/index.html"><i class="bi bi-code-square" role="img">
+    <a class="dropdown-item" href="../api/index.html"><i class="bi bi-code-square" role="img">
 </i> 
  <span class="dropdown-text">API Reference</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="./mlsysim-paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../mlsysim-paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im Paper (PDF)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./slides.html"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../slides.html"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Tutorial Slides</span></a>
   </li>  
@@ -605,34 +606,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Foundations</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/"><i class="bi bi-journal" role="img">
+    <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II: At Scale</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume I PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume I EPUB</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">Volume II PDF</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-journal-text" role="img">
 </i> 
  <span class="dropdown-text">Volume II EPUB</span></a>
   </li>  
@@ -644,22 +645,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
         <li>
-    <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
+    <a class="dropdown-item" href="../../labs/"><i class="bi bi-sliders" role="img">
 </i> 
  <span class="dropdown-text">Labs</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../tinytorch/"><i class="bi bi-fire" role="img">
+    <a class="dropdown-item" href="../../tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../kits/"><i class="bi bi-cpu" role="img">
+    <a class="dropdown-item" href="../../kits/"><i class="bi bi-cpu" role="img">
 </i> 
  <span class="dropdown-text">Hardware Kits</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./"><i class="bi bi-calculator" role="img">
+    <a class="dropdown-item" href="../"><i class="bi bi-calculator" role="img">
 </i> 
  <span class="dropdown-text">MLSys·im</span></a>
   </li>  
@@ -671,17 +672,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+    <a class="dropdown-item" href="../../instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
 </i> 
  <span class="dropdown-text">Course Map</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../slides/"><i class="bi bi-easel" role="img">
+    <a class="dropdown-item" href="../../slides/"><i class="bi bi-easel" role="img">
 </i> 
  <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../instructors/"><i class="bi bi-person-video3" role="img">
+    <a class="dropdown-item" href="../../instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
@@ -693,23 +694,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
         <li>
-    <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="../../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
  <span class="dropdown-text">StaffML</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/plans"><i class="bi bi-map" role="img">
+    <a class="dropdown-item" href="../../staffml/plans"><i class="bi bi-map" role="img">
 </i> 
  <span class="dropdown-text">Study Plans</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../staffml/gauntlet"><i class="bi bi-lightning" role="img">
+    <a class="dropdown-item" href="../../staffml/gauntlet"><i class="bi bi-lightning" role="img">
 </i> 
  <span class="dropdown-text">Gauntlet Mode</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+    <a class="dropdown-item" href="../../staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
 </i> 
  <span class="dropdown-text">StaffML Paper</span></a>
   </li>  
@@ -721,22 +722,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
         <li>
-    <a class="dropdown-item" href="../newsletter/"><i class="bi bi-envelope" role="img">
+    <a class="dropdown-item" href="../../newsletter/"><i class="bi bi-envelope" role="img">
 </i> 
  <span class="dropdown-text">Newsletter</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/"><i class="bi bi-globe" role="img">
+    <a class="dropdown-item" href="../../community/"><i class="bi bi-globe" role="img">
 </i> 
  <span class="dropdown-text">Global Network</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/events.html"><i class="bi bi-calendar-event" role="img">
+    <a class="dropdown-item" href="../../community/events.html"><i class="bi bi-calendar-event" role="img">
 </i> 
  <span class="dropdown-text">Workshops &amp; Events</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../community/partners.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../community/partners.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Partners &amp; Sponsors</span></a>
   </li>  
@@ -748,29 +749,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
         <li>
-    <a class="dropdown-item" href="../about/"><i class="bi bi-bullseye" role="img">
+    <a class="dropdown-item" href="../../about/"><i class="bi bi-bullseye" role="img">
 </i> 
  <span class="dropdown-text">Mission</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/#story"><i class="bi bi-book" role="img">
+    <a class="dropdown-item" href="../../about/#story"><i class="bi bi-book" role="img">
 </i> 
  <span class="dropdown-text">Our Story</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/people.html"><i class="bi bi-person-lines-fill" role="img">
+    <a class="dropdown-item" href="../../about/people.html"><i class="bi bi-person-lines-fill" role="img">
 </i> 
  <span class="dropdown-text">People</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../about/contributors.html"><i class="bi bi-people" role="img">
+    <a class="dropdown-item" href="../../about/contributors.html"><i class="bi bi-people" role="img">
 </i> 
  <span class="dropdown-text">Contributors</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
-    <a class="dropdown-item" href="../about/license.html"><i class="bi bi-cc-circle" role="img">
+    <a class="dropdown-item" href="../../about/license.html"><i class="bi bi-cc-circle" role="img">
 </i> 
  <span class="dropdown-text">License</span></a>
   </li>  
@@ -779,7 +780,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./#subscribe"> <i class="bi bi-envelope" role="img">
+    <a class="nav-link" href="../#subscribe"> <i class="bi bi-envelope" role="img">
 </i> 
 <span class="menu-text">Subscribe</span></a>
   </li>  
@@ -834,7 +835,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./extending-the-engine.html">Build &amp; Extend</a></li><li class="breadcrumb-item"><a href="./agentic-mcp.html">Agentic Workflows &amp; MCP</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/index.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorials/09_sensitivity.html">Analysis</a></li><li class="breadcrumb-item"><a href="../tutorials/11_training_memory_capacity_moe.html">Training Memory, Serving Capacity, and MoE</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -843,8 +844,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="39468e00f216bbeb332b8900e283ba5c" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">361752e7</code> • 2026-05-16 10:39 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore) · <a href="../staffml/">StaffML</a> (practice) · <a href="../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">de7f2bdb</code> • 2026-05-18 03:36 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../tinytorch/">TinyTorch</a> (build) · <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../labs/">Labs</a> (explore) · <a href="../../staffml/">StaffML</a> (practice) · <a href="../../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -869,19 +870,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./getting-started.html" class="sidebar-item-text sidebar-link">
+  <a href="../getting-started.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Getting Started</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./models-and-solvers.html" class="sidebar-item-text sidebar-link">
+  <a href="../models-and-solvers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The 3-Tier Resolver Guide</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./cli-reference.html" class="sidebar-item-text sidebar-link">
+  <a href="../cli-reference.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">CLI Reference</span></a>
   </div>
 </li>
@@ -889,7 +890,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./tutorials/index.html" class="sidebar-item-text sidebar-link">
+            <a href="../tutorials/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tutorials</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -907,25 +908,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/00_hello_roofline.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/00_hello_roofline.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Hello, Roofline</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/01_memory_wall.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/01_memory_wall.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Memory Wall</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/02_two_phases.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/02_two_phases.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Two Phases, One Request</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/03_kv_cache.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/03_kv_cache.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">KV-Cache: The Hidden Tax</span></a>
   </div>
 </li>
@@ -942,13 +943,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/04_starving_the_gpu.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/04_starving_the_gpu.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Starving the GPU</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/05_quantization.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/05_quantization.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Quantization: Not a Free Lunch</span></a>
   </div>
 </li>
@@ -965,19 +966,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/06_scaling_1000_gpus.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/06_scaling_1000_gpus.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Scaling to 1000 GPUs</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/07_geography.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/07_geography.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Geography is a Systems Variable</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/08_nine_million_dollar.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/08_nine_million_dollar.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The $9M Question</span></a>
   </div>
 </li>
@@ -985,34 +986,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
           <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
  <span class="menu-text">Analysis</span></a>
-          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/09_sensitivity.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/09_sensitivity.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Where to Invest: Sensitivity Analysis</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/10_gpu_vs_wafer.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/10_gpu_vs_wafer.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">GPU vs.&nbsp;Wafer-Scale</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/12_design_space_exploration.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/11_training_memory_capacity_moe.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Training Memory, Serving Capacity, and MoE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorials/12_design_space_exploration.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Design Space Exploration (DSE)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/12_full_stack_audit.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/12_full_stack_audit.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Full-Stack Audit: LLaMA-70B Training</span></a>
   </div>
 </li>
@@ -1029,13 +1036,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/01_pipeline_callbacks.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/01_pipeline_callbacks.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Composable Pipelines &amp; Callbacks</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorials/02_differential_explainer.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorials/02_differential_explainer.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Differential Explainer</span></a>
   </div>
 </li>
@@ -1052,19 +1059,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorial/exercises.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorial/exercises.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tutorial Exercises</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./tutorial/cheatsheet.html" class="sidebar-item-text sidebar-link">
+  <a href="../tutorial/cheatsheet.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Cheat Sheet</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./laws-explained.html" class="sidebar-item-text sidebar-link">
+  <a href="../laws-explained.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Laws Explained</span></a>
   </div>
 </li>
@@ -1074,7 +1081,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./zoo/index.html" class="sidebar-item-text sidebar-link">
+            <a href="../zoo/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The MLSys Zoo</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -1083,25 +1090,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./zoo/hardware.html" class="sidebar-item-text sidebar-link">
+  <a href="../zoo/hardware.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Silicon Zoo</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./zoo/models.html" class="sidebar-item-text sidebar-link">
+  <a href="../zoo/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Model Zoo</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./zoo/fleets.html" class="sidebar-item-text sidebar-link">
+  <a href="../zoo/fleets.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Fleet Zoo</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./zoo/infra.html" class="sidebar-item-text sidebar-link">
+  <a href="../zoo/infra.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Infrastructure Zoo</span></a>
   </div>
 </li>
@@ -1118,19 +1125,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./for-students.html" class="sidebar-item-text sidebar-link">
+  <a href="../for-students.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">For Students</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./for-instructors.html" class="sidebar-item-text sidebar-link">
+  <a href="../for-instructors.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">For Instructors</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./for-engineers.html" class="sidebar-item-text sidebar-link">
+  <a href="../for-engineers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">For Engineers &amp; Researchers</span></a>
   </div>
 </li>
@@ -1147,43 +1154,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./architecture.html" class="sidebar-item-text sidebar-link">
+  <a href="../architecture.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The 5-Layer Architecture</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./math.html" class="sidebar-item-text sidebar-link">
+  <a href="../math.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Mathematical Foundations</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./accuracy.html" class="sidebar-item-text sidebar-link">
+  <a href="../accuracy.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Accuracy &amp; Validation</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./understanding-efficiency.html" class="sidebar-item-text sidebar-link">
+  <a href="../understanding-efficiency.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Understanding the Efficiency Parameter</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api-stability.html" class="sidebar-item-text sidebar-link">
+  <a href="../api-stability.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">API Stability Promise</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./empirical-calibration.html" class="sidebar-item-text sidebar-link">
+  <a href="../empirical-calibration.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Empirical Calibration: mlsysim vs.&nbsp;Published Benchmarks</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./glossary.html" class="sidebar-item-text sidebar-link">
+  <a href="../glossary.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Glossary</span></a>
   </div>
 </li>
@@ -1200,19 +1207,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./extending-the-engine.html" class="sidebar-item-text sidebar-link">
+  <a href="../extending-the-engine.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Extending the Engine</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./agentic-mcp.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Agentic Workflows &amp; MCP</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./contributing.html" class="sidebar-item-text sidebar-link">
+  <a href="../contributing.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Contributing to MLSYSIM</span></a>
   </div>
 </li>
@@ -1220,7 +1221,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./api/index.html" class="sidebar-item-text sidebar-link">
+            <a href="../api/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">API Reference</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -1229,37 +1230,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/hardware.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/hardware.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Hardware</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/models.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/models.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Models</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/systems.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/systems.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Systems</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/infra.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/infra.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Infrastructure</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/core.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/core.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Core</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/core.solver.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/core.solver.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Solvers</span></a>
   </div>
 </li>
@@ -1276,7 +1277,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./blog/how-much-memory-llama3.html" class="sidebar-item-text sidebar-link">
+  <a href="../blog/how-much-memory-llama3.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">How Much Memory Does Llama-3 70B Need?</span></a>
   </div>
 </li>
@@ -1293,14 +1294,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./mlsysim-paper.pdf" class="sidebar-item-text sidebar-link" target="_blank">
+  <a href="../mlsysim-paper.pdf" class="sidebar-item-text sidebar-link" target="_blank">
  <span class="menu-text">MLSys·im Paper (PDF)</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./vision-0.1.0.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">The Rockstar 0.1.0 Vision</span></a>
   </div>
 </li>
       </ul>
@@ -1315,15 +1310,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#using-mlsysim-with-claude-desktop-mcp" id="toc-using-mlsysim-with-claude-desktop-mcp" class="nav-link active" data-scroll-target="#using-mlsysim-with-claude-desktop-mcp">1. Using MLSys·im with Claude Desktop (MCP)</a>
+  <li><a href="#the-question" id="toc-the-question" class="nav-link active" data-scroll-target="#the-question">The Question</a></li>
+  <li><a href="#training-memory-is-not-inference-memory" id="toc-training-memory-is-not-inference-memory" class="nav-link" data-scroll-target="#training-memory-is-not-inference-memory">1. Training Memory Is Not Inference Memory</a>
   <ul>
-  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
-  <li><a href="#what-to-ask-claude" id="toc-what-to-ask-claude" class="nav-link" data-scroll-target="#what-to-ask-claude">What to ask Claude</a></li>
+  <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise">Exercise</a></li>
   </ul></li>
-  <li><a href="#the-agentic-predict-compute-reflect-loop" id="toc-the-agentic-predict-compute-reflect-loop" class="nav-link" data-scroll-target="#the-agentic-predict-compute-reflect-loop">2. The Agentic “Predict-Compute-Reflect” Loop</a></li>
-  <li><a href="#exposed-mcp-tools" id="toc-exposed-mcp-tools" class="nav-link" data-scroll-target="#exposed-mcp-tools">3. Exposed MCP Tools</a></li>
-  <li><a href="#troubleshooting" id="toc-troubleshooting" class="nav-link" data-scroll-target="#troubleshooting">4. Troubleshooting</a></li>
-  <li><a href="#why-this-matters" id="toc-why-this-matters" class="nav-link" data-scroll-target="#why-this-matters">5. Why This Matters</a></li>
+  <li><a href="#serving-capacity-combines-three-walls" id="toc-serving-capacity-combines-three-walls" class="nav-link" data-scroll-target="#serving-capacity-combines-three-walls">2. Serving Capacity Combines Three Walls</a>
+  <ul>
+  <li><a href="#exercise-1" id="toc-exercise-1" class="nav-link" data-scroll-target="#exercise-1">Exercise</a></li>
+  </ul></li>
+  <li><a href="#moe-routing-imbalance" id="toc-moe-routing-imbalance" class="nav-link" data-scroll-target="#moe-routing-imbalance">3. MoE Routing Imbalance</a></li>
+  <li><a href="#what-counts-as-validation" id="toc-what-counts-as-validation" class="nav-link" data-scroll-target="#what-counts-as-validation">4. What Counts as Validation?</a></li>
+  <li><a href="#next-step" id="toc-next-step" class="nav-link" data-scroll-target="#next-step">Next Step</a></li>
   </ul>
 </nav>
     </div>
@@ -1331,12 +1329,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <main class="content" id="quarto-document-content">
 
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./extending-the-engine.html">Build &amp; Extend</a></li><li class="breadcrumb-item"><a href="./agentic-mcp.html">Agentic Workflows &amp; MCP</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../tutorials/index.html">Tutorials</a></li><li class="breadcrumb-item"><a href="../tutorials/09_sensitivity.html">Analysis</a></li><li class="breadcrumb-item"><a href="../tutorials/11_training_memory_capacity_moe.html">Training Memory, Serving Capacity, and MoE</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Agentic Workflows &amp; MCP</h1>
-<p class="subtitle lead">Using MLSys·im as the physics backend for LLM Agents.</p>
-</div>
+<h1 class="title">Training Memory, Serving Capacity, and MoE</h1>
+<p class="subtitle lead">Three first-order models for questions students ask after roofline analysis.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">analysis</div>
+    <div class="quarto-category">advanced</div>
+  </div>
+  </div>
 
+<div>
+  <div class="description">
+    Use MLSys·im to explain training memory pressure, size a serving deployment, and model MoE routing imbalance without leaving the analytical framework.
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
@@ -1351,105 +1358,210 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>The ultimate vision for <code>mlsysim</code> is not just to educate humans, but to serve as the <strong>ground-truth physics engine for autonomous AI systems</strong>.</p>
-<p>Large Language Models (like Claude 3.5 Sonnet, GPT-4o, or Gemini Pro) are excellent at writing code and structuring YAML, but they frequently hallucinate complex math. If you ask an LLM to calculate the Inter-Token Latency of a 70B model on 8x H100s with PagedAttention, it will confidently guess wrong.</p>
-<p>By wrapping <code>mlsysim</code> in the <strong>Model Context Protocol (MCP)</strong>, you give your agents the ability to dynamically design hardware clusters, run them through a dimensionally strict physics engine, and interpret the precise bottlenecks to iteratively improve the design.</p>
-<hr>
-<section id="using-mlsysim-with-claude-desktop-mcp" class="level2">
-<h2 class="anchored" data-anchor-id="using-mlsysim-with-claude-desktop-mcp">1. Using MLSys·im with Claude Desktop (MCP)</h2>
-<p>We provide a production-ready MCP server that exposes the <code>mlsysim</code> engine to Claude Desktop.</p>
-<section id="setup" class="level3">
-<h3 class="anchored" data-anchor-id="setup">Setup</h3>
-<ol type="1">
-<li><p>Ensure you have installed <code>mlsysim</code> and the <code>mcp</code> Python package:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install mlsysim mcp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Open your Claude Desktop configuration file.</p>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">The Question</h2>
+<p>You know how to run a roofline analysis. Now you want to answer three follow-up questions that appear in real design reviews:</p>
 <ul>
-<li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
-<li><strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
-</ul></li>
-<li><p>Add the <code>mlsysim</code> server:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"mcpServers"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"mlsysim"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"command"</span><span class="fu">:</span> <span class="st">"python3"</span><span class="fu">,</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">"args"</span><span class="fu">:</span> <span class="ot">[</span><span class="st">"-m"</span><span class="ot">,</span> <span class="st">"mlsysim.examples.mcp_server"</span><span class="ot">]</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p>Restart Claude Desktop. You will now see a hammer icon 🛠️ indicating the tools are available.</p></li>
-</ol>
-</section>
-<section id="what-to-ask-claude" class="level3">
-<h3 class="anchored" data-anchor-id="what-to-ask-claude">What to ask Claude</h3>
-<p>You can now ask Claude questions that require deep hardware simulation: &gt; <em>“I need to serve Llama-3 70B. Can you use your mlsysim tool to find out if it fits on a single H100? If it doesn’t, design a cluster that does, and tell me the annual TCO.”</em></p>
-<p>Claude will automatically generate the required YAML schema, call the <code>evaluate_cluster_yaml</code> tool, see the Out-of-Memory (OOM) failure, correct its design to use 2 nodes, and return the final mathematical truth to you.</p>
-<hr>
-</section>
-</section>
-<section id="the-agentic-predict-compute-reflect-loop" class="level2">
-<h2 class="anchored" data-anchor-id="the-agentic-predict-compute-reflect-loop">2. The Agentic “Predict-Compute-Reflect” Loop</h2>
-<p>If you are building your own multi-agent system (using LangChain, AutoGen, or raw Gemini APIs), <code>mlsysim</code>’s schema architecture is built specifically for you.</p>
-<ul>
-<li><strong>The Input:</strong> Export our schema using <code>mlsysim schema --type plan</code>. Feed this JSON schema directly into your LLM’s system prompt or tool definition. The LLM instantly knows how to structure the request.</li>
-<li><strong>The Execution:</strong> Call <code>mlsysim eval your_file.yaml --output json</code> (or use the Python API).</li>
-<li><strong>The Feedback:</strong> Because <code>mlsysim</code> outputs a strictly-typed, flat JSON dictionary, your agent can easily parse the results. If <code>f_status == "FAIL"</code>, the agent reads the <code>f_summary</code> (e.g., “OOM: Requires 140 GB but only has 80 GB”) and adjusts its design autonomously.</li>
+<li>Why does training need much more memory than inference?</li>
+<li>How many replicas do I need for a QPS and P99 target?</li>
+<li>How much does MoE hot-expert imbalance change the communication cost?</li>
 </ul>
-<p>We have included a conceptual Python implementation of this loop in our repository at <a href="https://github.com/harvard-edge/cs249r_book/blob/dev/mlsysim/examples/gemini_design_loop.py"><code>mlsysim/examples/gemini_design_loop.py</code></a>.</p>
+<p>These questions are not separate systems. They are different views of the same demand–supply framework: tensors consume memory, requests consume serving capacity, and routed tokens consume network bandwidth.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What You Will Learn
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Break training memory into weights, gradients, optimizer state, activations, and communication buffers.</li>
+<li>Turn a serving target into a first-pass replica count.</li>
+<li>Sweep a simple MoE routing imbalance factor and read the all-to-all cost.</li>
+<li>Decide which numbers are direct byte counts and which require calibration.</li>
+</ul>
+</div>
+</div>
 <hr>
 </section>
-<section id="exposed-mcp-tools" class="level2">
-<h2 class="anchored" data-anchor-id="exposed-mcp-tools">3. Exposed MCP Tools</h2>
-<p>When running as an MCP server, <code>mlsysim</code> exposes the following tools to the connected agent:</p>
+<section id="training-memory-is-not-inference-memory" class="level2">
+<h2 class="anchored" data-anchor-id="training-memory-is-not-inference-memory">1. Training Memory Is Not Inference Memory</h2>
+<p>Inference mainly stores model weights and KV cache. Training also stores gradients, optimizer state, activations, and communication buffers. That is why a model that fits for inference can fail during training.</p>
+<div id="8f69ce2a" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Hardware, Models, TrainingMemoryModel</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.show <span class="im">import</span> table</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>memory <span class="op">=</span> TrainingMemoryModel().solve(</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Language.Llama3_8B,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.Cloud.H100,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">2048</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    dp_size<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    zero_stage<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> [</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Weights"</span>, memory.weights],</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Gradients"</span>, memory.gradients],</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Optimizer"</span>, memory.optimizer_state],</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Activations"</span>, memory.activations],</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Buffers"</span>, memory.communication_buffers],</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Total"</span>, memory.total_memory],</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>table([<span class="st">"Component"</span>, <span class="st">"Per-GPU Memory"</span>], rows)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Fits on H100: </span><span class="sc">{</span>memory<span class="sc">.</span>feasible<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Component    Per-GPU Memory
+───────────────────────────
+Weights            16.06 GB
+Gradients           2.01 GB
+Optimizer          12.04 GB
+Activations         2.68 GB
+Buffers            0.100 GB
+Total              32.90 GB
+Fits on H100: True</code></pre>
+</div>
+</div>
+<p>The first three terms are direct byte counts. Activation memory is the term most sensitive to framework behavior because checkpointing changes what the backward pass must store versus recompute.</p>
+<section id="exercise" class="level3">
+<h3 class="anchored" data-anchor-id="exercise">Exercise</h3>
+<p>Change <code>zero_stage</code> from <code>0</code> to <code>3</code>. Which components shrink? Why do activations not shrink from ZeRO alone?</p>
+<hr>
+</section>
+</section>
+<section id="serving-capacity-combines-three-walls" class="level2">
+<h2 class="anchored" data-anchor-id="serving-capacity-combines-three-walls">2. Serving Capacity Combines Three Walls</h2>
+<p>A serving deployment is not sized by TTFT alone. You need base request latency, per-replica token capacity, and queueing pressure under load.</p>
+<div id="31c0e7fd" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> ServingCapacityModel</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>capacity <span class="op">=</span> ServingCapacityModel().solve(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Language.Llama3_8B,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.Cloud.H100,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    qps<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    target_p99_latency_ms<span class="op">=</span><span class="dv">2000</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">1024</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    output_tokens<span class="op">=</span><span class="dv">64</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    max_batch_size<span class="op">=</span><span class="dv">16</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    efficiency<span class="op">=</span><span class="fl">0.35</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Required replicas: </span><span class="sc">{</span>capacity<span class="sc">.</span>required_replicas<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Capacity:          </span><span class="sc">{</span>capacity<span class="sc">.</span>qps_capacity<span class="sc">:.1f}</span><span class="ss"> QPS"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Utilization:       </span><span class="sc">{</span>capacity<span class="sc">.</span>utilization<span class="sc">:.1%}</span><span class="ss">"</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Estimated P99:     </span><span class="sc">{</span>capacity<span class="sc">.</span>estimated_p99_latency<span class="sc">:</span><span class="op">~</span><span class="fl">.1</span><span class="er">f</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Bottleneck:        </span><span class="sc">{</span>capacity<span class="sc">.</span>bottleneck<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Required replicas: 1
+Capacity:          46.0 QPS
+Utilization:       43.5%
+Estimated P99:     1299.0 ms
+Bottleneck:        Feasible</code></pre>
+</div>
+</div>
+<p>The <code>efficiency</code> parameter is exposed because the compute-bound part of serving depends on implementation quality. Use the default for quick comparisons; use a measured efficiency value before making a production SLA commitment.</p>
+<section id="exercise-1" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-1">Exercise</h3>
+<p>Double <code>output_tokens</code> from 64 to 128. Does the replica count change by exactly 2x? Explain the difference between base latency and queueing latency.</p>
+<hr>
+</section>
+</section>
+<section id="moe-routing-imbalance" class="level2">
+<h2 class="anchored" data-anchor-id="moe-routing-imbalance">3. MoE Routing Imbalance</h2>
+<p>Mixture-of-Experts models reduce compute by activating only a subset of experts, but routed tokens create expert-parallel all-to-all traffic. Perfectly balanced routing is an idealization; hot experts increase the effective active work and the routed payload.</p>
+<div id="c5d797c3" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> MoERoutingModel, SparseTransformerWorkload, Systems, ureg</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>moe <span class="op">=</span> SparseTransformerWorkload(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Toy-MoE-64B"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    architecture<span class="op">=</span><span class="st">"Sparse Transformer"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    parameters<span class="op">=</span><span class="fl">64e9</span> <span class="op">*</span> ureg.count,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    active_parameters<span class="op">=</span><span class="fl">8e9</span> <span class="op">*</span> ureg.count,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    experts<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    active_experts_per_token<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    layers<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    hidden_dim<span class="op">=</span><span class="dv">4096</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    heads<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gamma <span class="kw">in</span> [<span class="fl">1.0</span>, <span class="fl">1.25</span>, <span class="fl">1.5</span>, <span class="fl">2.0</span>]:</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    routing <span class="op">=</span> MoERoutingModel().solve(</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span>moe,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        batch_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        seq_len<span class="op">=</span><span class="dv">2048</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        ep_size<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        routing_imbalance_factor<span class="op">=</span>gamma,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        fleet<span class="op">=</span>Systems.Clusters.Research_256,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    rows.append([</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        gamma,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"</span><span class="sc">{</span>routing<span class="sc">.</span>effective_active_experts<span class="sc">:.2f}</span><span class="ss">"</span>,</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        routing.token_dispatch_bytes,</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        routing.all_to_all_latency,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>table([<span class="st">"Imbalance"</span>, <span class="st">"Effective Experts"</span>, <span class="st">"Routed Bytes"</span>, <span class="st">"All-to-All"</span>], rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Imbalance  Effective Experts  Routed Bytes  All-to-All
+──────────────────────────────────────────────────────
+1.00                    2.00      117.4 MB     9.75 ms
+1.25                    2.50      146.8 MB    12.09 ms
+1.50                    3.00      176.2 MB    14.44 ms
+2.00                    4.00      234.9 MB    19.14 ms</code></pre>
+</div>
+</div>
+<p>This model does not simulate a router. It gives you a clean sensitivity knob: if measured routing logs show a 25% hot-expert effect, set <code>routing_imbalance_factor=1.25</code> and see how the communication wall moves.</p>
+<hr>
+</section>
+<section id="what-counts-as-validation" class="level2">
+<h2 class="anchored" data-anchor-id="what-counts-as-validation">4. What Counts as Validation?</h2>
+<p>For these models, validation means matching the level of the approximation:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 66%">
+<col style="width: 50%">
+<col style="width: 50%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Tool</th>
-<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Output</th>
+<th style="text-align: left;">How to validate</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>get_schemas</code></td>
-<td style="text-align: left;">Return the current JSON schema for valid MLSys·im YAML plans</td>
+<td style="text-align: left;">Weight, gradient, optimizer, KV-cache bytes</td>
+<td style="text-align: left;">Compare against direct tensor counts.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>evaluate_cluster_yaml</code></td>
-<td style="text-align: left;">Evaluate a YAML cluster specification through the full 3-lens scorecard (Feasibility, Performance, Macro)</td>
+<td style="text-align: left;">Activation memory</td>
+<td style="text-align: left;">Compare against framework memory traces for one model/config.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Serving replica count</td>
+<td style="text-align: left;">Benchmark one deployment point, calibrate <code>efficiency</code>, then sweep.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MoE routing imbalance</td>
+<td style="text-align: left;">Measure tokens per expert and feed the observed imbalance into the model.</td>
 </tr>
 </tbody>
 </table>
-<p>The agent can call these tools programmatically. The YAML schema can be exported with:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> schema <span class="at">--type</span> plan</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Feed this schema into your agent’s system prompt or tool definition so it knows how to structure valid requests.</p>
+<p>MLSYSIM should be used to identify the binding constraint and compare design options before benchmarking. It should not replace empirical measurement for a final production SLA.</p>
 <hr>
 </section>
-<section id="troubleshooting" class="level2">
-<h2 class="anchored" data-anchor-id="troubleshooting">4. Troubleshooting</h2>
-<dl>
-<dt><strong>Claude doesn’t show the hammer icon:</strong></dt>
-<dd>
-Make sure you restarted Claude Desktop after editing the config. Check that <code>python3 /path/to/MLSysBook/mlsysim/examples/mcp_server.py</code> runs without errors in your terminal.
-</dd>
-<dt><strong>Agent gets OOM errors:</strong></dt>
-<dd>
-This is expected behavior — it means the model doesn’t fit on the specified hardware. The agent should read the error message and adjust (e.g., add nodes, reduce precision, or pick larger hardware).
-</dd>
-<dt><strong>Agent hallucinates hardware specs:</strong></dt>
-<dd>
-Remind the agent to call <code>get_schemas</code> and use registry names from the schema/docs rather than inventing specs. The <code>llms.txt</code> file at the root of the docs site contains agent-specific guidance.
-</dd>
-</dl>
-<hr>
-</section>
-<section id="why-this-matters" class="level2">
-<h2 class="anchored" data-anchor-id="why-this-matters">5. Why This Matters</h2>
-<p>The “academic simulator graveyard” is filled with tools that were too hard for humans to compile and too unstructured for machines to use.</p>
-<p>By defining <code>mlsysim</code> through <strong>strict Pydantic schemas</strong> and standardizing the <strong>22 ML Systems Walls</strong>, we have created an intermediate representation (IR) that both humans and AI agents can understand. In the near future, you will not manually calculate whether a new model architecture is viable; you will ask your Agentic Architect to run 10,000 simulations against the <code>mlsysim</code> physics engine while you sleep.</p>
+<section id="next-step" class="level2">
+<h2 class="anchored" data-anchor-id="next-step">Next Step</h2>
+<p>Use these models inside a larger analysis:</p>
+<ul>
+<li><code>TrainingMemoryModel</code> before <code>DistributedModel</code> to rule out impossible training configurations.</li>
+<li><code>ServingCapacityModel</code> before <code>EconomicsModel</code> to convert traffic targets into fleet size and cost.</li>
+<li><code>MoERoutingModel</code> with <code>DistributedModel(..., moe_routing_imbalance_factor=...)</code> to see whether expert parallelism is limited by bandwidth.</li>
+</ul>
 
 
 </section>
@@ -1870,13 +1982,13 @@ Remind the agent to call <code>get_schemas</code> and use registry names from th
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./extending-the-engine.html" class="pagination-link" aria-label="Extending the Engine">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Extending the Engine</span>
+      <a href="../tutorials/10_gpu_vs_wafer.html" class="pagination-link" aria-label="GPU vs. Wafer-Scale">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">GPU vs.&nbsp;Wafer-Scale</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./contributing.html" class="pagination-link" aria-label="Contributing to MLSYSIM">
-        <span class="nav-page-text">Contributing to MLSYSIM</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../tutorials/12_design_space_exploration.html" class="pagination-link" aria-label="Design Space Exploration (DSE)">
+        <span class="nav-page-text">Design Space Exploration (DSE)</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -2048,5 +2160,5 @@ Remind the agent to call <code>get_schemas</code> and use registry names from th
 
 
 
-<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
 </body></html>

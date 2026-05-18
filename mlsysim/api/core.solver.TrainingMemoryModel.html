@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>core.solver.topologymodel – MLSys·im — Machine Learning Systems</title>
+<title>core.solver.trainingmemorymodel – MLSys·im — Machine Learning Systems</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -1307,7 +1307,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mlsysim.core.solver.TopologyModel" id="toc-mlsysim.core.solver.TopologyModel" class="nav-link active" data-scroll-target="#mlsysim.core.solver.TopologyModel">core.solver.TopologyModel</a></li>
+  <li><a href="#mlsysim.core.solver.TrainingMemoryModel" id="toc-mlsysim.core.solver.TrainingMemoryModel" class="nav-link active" data-scroll-target="#mlsysim.core.solver.TrainingMemoryModel">core.solver.TrainingMemoryModel</a>
+  <ul>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#mlsysim.core.solver.TrainingMemoryModel.solve" id="toc-mlsysim.core.solver.TrainingMemoryModel.solve" class="nav-link" data-scroll-target="#mlsysim.core.solver.TrainingMemoryModel.solve">solve</a>
+  <ul class="collapse">
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1318,14 +1328,147 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="mlsysim.core.solver.TopologyModel" class="level1">
-<h1>core.solver.TopologyModel</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>core.solver.TopologyModel()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Analyzes the ‘Locality Wall’ — Network topology and bisection bandwidth.</p>
-<p>This solver models how the physical arrangement of nodes (Fat-Tree, Torus, Dragonfly) affects the usable communication bandwidth.</p>
-<p>Literature Source: 1. Kim et al.&nbsp;(2008), “Technology-Driven, Low-Latency Network-on-Chip.” 2. Dally (1990), “Performance Analysis of Interconnection Networks.”</p>
+<section id="mlsysim.core.solver.TrainingMemoryModel" class="level1">
+<h1>core.solver.TrainingMemoryModel</h1>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>core.solver.TrainingMemoryModel()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Decomposes per-accelerator training memory into weights, gradients, optimizer state, activations, and communication buffers.</p>
+<p>This model is intended for first-order training feasibility analysis. It makes the difference between inference memory and training memory explicit without modeling framework internals.</p>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#mlsysim.core.solver.TrainingMemoryModel.solve">solve</a></td>
+<td>Estimate per-accelerator training memory.</td>
+</tr>
+</tbody>
+</table>
+<section id="mlsysim.core.solver.TrainingMemoryModel.solve" class="level3">
+<h3 class="anchored" data-anchor-id="mlsysim.core.solver.TrainingMemoryModel.solve">solve</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>core.solver.TrainingMemoryModel.solve(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    model,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    hardware,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    batch_size,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">2048</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    precision<span class="op">=</span><span class="st">'fp16'</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    optimizer<span class="op">=</span><span class="st">'adam'</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    activation_checkpointing<span class="op">=</span><span class="st">'selective'</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    tp_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    pp_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    dp_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    ep_size<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    zero_stage<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    gradient_accumulation_steps<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    trainable_fraction<span class="op">=</span><span class="fl">1.0</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    communication_buffer_fraction<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="parameters" class="level4">
+<h4 class="anchored" data-anchor-id="parameters">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>model</td>
+<td>TransformerWorkload</td>
+<td>Transformer workload to train.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>hardware</td>
+<td>HardwareNode</td>
+<td>Per-rank accelerator target.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>batch_size</td>
+<td>int</td>
+<td>Global batch size.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>seq_len</td>
+<td>int</td>
+<td>Training sequence length.</td>
+<td><code>2048</code></td>
+</tr>
+<tr class="odd">
+<td>precision</td>
+<td>str</td>
+<td>Parameter/gradient precision.</td>
+<td><code>'fp16'</code></td>
+</tr>
+<tr class="even">
+<td>optimizer</td>
+<td>str</td>
+<td><code>adam</code>, <code>adamw</code>, <code>sgd</code>, or <code>none</code>.</td>
+<td><code>'adam'</code></td>
+</tr>
+<tr class="odd">
+<td>activation_checkpointing</td>
+<td>str</td>
+<td><code>none</code>, <code>selective</code>, or <code>full</code>.</td>
+<td><code>'selective'</code></td>
+</tr>
+<tr class="even">
+<td>tp_size, pp_size, dp_size, ep_size</td>
+<td>int</td>
+<td>Parallelism degrees.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>zero_stage</td>
+<td>int</td>
+<td>ZeRO stage 0–3.</td>
+<td><code>0</code></td>
+</tr>
+<tr class="even">
+<td>gradient_accumulation_steps</td>
+<td>int</td>
+<td>Steps used to derive local microbatch.</td>
+<td><code>1</code></td>
+</tr>
+<tr class="odd">
+<td>trainable_fraction</td>
+<td>float</td>
+<td>Fraction of local parameters with gradients and optimizer state.</td>
+<td><code>1.0</code></td>
+</tr>
+<tr class="even">
+<td>communication_buffer_fraction</td>
+<td>float</td>
+<td>Gradient bucket buffer fraction.</td>
+<td><code>0.05</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level4">
+<h4 class="anchored" data-anchor-id="returns">Returns</h4>
+<p><code>TrainingMemoryResult</code> with total memory, available memory, feasibility, utilization, and a component breakdown.</p>
 
 
+</section>
+</section>
+</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->

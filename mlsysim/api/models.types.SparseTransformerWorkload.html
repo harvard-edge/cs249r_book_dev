@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>core.solver.topologymodel – MLSys·im — Machine Learning Systems</title>
+<title>models.types.sparsetransformerworkload – MLSys·im — Machine Learning Systems</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -1307,7 +1307,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#mlsysim.core.solver.TopologyModel" id="toc-mlsysim.core.solver.TopologyModel" class="nav-link active" data-scroll-target="#mlsysim.core.solver.TopologyModel">core.solver.TopologyModel</a></li>
+  <li><a href="#mlsysim.models.types.SparseTransformerWorkload" id="toc-mlsysim.models.types.SparseTransformerWorkload" class="nav-link active" data-scroll-target="#mlsysim.models.types.SparseTransformerWorkload">models.types.SparseTransformerWorkload</a>
+  <ul>
+  <li><a href="#key-fields" id="toc-key-fields" class="nav-link" data-scroll-target="#key-fields">Key Fields</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example">Example</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1318,14 +1322,78 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="mlsysim.core.solver.TopologyModel" class="level1">
-<h1>core.solver.TopologyModel</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>core.solver.TopologyModel()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Analyzes the ‘Locality Wall’ — Network topology and bisection bandwidth.</p>
-<p>This solver models how the physical arrangement of nodes (Fat-Tree, Torus, Dragonfly) affects the usable communication bandwidth.</p>
-<p>Literature Source: 1. Kim et al.&nbsp;(2008), “Technology-Driven, Low-Latency Network-on-Chip.” 2. Dally (1990), “Performance Analysis of Interconnection Networks.”</p>
+<section id="mlsysim.models.types.SparseTransformerWorkload" class="level1">
+<h1>models.types.SparseTransformerWorkload</h1>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>models.types.SparseTransformerWorkload()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Sparse Transformer / Mixture-of-Experts workload type.</p>
+<p><code>parameters</code> represents total resident parameters and therefore memory pressure. <code>active_parameters</code> represents the parameters used per token and therefore the first-order compute path. <code>experts</code> and <code>active_experts_per_token</code> describe the routing structure used by <code>MoERoutingModel</code> and expert-parallel communication estimates.</p>
+<section id="key-fields" class="level2">
+<h2 class="anchored" data-anchor-id="key-fields">Key Fields</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>parameters</td>
+<td>Quantity</td>
+<td>Total model parameters.</td>
+</tr>
+<tr class="even">
+<td>active_parameters</td>
+<td>Quantity</td>
+<td>Parameters active per token.</td>
+</tr>
+<tr class="odd">
+<td>experts</td>
+<td>int</td>
+<td>Total number of experts.</td>
+</tr>
+<tr class="even">
+<td>active_experts_per_token</td>
+<td>int</td>
+<td>Top-k experts selected per token.</td>
+</tr>
+<tr class="odd">
+<td>layers</td>
+<td>int</td>
+<td>Transformer layer count.</td>
+</tr>
+<tr class="even">
+<td>hidden_dim</td>
+<td>int</td>
+<td>Hidden dimension used for activation and routing-volume estimates.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="example" class="level2">
+<h2 class="anchored" data-anchor-id="example">Example</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> SparseTransformerWorkload, ureg</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>moe <span class="op">=</span> SparseTransformerWorkload(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Toy-MoE-64B"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    architecture<span class="op">=</span><span class="st">"Sparse Transformer"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    parameters<span class="op">=</span><span class="fl">64e9</span> <span class="op">*</span> ureg.count,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    active_parameters<span class="op">=</span><span class="fl">8e9</span> <span class="op">*</span> ureg.count,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    experts<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    active_experts_per_token<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    layers<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    hidden_dim<span class="op">=</span><span class="dv">4096</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    heads<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
+</section>
 </section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
