@@ -844,7 +844,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="39468e00f216bbeb332b8900e283ba5c" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">08954103</code> • 2026-05-29 23:55 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">ed0551ac</code> • 2026-06-03 02:39 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../../tinytorch/">TinyTorch</a> (build) · <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../labs/">Labs</a> (explore) · <a href="../../staffml/">StaffML</a> (practice) · <a href="../../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1126,6 +1126,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../zoo/scenarios.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scenarios Zoo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../zoo/literature.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Literature Zoo</span></a>
   </div>
@@ -1284,7 +1290,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/infra.qmd" class="sidebar-item-text sidebar-link">
+  <a href="../api/infrastructure.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Infrastructure</span></a>
   </div>
 </li>
@@ -1326,7 +1332,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/core.solver.qmd" class="sidebar-item-text sidebar-link">
+  <a href="../api/solvers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Solvers</span></a>
   </div>
 </li>
@@ -1456,39 +1462,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="training-memory-is-not-inference-memory" class="level2">
 <h2 class="anchored" data-anchor-id="training-memory-is-not-inference-memory">1. Training Memory Is Not Inference Memory</h2>
 <p>Inference mainly stores model weights and KV cache. Training also stores gradients, optimizer state, activations, and communication buffers. That is why a model that fits for inference can fail during training.</p>
-<div id="d74b0294" class="cell" data-execution_count="1">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Hardware, Models, TrainingMemoryModel</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.show <span class="im">import</span> table</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>memory <span class="op">=</span> TrainingMemoryModel().solve(</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Language.Llama3_8B,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.Cloud.H100,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">8</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">2048</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    dp_size<span class="op">=</span><span class="dv">8</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    zero_stage<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> [</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Weights"</span>, memory.weights],</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Gradients"</span>, memory.gradients],</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Optimizer"</span>, memory.optimizer_state],</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Activations"</span>, memory.activations],</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Buffers"</span>, memory.communication_buffers],</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Total"</span>, memory.total_memory],</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>table([<span class="st">"Component"</span>, <span class="st">"Per-GPU Memory"</span>], rows)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Fits on H100: </span><span class="sc">{</span>memory<span class="sc">.</span>feasible<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="4cb4e0ba" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Hardware, Models</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.solvers <span class="im">import</span> TrainingMemoryModel</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.show <span class="im">import</span> table</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>memory <span class="op">=</span> TrainingMemoryModel().solve(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Language.Llama3_8B,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    hardware<span class="op">=</span>Hardware.Cloud.H100,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    seq_len<span class="op">=</span><span class="dv">2048</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    dp_size<span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    zero_stage<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> [</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Weights"</span>, memory.weights],</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Gradients"</span>, memory.gradients],</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Optimizer"</span>, memory.optimizer_state],</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Activations"</span>, memory.activations],</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Buffers"</span>, memory.communication_buffers],</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"Total"</span>, memory.total_memory],</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>table([<span class="st">"Component"</span>, <span class="st">"Per-GPU Memory"</span>], rows)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Fits on H100: </span><span class="sc">{</span>memory<span class="sc">.</span>feasible<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Component    Per-GPU Memory
 ───────────────────────────
 Weights            16.06 GB
 Gradients           2.01 GB
 Optimizer          12.04 GB
-Activations         2.68 GB
+Activations         5.37 GB
 Buffers            0.100 GB
-Total              32.90 GB
+Total              35.58 GB
 Fits on H100: True</code></pre>
 </div>
 </div>
@@ -1502,8 +1509,8 @@ Fits on H100: True</code></pre>
 <section id="serving-capacity-combines-three-walls" class="level2">
 <h2 class="anchored" data-anchor-id="serving-capacity-combines-three-walls">2. Serving Capacity Combines Three Walls</h2>
 <p>A serving deployment is not sized by TTFT alone. You need base request latency, per-replica token capacity, and queueing pressure under load.</p>
-<div id="2b9f7e3f" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> ServingCapacityModel</span>
+<div id="731ee13b" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.solvers <span class="im">import</span> ServingCapacityModel</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>capacity <span class="op">=</span> ServingCapacityModel().solve(</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>Models.Language.Llama3_8B,</span>
@@ -1539,9 +1546,9 @@ Bottleneck:        Feasible</code></pre>
 <section id="moe-routing-imbalance" class="level2">
 <h2 class="anchored" data-anchor-id="moe-routing-imbalance">3. MoE Routing Imbalance</h2>
 <p>Mixture-of-Experts models reduce compute by activating only a subset of experts, but routed tokens create expert-parallel all-to-all traffic. Perfectly balanced routing is an idealization; hot experts increase the effective active work and the routed payload.</p>
-<div id="cdcd2ee4" class="cell" data-execution_count="3">
+<div id="69445c29" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim <span class="im">import</span> Systems, ureg</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.engine.solver <span class="im">import</span> MoERoutingModel</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.solvers <span class="im">import</span> MoERoutingModel</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mlsysim.models.types <span class="im">import</span> SparseTransformerWorkload</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>moe <span class="op">=</span> SparseTransformerWorkload(</span>

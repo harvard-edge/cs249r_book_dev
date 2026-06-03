@@ -857,7 +857,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="39468e00f216bbeb332b8900e283ba5c" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">08954103</code> • 2026-05-29 23:55 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">ed0551ac</code> • 2026-06-03 02:39 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore) · <a href="../staffml/">StaffML</a> (practice) · <a href="../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1139,6 +1139,12 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./zoo/scenarios.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Scenarios Zoo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./zoo/literature.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Literature Zoo</span></a>
   </div>
@@ -1297,7 +1303,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/infra.qmd" class="sidebar-item-text sidebar-link">
+  <a href="./api/infrastructure.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Infrastructure</span></a>
   </div>
 </li>
@@ -1339,7 +1345,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./api/core.solver.qmd" class="sidebar-item-text sidebar-link">
+  <a href="./api/solvers.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Solvers</span></a>
   </div>
 </li>
@@ -1390,6 +1396,7 @@ window.Quarto = {
    
   <ul>
   <li><a href="#design-philosophy" id="toc-design-philosophy" class="nav-link active" data-scroll-target="#design-philosophy">Design Philosophy</a></li>
+  <li><a href="#validation-hardening-checklist" id="toc-validation-hardening-checklist" class="nav-link" data-scroll-target="#validation-hardening-checklist">Validation Hardening Checklist</a></li>
   <li><a href="#the-accuracy-hierarchy" id="toc-the-accuracy-hierarchy" class="nav-link" data-scroll-target="#the-accuracy-hierarchy">The Accuracy Hierarchy</a></li>
   <li><a href="#validation-against-published-benchmarks" id="toc-validation-against-published-benchmarks" class="nav-link" data-scroll-target="#validation-against-published-benchmarks">Validation Against Published Benchmarks</a>
   <ul>
@@ -1461,6 +1468,20 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="design-philosophy">Design Philosophy</h2>
 <p>MLSYSIM follows the same trade-off that Hennessy &amp; Patterson’s MIPS simulator made for computer architecture: sacrifice cycle accuracy for <strong>taxonomic completeness</strong> and <strong>execution speed</strong>. A gem5 simulation of a single LLaMA-70B inference step can take hours; MLSYSIM solves it in milliseconds. The goal is not to replace empirical benchmarks but to enable rapid, principled reasoning about system design trade-offs before committing to expensive experiments.</p>
 <p>This philosophy maps directly to the core analytical models in the <a href="./math.html">Math Foundations</a> page. Each model implements a specific approximation grounded in published research, with a characterized accuracy envelope documented below.</p>
+<hr>
+</section>
+<section id="validation-hardening-checklist" class="level2">
+<h2 class="anchored" data-anchor-id="validation-hardening-checklist">Validation Hardening Checklist</h2>
+<p>The implementation now enforces strict precision names, explicit unit-family validation, and exact distributed topology divisibility before solver math runs. The remaining validation work is about evidence quality rather than basic input safety:</p>
+<ol type="1">
+<li><strong>Golden textbook examples.</strong> Preserve representative chapter calculations as small, named regression tests with expected values and tolerances. This catches drift when formulas or registry specs change.</li>
+<li><strong>Formula-by-formula solver review.</strong> For each solver, document the source equation, assumptions, units, and calibration constants next to a focused test fixture. Start with <code>DistributedModel</code>, <code>ServingModel</code>, <code>TrainingMemoryModel</code>, <code>EconomicsModel</code>, and <code>SustainabilityModel</code>.</li>
+<li><strong>Registry provenance audit.</strong> Check every hardware, model, system, and infrastructure entry for source URL, SKU/variant specificity, verified date, and whether the value is measured, estimated, illustrative, or conventional.</li>
+<li><strong>Empirical calibration refresh.</strong> Re-run the benchmark comparisons in <code>empirical-calibration.md</code> against current registry values and current published benchmark reports. Published benchmark scalar values live in <code>Literature.Benchmarks</code>; the code contract for reviewed sanity ranges lives in <code>mlsysim.engine.empirical</code>.</li>
+<li><strong>Property and edge-case tests.</strong> Add invariants such as monotonic memory growth with sequence length, non-increasing feasible batch size with model size, non-negative latency components, and stable unit conversions across SI/binary byte units.</li>
+<li><strong>CLI plan semantics cleanup.</strong> <code>hardware.accelerators</code> is the total accelerator count. Use <code>node_count</code> plus <code>accelerators_per_node</code> when the physical topology matters.</li>
+<li><strong>Solver module decomposition.</strong> Solver implementations now live in <code>engine/solvers/</code> by domain, while <code>engine/solver.py</code> remains the stable public import surface.</li>
+</ol>
 <hr>
 </section>
 <section id="the-accuracy-hierarchy" class="level2">
