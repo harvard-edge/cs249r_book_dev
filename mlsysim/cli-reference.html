@@ -843,7 +843,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="39468e00f216bbeb332b8900e283ba5c" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">ed0551ac</code> • 2026-06-03 02:39 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">725c6aac</code> • 2026-06-07 17:18 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>🧮 <strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference; model the physics before you build.<br> 📘 <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: At Scale</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../labs/">Labs</a> (explore) · <a href="../staffml/">StaffML</a> (practice) · <a href="../slides/">Lecture Slides</a><br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="../newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1493,7 +1493,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;"><code>2</code></td>
 <td style="text-align: left;">Physics violation</td>
-<td style="text-align: left;">OOM — model does not fit in memory at the given precision</td>
+<td style="text-align: left;">A hard <code>OOMError</code> raised during evaluation</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>3</code></td>
@@ -1502,9 +1502,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval Llama3_70B T4 <span class="at">--batch-size</span> 1</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Exit code 2: OOM — 140 GB model weights exceed 16 GB T4 memory</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$?</span>  <span class="co"># → 2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval NoSuchModel H100</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$?</span>  <span class="co"># → 1 (unknown model name)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">mlsysim</span> eval cluster.yaml   <span class="co"># with a constraints.assert block that fails</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$?</span>  <span class="co"># → 3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Feasibility failures exit 0
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A quick evaluation of an infeasible configuration (e.g.&nbsp;<code>mlsysim eval Llama3_70B T4</code>) renders the scorecard with <code>Feasibility [FAIL]</code> and exits <code>0</code> — the analysis itself succeeded. Exit code <code>2</code> is reserved for hard out-of-memory errors raised inside the engine. To gate CI on feasibility, use a YAML plan with a <code>constraints.assert</code> block (exit code <code>3</code> on violation) or parse the <code>-o json</code> output.</p>
+</div>
+</div>
 <hr>
 </section>
 <section id="global-options" class="level2">
@@ -1563,7 +1578,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>CATEGORY</code></td>
-<td style="text-align: left;"><code>hardware</code> or <code>models</code></td>
+<td style="text-align: left;"><code>hardware</code> or <code>models</code>; omit to list both registries</td>
 </tr>
 </tbody>
 </table>
@@ -1665,19 +1680,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="yaml-cluster-evaluation">YAML Cluster Evaluation</h3>
 <p>When <code>TARGET</code> is a YAML file, <code>eval</code> runs the full 3-lens scorecard (Feasibility, Performance, Macro) including distributed training, economics, and sustainability analysis.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">"1.0"</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">workload</span><span class="kw">:</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"Llama3_70B"</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">batch_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">4096</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hardware</span><span class="kw">:</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"H100"</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">accelerators</span><span class="kw">:</span><span class="at"> </span><span class="dv">64</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ops</span><span class="kw">:</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">region</span><span class="kw">:</span><span class="at"> </span><span class="st">"Quebec"</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">duration_days</span><span class="kw">:</span><span class="at"> </span><span class="fl">14.0</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">constraints</span><span class="kw">:</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">assert</span><span class="kw">:</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">metric</span><span class="kw">:</span><span class="at"> </span><span class="st">"performance.latency"</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">max</span><span class="kw">:</span><span class="at"> </span><span class="fl">50.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"llama70b-cluster"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">workload</span><span class="kw">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"Llama3_70B"</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">batch_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">4096</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="fu">hardware</span><span class="kw">:</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"H100"</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">accelerators</span><span class="kw">:</span><span class="at"> </span><span class="dv">64</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ops</span><span class="kw">:</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">region</span><span class="kw">:</span><span class="at"> </span><span class="st">"Quebec"</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">duration_days</span><span class="kw">:</span><span class="at"> </span><span class="fl">14.0</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">constraints</span><span class="kw">:</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">assert</span><span class="kw">:</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">metric</span><span class="kw">:</span><span class="at"> </span><span class="st">"performance.step_latency"</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">max</span><span class="kw">:</span><span class="at"> </span><span class="fl">50.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Both <code>version</code> and <code>name</code> are required top-level fields. Assertion metrics are addressed as <code>&lt;lens&gt;.&lt;metric&gt;</code>; the available keys are <code>performance.step_latency</code>, <code>performance.comm_overhead</code>, <code>performance.fleet_throughput</code>, <code>performance.mfu</code>, <code>performance.node_mfu</code>, <code>performance.scaling_efficiency</code>, <code>macro.tco_usd</code>, <code>macro.carbon_footprint</code>, <code>macro.energy_cost</code>, and <code>macro.capex</code>.</p>
 <hr>
 </section>
 </section>
@@ -1769,23 +1786,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Options:</strong></p>
 <table class="caption-top table">
 <colgroup>
+<col style="width: 22%">
+<col style="width: 44%">
 <col style="width: 33%">
-<col style="width: 66%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Flag</th>
 <th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>--type</code></td>
+<td style="text-align: left;"><code>-t, --type</code></td>
 <td style="text-align: left;">Schema type: <code>hardware</code>, <code>workload</code>, or <code>plan</code></td>
+<td style="text-align: left;"><code>plan</code></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>-o, --output</code></td>
 <td style="text-align: left;">Accepted values: <code>text</code> or <code>json</code>; schema output is always JSON</td>
+<td style="text-align: left;"><code>text</code></td>
 </tr>
 </tbody>
 </table>
@@ -1888,16 +1909,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Profile a workload against the Iron Law and report which wall binds.</p>
 <pre><code>mlsysim audit [OPTIONS]</code></pre>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 44%">
+<col style="width: 33%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Flag</th>
 <th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>--workload</code></td>
-<td style="text-align: left;">Workload name to audit</td>
+<td style="text-align: left;"><code>-w, --workload</code></td>
+<td style="text-align: left;">Workload name to audit against (e.g.&nbsp;<code>Llama3_8B</code>, <code>ResNet50</code>)</td>
+<td style="text-align: left;"><code>Llama3_8B</code></td>
 </tr>
 </tbody>
 </table>
@@ -2353,6 +2381,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+ <span class="release-pill" data-release-pill=""></span>
+  </li>  
     <li class="nav-item compact">
     <a class="nav-link" href="{{< var github_repo >}}">
       <i class="bi bi-github" role="img" aria-label="View source on GitHub">
@@ -2364,48 +2395,42 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
 </footer>
 <!--
-  MLSysBook release-pill — shared footer snippet for Quarto + static sites.
+  MLSysBook release-pill — shared footer version chip for Quarto + static sites.
 
-  Renders a small "v0.1.0 · Apr 26, 2026" pill from a deployed
-  release-manifest.json. The pill is best-effort chrome: silent on any
-  fetch failure (manifest missing, offline, CORS). Use at any site that
-  emits a manifest via scripts/version/release.py emit-manifest.
+  Renders a small "v0.1.0 · Apr 26, 2026" chip from a deployed
+  release-manifest.json. Best-effort chrome: silent on any fetch failure
+  (manifest missing, offline, CORS). Use at any site that emits a manifest
+  via scripts/version/release.py emit-manifest.
 
-  ── Per-project setup (one of two patterns) ──
+  ── Standardized placement (all MLSysBook sites) ──
 
-  Pattern A — Quarto, configured via _quarto.yml:
+  The chip lives in the page-footer, right slot, so it reads as an
+  intentional part of the footer bar (not dangling below the page). Two
+  pieces per site:
 
-      project:
-        resources:
-          - ../shared/release/release-pill.html
-      format:
-        html:
-          include-in-header:
-            - text: |
-                <meta name="release-manifest" content="/<project-base>/release-manifest.json">
-          include-after-body:
-            - file: ../shared/release/release-pill.html
+  1. This file loads the style + populator script site-wide:
 
-  The meta tag tells the snippet where to find the manifest. The
-  ``include-after-body`` injects the snippet into every rendered page.
+       format:
+         html:
+           include-in-header:
+             - text: |
+                 <meta name="release-manifest" content="/<project-base>/release-manifest.json">
+           include-after-body:
+             - file: ../shared/release/release-pill.html
 
-  Pattern B — Next.js / hand-rolled HTML:
+  2. Each page-footer places the chip span where it should render:
 
-      <meta name="release-manifest" content="/release-manifest.json" />
-      // in footer:
-      <span data-release-pill></span>
-      <script src="/release-pill.js"></script>
+       website:
+         page-footer:
+           right:
+             - text: |
+                 <span class="release-pill" data-release-pill></span>
+             - icon: github
+               href: ...
 
-  (See shared/release/release-pill.js for the standalone JS form.)
-
-  NOTE: This docstring must not contain literal HTML-comment delimiters
-  (open or close). HTML disallows nested comments, so an inner close
-  delimiter would terminate this outer comment early and leak the
-  example markup below it (the span and script tags) into the rendered
-  page — producing a 404 on every Quarto site that includes the snippet
-  via include-after-body. The earlier version of this note tripped that
-  exact bug; if you need to describe HTML-comment syntax, do it without
-  using the literal characters.
+  The meta tag tells the script where to find the manifest. The script
+  populates every span carrying data-release-pill, so the chip can sit in
+  the footer (canonical), an about page, or anywhere else.
 
   ── Manifest contract ──
 
@@ -2415,21 +2440,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
   ── Why runtime fetch instead of build-time templating ──
 
-  Build-time templating (Lua filter, Quarto partial with variable
-  interpolation) would be deterministic and faster but requires
-  per-project Lua/template machinery. Runtime fetch is project-agnostic
-  and works identically across Quarto, Next.js, and plain HTML. The
-  ~50ms fetch cost happens once per page-load and is invisible because
-  the pill is below the fold. If a future project needs the version
-  visible above the fold, it should bake at build time (StaffML does
-  this for its citation card).
+  Build-time templating would be deterministic but requires per-project
+  Lua/template machinery. Runtime fetch is project-agnostic and works
+  identically across Quarto, Next.js, and plain HTML. The one fetch per
+  page-load is cheap and the chip degrades to nothing on failure.
 -->
 
-<span class="release-pill" data-release-pill="" aria-live="polite">
-  <noscript><a href="#">release</a></noscript>
-</span>
-
 <style>
+  /* Fixed muted gray on every site — the chip must look identical regardless of
+     each Quarto theme's accent colors (do NOT inherit --bs-secondary / link color). */
   .release-pill {
     display: inline-flex;
     align-items: baseline;
@@ -2437,40 +2456,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
     font-size: 0.75rem;
     line-height: 1;
-    color: var(--bs-secondary, var(--release-pill-color, #6c757d));
+    color: var(--release-pill-color, #6c757d);
   }
-  .release-pill a {
-    color: inherit;
+  .release-pill a,
+  .release-pill a:visited,
+  .release-pill-version,
+  .release-pill-date {
+    color: var(--release-pill-color, #6c757d);
     text-decoration: none;
   }
   .release-pill a:hover {
-    color: var(--bs-link-color, #0d6efd);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
   .release-pill-date {
-    opacity: 0.7;
+    opacity: 0.75;
   }
 </style>
 
 <script>
   (function () {
-    var el = document.querySelector('[data-release-pill]');
-    if (!el) return;
+    var pills = document.querySelectorAll('[data-release-pill]');
+    if (!pills.length) return;
 
     // Manifest URL resolution order:
     //   1. data-manifest attribute on the pill (per-page override)
     //   2. <meta name="release-manifest" content="..."> in <head>
     //   3. './release-manifest.json' relative to current page (fallback)
     var meta = document.querySelector('meta[name="release-manifest"]');
-    var manifestPath =
-      el.getAttribute('data-manifest') ||
-      (meta && meta.getAttribute('content')) ||
-      './release-manifest.json';
+    var metaPath = meta && meta.getAttribute('content');
 
-    var linkHref = el.getAttribute('data-link') || '#release';
-
-    fetch(manifestPath, { cache: 'no-store' })
+    fetch(metaPath || './release-manifest.json', { cache: 'no-store' })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (m) {
         if (!m || !m.releaseId || !m.releaseHash) return;
@@ -2484,23 +2500,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           'v' + m.releaseId +
           (date ? ' · built ' + date : '') +
           ' · hash ' + shortHash;
-        var a = document.createElement('a');
-        a.href = linkHref;
-        a.title = title;
-        a.setAttribute('aria-label',
-          'Release v' + m.releaseId + (date ? ', built ' + date : ''));
-        var v = document.createElement('span');
-        v.className = 'release-pill-version';
-        v.textContent = 'v' + m.releaseId;
-        a.appendChild(v);
-        if (date) {
-          var d = document.createElement('span');
-          d.className = 'release-pill-date';
-          d.textContent = ' · ' + date;
-          a.appendChild(d);
-        }
-        el.innerHTML = '';
-        el.appendChild(a);
+
+        pills.forEach(function (el) {
+          var linkHref = el.getAttribute('data-link') || '#release';
+          var a = document.createElement('a');
+          a.href = linkHref;
+          a.title = title;
+          a.setAttribute('aria-label',
+            'Release v' + m.releaseId + (date ? ', built ' + date : ''));
+          var v = document.createElement('span');
+          v.className = 'release-pill-version';
+          v.textContent = 'v' + m.releaseId;
+          a.appendChild(v);
+          if (date) {
+            var d = document.createElement('span');
+            d.className = 'release-pill-date';
+            d.textContent = ' · ' + date;
+            a.appendChild(d);
+          }
+          el.innerHTML = '';
+          el.appendChild(a);
+        });
       })
       .catch(function () { /* silent: best-effort chrome */ });
   })();
