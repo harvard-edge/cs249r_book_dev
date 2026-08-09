@@ -795,7 +795,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       </div> <!-- /container-fluid -->
     </nav>
   <div id="quarto-announcement" data-announcement-id="f6115a964fb830287d7653a371de62dc" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1af60969</code> • 2026-08-09 12:09 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">a93123ec</code> • 2026-08-09 13:44 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><span class="mls-ann-line">📖 <strong>ML Systems</strong> — an open-access textbook on the engineering of intelligent systems. <a href="vol1/">Vol I: Foundations →</a> · <a href="vol2/">Vol II: At Scale →</a></span> <span class="mls-ann-line mls-ann-siblings">🛠️ <strong>Alongside the book:</strong> <a href="tinytorch/">TinyTorch</a> (build) · <a href="kits/">Hardware Kits</a> (deploy) · <a href="mlsysim/">MLSys·im</a> (model) · <a href="labs/">Labs</a> (explore) · <a href="staffml/">StaffML</a> (practice)</span> <span class="mls-ann-line">📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="newsletter/">Subscribe →</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1220,7 +1220,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       <iframe src="https://lookerstudio.google.com/embed/reporting/e7192975-a8a0-453d-b6fe-1580ac054dbf/page/0pNbE" title="Global readership map — 313,063 readers across 204 countries and territories" allowfullscreen="allowfullscreen" loading="lazy" sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
       </iframe>
     </div>
-    <p class="mls-map-caption">Live readership — <span data-stat="readers_monthly">18,389</span> readers a month across <span data-stat="countries">204</span> countries and territories</p>
+    <p class="mls-map-caption">Live readership — <span data-stat="readers_monthly">18,389</span> readers a month on average across <span data-stat="countries">204</span> countries and territories</p>
     <p class="mls-map-countries"><span class="mls-map-countries-label">Top countries:</span> <span data-stat="top_countries">United States · India · Singapore · China · Vietnam</span></p>
   </div>
 
@@ -1241,7 +1241,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       </div>
       <div class="mls-reach-item">
         <dd class="mls-reach-value"><span data-stat="readers_monthly">18,389</span></dd>
-        <dt class="mls-reach-label">a month</dt>
+        <dt class="mls-reach-label">avg. a month</dt>
       </div>
     </dl>
 
@@ -1478,12 +1478,17 @@ function mlsRoll(el, finalStr, from) {
 }
 
 // Show a figure: roll it only if this reader has seen a different value before.
+// Increases animate; a decrease is set outright. The reach figures only grow,
+// but the monthly average is a windowed rate and legitimately falls, and a
+// counter visibly winding backwards reads as decline in a way the same number
+// sitting there does not. The figure shown is the current one either way; only
+// the motion is reserved for growth.
 function mlsPresent(el, text, from) {
   const final = String(text);
   const target = Number(final.replace(/,/g, ''));
   if (mlsReduceMotion || !/^[\d,]+$/.test(final.trim())
       || !Number.isFinite(target) || target <= 0
-      || from === null || from === target) {
+      || from === null || from >= target) {
     el.textContent = final;
     mlsRelease(el);
     return;
