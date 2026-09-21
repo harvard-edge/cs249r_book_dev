@@ -400,6 +400,35 @@ ul.task-list li input[type="checkbox"] {
 <!-- Release identity (rendered into the footer pill below). -->
 <meta name="release-manifest" content="/labs/release-manifest.json">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="Interactive Labs">
 <meta property="og:description" content="Interactive ML simulations and labs for exploring machine learning systems.">
@@ -635,6 +664,11 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../vol2/lab_01_introduction/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II Labs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vol4/"><i class="bi bi-robot" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV Physical Studio</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -891,7 +925,7 @@ ul.task-list li input[type="checkbox"] {
       </div> <!-- /container-fluid -->
     </nav>
   <div id="quarto-announcement" data-announcement-id="9b788a2c1ac712350c7b0f301bb82175" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">c8c642b7</code> • 2026-09-20 15:51 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">45528430</code> • 2026-09-21 04:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><strong>Labs</strong> — interactive Marimo notebooks for ML systems trade-offs. Work in progress, full release Fall 2027.<br> <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: Scaling</a> — open access.<br> <strong>Companion resources:</strong> <a href="../../tinytorch/">TinyTorch</a> (build) · <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../mlsysim/">MLSys·im</a> (model) · <a href="../">Labs</a> (explore) · <a href="../../slides/">Lecture Slides</a> (teach) · <a href="../../staffml/">StaffML</a> (practice) · <a href="../../newsletter/">Newsletter</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -904,32 +938,17 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#volume-iv-fourteen-lab-blueprints-for-one-physical-ai-project" id="toc-volume-iv-fourteen-lab-blueprints-for-one-physical-ai-project" class="nav-link active" data-scroll-target="#volume-iv-fourteen-lab-blueprints-for-one-physical-ai-project">Volume IV: fourteen lab blueprints for one physical AI project</a>
+  <li><a href="#volume-iv-eight-lab-blueprints-for-the-physical-ai-studio" id="toc-volume-iv-eight-lab-blueprints-for-the-physical-ai-studio" class="nav-link active" data-scroll-target="#volume-iv-eight-lab-blueprints-for-the-physical-ai-studio">Volume IV: Eight Lab Blueprints for the Physical AI Studio</a>
   <ul class="collapse">
-  <li><a href="#what-students-build" id="toc-what-students-build" class="nav-link" data-scroll-target="#what-students-build">What students build</a></li>
-  <li><a href="#acceptance-rule-for-every-lab" id="toc-acceptance-rule-for-every-lab" class="nav-link" data-scroll-target="#acceptance-rule-for-every-lab">Acceptance rule for every lab</a></li>
-  <li><a href="#staff-station-contract-before-week-1" id="toc-staff-station-contract-before-week-1" class="nav-link" data-scroll-target="#staff-station-contract-before-week-1">Staff station contract before week 1</a></li>
-  <li><a href="#common-labs-establish-the-loop" id="toc-common-labs-establish-the-loop" class="nav-link" data-scroll-target="#common-labs-establish-the-loop">Common labs: establish the loop</a>
+  <li><a href="#pedagogical-architecture" id="toc-pedagogical-architecture" class="nav-link" data-scroll-target="#pedagogical-architecture">1. Pedagogical Architecture</a></li>
+  <li><a href="#the-eight-canonical-lab-blueprints" id="toc-the-eight-canonical-lab-blueprints" class="nav-link" data-scroll-target="#the-eight-canonical-lab-blueprints">2. The Eight Canonical Lab Blueprints</a>
   <ul class="collapse">
-  <li><a href="#lab-1-where-is-the-physical-ai-boundary" id="toc-lab-1-where-is-the-physical-ai-boundary" class="nav-link" data-scroll-target="#lab-1-where-is-the-physical-ai-boundary">Lab 1 — Where is the physical AI boundary?</a></li>
-  <li><a href="#lab-2-what-can-the-body-and-sensors-actually-measure" id="toc-lab-2-what-can-the-body-and-sensors-actually-measure" class="nav-link" data-scroll-target="#lab-2-what-can-the-body-and-sensors-actually-measure">Lab 2 — What can the body and sensors actually measure?</a></li>
-  <li><a href="#lab-3-who-permits-an-action" id="toc-lab-3-who-permits-an-action" class="nav-link" data-scroll-target="#lab-3-who-permits-an-action">Lab 3 — Who permits an action?</a></li>
-  <li><a href="#lab-4-can-an-episode-reconstruct-what-happened" id="toc-lab-4-can-an-episode-reconstruct-what-happened" class="nav-link" data-scroll-target="#lab-4-can-an-episode-reconstruct-what-happened">Lab 4 — Can an episode reconstruct what happened?</a></li>
-  <li><a href="#lab-5-what-does-learning-improve-over-a-rule" id="toc-lab-5-what-does-learning-improve-over-a-rule" class="nav-link" data-scroll-target="#lab-5-what-does-learning-improve-over-a-rule">Lab 5 — What does learning improve over a rule?</a></li>
-  <li><a href="#lab-6-can-the-learned-system-close-one-physical-loop-on-the-q" id="toc-lab-6-can-the-learned-system-close-one-physical-loop-on-the-q" class="nav-link" data-scroll-target="#lab-6-can-the-learned-system-close-one-physical-loop-on-the-q">Lab 6 — Can the learned system close one physical loop on the Q?</a></li>
+  <li><a href="#part-i-the-machine-anatomy-weeks-13-chapters-14" id="toc-part-i-the-machine-anatomy-weeks-13-chapters-14" class="nav-link" data-scroll-target="#part-i-the-machine-anatomy-weeks-13-chapters-14">Part I: The Machine Anatomy (Weeks 1–3) · Chapters 1–4</a></li>
+  <li><a href="#part-ii-teaching-the-machine-weeks-46-chapters-57" id="toc-part-ii-teaching-the-machine-weeks-46-chapters-57" class="nav-link" data-scroll-target="#part-ii-teaching-the-machine-weeks-46-chapters-57">Part II: Teaching the Machine (Weeks 4–6) · Chapters 5–7</a></li>
+  <li><a href="#part-iii-running-the-machine-weeks-79-chapters-813" id="toc-part-iii-running-the-machine-weeks-79-chapters-813" class="nav-link" data-scroll-target="#part-iii-running-the-machine-weeks-79-chapters-813">Part III: Running the Machine (Weeks 7–9) · Chapters 8–13</a></li>
+  <li><a href="#part-iv-governing-the-machine-weeks-1011-chapters-1417" id="toc-part-iv-governing-the-machine-weeks-1011-chapters-1417" class="nav-link" data-scroll-target="#part-iv-governing-the-machine-weeks-1011-chapters-1417">Part IV: Governing the Machine (Weeks 10–11) · Chapters 14–17</a></li>
+  <li><a href="#dedicated-capstone-project-studio-weeks-1214" id="toc-dedicated-capstone-project-studio-weeks-1214" class="nav-link" data-scroll-target="#dedicated-capstone-project-studio-weeks-1214">Dedicated Capstone Project Studio (Weeks 12–14)</a></li>
   </ul></li>
-  <li><a href="#project-studios-explain-and-improve-the-system" id="toc-project-studios-explain-and-improve-the-system" class="nav-link" data-scroll-target="#project-studios-explain-and-improve-the-system">Project studios: explain and improve the system</a>
-  <ul class="collapse">
-  <li><a href="#lab-7-what-do-the-simulators-miss" id="toc-lab-7-what-do-the-simulators-miss" class="nav-link" data-scroll-target="#lab-7-what-do-the-simulators-miss">Lab 7 — What do the simulators miss?</a></li>
-  <li><a href="#lab-8-when-should-a-policy-observe-again" id="toc-lab-8-when-should-a-policy-observe-again" class="nav-link" data-scroll-target="#lab-8-when-should-a-policy-observe-again">Lab 8 — When should a policy observe again?</a></li>
-  <li><a href="#lab-9-does-language-or-model-size-earn-its-cost" id="toc-lab-9-does-language-or-model-size-earn-its-cost" class="nav-link" data-scroll-target="#lab-9-does-language-or-model-size-earn-its-cost">Lab 9 — Does language or model size earn its cost?</a></li>
-  <li><a href="#lab-10-can-the-authority-boundary-reject-a-plausible-policy" id="toc-lab-10-can-the-authority-boundary-reject-a-plausible-policy" class="nav-link" data-scroll-target="#lab-10-can-the-authority-boundary-reject-a-plausible-policy">Lab 10 — Can the authority boundary reject a plausible policy?</a></li>
-  <li><a href="#lab-11-what-happens-after-incomplete-motion" id="toc-lab-11-what-happens-after-incomplete-motion" class="nav-link" data-scroll-target="#lab-11-what-happens-after-incomplete-motion">Lab 11 — What happens after incomplete motion?</a></li>
-  <li><a href="#lab-12-does-a-correction-improve-physical-outcomes" id="toc-lab-12-does-a-correction-improve-physical-outcomes" class="nav-link" data-scroll-target="#lab-12-does-a-correction-improve-physical-outcomes">Lab 12 — Does a correction improve physical outcomes?</a></li>
-  <li><a href="#lab-13-what-claim-can-the-evidence-support" id="toc-lab-13-what-claim-can-the-evidence-support" class="nav-link" data-scroll-target="#lab-13-what-claim-can-the-evidence-support">Lab 13 — What claim can the evidence support?</a></li>
-  <li><a href="#lab-14-does-the-system-work-on-an-unfamiliar-physical-trial" id="toc-lab-14-does-the-system-work-on-an-unfamiliar-physical-trial" class="nav-link" data-scroll-target="#lab-14-does-the-system-work-on-an-unfamiliar-physical-trial">Lab 14 — Does the system work on an unfamiliar physical trial?</a></li>
-  </ul></li>
-  <li><a href="#what-the-handout-author-still-has-to-specify" id="toc-what-the-handout-author-still-has-to-specify" class="nav-link" data-scroll-target="#what-the-handout-author-still-has-to-specify">What the handout author still has to specify</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -941,107 +960,135 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="volume-iv-fourteen-lab-blueprints-for-one-physical-ai-project" class="level1">
-<h1>Volume IV: fourteen lab blueprints for one physical AI project</h1>
-<p><strong>Status:</strong> Teaching design, not released student handouts. These labs use the <a href="../vol4/course-architecture.html">course operating plan</a>, <a href="../vol4/student-competencies.html">platform-independent competency checklist</a>, and <a href="../vol4/so101-uno-q-course.html">SO-101/UNO Q station draft</a>. The <a href="../vol4/feasibility-plan.html">feasibility plan</a> asks Andrea to try each proposed student exercise and report what works. Staff must test the hardware and time budgets before turning the blueprints into assignments.</p>
-<p>For the first offering, these are fourteen weekly <strong>studio prompts</strong>, not fourteen graded assignments. Teams submit graded packets only at the week-2 charter, week-6 feedback loop, week-10 authority demonstration, and week-14 capstone. Weeks 8–9 offer a choice of deeper investigation, week 12 can be project repair, and week 13 is an ungraded rehearsal. Other evidence goes into one shared project notebook and receives formative bench feedback; the <a href="../../instructors/vol4/first-offering-plan.md">first-offering teaching plan</a> assigns staff roles.</p>
-<p>The <a href="../../instructors/vol4/README.md">syllabus</a> pairs each Volume IV reading with a direct lab link. Individual draft briefs: <a href="../vol4/lab-01-boundary.html">1</a>, <a href="../vol4/lab-02-body-and-sensors.html">2</a>, <a href="../vol4/lab-03-action-permission.html">3</a>, <a href="../vol4/lab-04-physical-episodes.html">4</a>, <a href="../vol4/lab-05-baseline-and-learning.html">5</a>, <a href="../vol4/lab-06-local-feedback-loop.html">6</a>, <a href="../vol4/lab-07-simulation-gap.html">7</a>, <a href="../vol4/lab-08-action-chunks.html">8</a>, <a href="../vol4/lab-09-language-and-placement.html">9</a>, <a href="../vol4/lab-10-authority-under-fault.html">10</a>, <a href="../vol4/lab-11-incomplete-motion.html">11</a>, <a href="../vol4/lab-12-human-correction.html">12</a>, <a href="../vol4/lab-13-release-case.html">13</a>, and <a href="../vol4/lab-14-capstone-trial.html">14</a>. This page remains the staff design overview; keep the brief and blueprint for a week consistent when revising either.</p>
-<section id="what-students-build" class="level2">
-<h2 class="anchored" data-anchor-id="what-students-build">What students build</h2>
-<p>Each team carries one versioned system from week 1 to week 14. The shared first task is a <strong>guarded visual reach with a changed scene</strong>: observe a soft target in a marked workspace, propose a bounded arm movement using a local learned model on the UNO Q, let the STM32 permit or refuse it, measure actual movement, then safely move the target or interrupt the move. The next observation must reveal the actual arm and target state, and the learned component must influence a revised action or an abstention. The week-6 demonstration requires this loop, not a reliable grasp. Replaying the original action after merely capturing a second frame fails.</p>
-<p>The semester project extends that loop to a <strong>disturbance-and-recovery</strong> manipulation outcome, such as placing a soft block in a marked tray after a moved target or incomplete pickup. Teams may instead investigate active inspection or partial placement if the station can measure those outcomes. A camera label followed by a fixed arm script does not meet the project requirement: teams must show a learned proposal whose next action depends on the measured state produced by prior motion or disturbance. Instruction-conditioned sorting is a capstone option only after staff demonstrate a task-matched local language-conditioned policy within the board’s time and memory budget. An offboard SmolVLA result may be compared with the local policy but does not replace local learned inference in the required loop.</p>
-<p>The common record is <strong>observation ID and time; requested, mapped, enforced, and measured action; next observation; measured tool and object/task state; outcome; intervention</strong>. A LeRobot episode, linked MCU event log, and independent camera or fixture outcome record may together provide this record. Servo readback alone cannot establish grasp or placement. Every team compares a nonlearned baseline and reports repeated physical trials with a scene change or incomplete action. The final defense follows a single episode from sensed state to revised decision and actual material outcome.</p>
+<section id="volume-iv-eight-lab-blueprints-for-the-physical-ai-studio" class="level1">
+<h1>Volume IV: Eight Lab Blueprints for the Physical AI Studio</h1>
+<p><strong>Status:</strong> Canonical Staff Architecture and Studio Blueprint <strong>Target Platform:</strong> Arduino UNO Q (“Unikue” QRB2210 Linux + STM32U585) · Seeed Studio SO-101 6-DoF Arm · Hugging Face LeRobot · SmolVLA &amp; ACT Models <strong>Reference Curriculum:</strong> <a href="README.md">Master Landing Page</a> · <a href="../vol4/syllabus.html">Course Syllabus</a> · <a href="../vol4/student-competencies.html">12-Competency Matrix</a> · <a href="../vol4/feasibility-plan.html">Postdoc Pre-Flight Guide</a> · <a href="../vol4/lab-capstone-studio.html">Capstone Studio</a></p>
+<hr>
+<section id="pedagogical-architecture" class="level2">
+<h2 class="anchored" data-anchor-id="pedagogical-architecture">1. Pedagogical Architecture</h2>
+<p>The Volume IV studio is structured into <strong>4 foundational parts (8 hands-on labs, Weeks 1–11)</strong> followed by a <strong>3-Week Dedicated Capstone Studio (Weeks 12–14)</strong>. Rather than treating physical AI as abstract software deployment, every lab exercises the closed-loop Sense·Propose·Permit·Act loop across the physical boundary.</p>
+<pre><code>                    ┌─────────────────────────┐
+                    │   1. SENSE (Webcam)     │
+                    └───────────┬─────────────┘
+                                │ RGB Frames
+                                ▼
+                    ┌─────────────────────────┐
+                    │ 2. PROPOSE (Qualcomm)   │ ◄── SmolVLA / ACT Policy
+                    └───────────┬─────────────┘
+                                │ Requested Actions (a_req)
+                                ▼
+                    ┌─────────────────────────┐
+                    │  3. PERMIT (STM32 MCU)  │ ◄── Safety Envelope &amp; Veto
+                    └───────────┬─────────────┘
+                                │ Enforced Actions (a_enf)
+                                ▼
+                    ┌─────────────────────────┐
+                    │    4. ACT (SO-101 Arm)  │ ◄── STS3215 Serial Servos
+                    └───────────┬─────────────┘
+                                │ Measured Telemetry (a_meas)
+                                └────────────────────────► Closed-Loop Revision</code></pre>
+<hr>
 </section>
-<section id="acceptance-rule-for-every-lab" class="level2">
-<h2 class="anchored" data-anchor-id="acceptance-rule-for-every-lab">Acceptance rule for every lab</h2>
-<p>Each weekly artifact contributes one link to the same causal episode: a physical state and prediction, a proposed action, a permission decision, actual motion or refusal, the resulting observation, and a task consequence. A lab may isolate one link, such as calibration or permission, but its hand-in must show how that link changes the continuing episode. Students must identify what would have gone wrong if the system had trusted the command instead of the measured world. Board inference speed, model score, and polished video are supporting measurements, never substitutes for this causal record. The final test must satisfy all three conditions in the book’s scope test: a learned decision, consequential physical feedback, and delegated action inside the MCU permission boundary.</p>
+<section id="the-eight-canonical-lab-blueprints" class="level2">
+<h2 class="anchored" data-anchor-id="the-eight-canonical-lab-blueprints">2. The Eight Canonical Lab Blueprints</h2>
+<section id="part-i-the-machine-anatomy-weeks-13-chapters-14" class="level3">
+<h3 class="anchored" data-anchor-id="part-i-the-machine-anatomy-weeks-13-chapters-14">Part I: The Machine Anatomy (Weeks 1–3) · Chapters 1–4</h3>
+<section id="lab-1-causal-boundary-bus-bring-up" class="level4">
+<h4 class="anchored" data-anchor-id="lab-1-causal-boundary-bus-bring-up">Lab 1: Causal Boundary &amp; Bus Bring-Up</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> Where does software end, where does physical actuation begin, and who holds veto authority?</li>
+<li><strong>Hands-On Experiment:</strong> Map the physical wiring harness between the Arduino UNO Q, the independent 7.4V/5A motor power rail, the switched DC power supply, and the STS3215 single-wire half-duplex UART bus. Measure cold boot time, reset transients, and verify zero-motion safe hold when motor power is severed.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit <code>wiring_diagram_golden.pdf</code> and an oscilloscope/logic-analyzer trace demonstrating motor power cutoff within <span class="math inline">\(&lt; 5\text{ ms}\)</span> while Linux logging remains active.</li>
+<li><strong>Competencies:</strong> A1, D1.</li>
+</ul>
 </section>
-<section id="staff-station-contract-before-week-1" class="level2">
-<h2 class="anchored" data-anchor-id="staff-station-contract-before-week-1">Staff station contract before week 1</h2>
-<p>The teaching team provides an assembled SO-101 follower, calibrated camera and fixed lighting, guarded low-energy workspace, accessible motor-power cutoff, UNO Q image, and a tested Linux → STM32 → servo-bus command path with no parallel host command path. Staff also provide a LeRobot robot adapter or converter that retains the four action taps, a starter episode set, a compact Hub-sourced policy artifact that runs locally on the exact Q, a scripted baseline, two pinned simulation fixtures, fault scripts, and spare or replay stations. A leader arm is useful for teleoperation but is not a required student purchase if another tested input device works.</p>
-<p>Before publishing an arm assignment, a second staff member must reproduce four demonstrations: native arm calibration and episode replay; one-joint MCU permission and refusal; whole-arm guarded command and measured readback; and a local learned reach whose action proposal changes after a measured scene change. The qualifying local policy consumes a current observation and robot/task state and proposes a bounded action for held-out target positions; a classifier label wired to one fixed motion does not qualify. Staff measure the physical envelope, loop timing, model memory, station capacity, and task success protocol. The <a href="../vol4/feasibility-plan.html">feasibility plan</a> defines the report. If the arm command path fails, the <a href="../vol4/lab-sequence.html">one-axis reference station</a> carries the governed loop while SO-101 remains a LeRobot data and policy station. If no compact action policy runs on the Q, the course cannot claim the proposed local-inference objective and the teaching team must revise the platform or objective before release.</p>
-</section>
-<section id="common-labs-establish-the-loop" class="level2">
-<h2 class="anchored" data-anchor-id="common-labs-establish-the-loop">Common labs: establish the loop</h2>
-<section id="lab-1-where-is-the-physical-ai-boundary" class="level3">
-<h3 class="anchored" data-anchor-id="lab-1-where-is-the-physical-ai-boundary">Lab 1 — Where is the physical AI boundary?</h3>
-<p><strong>Experiment:</strong> With motor power isolated, inventory the camera, Qualcomm Linux, Bridge, STM32, servo bus, and cutoff. Trace one hypothetical proposal and identify every component that can cause motion. Observe boot, disconnect, and power-off behavior on the qualified station.</p>
-<p><strong>Evidence and exit:</strong> Submit a power and command diagram, safe-state observations, and one counterexample in which a model output would not establish physical AI. Pass when the team can identify the only live actuator command route and the measured safe state. This starts <strong>C1, C6, C13</strong>.</p>
-</section>
-<section id="lab-2-what-can-the-body-and-sensors-actually-measure" class="level3">
-<h3 class="anchored" data-anchor-id="lab-2-what-can-the-body-and-sensors-actually-measure">Lab 2 — What can the body and sensors actually measure?</h3>
-<p><strong>Experiment:</strong> Calibrate joint readback and camera coordinates, command the same slow move from repeated starts, and measure the difference between requested pose, settled pose, and visible tool position. Measure the reachable marked workspace, then conceal or disconnect one feedback source. State units, settling time, and uncertainty; use a staff fixture so no student must fabricate an arm mount.</p>
-<p><strong>Evidence and exit:</strong> Submit calibration and frame revisions, raw command-versus-settled readings, a measured operating envelope, and a sensor-loss trace. Pass when a teammate can reproduce a measured target position and explain why commanded motion is not measured motion. Freeze the week-2 task charter. This exercises <strong>C1, C2</strong>.</p>
-</section>
-<section id="lab-3-who-permits-an-action" class="level3">
-<h3 class="anchored" data-anchor-id="lab-3-who-permits-an-action">Lab 3 — Who permits an action?</h3>
-<p><strong>Experiment:</strong> Send synthetic one-joint proposals through the supplied STM32-to-servo interface: valid, duplicate, expired, disarmed, and out of range. Progress to a slow bounded pose only after the one-joint trace is correct. Do not ask students to design an untested servo-bus interface during term.</p>
-<p><strong>Evidence and exit:</strong> Submit the proposal schema and linked requested, mapped, enforced, and measured action traces. Pass when the MCU refuses every injected invalid request and no alternate host path can move the arm. This exercises <strong>C3, C6, C13</strong>.</p>
-</section>
-<section id="lab-4-can-an-episode-reconstruct-what-happened" class="level3">
-<h3 class="anchored" data-anchor-id="lab-4-can-an-episode-reconstruct-what-happened">Lab 4 — Can an episode reconstruct what happened?</h3>
-<p><strong>Experiment:</strong> Teleoperate guarded reaches and a few soft-block moves. Record images, joint readback, instruction or goal, four action taps, and observed outcomes. Replay one episode; deliberately introduce a missing frame or timing gap.</p>
-<p><strong>Evidence and exit:</strong> Submit a replayable LeRobot episode, linked MCU log, timing alignment rule, and dataset card. Pass when another team can reconstruct the action that followed a selected observation and identify the corrupted episode. This exercises <strong>C3, C7</strong>.</p>
-</section>
-<section id="lab-5-what-does-learning-improve-over-a-rule" class="level3">
-<h3 class="anchored" data-anchor-id="lab-5-what-does-learning-improve-over-a-rule">Lab 5 — What does learning improve over a rule?</h3>
-<p><strong>Experiment:</strong> Hold out complete capture sessions; run the scripted reach baseline on frozen start positions. Evaluate the supplied compact policy on the same observations, inspect its preprocessing and failure cases, and adapt it using team data if time permits. Training may use a workstation.</p>
-<p><strong>Evidence and exit:</strong> Submit split rationale, model and dataset revisions, baseline physical outcomes, held-out model errors, and a failure inventory. Pass when the comparison uses matched starts and a result cannot be explained by data leakage. This exercises <strong>C4, C7, C8</strong>.</p>
-</section>
-<section id="lab-6-can-the-learned-system-close-one-physical-loop-on-the-q" class="level3">
-<h3 class="anchored" data-anchor-id="lab-6-can-the-learned-system-close-one-physical-loop-on-the-q">Lab 6 — Can the learned system close one physical loop on the Q?</h3>
-<p><strong>Experiment:</strong> Run the compact policy locally on Qualcomm Linux. Compare its outputs with the workstation, send a bounded proposal through the MCU, and measure joint, tool, and target state. Staff then shift the soft target within the qualified workspace or cause a safe incomplete move. Capture a fresh observation and require the learned component to produce a state-dependent correction or abstention. Run the scripted baseline against the same disturbance. Use the slow reach task and a staff checkpoint if a team’s model is not ready.</p>
-<p><strong>Evidence and exit:</strong> Demonstrate a witnessed model → permission → measured move → changed scene → new observation → revised decision. Submit the model revision, memory and latency trace, four action taps, target/tool state before and after, rule comparison, and a refusal or abstention. The second proposal must respond to measured state rather than execute a queued script. This <strong>week-6 demonstration</strong> exercises <strong>C8, C10, C12, C15</strong>.</p>
-</section>
-</section>
-<section id="project-studios-explain-and-improve-the-system" class="level2">
-<h2 class="anchored" data-anchor-id="project-studios-explain-and-improve-the-system">Project studios: explain and improve the system</h2>
-<section id="lab-7-what-do-the-simulators-miss" class="level3">
-<h3 class="anchored" data-anchor-id="lab-7-what-do-the-simulators-miss">Lab 7 — What do the simulators miss?</h3>
-<p><strong>Experiment:</strong> Apply identical initial states and actions to the staff-supplied kinematic model, a second pinned simulator, and the arm. Identify one dynamical parameter or fit a small next-state predictor using supplied training trajectories; evaluate the resulting prediction against held-out physical reaches. Students configure and compare the fixtures rather than build two engines.</p>
-<p><strong>Evidence and exit:</strong> Submit observation/action contracts, matched rollouts, one-step and multi-step errors, and one physical failure explained by model mismatch. Pass when the team identifies which prediction it will trust for its project. This exercises <strong>C5, C9</strong>.</p>
-</section>
-<section id="lab-8-when-should-a-policy-observe-again" class="level3">
-<h3 class="anchored" data-anchor-id="lab-8-when-should-a-policy-observe-again">Lab 8 — When should a policy observe again?</h3>
-<p><strong>Experiment:</strong> Start from a staff-provided ACT checkpoint and compare its sequence-action rollout with a stepwise policy on matched simulated starts and guarded physical trials. Perturb the target after the first action in one trial. Train or fine-tune ACT on workstation compute if that comparison serves the team’s project question and fits the studio budget.</p>
-<p><strong>Evidence and exit:</strong> Submit checkpoint or policy revisions, action-chunk and stepwise traces, physical outcomes, and the point at which a fresh observation should invalidate a chunk. Pass when the team can explain one drift or recovery case. This exercises <strong>C10, C11</strong>.</p>
-</section>
-<section id="lab-9-does-language-or-model-size-earn-its-cost" class="level3">
-<h3 class="anchored" data-anchor-id="lab-9-does-language-or-model-size-earn-its-cost">Lab 9 — Does language or model size earn its cost?</h3>
-<p><strong>Experiment:</strong> Test a task-matched SmolVLA checkpoint or staff-provided rollout with two instructions applied to the same scene. Compare it with ACT and the compact Q policy. Profile local SmolVLA on the Q only if staff have shown a viable runtime; otherwise analyze the measured staff trace and keep the compact policy in the physical loop.</p>
-<p><strong>Evidence and exit:</strong> Submit paired-instruction action differences, matched <strong>physical</strong> task outcomes, memory and latency measurements, and a model placement decision. Pass when the team distinguishes a language-conditioned change in the physical plan from a visual coincidence and states whether the Q can meet its deadline. If the model cannot control the qualified station, label this an offboard comparison rather than a physical AI demonstration. This exercises <strong>C11, C12</strong>.</p>
-</section>
-<section id="lab-10-can-the-authority-boundary-reject-a-plausible-policy" class="level3">
-<h3 class="anchored" data-anchor-id="lab-10-can-the-authority-boundary-reject-a-plausible-policy">Lab 10 — Can the authority boundary reject a plausible policy?</h3>
-<p><strong>Experiment:</strong> Replay a valid-looking stale chunk, a duplicate, an oversized move, and a proposal sent while disarmed. Add Linux load or pause the proposer. Test a physical cutoff on the staff-qualified station.</p>
-<p><strong>Evidence and exit:</strong> Submit refusals with reasons, four action taps, measured no-motion or bounded-motion results, and a timing rule. Show that old intent cannot produce a new move after cutoff or timeout. This <strong>authority demonstration</strong> exercises <strong>C13, C14</strong>.</p>
-</section>
-<section id="lab-11-what-happens-after-incomplete-motion" class="level3">
-<h3 class="anchored" data-anchor-id="lab-11-what-happens-after-incomplete-motion">Lab 11 — What happens after incomplete motion?</h3>
-<p><strong>Experiment:</strong> Move the target or soft block, obstruct a reach with a compliant fixture, or induce a partial grasp within the approved envelope. Compare open-loop continuation with observing again and replanning or abstaining.</p>
-<p><strong>Evidence and exit:</strong> Submit video or object-state evidence, measured joint response, next observation, changed plan, and repeated outcomes. Pass when the team’s policy detects at least one discrepancy between commanded and realized state rather than counting a command as success. This exercises <strong>C10, C14</strong>.</p>
-</section>
-<section id="lab-12-does-a-correction-improve-physical-outcomes" class="level3">
-<h3 class="anchored" data-anchor-id="lab-12-does-a-correction-improve-physical-outcomes">Lab 12 — Does a correction improve physical outcomes?</h3>
-<p><strong>Experiment:</strong> Record a human intervention or corrective demonstration, revise the dataset or preprocessing, retrain or fine-tune a compact policy, and repeat the same frozen physical trial set. Keep the previous policy as a control. A controller-rule change can be studied separately but does not replace the learned-policy revision.</p>
-<p><strong>Evidence and exit:</strong> Submit intervention log, changed artifact revision, and paired before/after physical results including failures. Pass when the team can attribute the observed change to a documented revision or report that the evidence is inconclusive. This exercises <strong>C7, C15</strong>.</p>
-</section>
-<section id="lab-13-what-claim-can-the-evidence-support" class="level3">
-<h3 class="anchored" data-anchor-id="lab-13-what-claim-can-the-evidence-support">Lab 13 — What claim can the evidence support?</h3>
-<p><strong>Experiment:</strong> Freeze code, model, data, simulator versions, calibration, fault script, and operating envelope. Exchange one safe fault case with another team and rehearse the final trial protocol without changing the scoring rule afterward.</p>
-<p><strong>Evidence and exit:</strong> Submit a release or no-release draft with raw traces, baseline comparison, success and abstention counts, unresolved limits, and an individual competency evidence index. Pass when another team can reproduce the trial and challenge the claim. This exercises <strong>C6, C15</strong>.</p>
-</section>
-<section id="lab-14-does-the-system-work-on-an-unfamiliar-physical-trial" class="level3">
-<h3 class="anchored" data-anchor-id="lab-14-does-the-system-work-on-an-unfamiliar-physical-trial">Lab 14 — Does the system work on an unfamiliar physical trial?</h3>
-<p><strong>Experiment:</strong> Staff select a held-out starting arrangement or instruction and, after the first permitted move, introduce a safe scene change or incomplete motion. The team runs repeated physical trials and defends the full observation → proposal → permission → measured action → changed world → new observation → revised proposal chain. Each student explains a selected trace and a decision to continue, correct, stop, or abstain.</p>
-<p><strong>Evidence and exit:</strong> Submit the frozen system packet, raw trial results, matched baseline, disturbance and fault responses, measured object/task outcomes, and bounded verdict. The defense checks evidence in all four competency quadrants; an impressive demonstration without a state-dependent revised decision, measured physical outcome, or MCU permission cannot pass. This is the capstone.</p>
+<section id="lab-2-sensing-inter-core-bridge" class="level4">
+<h4 class="anchored" data-anchor-id="lab-2-sensing-inter-core-bridge">Lab 2: Sensing &amp; Inter-Core Bridge</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> What can the camera and joint sensors actually measure, and what is the latency cost of communicating across the inter-core boundary?</li>
+<li><strong>Hands-On Experiment:</strong> Calibrate the overhead UVC USB webcam (<code>/dev/video0</code>) using an AprilTag target; calibrate joint angle zero-offsets across all 6 SO-101 joints (<span class="math inline">\(\pm 1.5^\circ\)</span> repeatability). Benchmark inter-core RPC throughput and round-trip latency between Qualcomm Linux and STM32 MCU over <code>/dev/ttyRPMSG</code>.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit calibrated camera projection matrices, joint angle calibration offsets, and a latency histogram showing RPC round-trip times <span class="math inline">\(\le 5\text{ ms}\)</span> at <span class="math inline">\(50\text{ Hz}\)</span>.</li>
+<li><strong>Competencies:</strong> A2, A3.</li>
+</ul>
+<hr>
 </section>
 </section>
-<section id="what-the-handout-author-still-has-to-specify" class="level2">
-<h2 class="anchored" data-anchor-id="what-the-handout-author-still-has-to-specify">What the handout author still has to specify</h2>
-<p>Each released lab needs a starting station state, exact student commands and diagrams, a bounded motion envelope, a time allowance, a reset procedure, a sample trace, a deliberate fault script, a pass/fail rubric, and a path for equipment outages. Staff fill in numerical limits only from the qualified station. The first six handouts can be written after the staff pilot; later project studios use the same station and evidence schema with team-specific task variants.</p>
+<section id="part-ii-teaching-the-machine-weeks-46-chapters-57" class="level3">
+<h3 class="anchored" data-anchor-id="part-ii-teaching-the-machine-weeks-46-chapters-57">Part II: Teaching the Machine (Weeks 4–6) · Chapters 5–7</h3>
+<section id="lab-3-teleoperation-datasets" class="level4">
+<h4 class="anchored" data-anchor-id="lab-3-teleoperation-datasets">Lab 3: Teleoperation &amp; Datasets</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> How do human physical demonstrations become causal, auditable datasets for imitation learning?</li>
+<li><strong>Hands-On Experiment:</strong> Use LeRobot teleoperation (<code>lerobot-teleoperate</code>) to record 10 expert pick-and-place demonstration episodes on the SO-101 arm. Synchronize <span class="math inline">\(30\text{ Hz}\)</span> camera frames (<span class="math inline">\(224 \times 224\)</span> RGB) with joint telemetry into the standardized LeRobot v2 dataset schema (<code>LeRobotDataset</code>).</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit a validated 10-episode dataset card (<code>dataset_golden_10ep/</code>) containing synchronized observation and action streams with zero dropped frames.</li>
+<li><strong>Competencies:</strong> B1, B2.</li>
+</ul>
+</section>
+<section id="lab-4-baseline-policy-export" class="level4">
+<h4 class="anchored" data-anchor-id="lab-4-baseline-policy-export">Lab 4: Baseline &amp; Policy Export</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> How does an imitation learning policy compare against a classical heuristic, and how is it packaged for edge execution?</li>
+<li><strong>Hands-On Experiment:</strong> Implement a deterministic heuristic reaching script (<code>heuristic_reach.py</code>) using fixed joint interpolation. Train a baseline Action Chunking with Transformers (ACT) policy on the Lab 3 dataset using GPU compute. Export and quantize the model to ONNX INT8 for edge deployment.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit comparative offline validation curves (MSE vs ground truth) and the quantized model artifact (<code>policy_act_int8.onnx</code>, <span class="math inline">\(&lt; 50\text{ MB}\)</span>).</li>
+<li><strong>Competencies:</strong> B2, B3.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="part-iii-running-the-machine-weeks-79-chapters-813" class="level3">
+<h3 class="anchored" data-anchor-id="part-iii-running-the-machine-weeks-79-chapters-813">Part III: Running the Machine (Weeks 7–9) · Chapters 8–13</h3>
+<section id="lab-5-autonomous-closed-loop-reach" class="level4">
+<h4 class="anchored" data-anchor-id="lab-5-autonomous-closed-loop-reach">Lab 5: Autonomous Closed-Loop Reach</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> Can a learned policy close the feedback loop untethered on edge silicon?</li>
+<li><strong>Hands-On Experiment:</strong> Deploy the quantized ACT/SmolVLA policy natively onto Qualcomm Linux. Run the autonomous loop (<code>pai_edge_runtime.py</code>) without host PC assistance. The arm must observe the block via webcam, infer joint proposals, send them to the STM32, and execute an autonomous reach to arbitrary target positions.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> A witnessed untethered reach on physical hardware and a 4-tap telemetry log showing total loop latency <span class="math inline">\(T_{\text{total}} \le 80\text{ ms}\)</span> (<span class="math inline">\(&gt; 12.5\text{ Hz}\)</span>).</li>
+<li><strong>Competencies:</strong> C1, C2.</li>
+</ul>
+</section>
+<section id="lab-6-action-horizons-disturbances" class="level4">
+<h4 class="anchored" data-anchor-id="lab-6-action-horizons-disturbances">Lab 6: Action Horizons &amp; Disturbances</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> How far into the future can an embodied model predict open-loop actions before physical drift demands re-observation?</li>
+<li><strong>Hands-On Experiment:</strong> Benchmark policy performance across action chunk horizons <span class="math inline">\(K \in \{1, 8, 16, 32\}\)</span>. Inject a physical disturbance mid-trajectory by shifting the target block. Measure the recovery latency and tracking error under temporal ensemble averaging. Test language-prompt variation on SmolVLA.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit comparative tracking error curves across chunk horizons and multi-tap telemetry capturing autonomous disturbance recovery.</li>
+<li><strong>Competencies:</strong> C2, C3.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="part-iv-governing-the-machine-weeks-1011-chapters-1417" class="level3">
+<h3 class="anchored" data-anchor-id="part-iv-governing-the-machine-weeks-1011-chapters-1417">Part IV: Governing the Machine (Weeks 10–11) · Chapters 14–17</h3>
+<section id="lab-7-microcontroller-safety-governor" class="level4">
+<h4 class="anchored" data-anchor-id="lab-7-microcontroller-safety-governor">Lab 7: Microcontroller Safety Governor</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> How do we deterministically ensure that a probabilistic neural network cannot command destructive physical motion?</li>
+<li><strong>Hands-On Experiment:</strong> Program the STM32U585 firmware to act as an active safety governor. Implement joint velocity saturation (<span class="math inline">\(\omega_{\text{max}} = 45^\circ/\text{s}\)</span>) and a Cartesian forward-kinematics table collision geofence (<span class="math inline">\(z_{\text{tool}} \ge 15\text{ mm}\)</span>). Inject illegal commands via Python and measure real-time MCU veto behavior.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit STM32 firmware source code and a live demonstration where injected out-of-bounds proposals are clamped or vetoed in <span class="math inline">\(&lt; 5\text{ ms}\)</span> without system crashes.</li>
+<li><strong>Competencies:</strong> D1, D2.</li>
+</ul>
+</section>
+<section id="lab-8-fault-injection-cutoffs" class="level4">
+<h4 class="anchored" data-anchor-id="lab-8-fault-injection-cutoffs">Lab 8: Fault Injection &amp; Cutoffs</h4>
+<ul>
+<li><strong>Core Systems Question:</strong> What happens when the host computer freezes, the camera is disconnected, or communications fail mid-motion?</li>
+<li><strong>Hands-On Experiment:</strong> Configure a <span class="math inline">\(150\text{ ms}\)</span> hardware SysTick watchdog on the STM32. Inject simulated Linux freezes (<code>kill -STOP</code>), USB cable disconnects, and packet corruptions. Verify that the arm decelerates to a safe stop within <span class="math inline">\(150\text{ ms}\)</span> and executes zero stale buffered commands upon resumption.</li>
+<li><strong>Exit Proof &amp; Artifact:</strong> Submit telemetry traces demonstrating watchdog cutoff and an audit proving zero backlogged action execution after process resumption.</li>
+<li><strong>Competencies:</strong> D2, D3.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="dedicated-capstone-project-studio-weeks-1214" class="level3">
+<h3 class="anchored" data-anchor-id="dedicated-capstone-project-studio-weeks-1214">Dedicated Capstone Project Studio (Weeks 12–14)</h3>
+<ul>
+<li><strong>Mission:</strong> Design, train, deploy, and rigorously defend an end-to-end embodied manipulation system capable of robust disturbance recovery under real-world perturbations.</li>
+<li><strong>Milestone 5 Defense:</strong> 20 consecutive physical trials under staff-injected perturbations (target relocations, surface obstacles, visual occlusions) requiring <span class="math inline">\(\ge 80\%\)</span> success and <span class="math inline">\(0\%\)</span> safety violations.</li>
+<li><strong>Deliverable:</strong> Claim-Argument-Evidence (CAE) Physical Release Dossier and oral defense.</li>
+</ul>
 
 
+</section>
 </section>
 </section>
 

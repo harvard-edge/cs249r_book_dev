@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>archetype-proxies – Interactive Labs</title>
+<title>lab-capstone-studio – Interactive Labs</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -35,6 +35,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
+<link href="../vol4/lab-08-verification-and-release.html" rel="prev">
 <link href="../assets/images/favicon.svg" rel="icon" type="image/svg+xml">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -400,6 +401,35 @@ ul.task-list li input[type="checkbox"] {
 <!-- Release identity (rendered into the footer pill below). -->
 <meta name="release-manifest" content="/labs/release-manifest.json">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="Interactive Labs">
 <meta property="og:description" content="Interactive ML simulations and labs for exploring machine learning systems.">
@@ -412,7 +442,7 @@ ul.task-list li input[type="checkbox"] {
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -895,6 +925,19 @@ ul.task-list li input[type="checkbox"] {
 </div>
       </div> <!-- /container-fluid -->
     </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vol4/README.md">Volume IV: Physical AI</a></li><li class="breadcrumb-item"><a href="../vol4/lab-capstone-studio.html">Capstone Project Studio</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
   <div id="quarto-announcement" data-announcement-id="9b788a2c1ac712350c7b0f301bb82175" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
 <p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">45528430</code> • 2026-09-21 04:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><strong>Labs</strong> — interactive Marimo notebooks for ML systems trade-offs. Work in progress, full release Fall 2027.<br> <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: Scaling</a> — open access.<br> <strong>Companion resources:</strong> <a href="../../tinytorch/">TinyTorch</a> (build) · <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../mlsysim/">MLSys·im</a> (model) · <a href="../">Labs</a> (explore) · <a href="../../slides/">Lecture Slides</a> (teach) · <a href="../../staffml/">StaffML</a> (practice) · <a href="../../newsletter/">Newsletter</a></p>
@@ -903,134 +946,630 @@ ul.task-list li input[type="checkbox"] {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Labs Home</span></a>
+  </div>
+</li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Volume I: Foundations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">I. Foundations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_00_introduction/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">00 · The Architect’s Portal</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_01_ml_intro/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">01 · The AI Triad</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_02_ml_systems/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">02 · Physics of Deployment</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_03_ml_workflow/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">03 · The Constraint Tax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_04_data_engr/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">04 · Data Gravity &amp; Ingestion</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">II. Build</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_05_nn_compute/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">05 · The Activation Tax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_06_nn_arch/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">06 · The Architecture Tax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_07_ml_frameworks/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">07 · The Framework Tax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_08_model_train/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">08 · The Training Gauntlet</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">III. Optimize</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_09_data_selection/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">09 · The Selection Paradox</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_10_model_compress/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · The Compression Frontier</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_11_hw_accel/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11 · The Hardware Roofline</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">IV. Deploy</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_12_perf_bench/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · The Benchmarking Trap</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_13_model_serving/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13 · The Tail Latency Trap</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_14_ml_ops/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14 · Silent Degradation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Capstone</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_15_responsible_engr/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">15 · No Free Fairness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol1/lab_16_ml_conclusion/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16 · The Architect’s Audit</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Volume II: Scaling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">I. Foundations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_01_introduction/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">01 · The Scale Illusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_02_compute_infra/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">02 · The Compute Wall</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_03_communication/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">03 · Network Fabric Design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_04_data_storage/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">04 · The Storage Wall</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">II. Build</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_05_dist_train/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">05 · The Parallelism Puzzle</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_06_collective_communication/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">06 · Collective Communication</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_07_fault_tolerance/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">07 · When Failure Is Routine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_08_fleet_orch/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">08 · The Scheduling Trap</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">III. Optimize</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_09_perf_engineering/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">09 · The Optimization Trap</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_10_inference/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">10 · The Inference Economy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_11_edge_intelligence/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">11 · Edge Thermodynamics</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">IV. Deploy</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_12_ops_scale/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">12 · The Silent Fleet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_13_security_privacy/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">13 · The Price of Privacy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_14_robust_ai/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">14 · The Robustness Budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_15_sustainable_ai/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">15 · The Carbon Budget</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
+ <span class="menu-text">Capstone</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_16_responsible_ai/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">16 · The Fairness Budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol2/lab_17_fleet_synthesis/" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">17 · The Fleet Synthesis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="true">
+ <span class="menu-text">Volume IV: Physical AI</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/README.md" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Studio Overview &amp; Hardware Kit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/syllabus.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Master Course Syllabus</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/student-competencies.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Competency Card (12 Skills)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part I · The Machine Anatomy</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/module-1-machine-anatomy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-01-boundary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 1 · Causal Boundary &amp; Bus Bring-Up</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-02-body-and-sensors.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 2 · Sensing &amp; Inter-Core Bridge</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part II · Teaching the Machine</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/module-2-teaching-the-machine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-03-physical-episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 3 · Teleoperation &amp; Datasets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-04-baseline-and-learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 4 · Baseline &amp; Policy Export</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part III · Running the Machine</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-16" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/module-3-running-the-machine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-05-local-feedback-loop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 5 · Autonomous Closed-Loop Reach</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-06-action-chunks.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 6 · Action Horizons &amp; Disturbances</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part IV · Governing the Machine</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-17" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/module-4-governing-the-machine.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part IV Overview</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-07-authority-under-fault.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 7 · Microcontroller Safety Governor</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-08-verification-and-release.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lab 8 · Fault Injection &amp; Cutoffs</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../vol4/lab-capstone-studio.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Capstone Project Studio</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#three-physical-ai-archetypes-as-teaching-proxies" id="toc-three-physical-ai-archetypes-as-teaching-proxies" class="nav-link active" data-scroll-target="#three-physical-ai-archetypes-as-teaching-proxies">Three physical AI archetypes as teaching proxies</a>
+  <li><a href="#capstone-project-studio-physical-release-defense" id="toc-capstone-project-studio-physical-release-defense" class="nav-link active" data-scroll-target="#capstone-project-studio-physical-release-defense">Capstone Project Studio: Physical Release Defense</a>
   <ul class="collapse">
-  <li><a href="#what-the-current-draft-has-and-what-it-misses" id="toc-what-the-current-draft-has-and-what-it-misses" class="nav-link" data-scroll-target="#what-the-current-draft-has-and-what-it-misses">What the current draft has and what it misses</a></li>
-  <li><a href="#three-candidate-body-modules-on-one-computing-spine" id="toc-three-candidate-body-modules-on-one-computing-spine" class="nav-link" data-scroll-target="#three-candidate-body-modules-on-one-computing-spine">Three candidate body modules on one computing spine</a></li>
-  <li><a href="#how-the-three-proxies-use-the-competency-matrix" id="toc-how-the-three-proxies-use-the-competency-matrix" class="nav-link" data-scroll-target="#how-the-three-proxies-use-the-competency-matrix">How the three proxies use the competency matrix</a></li>
-  <li><a href="#course-structure-and-fallback" id="toc-course-structure-and-fallback" class="nav-link" data-scroll-target="#course-structure-and-fallback">Course structure and fallback</a></li>
+  <li><a href="#the-physical-question" id="toc-the-physical-question" class="nav-link" data-scroll-target="#the-physical-question">1. The Physical Question</a></li>
+  <li><a href="#studio-operating-rhythm-weeks-1214" id="toc-studio-operating-rhythm-weeks-1214" class="nav-link" data-scroll-target="#studio-operating-rhythm-weeks-1214">2. Studio Operating Rhythm (Weeks 12–14)</a></li>
+  <li><a href="#the-20-trial-physical-benchmark-protocol" id="toc-the-20-trial-physical-benchmark-protocol" class="nav-link" data-scroll-target="#the-20-trial-physical-benchmark-protocol">3. The 20-Trial Physical Benchmark Protocol</a></li>
+  <li><a href="#the-physical-release-dossier-specification" id="toc-the-physical-release-dossier-specification" class="nav-link" data-scroll-target="#the-physical-release-dossier-specification">4. The Physical Release Dossier Specification</a></li>
+  <li><a href="#individual-oral-defense-protocol" id="toc-individual-oral-defense-protocol" class="nav-link" data-scroll-target="#individual-oral-defense-protocol">5. Individual Oral Defense Protocol</a></li>
+  <li><a href="#sign-off-graduation-criteria" id="toc-sign-off-graduation-criteria" class="nav-link" data-scroll-target="#sign-off-graduation-criteria">6. Sign-Off &amp; Graduation Criteria</a></li>
   </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../vol4/README.md">Volume IV: Physical AI</a></li><li class="breadcrumb-item"><a href="../vol4/lab-capstone-studio.html">Capstone Project Studio</a></li></ol></nav></header>
 
 
 
 
 
-<section id="three-physical-ai-archetypes-as-teaching-proxies" class="level1">
-<h1>Three physical AI archetypes as teaching proxies</h1>
-<p><strong>Status:</strong> Alternative project architecture for discussion, not a released kit or a tested hardware result. The <a href="../../books/vol4/frontmatter/about.qmd">Volume IV introduction</a> and <a href="../../books/vol4/01_boundary/01_boundary.qmd">boundary chapter</a> name three foundational machine classes by their binding physical constraints: mass and stopping clearance, contact force, and continuous energy or flow. The <a href="../vol4/student-competencies.html">student competency matrix</a> describes transferable engineering abilities. This page asks how small UNO Q stations could exercise each class without pretending that a tabletop proxy is a warehouse robot, industrial arm, or thermal plant.</p>
-<section id="what-the-current-draft-has-and-what-it-misses" class="level2">
-<h2 class="anchored" data-anchor-id="what-the-current-draft-has-and-what-it-misses">What the current draft has and what it misses</h2>
-<p>The current <a href="../vol4/lab-sequence.html">lab sequence</a> gives every team a guarded one-axis visual follower, then offers active inspection and retained-object routing. It establishes a common model → MCU permission → physical action → observation path. The syllabus has moved from book front matter to the <a href="../../instructors/vol4/README.md">instructor materials</a>. The <a href="../vol4/kit-bom.html">kit sheet</a> and <a href="../vol4/feasibility-plan.html">feasibility plan</a> specify a candidate station and required tests. <strong>No station, model runtime, sensor mount, simulator comparison, or SO-101 STM32-to-servo command path has yet been demonstrated by these documents.</strong></p>
-<p>Those three project prompts mostly vary the task on the same low-force axis. Active inspection tests information gathering well, but turning a retained object without force measurement does not teach contact-dominated manipulation. A slow pointer does not reveal a useful stopping-distance budget merely because it moves. None of the three represents a continuous process. To teach the book’s archetypes, each proxy must preserve the <strong>dominant physical constraint and its failure mode</strong>, rather than imitate the full machine’s appearance.</p>
+<section id="capstone-project-studio-physical-release-defense" class="level1">
+<h1>Capstone Project Studio: Physical Release Defense</h1>
+<p><strong>Schedule:</strong> Weeks 12–14 (3 Full Weeks Dedicated Studio) <strong>Required Textbook Reading:</strong> Complete Volume IV Synthesis (<a href="../../books/vol4/index.qmd">Chapters 1–17</a>) <strong>Target Competencies:</strong> <code>[ ] D3 Physical Release Defense &amp; Evidence Dossier</code> <em>(Full 12-Card Mastery)</em> <strong>Milestone Deliverable:</strong> <a href="../vol4/syllabus.html#sec-milestones">Milestone 5</a> (End of Week 14) — <em>Capstone System Defense &amp; Physical Release Dossier</em></p>
+<hr>
+<section id="the-physical-question" class="level3">
+<h3 class="anchored" data-anchor-id="the-physical-question">1. The Physical Question</h3>
+<p>How does an engineering team defend a formal, evidence-backed safety and release claim for an autonomous embodied machine? When operating under real-world physical variability, how do we prove where the system is dependable, where it safely abstains, and that it never violates its safety governor?</p>
+<hr>
 </section>
-<section id="three-candidate-body-modules-on-one-computing-spine" class="level2">
-<h2 class="anchored" data-anchor-id="three-candidate-body-modules-on-one-computing-spine">Three candidate body modules on one computing spine</h2>
-<p>Every module uses the same abstract cycle: observe physical state, run a versioned learned model on the UNO Q’s Qualcomm/Linux side, propose a bounded action, let the STM32 check local state and permission, apply energy through a separate actuator supply, and measure the result. Training and simulation can run on a workstation. The shared trace links observation, model revision, proposal, permission, applied action, direct sensor reading, and next observation. The body-specific wiring, driver, protection, and simulation model differ.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Book archetype</th>
-<th style="text-align: left;">Bench proxy and learned decision</th>
-<th style="text-align: left;">Physical limit to measure</th>
-<th style="text-align: left;">Qualification test</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><strong>Class 1: mobility</strong></td>
-<td style="text-align: left;">Guarded cart; vision proposes speed or stop.</td>
-<td style="text-align: left;">Encoder and range sensor; stopping clearance.</td>
-<td style="text-align: left;">Speed or inference delay consumes measurable clearance.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Class 2: manipulation</strong></td>
-<td style="text-align: left;">Compliant pusher; probe model proposes depth or withdrawal.</td>
-<td style="text-align: left;">Position and contact force; force/travel limit.</td>
-<td style="text-align: left;">Different sample compliance changes measured force.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>Class 3: process/energy</strong></td>
-<td style="text-align: left;">Enclosed heater/fan cell; predictor proposes duty.</td>
-<td style="text-align: left;">Two temperatures and power; thermal cutoff.</td>
-<td style="text-align: left;">Stored heat causes measurable lag after duty changes.</td>
-</tr>
-</tbody>
-</table>
-<p>For <strong>Class 1</strong>, use a short marked rail or lane with physical end stops, a light cart, motor driver, and accessible cutoff. Compare coast and braking distance at several speeds and injected inference delays. The MCU uses local speed and obstacle distance to refuse a proposal that cannot stop within the remaining lane. If gearbox friction makes residual motion unmeasurable, change the carriage design or reject the proxy.</p>
-<p>For <strong>Class 2</strong>, push replaceable samples of two safe compliance levels within a guarded contact zone. A model uses a first camera view or force/displacement probe to choose a second push or withdrawal. Calibrate a force sensor or a spring-deflection measurement and determine its delay before setting motion speed. The MCU refuses excessive travel or force and stops on sensor loss. A passive object turn without measured contact does not test this archetype.</p>
-<p>For <strong>Class 3</strong>, enclose a low-voltage heater, fan, and modest thermal mass. Log temperatures at two locations and applied power. Compare a simple thermal model, learned predictor, and rule or PID controller while the MCU enforces a temperature ceiling and an independent thermal cutoff remains available. Reject the proxy if the thermal effect is too small or a trial takes too long for a class period.</p>
-<p>These are <strong>small proxies of the governing laws</strong>, not claims that a rail cart covers legged locomotion, a slow compliant pusher reproduces high-rate industrial contact, or a warm box covers high-pressure fluid and power electronics. A <a href="https://www.pololu.com/product/5142">Pololu encoder gearmotor</a>, <a href="https://learn.sparkfun.com/tutorials/load-cell-amplifier-hx711-breakout-hookup-guide/introduction">SparkFun load-cell interface</a>, and <a href="https://www.adafruit.com/product/4308">Adafruit low-voltage heater</a> show possible component families; no part is selected or safe to deploy merely because it has a product page. Staff must size, guard, power, instrument, and qualify each body. The load-cell interface linked here is a serial sensor, not SPI.</p>
+<section id="studio-operating-rhythm-weeks-1214" class="level3">
+<h3 class="anchored" data-anchor-id="studio-operating-rhythm-weeks-1214">2. Studio Operating Rhythm (Weeks 12–14)</h3>
+<p>Formal lectures and new lab assignments have concluded. The final three weeks give student teams dedicated bench runway:</p>
+<pre><code>┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ WEEK 12: TASK BUILD &amp; POLICY HARDENING                                                 │
+│ • Freeze environment fixture and task definition (sorting, insertion, bin picking).    │
+│ • Collect custom 50-episode LeRobot dataset with all 4 action taps logged.             │
+│ • Fine-tune SmolVLA or ACT; export quantized ONNX model to Arduino UNO Q.              │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ WEEK 13: ADVERSARIAL PEER FAULT EXCHANGE &amp; DRESS REHEARSAL                             │
+│ • Teams swap "fault challenges" with an assigned peer group.                           │
+│ • Peer teams introduce unannounced physical disturbances (lighting drops, obstacles).   │
+│ • Teams harden STM32 safety governors, replanning routines, and abstention boundaries. │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ WEEK 14: THE GRADUATION TRIAL &amp; LIVE ORAL DEFENSE                                      │
+│ • Execute 20 live, unedited physical trials (10 baseline + 10 disturbance trials).     │
+│ • Submit the formal, auditable Physical Release Dossier.                               │
+│ • Individual student oral defense of the complete S·P·A causal loop.                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<hr>
 </section>
-<section id="how-the-three-proxies-use-the-competency-matrix" class="level2">
-<h2 class="anchored" data-anchor-id="how-the-three-proxies-use-the-competency-matrix">How the three proxies use the competency matrix</h2>
-<p>The competency matrix says <strong>what an engineer must be able to do</strong>. The archetypes supply three different physical contexts in which to demonstrate it. A team need not build twelve projects; it should complete the four quadrants on one body and examine the other two through short instrumented labs or shared stations.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Competency quadrant</th>
-<th style="text-align: left;">Class 1: cart</th>
-<th style="text-align: left;">Class 2: pusher</th>
-<th style="text-align: left;">Class 3: thermal cell</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><strong>A. Measure the world</strong></td>
-<td style="text-align: left;">Calibrate speed and clearance; measure coast and braking.</td>
-<td style="text-align: left;">Calibrate position and force; measure force versus displacement.</td>
-<td style="text-align: left;">Calibrate two temperatures and power; measure lag and stored heat.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>B. Characterize computation</strong></td>
-<td style="text-align: left;">Evaluate visual obstacle or target inference and its latency.</td>
-<td style="text-align: left;">Evaluate material or contact-state inference.</td>
-<td style="text-align: left;">Evaluate next-temperature prediction and horizon error.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>C. Change the world</strong></td>
-<td style="text-align: left;">Approach, brake, and replan after a missed stop.</td>
-<td style="text-align: left;">Probe, push, withdraw, and replan after unexpected contact.</td>
-<td style="text-align: left;">Heat, cool, hold, and replan after a disturbance.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>D. Integrate and govern</strong></td>
-<td style="text-align: left;">Enforce a local stopping envelope.</td>
-<td style="text-align: left;">Enforce a local force/travel envelope.</td>
-<td style="text-align: left;">Enforce a local temperature/power envelope.</td>
-</tr>
-</tbody>
-</table>
-<p>Across all three, students version the model and data, compare a nonlearned baseline, run matched simulator and hardware trials, trace proposal versus permitted action, and explain a seeded fault. The physical limit and the sensor/actuator module change; the evidence contract stays the same.</p>
-<p>The <a href="https://docs.arduino.cc/hardware/uno-q/">UNO Q</a> provides a Qualcomm Linux processor, STM32 microcontroller, and Bridge communication for the shared compute/authority lesson. Its presence does not prove that any particular model, motor driver, force sensor, or thermal cell works together. A Hugging Face vision checkpoint is a candidate for the cart; a small learned probe or dynamics model could be versioned through the Hub for the pusher; <a href="https://huggingface.co/docs/transformers/model_doc/patchtst">PatchTST</a> illustrates a time-series model family for the thermal cell. Model size and on-board runtime remain pilot questions. A simple, frozen model that demonstrably changes a physical decision is preferable to a larger model that misses the task deadline.</p>
+<section id="the-20-trial-physical-benchmark-protocol" class="level3">
+<h3 class="anchored" data-anchor-id="the-20-trial-physical-benchmark-protocol">3. The 20-Trial Physical Benchmark Protocol</h3>
+<p>During the final exam session in Week 14, each team executes <strong>20 repeated physical trials</strong> on hardware before the teaching panel:</p>
+<ol type="1">
+<li><strong>Trials 1–10 (Baseline Operating Envelope):</strong>
+<ul>
+<li>Target objects placed at 10 randomized, held-out coordinates across the characterized workspace.</li>
+<li>Zero human intervention allowed.</li>
+<li>Evaluate positioning precision, reach duration, and final object state.</li>
+</ul></li>
+<li><strong>Trials 11–20 (Physical Disturbance Crucible):</strong>
+<ul>
+<li>The examination panel or peer team introduces live disturbances:
+<ul>
+<li><em>Disturbance A (Mid-Reach Shift):</em> Object displaced by 50 mm during active trajectory.</li>
+<li><em>Disturbance B (Illumination Drop):</em> Overhead ambient lighting reduced by 70%.</li>
+<li><em>Disturbance C (Compliant Obstacle):</em> A soft foam barrier placed along the nominal approach path.</li>
+<li><em>Disturbance D (Missing Target):</em> Target block removed completely before approach.</li>
+</ul></li>
+<li>The system must demonstrate adaptive recovery or justified, safe abstention. Zero unhandled collisions or hardware stalls are permitted.</li>
+</ul></li>
+</ol>
+<hr>
 </section>
-<section id="course-structure-and-fallback" class="level2">
-<h2 class="anchored" data-anchor-id="course-structure-and-fallback">Course structure and fallback</h2>
-<p>The one-axis follower can remain a <strong>common bring-up exercise</strong> for camera, Bridge, MCU permission, logging, and feedback. It need not be one of the three archetype capstones. Staff then build one qualified station of each archetype and provide recorded traces and simulator adapters so every student can compare all three constraints. Teams choose one archetype for a vertical capstone; the class can share the more expensive bodies instead of buying all three for every team. The <a href="https://huggingface.co/docs/lerobot/so101">SO-101</a> remains a shared manipulation and imitation-policy extension until its motor-command authority is separately qualified.</p>
-<p>If active visual inspection cannot meet its ambiguity or timing requirement, it can be dropped without losing the course sequence. The thermal cell is a plausible low-mechanical-complexity replacement because it can expose prediction, delayed physical response, and MCU authority on a slow time scale; thermal safety and session duration must still be proved. The pusher is the clearest contact proxy if force measurement is reliable. The cart is the clearest mobility proxy if its stopping distance is measurable within a guarded lane. No fallback should be declared ready until staff show the limiting physical effect, the on-board model path, MCU permission before actuation, and a repeated feedback trial.</p>
-<p><strong>Decision before syllabus revision:</strong> prototype one of each body, then choose whether all teams rotate through three short archetype labs and select one capstone, or whether only one archetype is practical for the first offering. The present syllabus still describes the earlier follower/inspection/routing options and should change only after that pilot decision.</p>
+<section id="the-physical-release-dossier-specification" class="level3">
+<h3 class="anchored" data-anchor-id="the-physical-release-dossier-specification">4. The Physical Release Dossier Specification</h3>
+<p>Each team submits a formal, versioned technical engineering document containing:</p>
+<ol type="1">
+<li><strong>Claim-Argument-Evidence (CAE) Framework:</strong>
+<ul>
+<li><em>Claim:</em> The exact task success rate and safety guarantees the system provides.</li>
+<li><em>Operational Design Domain (ODD):</em> Precise physical boundaries (allowable lighting lux, object weight range, temperature, workspace volume).</li>
+<li><em>Evidence:</em> Quantitative data from the 20 physical trials, telemetry plots, and latency distributions.</li>
+</ul></li>
+<li><strong>Baseline Comparative Analysis:</strong>
+<ul>
+<li>Matched comparison against the deterministic scripted baseline. Where does the neural policy provide superior generalization, and where is the baseline faster or more predictable?</li>
+</ul></li>
+<li><strong>Failure Mode Taxonomy &amp; Abstention Policy:</strong>
+<ul>
+<li>Complete inventory of observed failure modes. Documentation proving the system safely halts or abstains rather than executing uncontrolled motion.</li>
+</ul></li>
+<li><strong>Complete Traceability Archive:</strong>
+<ul>
+<li>Git commit hash of all software and firmware.</li>
+<li>Hub link to the curated LeRobot evaluation dataset recording all 4 action taps for every trial.</li>
+</ul></li>
+</ol>
+<hr>
+</section>
+<section id="individual-oral-defense-protocol" class="level3">
+<h3 class="anchored" data-anchor-id="individual-oral-defense-protocol">5. Individual Oral Defense Protocol</h3>
+<p>Following the 20 physical trials, each team member is examined individually by the panel: * <strong>Student A (The Brain):</strong> Traces a randomly selected episode from raw camera pixels through model preprocessing, SmolVLA/ACT inference, and action chunk proposal generation. * <strong>Student B (The Governor):</strong> Explains the STM32 MCU permission log, boundary checks, velocity clamps, and why a specific proposal was permitted or clipped. * <strong>Student C (The Physics):</strong> Interprets the physical discrepancy between commanded trajectory (<span class="math inline">\(a_{\text{req}}\)</span>), motor response (<span class="math inline">\(a_{\text{meas}}\)</span>), and final material outcome.</p>
+<hr>
+</section>
+<section id="sign-off-graduation-criteria" class="level3">
+<h3 class="anchored" data-anchor-id="sign-off-graduation-criteria">6. Sign-Off &amp; Graduation Criteria</h3>
+<p>To achieve course graduation and Milestone 5 completion: 1. [ ] <strong>20-Trial Execution:</strong> Complete 20 witnessed physical trials with zero unhandled collisions or hardware crashes. 2. [ ] <strong>Physical Release Dossier:</strong> Submit an approved, auditable Claim-Argument-Evidence release dossier. 3. [ ] <strong>Oral Defense:</strong> Every team member successfully defends their individual causal trace. 4. [ ] <strong>Complete Competency Mastery:</strong> All 12 competencies (A1–A3, B1–B3, C1–C3, D1–D3) signed off on the <a href="../vol4/student-competencies.html">Competency Card</a>.</p>
+<blockquote class="blockquote">
+<p><strong>A Note on Engineering Integrity:</strong> A team that concludes their system <strong>should NOT be released</strong> for production due to measured timing or reliability limitations—and provides rigorous physical evidence supporting that conclusion—receives full honors. Proving where a physical system fails is the hallmark of a true systems engineer.</p>
+</blockquote>
 
 
 </section>
@@ -1455,6 +1994,15 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../vol4/lab-08-verification-and-release.html" class="pagination-link" aria-label="Lab 8 · Fault Injection &amp; Cutoffs">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Lab 8 · Fault Injection &amp; Cutoffs</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">

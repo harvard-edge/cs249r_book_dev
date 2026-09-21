@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>lab-05-baseline-and-learning – Interactive Labs</title>
+<title>vla-workflow – Interactive Labs</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -400,6 +400,35 @@ ul.task-list li input[type="checkbox"] {
 <!-- Release identity (rendered into the footer pill below). -->
 <meta name="release-manifest" content="/labs/release-manifest.json">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="Interactive Labs">
 <meta property="og:description" content="Interactive ML simulations and labs for exploring machine learning systems.">
@@ -635,6 +664,11 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../vol2/lab_01_introduction/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume II Labs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vol4/"><i class="bi bi-robot" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV Physical Studio</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -891,7 +925,7 @@ ul.task-list li input[type="checkbox"] {
       </div> <!-- /container-fluid -->
     </nav>
   <div id="quarto-announcement" data-announcement-id="9b788a2c1ac712350c7b0f301bb82175" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">c8c642b7</code> • 2026-09-20 15:51 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">45528430</code> • 2026-09-21 04:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><strong>Labs</strong> — interactive Marimo notebooks for ML systems trade-offs. Work in progress, full release Fall 2027.<br> <strong>The book:</strong> <a href="../../vol1/">Vol I: Foundations</a> · <a href="../../vol2/">Vol II: Scaling</a> — open access.<br> <strong>Companion resources:</strong> <a href="../../tinytorch/">TinyTorch</a> (build) · <a href="../../kits/">Hardware Kits</a> (deploy) · <a href="../../mlsysim/">MLSys·im</a> (model) · <a href="../">Labs</a> (explore) · <a href="../../slides/">Lecture Slides</a> (teach) · <a href="../../staffml/">StaffML</a> (practice) · <a href="../../newsletter/">Newsletter</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -904,10 +938,20 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#lab-5-what-does-learning-improve-over-a-rule" id="toc-lab-5-what-does-learning-improve-over-a-rule" class="nav-link active" data-scroll-target="#lab-5-what-does-learning-improve-over-a-rule">Lab 5 — What does learning improve over a rule?</a>
+  <li><a href="#modern-robot-control-workflow-from-analytical-kinematics-to-edge-vlas" id="toc-modern-robot-control-workflow-from-analytical-kinematics-to-edge-vlas" class="nav-link active" data-scroll-target="#modern-robot-control-workflow-from-analytical-kinematics-to-edge-vlas">Modern Robot Control Workflow: From Analytical Kinematics to Edge VLAs</a>
   <ul class="collapse">
-  <li><a href="#experiment" id="toc-experiment" class="nav-link" data-scroll-target="#experiment">Experiment</a></li>
-  <li><a href="#submit-and-exit-check" id="toc-submit-and-exit-check" class="nav-link" data-scroll-target="#submit-and-exit-check">Submit and exit check</a></li>
+  <li><a href="#the-vision-controlling-robots-in-a-modern-fashion" id="toc-the-vision-controlling-robots-in-a-modern-fashion" class="nav-link" data-scroll-target="#the-vision-controlling-robots-in-a-modern-fashion">The Vision: Controlling Robots in a Modern Fashion</a></li>
+  <li><a href="#the-7-step-sequence-in-detail" id="toc-the-7-step-sequence-in-detail" class="nav-link" data-scroll-target="#the-7-step-sequence-in-detail">The 7-Step Sequence in Detail</a>
+  <ul class="collapse">
+  <li><a href="#step-1-analytical-kinematics-paper-pen" id="toc-step-1-analytical-kinematics-paper-pen" class="nav-link" data-scroll-target="#step-1-analytical-kinematics-paper-pen">Step 1: Analytical Kinematics (Paper &amp; Pen)</a></li>
+  <li><a href="#step-2-digital-twin-in-simulation" id="toc-step-2-digital-twin-in-simulation" class="nav-link" data-scroll-target="#step-2-digital-twin-in-simulation">Step 2: Digital Twin in Simulation</a></li>
+  <li><a href="#step-3-hardware-baseline-real-world-mcu-control" id="toc-step-3-hardware-baseline-real-world-mcu-control" class="nav-link" data-scroll-target="#step-3-hardware-baseline-real-world-mcu-control">Step 3: Hardware Baseline &amp; Real-World MCU Control</a></li>
+  <li><a href="#step-4-introducing-vlas-in-simulation" id="toc-step-4-introducing-vlas-in-simulation" class="nav-link" data-scroll-target="#step-4-introducing-vlas-in-simulation">Step 4: Introducing VLAs in Simulation</a></li>
+  <li><a href="#step-5-edge-deployment-on-dragonwing-the-sim-to-real-shock" id="toc-step-5-edge-deployment-on-dragonwing-the-sim-to-real-shock" class="nav-link" data-scroll-target="#step-5-edge-deployment-on-dragonwing-the-sim-to-real-shock">Step 5: Edge Deployment on Dragonwing &amp; The Sim-to-Real Shock</a></li>
+  <li><a href="#step-6-bridging-the-gap-with-real-world-adaptation" id="toc-step-6-bridging-the-gap-with-real-world-adaptation" class="nav-link" data-scroll-target="#step-6-bridging-the-gap-with-real-world-adaptation">Step 6: Bridging the Gap with Real-World Adaptation</a></li>
+  <li><a href="#step-7-cross-architecture-generalization-capstone" id="toc-step-7-cross-architecture-generalization-capstone" class="nav-link" data-scroll-target="#step-7-cross-architecture-generalization-capstone">Step 7: Cross-Architecture Generalization &amp; Capstone</a></li>
+  </ul></li>
+  <li><a href="#alignment-with-course-milestones-weekly-rhythm" id="toc-alignment-with-course-milestones-weekly-rhythm" class="nav-link" data-scroll-target="#alignment-with-course-milestones-weekly-rhythm">Alignment with Course Milestones &amp; Weekly Rhythm</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -919,19 +963,149 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="lab-5-what-does-learning-improve-over-a-rule" class="level1">
-<h1>Lab 5 — What does learning improve over a rule?</h1>
-<p><strong>Status:</strong> Draft student lab brief. Andrea will try this exercise on the kit and record the student artifact, time required, starter materials, and any changes in the <a href="../vol4/feasibility-plan.html">feasibility plan</a>. Staff will set motion limits and reset instructions from the tested station before releasing the handout.</p>
-<p><strong>Read before class:</strong> <a href="../../books/vol4/06_training/06_training.qmd">Chapter 6: Policy Training</a>; <a href="../../books/vol4/07_evaluation/07_evaluation.qmd">Chapter 7: Closed-Loop Evaluation</a>.</p>
-<p><strong>Start from:</strong> Lab 4 episodes and staff checkpoint.</p>
-<section id="experiment" class="level2">
-<h2 class="anchored" data-anchor-id="experiment">Experiment</h2>
-<p>Hold out complete capture sessions; run the scripted reach baseline on frozen start positions. Evaluate the supplied compact policy on the same observations, inspect its preprocessing and failure cases, and adapt it using team data if time permits. Training may use a workstation.</p>
+<section id="modern-robot-control-workflow-from-analytical-kinematics-to-edge-vlas" class="level1">
+<h1>Modern Robot Control Workflow: From Analytical Kinematics to Edge VLAs</h1>
+<p><strong>Status:</strong> The primary pedagogical spine for the Volume IV Physical AI Studio, proposed by Dr.&nbsp;Andrea Mattia Garavagno and Professor Vijay Janapa Reddi.</p>
+<hr>
+<section id="the-vision-controlling-robots-in-a-modern-fashion" class="level2">
+<h2 class="anchored" data-anchor-id="the-vision-controlling-robots-in-a-modern-fashion">The Vision: Controlling Robots in a Modern Fashion</h2>
+<p>Modern robotics is undergoing a paradigm shift from hand-crafted analytical kinematics and trajectory generators to <strong>Vision-Language-Action (VLA) foundation models</strong> and end-to-end imitation learning. However, students cannot appreciate what modern learned policies solve—or where they fail—without first grounding themselves in physical kinematics, simulation modeling, and microcontroller execution.</p>
+<p>The studio follows an intuitive, hands-on <strong>7-Step Modern Control Workflow</strong> that takes students from first-principles analytical mathematics to edge-deployed VLAs on physical hardware:</p>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────────────┐
+│                      THE 7-STEP MODERN CONTROL WORKFLOW                         │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│ 1. Paper &amp; Pen IK         ──▶ Compute analytical kinematics by hand              │
+│ 2. Digital Twin (Sim)     ──▶ Model the Hero robot &amp; test IK in modern simulation│
+│ 3. Hardware MCU Baseline  ──▶ Deploy IK equations on STM32 MCU via UNO Q CLI    │
+│ 4. VLAs in Simulation     ──▶ Control the Hero robot in sim with a pre-trained VLA│
+│ 5. Edge VLA &amp; Sim2Real    ──▶ Deploy VLA on Dragonwing via RPC ➔ Witness the GAP! │
+│ 6. Real-World Adaptation  ──▶ Collect teleop data with LeRobot &amp; fine-tune VLA   │
+│ 7. Architecture Transfer  ──▶ Generalize pipeline to novel robot embodiments     │
+└──────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<hr>
 </section>
-<section id="submit-and-exit-check" class="level2">
-<h2 class="anchored" data-anchor-id="submit-and-exit-check">Submit and exit check</h2>
-<p>Submit split rationale, model and dataset revisions, baseline physical outcomes, held-out model errors, and a failure inventory. Pass when the comparison uses matched starts and a result cannot be explained by data leakage. This exercises <strong>C4, C7, C8</strong>.</p>
-<p><strong>Carry forward:</strong> held-out split and matched baseline results. Keep the raw trace and artifact revision so the next lab can reconstruct this result.</p>
+<section id="the-7-step-sequence-in-detail" class="level2">
+<h2 class="anchored" data-anchor-id="the-7-step-sequence-in-detail">The 7-Step Sequence in Detail</h2>
+<section id="step-1-analytical-kinematics-paper-pen" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-analytical-kinematics-paper-pen">Step 1: Analytical Kinematics (Paper &amp; Pen)</h3>
+<ul>
+<li><strong>What Students Do:</strong> Derive the forward and inverse kinematics (DH parameters, geometric/analytical IK) for the “Hero” robot arm on paper.</li>
+<li><strong>Concepts:</strong> Coordinate frames, transform matrices, joint limits, singularities, and reachable workspace.</li>
+<li><strong>Outcome:</strong> Closed-form mathematical equations mapping <span class="math inline">\((x, y, z, \text{roll}, \text{pitch}, \text{yaw})\)</span> end-effector targets to joint angles <span class="math inline">\((\theta_1, \dots, \theta_6)\)</span>.</li>
+</ul>
+</section>
+<section id="step-2-digital-twin-in-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-digital-twin-in-simulation">Step 2: Digital Twin in Simulation</h3>
+<ul>
+<li><strong>What Students Do:</strong> Instantiate a URDF/MJCF digital twin of the Hero robot inside a modern physics simulator (MuJoCo, Isaac Gym / LeIsaac). Implement the paper-and-pen IK equations in Python/C++ to drive the simulated arm to interactive target positions.</li>
+<li><strong>Concepts:</strong> Rigid-body dynamics, joint damping, collision meshes, forward integration.</li>
+<li><strong>Outcome:</strong> Interactive digital twin responding deterministically to Cartesian target commands.</li>
+</ul>
+</section>
+<section id="step-3-hardware-baseline-real-world-mcu-control" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-hardware-baseline-real-world-mcu-control">Step 3: Hardware Baseline &amp; Real-World MCU Control</h3>
+<ul>
+<li><strong>What Students Do:</strong> Move from simulation to the physical station. Implement the IK equations on the <strong>Arduino UNO Q STM32 microcontroller (MCU)</strong>. Command the physical robot arm via the <strong>Arduino UNO Q CLI</strong>.</li>
+<li><strong>Concepts:</strong> Microcontroller execution, half-duplex serial bus (Feetech STS3215), gear backlash, commanded vs.&nbsp;settled error, physical safety envelopes.</li>
+<li><strong>Outcome:</strong> A working, deterministic, nonlearned baseline that moves the physical arm in the real world.</li>
+</ul>
+</section>
+<section id="step-4-introducing-vlas-in-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="step-4-introducing-vlas-in-simulation">Step 4: Introducing VLAs in Simulation</h3>
+<ul>
+<li><strong>What Students Do:</strong> Shift from classical Cartesian IK to modern Vision-Language-Action (VLA) policies. Staff provide training recipes, multimodal demonstration datasets, and a pre-trained VLA checkpoint acting in the digital twin environment.</li>
+<li><strong>Concepts:</strong> Multimodal tokenization, cross-attention between vision/text and action chunks, imitation learning.</li>
+<li><strong>Outcome:</strong> Students command the simulated robot using natural language and visual observations (e.g., <em>“reach toward the red cube”</em>).</li>
+</ul>
+</section>
+<section id="step-5-edge-deployment-on-dragonwing-the-sim-to-real-shock" class="level3">
+<h3 class="anchored" data-anchor-id="step-5-edge-deployment-on-dragonwing-the-sim-to-real-shock">Step 5: Edge Deployment on Dragonwing &amp; The Sim-to-Real Shock</h3>
+<ul>
+<li><strong>What Students Do:</strong> Export the pre-trained VLA policy to the <strong>Arduino UNO Q Qualcomm Dragonwing (QRB2210 Linux MPU)</strong>. Connect the Dragonwing policy to the STM32 MCU via <strong>RPC / Arduino Bridge</strong>. Run the simulation-trained VLA on the physical hero robot via the Arduino UNO Q CLI.</li>
+<li><strong>The Revelation:</strong> Students witness the <strong>Sim-to-Real gap</strong> firsthand: lighting shifts, camera distortion, table friction, cable drag, and actuator lag cause the simulation-trained policy to miss, drift, or stall.</li>
+<li><strong>Outcome:</strong> Measurable quantification of the Sim2Real performance drop.</li>
+</ul>
+</section>
+<section id="step-6-bridging-the-gap-with-real-world-adaptation" class="level3">
+<h3 class="anchored" data-anchor-id="step-6-bridging-the-gap-with-real-world-adaptation">Step 6: Bridging the Gap with Real-World Adaptation</h3>
+<ul>
+<li><strong>What Students Do:</strong> Collect a small, focused real-world demonstration dataset on the physical hardware using Hugging Face LeRobot teleoperation scripts. Fine-tune the pre-trained VLA on this real-world dataset.</li>
+<li><strong>Concepts:</strong> Data-centric AI, behavioral cloning, distribution shift, fine-tuning recipes, real-time closed-loop recovery.</li>
+<li><strong>Outcome:</strong> The fine-tuned VLA successfully executes the physical task on hardware, compensating for real-world friction and camera variations.</li>
+</ul>
+</section>
+<section id="step-7-cross-architecture-generalization-capstone" class="level3">
+<h3 class="anchored" data-anchor-id="step-7-cross-architecture-generalization-capstone">Step 7: Cross-Architecture Generalization &amp; Capstone</h3>
+<ul>
+<li><strong>What Students Do:</strong> Test how this analytical <span class="math inline">\(\to\)</span> simulation <span class="math inline">\(\to\)</span> edge VLA <span class="math inline">\(\to\)</span> fine-tuning pipeline generalizes across varied task conditions, perturbations, and different robot kinematics/architectures (e.g., mobile manipulators, varied payloads, novel compliant fixtures).</li>
+<li><strong>Outcome:</strong> Final capstone trials, adversarial fault testing, and oral defense.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="alignment-with-course-milestones-weekly-rhythm" class="level2">
+<h2 class="anchored" data-anchor-id="alignment-with-course-milestones-weekly-rhythm">Alignment with Course Milestones &amp; Weekly Rhythm</h2>
+<p>Over a 14-week semester (provisional 3 hours of supervised studio lab per week = 42 contact lab hours), the 7 steps map into pairs of weeks synchronized with the 4 course milestones:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 23%">
+<col style="width: 23%">
+<col style="width: 23%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Studio Weeks</th>
+<th style="text-align: left;">Workflow Step</th>
+<th style="text-align: left;">Module Mapping</th>
+<th style="text-align: left;">Milestone Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Weeks 1–2</strong></td>
+<td style="text-align: left;"><strong>Step 1:</strong> Paper &amp; Pen IK<br><strong>Step 2:</strong> Digital Twin Simulation</td>
+<td style="text-align: left;"><strong>Module 1:</strong> Causal Boundary &amp; Plant</td>
+<td style="text-align: left;"><strong>Milestone 1 (Week 2):</strong> Project Charter, IK Validation &amp; Envelope</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Weeks 3–4</strong></td>
+<td style="text-align: left;"><strong>Step 3:</strong> Physical Hardware MCU Baseline (CLI)</td>
+<td style="text-align: left;"><strong>Module 2:</strong> Closing the Autonomous Loop</td>
+<td style="text-align: left;"><em>Formative Bench Review:</em> Baseline repeatability &amp; MCU authority</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Weeks 5–6</strong></td>
+<td style="text-align: left;"><strong>Step 4:</strong> VLAs in Simulation<br><strong>Step 5:</strong> Edge VLA &amp; Sim2Real Gap</td>
+<td style="text-align: left;"><strong>Module 2:</strong> Closing the Autonomous Loop</td>
+<td style="text-align: left;"><strong>Milestone 2 (Week 6):</strong> Witnessed Edge VLA Closed Loop on UNO Q</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Weeks 7–8</strong></td>
+<td style="text-align: left;"><strong>Step 6 (Part A):</strong> Real Data Collection (LeRobot)</td>
+<td style="text-align: left;"><strong>Module 3:</strong> Embodied Policy &amp; Governors</td>
+<td style="text-align: left;"><em>Formative Bench Review:</em> Dataset card &amp; alignment audit</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Weeks 9–10</strong></td>
+<td style="text-align: left;"><strong>Step 6 (Part B):</strong> VLA Fine-Tuning &amp; Adaptation</td>
+<td style="text-align: left;"><strong>Module 3:</strong> Embodied Policy &amp; Governors</td>
+<td style="text-align: left;"><strong>Milestone 3 (Week 10):</strong> Authority Under Fault &amp; Adapted VLA Demo</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Weeks 11–12</strong></td>
+<td style="text-align: left;"><strong>Step 7 (Part A):</strong> Disturbance &amp; Generalization</td>
+<td style="text-align: left;"><strong>Module 3:</strong> Embodied Policy &amp; Governors</td>
+<td style="text-align: left;"><em>Formative Bench Review:</em> Incomplete motion &amp; recovery traces</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Weeks 13–14</strong></td>
+<td style="text-align: left;"><strong>Step 7 (Part B):</strong> Capstone Defense &amp; Release</td>
+<td style="text-align: left;"><strong>Module 4:</strong> Capstone Defense</td>
+<td style="text-align: left;"><strong>Milestone 4 (Week 14):</strong> System Release Case &amp; Oral Defense</td>
+</tr>
+</tbody>
+</table>
 
 
 </section>
