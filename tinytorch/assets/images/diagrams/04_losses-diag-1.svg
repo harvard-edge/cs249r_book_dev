@@ -1,65 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" width="100%" height="100%" style="background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <defs>
-    <!-- Drop Shadow Filter -->
-    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#1B3A5F" flood-opacity="0.08"/>
-    </filter>
-    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="422" viewBox="0 0 680 422" font-family="'TeX Gyre Heros', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+<rect width="680" height="422" fill="#FFFFFF"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0 L8 3 L0 6 Z" fill="#111827"/></marker></defs>
 
-    <!-- Gradients -->
-    <linearGradient id="torchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1B3A5F" />
-      <stop offset="100%" stop-color="#2E6F7E" />
-    </linearGradient>
-    <linearGradient id="flameGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF8246" />
-      <stop offset="100%" stop-color="#FF5722" />
-    </linearGradient>
-    <linearGradient id="warmBgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFDF9" />
-      <stop offset="100%" stop-color="#FFF5EC" />
-    </linearGradient>
-    <linearGradient id="highlightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FF8246" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#FF8246" stop-opacity="0.02" />
-    </linearGradient>
+<!-- Input logits and target -->
+<rect x="30" y="25" width="620" height="65" rx="2" fill="#F9FAFB" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="340" y="51" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">z = [1000, 1002, 1001], target class = 1</text>
+<text x="340" y="71" text-anchor="middle" font-size="10" font-weight="400" fill="#4B5563">logits shape (1, 3) · target shape (1,)</text>
 
-    <!-- Markers -->
-    <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#FF8246" />
-    </marker>
-    <marker id="arrowNavy" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#1B3A5F" />
-    </marker>
-    <marker id="arrowTeal" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#2E6F7E" />
-    </marker>
-  </defs>
+<!-- Column titles -->
+<text x="175" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">Direct exponentiation</text>
+<text x="505" y="118" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">Shift by the maximum</text>
 
-  <rect x="20" y="20" width="760" height="340" rx="10" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" filter="url(#cardShadow)"/>
-  <rect x="20" y="20" width="760" height="45" rx="10" fill="url(#torchGrad)"/>
-  <text x="40" y="49" fill="#FFFFFF" font-size="16" font-weight="700">CROSS-ENTROPY LOSS &amp; LOG-SUM-EXP STABILIZATION</text>
+<!-- Row 1: Exponentiation vs Max Shift -->
+<rect x="30" y="132" width="290" height="74" rx="2" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2"/>
+<text x="175" y="152" text-anchor="middle" font-size="11" font-weight="700" fill="#991B1B">exp(z) overflows in float32</text>
+<text x="175" y="171" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">[∞, ∞, ∞]</text>
+<text x="175" y="190" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">Sum = ∞</text>
 
-  <!-- Left Box -->
-  <rect x="45" y="85" width="330" height="245" rx="8" fill="url(#warmBgGrad)" stroke="#1B3A5F" stroke-width="1.2"/>
-  <text x="65" y="115" fill="#1B3A5F" font-size="14" font-weight="700">Softmax Probability</text>
-  <g transform="translate(65, 135)" font-size="12" fill="#4A5568">
-    <rect x="0" y="0" width="290" height="30" rx="4" fill="#FFFFFF" stroke="#E2E8F0"/><text x="12" y="20">P_i = exp(z_i) / Σ exp(z_j)</text><rect x="0" y="38" width="290" height="30" rx="4" fill="#FFFFFF" stroke="#E2E8F0"/><text x="12" y="58">Raw exponentials risk IEEE 754 float overflow</text><rect x="0" y="76" width="290" height="30" rx="4" fill="#FFFFFF" stroke="#E2E8F0"/><text x="12" y="96">Subtract max(z) before exponentiation</text>
-  </g>
+<rect x="360" y="132" width="290" height="74" rx="2" fill="#F9FAFB" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="505" y="152" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">Maximum = 1002</text>
+<text x="505" y="171" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">z − max(z) = [−2, 0, −1]</text>
+<text x="505" y="190" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">exp = [0.1353, 1, 0.3679]</text>
 
-  <!-- Right Box -->
-  <rect x="405" y="85" width="350" height="245" rx="8" fill="#FFF8F0" stroke="#FF8246" stroke-width="1.8" filter="url(#cardShadow)"/>
-  <text x="425" y="115" fill="#D22341" font-size="14" font-weight="700">Log-Sum-Exp Stabilization</text>
-  <g transform="translate(425, 135)" font-size="12" fill="#1B3A5F">
-    <rect x="0" y="0" width="310" height="30" rx="4" fill="#FFFFFF" stroke="#FF8246" stroke-width="1"/><text x="12" y="20" font-weight="600">LSE(z) = c + log(Σ exp(z_i - c))</text><rect x="0" y="38" width="310" height="30" rx="4" fill="#FFFFFF" stroke="#FF8246" stroke-width="1"/><text x="12" y="58" font-weight="600">c = max(z)</text><rect x="0" y="76" width="310" height="30" rx="4" fill="#FFFFFF" stroke="#FF8246" stroke-width="1"/><text x="12" y="96" font-weight="600">Stable loss: L = -z_target + LSE(z)</text>
-  </g>
+<path d="M175 206 V238" fill="none" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M505 206 V238" fill="none" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
 
-  <rect x="425" y="240" width="310" height="70" rx="6" fill="#1B3A5F"/>
-  <text x="440" y="265" fill="#FF8246" font-size="12" font-weight="700">⚡ Numerical Stability Invariant</text>
-  <text x="440" y="285" fill="#FFFFFF" font-size="11">Log-Sum-Exp prevents NaN/Inf during backprop on float32/float16.</text>
+<!-- Row 2: Normalization -->
+<rect x="30" y="238" width="290" height="74" rx="2" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2"/>
+<text x="175" y="258" text-anchor="middle" font-size="11" font-weight="700" fill="#991B1B">Normalize: ∞ / ∞</text>
+<text x="175" y="277" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">Probabilities = [NaN, NaN, NaN]</text>
+<text x="175" y="296" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">Target log-probability = NaN</text>
 
+<rect x="360" y="238" width="290" height="74" rx="2" fill="#F9FAFB" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="505" y="258" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">Sum of exponentials ≈ 1.5032</text>
+<text x="505" y="277" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">Log of sum ≈ 0.4076</text>
+<text x="505" y="296" text-anchor="middle" font-size="10" font-weight="400" fill="#111827">Target log-probability = 0 − 0.4076</text>
+
+<path d="M175 312 V344" fill="none" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M505 312 V344" fill="none" stroke="#9ca3af" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<!-- Row 3: Result -->
+<rect x="30" y="344" width="290" height="58" rx="2" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.2"/>
+<text x="175" y="367" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">Cross-entropy = NaN</text>
+<text x="175" y="386" text-anchor="middle" font-size="10" font-weight="400" fill="#4B5563">Result shape ()</text>
+
+<rect x="360" y="344" width="290" height="58" rx="2" fill="#fff1e8" stroke="#ff8246" stroke-width="1.2"/>
+<text x="505" y="367" text-anchor="middle" font-size="11" font-weight="700" fill="#111827">Cross-entropy ≈ 0.4076</text>
+<text x="505" y="386" text-anchor="middle" font-size="10" font-weight="400" fill="#4B5563">Result shape ()</text>
+
+<!-- Footer -->
 </svg>
