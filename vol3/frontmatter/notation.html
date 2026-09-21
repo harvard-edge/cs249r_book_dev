@@ -1,0 +1,3755 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agentic Machine Learning Systems</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="ai_use.html" rel="prev">
+<link href="../shared/assets/images/icons/favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e1fd47000f6672cb275a5a4895666198.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  theme-persist (inline, sync) — applies stored color-scheme before first paint.
+  Inlined deliberately: runs before any other <script>, no extra round-trip,
+  and avoids per-subsite asset path differences. Canonical source:
+  shared/scripts/theme-persist.js (kept identical for documentation/testability).
+  If you change one, mirror the change to the other.
+-->
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'quarto-color-scheme';
+  // Quarto's toggle writes 'alternate'/'default' (alternate = dark, the
+  // layered sheet); sibling non-Quarto sites write 'dark'/'light'. Both
+  // hit the same key, so we accept either. Quarto's own startup still
+  // checks `=== 'alternate'`, so we mirror onto <html> rather than rewrite.
+  function normalize(v) {
+    if (v === 'dark' || v === 'alternate') return 'dark';
+    if (v === 'light' || v === 'default') return 'light';
+    return null;
+  }
+  function preferredScheme() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) return n;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  function apply(scheme) {
+    var html = document.documentElement;
+    if (!html) return;
+    html.setAttribute('data-bs-theme', scheme);
+    html.setAttribute('data-quarto-color-scheme', scheme);
+    html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
+  }
+  apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
+  // Quarto's toggle updates localStorage but not <html>, so wrap it to
+  // mirror the new value onto data-bs-theme; otherwise clicking the toggle
+  // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
+  // stylesheet until the next reload.
+  function syncFromStorage() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) apply(n);
+    } catch (e) {}
+  }
+  function wrapToggle() {
+    var orig = window.quartoToggleColorScheme;
+    if (typeof orig !== 'function' || orig.__mlsbWrapped) return;
+    var wrapped = function () { var r = orig.apply(this, arguments); syncFromStorage(); return r; };
+    wrapped.__mlsbWrapped = true;
+    window.quartoToggleColorScheme = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
+  } else {
+    wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
+  }
+  window.addEventListener('storage', function (ev) {
+    if (ev.key !== STORAGE_KEY) return;
+    var n = normalize(ev.newValue);
+    if (n) apply(n);
+  });
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (ev) {
+        try { if (window.localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+        apply(ev.matches ? 'dark' : 'light');
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<!--
+  Build-stamp styling. Tiny, neutral, dark-mode aware. The actual stamp text
+  is injected by shared/scripts/inject-build-stamp.sh into footer markup
+  containing the literal MLSB_BUILD_STAMP HTML-comment token (see that
+  script for the exact pattern — we cannot write it here because HTML
+  comments cannot nest and the inner closer would terminate this block).
+-->
+<style>
+.mlsb-build-stamp {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+[data-bs-theme="dark"] .mlsb-build-stamp { opacity: 0.5; }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="icon" href="../../vol1/assets/images/icons/favicon.png" type="image/png">
+<meta name="author" content="Vijay Janapa Reddi">
+
+<!-- Schema.org JSON-LD structured data for Google Knowledge Graph & Rich Snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mlsysbook.ai/#website",
+      "url": "https://mlsysbook.ai/",
+      "name": "Machine Learning Systems",
+      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Harvard Edge Computing Lab",
+        "url": "https://edge.seas.harvard.edu"
+      }
+    },
+    {
+      "@type": "BookSeries",
+      "@id": "https://mlsysbook.ai/#bookseries",
+      "name": "Machine Learning Systems: Principles and Practices of Engineering Artificially Intelligent Systems",
+      "alternateName": ["MLSysBook", "Machine Learning Systems", "AI Engineering Textbook"],
+      "url": "https://mlsysbook.ai/",
+      "inLanguage": "en-US",
+      "author": {
+        "@type": "Person",
+        "name": "Vijay Janapa Reddi",
+        "jobTitle": "Gordon McKay Professor of Electrical Engineering and Computer Science",
+        "worksFor": {
+          "@type": "EducationalOrganization",
+          "name": "Harvard University",
+          "sameAs": "https://www.harvard.edu"
+        },
+        "sameAs": [
+          "https://profvjreddi.github.io/homepage/"
+        ]
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "MIT Press",
+        "url": "https://mitpress.mit.edu"
+      },
+      "hasPart": [
+        {
+          "@type": "Book",
+          "name": "Volume I: Introduction to Machine Learning Systems",
+          "url": "../../vol1/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Foundations, Lifecycle, Data Engineering, Training, Inference, Benchmarking, and Responsible AI"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume II: Scaling Machine Learning Systems",
+          "url": "../../vol2/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume III: Agentic Machine Learning Systems",
+          "url": "../",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume IV: Physical AI Systems",
+          "url": "../../vol4/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
+        }
+      ]
+    },
+    {
+      "@type": "Course",
+      "@id": "https://mlsysbook.ai/#course",
+      "name": "CS249r: Machine Learning Systems",
+      "description": "Harvard University course on principles and practices of engineering artificially intelligent systems.",
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "Harvard University",
+        "sameAs": "https://www.harvard.edu"
+      }
+    }
+  ]
+}
+</script>
+
+<!--
+  navbar-theme-toggle-relocate — moves the Quarto theme toggle into the
+  navbar's right-side .navbar-nav group at page load, so it collapses into
+  the hamburger menu alongside Subscribe/Star/Support/GitHub at narrow widths
+  instead of being stranded in the middle by Quarto's mx-auto brand layout.
+
+  Why JS: Quarto auto-injects the toggle into .quarto-navbar-tools (outside
+  .navbar-collapse). CSS can't move DOM nodes between containers, and CSS
+  positioning hacks (absolute/right: 50px) fight Bootstrap's responsive
+  layout below 992px. Moving the node once at startup is the standard
+  approach used across Quarto-based sites with the same problem.
+-->
+<script>
+(function () {
+  'use strict';
+  function relocateThemeToggle() {
+    var tools = document.querySelector('.quarto-navbar-tools');
+    if (!tools) return;
+    var toggle = tools.querySelector('.quarto-color-scheme-toggle');
+    if (!toggle) return;
+    var navRight = document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav.ms-auto'
+    ) || document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav:last-of-type'
+    );
+    if (!navRight) return;
+    var li = document.createElement('li');
+    li.className = 'nav-item navbar-theme-toggle-item';
+    toggle.classList.add('nav-link');
+    li.appendChild(toggle);
+    navRight.appendChild(li);
+    tools.style.display = 'none';
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relocateThemeToggle);
+  } else {
+    relocateThemeToggle();
+  }
+})();
+</script>
+
+<!--
+  navbar-brand-href-fix — force the navbar brand link to the ecosystem root
+  (https://mlsysbook.ai/) on every subsite.
+
+  Quarto sets each subsite's `site-url` to `https://mlsysbook.ai/<subsite>/`
+  and then relativizes any navbar.href value that lives inside the
+  site-url's domain. The shared `href: https://mlsysbook.ai/` in
+  navbar-common.yml therefore gets emitted as `./index.html`, which on
+  vol1/vol2/tinytorch/etc. resolves to *that subsite's* root rather than
+  the ecosystem landing page. Override the brand link href in JS after
+  Quarto's render: this is a one-line user-experience fix that does not
+  fight Quarto's URL machinery.
+-->
+<script>
+(function () {
+  'use strict';
+  function fixBrandHref() {
+    var brand = document.querySelectorAll(
+      '.navbar .navbar-brand, .navbar .navbar-brand-logo'
+    );
+    for (var i = 0; i < brand.length; i++) {
+      brand[i].setAttribute('href', 'https://mlsysbook.ai/');
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fixBrandHref);
+  } else {
+    fixBrandHref();
+  }
+})();
+</script>
+<link rel="manifest" href="../site.webmanifest">
+<link rel="apple-touch-icon" href="../shared/assets/images/icons/favicon.png">
+<meta name="theme-color" content="#581C87">
+<script src="../shared/assets/scripts/sidebar-auto-collapse.js" defer=""></script>
+<script src="../shared/assets/scripts/version-link.js" defer=""></script>
+<script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
+<style>
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-takeaways {
+  --color1: #FCF4F8;
+  --color2: #9D3C72;
+  --border-color: #9D3C72;
+  --background-color: rgba(157, 60, 114, 0.04);
+  --title-background-color: rgba(157, 60, 114, 0.04);
+  --dark-background-color: rgba(157, 60, 114, 0.12);
+  --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+}
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+body.quarto-dark details.callout-takeaways summary,
+body.quarto-dark details.callout-takeaways summary strong,
+body.quarto-dark details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+</style>
+<style>
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+</style>
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Agentic Machine Learning Systems">
+<meta property="og:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta property="og:image" content="../frontmatter/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta property="og:site_name" content="Agentic Machine Learning Systems">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Agentic Machine Learning Systems">
+<meta name="twitter:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta name="twitter:image" content="../frontmatter/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo light-content">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-read" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Read</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
+        <li>
+    <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: Scaling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume I PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume I EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume II PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume II EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume III PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume III EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV EPUB</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-build" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Build</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/games/"><i class="bi bi-controller" role="img">
+</i> 
+ <span class="dropdown-text">Playground Games</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/labs/"><i class="bi bi-sliders" role="img">
+</i> 
+ <span class="dropdown-text">Labs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·im</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-teach" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Teach</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/online/ai-engineering-for-leaders/"><i class="bi bi-person-badge" role="img">
+</i> 
+ <span class="dropdown-text">AI Engineering for Leaders (HarvardX)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+</i> 
+ <span class="dropdown-text">CS249r Course Map</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
+</i> 
+ <span class="dropdown-text">Instructor Hub</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-prepare" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Prepare</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/"><i class="bi bi-mortarboard" role="img">
+</i> 
+ <span class="dropdown-text">StaffML</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/plans"><i class="bi bi-map" role="img">
+</i> 
+ <span class="dropdown-text">Study Plans</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/gauntlet"><i class="bi bi-lightning" role="img">
+</i> 
+ <span class="dropdown-text">Gauntlet Mode</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">StaffML Paper</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-connect" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Connect</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/newsletter/"><i class="bi bi-envelope" role="img">
+</i> 
+ <span class="dropdown-text">Newsletter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/"><i class="bi bi-globe" role="img">
+</i> 
+ <span class="dropdown-text">Global Network</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/events.html"><i class="bi bi-calendar-event" role="img">
+</i> 
+ <span class="dropdown-text">Workshops &amp; Events</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/partners.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Partners &amp; Sponsors</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-about" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">About</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/"><i class="bi bi-bullseye" role="img">
+</i> 
+ <span class="dropdown-text">Mission</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/#story"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Our Story</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/people.html"><i class="bi bi-person-lines-fill" role="img">
+</i> 
+ <span class="dropdown-text">People</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/contributors.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Contributors</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/license.html"><i class="bi bi-cc-circle" role="img">
+</i> 
+ <span class="dropdown-text">License</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://mlsysbook.ai/newsletter/"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="notation.html">Notation</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+  <div id="quarto-announcement" data-announcement-id="8a70ada3f63bd493daaa9ec15213591b" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">3b144739</code> • 2026-09-21 06:40 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🟣 <strong>DRAFT — Volume III: Agentic Machine Learning Systems.</strong> Work in progress · Early evolving draft ahead of target release in 2027.<br> 📘 <strong>Foundations:</strong> <a href="../../vol1/">Volume I: Foundations</a> · <a href="../../vol2/">Volume II: Scaling</a> · <a href="../../vol4/">Volume IV: Physical AI</a><br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+</div></div>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homepage</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="author_note.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Author’s Note</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="acknowledgements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Acknowledgments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="ai_use.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Note on AI Assistance</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="notation.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Notation</span></a>
+  </div>
+</li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01_introduction/01_introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part1_processor.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I: The Stochastic Processor</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02_processor/02_processor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Foundation Model Engine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03_deliberation/03_deliberation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Test-Time Deliberation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part2_memory.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II: Context Memory and Storage</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04_working_sets/04_working_sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Working Context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05_virtual_memory/05_virtual_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Paged Attention Memory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06_episodic_memory/06_episodic_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Persistent Storage</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part3_io.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III: Tool Actuation and I/O Peripherals</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07_actuation/07_actuation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tool Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08_virtualization/08_virtualization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Environmental Isolation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part4_os.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part IV: The Agent Operating System</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09_checkpointing/09_checkpointing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervisory Control Planes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10_interrupts/10_interrupts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Persistence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../11_scheduling/11_scheduling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fault Recovery</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part5_compiler.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part V: The Policy Compiler</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../12_data_flywheel/12_data_flywheel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Harvesting</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../13_sft/13_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervised Adaptation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../14_rlvr/14_rlvr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verifiable Reinforcement Learning</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part6_fleet.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VI: Distributed Fleets and Operations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../15_multi_agent/15_multi_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multi-Agent Coordination</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../16_observability/16_observability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System Observability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../17_tokenomics/17_tokenomics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Serving Economics</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part7_synthesis.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VII: System Synthesis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../18_conclusion/18_conclusion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architectural Synthesis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_a_reference_architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App A: Reference Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_b_tool_design.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App B: Tool Design &amp; Typed ABIs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_c_failure_taxonomy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App C: Taxonomy of Failures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/appendix_math.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mathematical Foundations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/glossary/glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Glossary</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#notation" id="toc-notation" class="nav-link active" data-scroll-target="#notation">Notation</a>
+  <ul>
+  <li><a href="#sec-notation-agentic" id="toc-sec-notation-agentic" class="nav-link" data-scroll-target="#sec-notation-agentic">Agentic Systems Notation</a>
+  <ul class="collapse">
+  <li><a href="#sec-notation-trajectories" id="toc-sec-notation-trajectories" class="nav-link" data-scroll-target="#sec-notation-trajectories">Agent trajectories and closed-loop control</a></li>
+  <li><a href="#sec-notation-hsac" id="toc-sec-notation-hsac" class="nav-link" data-scroll-target="#sec-notation-hsac">The H-S-A-C systems taxonomy</a></li>
+  <li><a href="#sec-notation-tokens-context" id="toc-sec-notation-tokens-context" class="nav-link" data-scroll-target="#sec-notation-tokens-context">Token allocation, working memory, and context buffering</a></li>
+  <li><a href="#sec-notation-physics-walls" id="toc-sec-notation-physics-walls" class="nav-link" data-scroll-target="#sec-notation-physics-walls">Silicon physics, memory hierarchies, and latency walls</a></li>
+  <li><a href="#sec-notation-control-sagas" id="toc-sec-notation-control-sagas" class="nav-link" data-scroll-target="#sec-notation-control-sagas">Supervisory runtime, fault tolerance, and distributed Sagas</a></li>
+  <li><a href="#sec-notation-compiler" id="toc-sec-notation-compiler" class="nav-link" data-scroll-target="#sec-notation-compiler">Policy compilation, SFT, and verifiable rewards</a></li>
+  <li><a href="#sec-notation-tokenomics" id="toc-sec-notation-tokenomics" class="nav-link" data-scroll-target="#sec-notation-tokenomics">Macro-efficiency, fleet economics, and tokenomics</a></li>
+  <li><a href="#sec-notation-agentic-collisions" id="toc-sec-notation-agentic-collisions" class="nav-link" data-scroll-target="#sec-notation-agentic-collisions">Cross-domain collision disambiguation</a></li>
+  <li><a href="#sec-notation-agentic-units" id="toc-sec-notation-agentic-units" class="nav-link" data-scroll-target="#sec-notation-agentic-units">Additional systems units</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+
+<section id="notation" class="level1 unnumbered page-columns page-full">
+<h1 class="unnumbered">Notation</h1>
+<!-- PARTIAL FILE: do not render standalone. -->
+<!-- Included by vol1/frontmatter/notation.qmd (vol1 wrapper) and -->
+<!-- vol2/frontmatter/notation.qmd (vol2 wrapper, which then chains -->
+<!-- vol2/frontmatter/_notation_scaling.qmd for vol2-only content). -->
+<!-- Edits to this file appear in BOTH volumes by design. -->
+<!-- DO NOT add a YAML header. DO NOT add Markdown setext underlines. -->
+<!-- DO NOT add an H1. The chapter H1 lives in each wrapper so Quarto can -->
+<!-- extract it for the sidebar, browser tab, and title block. -->
+<p>Machine Learning Systems spans <em>machine learning</em> (computer science and statistics) and <em>systems</em> (computer architecture and hardware). Each field developed its notation independently, and many symbols mean different things across communities and publications. This collision creates real confusion when the disciplines merge. The conventions below establish a single notation that eliminates this ambiguity.</p>
+<p>Consider a simple statement: <em>“Increasing <span class="math inline">\(B\)</span> improves throughput.”</em> To an ML researcher, <span class="math inline">\(B\)</span> means batch size. To a hardware engineer, <span class="math inline">\(B\)</span> means bandwidth. Both interpretations are correct in their respective fields, but in ML Systems we need both concepts in the same equation—hence the need for a single, consistent convention.</p>
+<section id="sec-notation-conventions-iron-law-ml-systems-ce9d" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-iron-law-ml-systems-ce9d">The Iron Law of ML Systems</h2>
+<p>For serialized execution phases, the iron-law performance decomposition is:</p>
+<p><span class="math display">\[T = \underbrace{\frac{D_{\text{vol}}}{\text{BW}}}_{\text{Memory Time}} + \underbrace{\frac{O}{R_{\text{peak}} \cdot \eta_{\text{hw}}}}_{\text{Compute Time}} + \underbrace{L_{\text{lat}}}_{\text{Latency Overhead}}\]</span></p>
+<p>Each variable was chosen deliberately to avoid collision with standard ML terminology.</p>
+<div data-tbl-colwidths="[8,12,8,72]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 8%">
+<col style="width: 72%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Why This Symbol?</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(T\)</span></strong></td>
+<td style="text-align: left;"><strong>Time</strong></td>
+<td style="text-align: left;">seconds</td>
+<td style="text-align: left;">Unambiguous. Wall-clock time for an operation.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(D_{\text{vol}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Data Volume</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;"><strong>Avoids collision with <span class="math inline">\(D\)</span> (Dataset Size)</strong>. In scaling laws, <span class="math inline">\(D\)</span> means training tokens. Here we need bytes moved through memory. The subscript disambiguates.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{BW}\)</span></strong></td>
+<td style="text-align: left;"><strong>Bandwidth</strong></td>
+<td style="text-align: left;">bytes/s</td>
+<td style="text-align: left;"><strong>Avoids collision with <span class="math inline">\(B\)</span> (Batch Size)</strong>. Systems literature often uses <span class="math inline">\(B\)</span> for bandwidth, while ML literature often uses <span class="math inline">\(B\)</span> for batch size. The notation preserves the ML convention.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(O\)</span></strong></td>
+<td style="text-align: left;"><strong>Operations</strong></td>
+<td style="text-align: left;">FLOPs</td>
+<td style="text-align: left;">Total floating-point operations. Clean in equations (vs.&nbsp;“<span class="math inline">\(\text{Ops}\)</span>”).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(R_{\text{peak}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Peak Rate</strong></td>
+<td style="text-align: left;">FLOP/s</td>
+<td style="text-align: left;"><strong>Avoids collision with <span class="math inline">\(P\)</span> (Parameters)</strong>. Roofline presentations often use <span class="math inline">\(P\)</span> for performance, while ML literature commonly uses <span class="math inline">\(P\)</span> for parameter count. The notation preserves the ML convention.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\eta_{\text{hw}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Efficiency</strong></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">Hardware utilization <span class="math inline">\((0 \le \eta_{\text{hw}} \le 1)\)</span>. Avoids collision with learning rate <span class="math inline">\((\eta)\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(L_{\text{lat}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Latency</strong></td>
+<td style="text-align: left;">seconds</td>
+<td style="text-align: left;"><strong>Avoids collision with <span class="math inline">\(\mathcal{L}\)</span> (Loss)</strong>. Fixed overhead time (kernel launch, network RTT). The subscript distinguishes from the loss function.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="sec-notation-conventions-choices-matter-0c16" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-conventions-choices-matter-0c16">Why these choices matter</h3>
+<p>Without careful notation, sentences become ambiguous:</p>
+<blockquote class="blockquote">
+<p><em>“Reducing <span class="math inline">\(D\)</span> improves performance.”</em></p>
+</blockquote>
+<p>The sentence has two possible readings:</p>
+<ul>
+<li>Reducing <strong>dataset size</strong> (fewer training samples) can speed training but may reduce accuracy.</li>
+<li>Reducing <strong>data volume moved</strong> (for example, through compression or quantization) can speed inference, with accuracy effects that depend on the technique and calibration.</li>
+</ul>
+<p>With our notation, we can write precisely:</p>
+<blockquote class="blockquote">
+<p><em>“Reducing <span class="math inline">\(D_{\text{vol}}\)</span> through FP32-to-INT8 quantization cuts parameter memory traffic to one quarter while <span class="math inline">\(D\)</span> (training data) remains unchanged.”</em></p>
+</blockquote>
+<p>Our notation eliminates this ambiguity: <em>“<span class="math inline">\(\text{BW}\)</span> limits throughput”</em> has only one reading.</p>
+</section>
+<section id="sec-notation-conventions-subscripted-variants" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-conventions-subscripted-variants">Subscripted variants</h3>
+<p>An upright root names the quantity, and the subscript names which instance of it is meant. The convention holds closely related measurements apart instead of collapsing them into a single symbol:</p>
+<ul>
+<li><span class="math inline">\(\text{BW}_{\text{disk}}\)</span>, <span class="math inline">\(\text{BW}_{\text{network}}\)</span>, <span class="math inline">\(\text{BW}_{\text{accelerator}}\)</span>: bandwidth at three points on the data path</li>
+<li><span class="math inline">\(D_{\text{vol}}\)</span>, <span class="math inline">\(R_{\text{peak}}\)</span>, <span class="math inline">\(L_{\text{lat}}\)</span>, <span class="math inline">\(\eta_{\text{hw}}\)</span>: iron-law terms, each held clear of a common ML symbol</li>
+<li><span class="math inline">\(E_{\text{move}}\)</span>, <span class="math inline">\(E_{\text{compute}}\)</span>, <span class="math inline">\(E_{\text{total}}\)</span>: one energy budget split into tradeable parts</li>
+</ul>
+<p>The subscript therefore carries part of the claim. Disk and accelerator bandwidth differ by orders of magnitude, so a figure is reproducible only when the subscript says where it was measured.</p>
+</section>
+</section>
+<section id="sec-notation-conventions-degradation-equation-ad12" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-degradation-equation-ad12">The Degradation Equation</h2>
+<p>The degradation equation is a fitted local model. Divergence alone does not determine the direction of accuracy change, so estimate <span class="math inline">\(\lambda\)</span> from labeled outcomes. Some symbols below, such as <span class="math inline">\(\tau\)</span>, appear in chapter prose rather than in the equation. <span class="math display">\[\text{Accuracy}(t) \approx \text{Accuracy}_0 - \lambda \cdot \mathcal{D}(P_t \lVert P_0)\]</span></p>
+<div data-tbl-colwidths="[10,20,13,57]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 20%">
+<col style="width: 13%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit/Type</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\text{Accuracy}(t)\)</span></td>
+<td style="text-align: left;"><strong>Accuracy at Time <span class="math inline">\(t\)</span></strong></td>
+<td style="text-align: left;">Scalar</td>
+<td style="text-align: left;">Model accuracy after the model has been deployed for time <span class="math inline">\(t\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\text{Accuracy}_0\)</span></td>
+<td style="text-align: left;"><strong>Initial Accuracy</strong></td>
+<td style="text-align: left;">Scalar</td>
+<td style="text-align: left;">Model accuracy at deployment time.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\lambda\)</span></td>
+<td style="text-align: left;"><strong>Fitted Sensitivity</strong></td>
+<td style="text-align: left;">Scalar</td>
+<td style="text-align: left;">Local coefficient estimated from outcomes over a stated range; not a universal constant. <em>(Not wavelength.)</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(P_t\)</span></td>
+<td style="text-align: left;"><strong>Current Distribution</strong></td>
+<td style="text-align: left;">Distribution</td>
+<td style="text-align: left;">The data distribution at time <span class="math inline">\(t\)</span>. <em>(Not parameters—use <span class="math inline">\(P\)</span> for parameter count.)</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(P_0\)</span></td>
+<td style="text-align: left;"><strong>Training Distribution</strong></td>
+<td style="text-align: left;">Distribution</td>
+<td style="text-align: left;">The data distribution at training time.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\mathcal{D}(P_t \lVert P_0)\)</span></td>
+<td style="text-align: left;"><strong>Statistical Divergence</strong></td>
+<td style="text-align: left;">Scalar <span class="math inline">\(\ge 0\)</span></td>
+<td style="text-align: left;">Measures how far <span class="math inline">\(P_t\)</span> has drifted from <span class="math inline">\(P_0\)</span>. Common choices: KL divergence, total variation, Wasserstein. <em>(Calligraphic to avoid collision with <span class="math inline">\(D\)</span> = dataset size.)</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\tau\)</span></td>
+<td style="text-align: left;"><strong>Response Threshold</strong></td>
+<td style="text-align: left;">Scalar <span class="math inline">\(&gt; 0\)</span></td>
+<td style="text-align: left;">Operational threshold for investigation; it does not automatically trigger retraining.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="sec-notation-conventions-energy-corollary-a1da" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-energy-corollary-a1da">The Energy Corollary</h2>
+<p>With effective per-byte and per-operation costs, workload energy is approximated as: <span class="math display">\[E_{\text{total}} \approx D_{\text{vol}} \times E_{\text{move}} + O \times E_{\text{compute}}\]</span></p>
+<div data-tbl-colwidths="[10,25,15,50]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 25%">
+<col style="width: 15%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(E_{\text{total}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Total Energy</strong></td>
+<td style="text-align: left;">joules</td>
+<td style="text-align: left;">Total energy consumed by an ML workload, decomposed into data-movement and compute terms.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(E_{\text{move}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Energy per Byte Moved</strong></td>
+<td style="text-align: left;">joules/byte</td>
+<td style="text-align: left;">Effective movement cost; total energy also depends on bytes moved and operations executed.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(E_{\text{compute}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Energy per Operation</strong></td>
+<td style="text-align: left;">joules/FLOP</td>
+<td style="text-align: left;">Energy cost of a single arithmetic operation.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="sec-notation-conventions-deep-learning-notation-b40d" class="level2 unlisted page-columns page-full">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-deep-learning-notation-b40d">Deep Learning Notation</h2>
+<p>This book follows standard deep learning conventions <span class="citation" data-cites="goodfellow2016deep">(<a href="#ref-goodfellow2016deep" role="doc-biblioref">Goodfellow et al. 2016</a>)</span> with explicit disambiguation for systems variables.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-goodfellow2016deep" class="csl-entry" role="listitem">
+Goodfellow, Ian, Yoshua Bengio, and Aaron Courville. 2016. <em>Deep Learning</em>. MIT Press.
+</div></div><div data-tbl-colwidths="[8,20,72]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 20%">
+<col style="width: 72%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Dimensions/Type</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(B\)</span></strong></td>
+<td style="text-align: left;"><strong>Batch Size</strong></td>
+<td style="text-align: left;">Integer. The number of samples processed in parallel. <em>(Never bandwidth.)</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(P\)</span></strong></td>
+<td style="text-align: left;"><strong>Parameters</strong></td>
+<td style="text-align: left;">Integer. The total count of scalar model parameters, including weights and biases. <em>(Never peak FLOP/s.)</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(D\)</span></strong></td>
+<td style="text-align: left;"><strong>Dataset Size</strong></td>
+<td style="text-align: left;">Integer. Number of training samples or tokens. <em>(Never data volume in bytes—use <span class="math inline">\(D_{\text{vol}}\)</span>.)</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(S\)</span></strong></td>
+<td style="text-align: left;"><strong>Sequence Length</strong></td>
+<td style="text-align: left;">Integer. Number of tokens or time steps.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(d\)</span></strong></td>
+<td style="text-align: left;"><strong>Hidden Dimension</strong></td>
+<td style="text-align: left;">Integer. Size of the hidden state vector.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(d_{\text{head}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Attention Head Dimension</strong></td>
+<td style="text-align: left;">Integer. Per-head hidden dimension in attention layers.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(N_L\)</span></strong></td>
+<td style="text-align: left;"><strong>Number of Layers</strong></td>
+<td style="text-align: left;">Integer. Total number of layers in a network.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(N_{\text{heads}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Number of Attention Heads</strong></td>
+<td style="text-align: left;">Integer. Number of attention heads in a multi-head attention layer.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(H_{\text{KV}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Number of Key-Value Heads</strong></td>
+<td style="text-align: left;">Integer. Number of key-value heads in grouped-query or multi-query attention.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\ell\)</span></strong></td>
+<td style="text-align: left;"><strong>Layer Index</strong></td>
+<td style="text-align: left;">Integer. Index for a layer. Use instead of bare <span class="math inline">\(L\)</span> when indexing layers, since <span class="math inline">\(L\)</span> collides with loss and latency.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{L}\)</span></strong></td>
+<td style="text-align: left;"><strong>Loss Function</strong></td>
+<td style="text-align: left;">Scalar. The objective function minimized during training.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\eta\)</span></strong></td>
+<td style="text-align: left;"><strong>Learning Rate</strong></td>
+<td style="text-align: left;">Scalar. Step size for the optimizer. <em>(Never bare for hardware efficiency—use <span class="math inline">\(\eta_{\text{hw}}\)</span>.)</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\theta\)</span></strong></td>
+<td style="text-align: left;"><strong>Model Parameters</strong></td>
+<td style="text-align: left;">Parameter collection, often treated as a vector. The set of all learnable parameters.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(p(x)\)</span></strong></td>
+<td style="text-align: left;"><strong>Distribution</strong></td>
+<td style="text-align: left;">Probability mass/density for a random variable. Use lowercase <span class="math inline">\(p(\cdot)\)</span> for generic distributions to avoid collision with <span class="math inline">\(P\)</span> (parameter count).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(p(y \mid x)\)</span></strong></td>
+<td style="text-align: left;"><strong>Conditional Distribution</strong></td>
+<td style="text-align: left;">Conditional probability/density. Use this form for generic label relationships; reserve <span class="math inline">\(P_0\)</span> and <span class="math inline">\(P_t\)</span> for the degradation equation’s training/current distributions.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\Pr(E)\)</span></strong></td>
+<td style="text-align: left;"><strong>Event Probability</strong></td>
+<td style="text-align: left;">Probability of an event <span class="math inline">\(E\)</span>. Use for event statements such as <span class="math inline">\(\Pr(\text{batch}=0)\)</span>; use <span class="math inline">\(p(x)\)</span> and <span class="math inline">\(p(y \mid x)\)</span> for distributions.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Latin matrices and vectors are set in bold (<span class="math inline">\(\mathbf{W}\)</span>, <span class="math inline">\(\mathbf{x}\)</span>); scalars, dimensions, indices, and individual matrix entries stay italic (<span class="math inline">\(N\)</span>, <span class="math inline">\(d\)</span>, <span class="math inline">\(i\)</span>, <span class="math inline">\(W_{ij}\)</span>). The generic parameter symbol <span class="math inline">\(\theta\)</span> is the one conventional exception and stays italic. Local matrix algebra follows the same bold rule: matrix operands are bold (<span class="math inline">\(\mathbf{A}\)</span>, <span class="math inline">\(\mathbf{B}\)</span>, <span class="math inline">\(\mathbf{C}\)</span>), as in general matrix multiply (GEMM) <span class="math inline">\(\mathbf{C}=\alpha \mathbf{A}\mathbf{B}+\beta \mathbf{C}\)</span>. The bold form marks a matrix operand and is distinct from the italic scalar batch size <span class="math inline">\(B\)</span>, which remains batch size in scalar contexts.</p>
+</section>
+<section id="sec-notation-conventions-performance-serving-memory" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-performance-serving-memory">Performance, Serving, and Memory Notation</h2>
+<p>Reusable performance and serving quantities follow the same collision-avoidance rule as the iron law. Rates use <span class="math inline">\(R\)</span> or descriptive Greek symbols; request counts use <span class="math inline">\(Q_{\text{req}}\)</span> rather than overloading <span class="math inline">\(N\)</span>; queue utilization uses a subscripted <span class="math inline">\(\rho\)</span> so bare <span class="math inline">\(\rho\)</span> remains available for other ratio models.</p>
+<div data-tbl-colwidths="[10,23,13,54]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 23%">
+<col style="width: 13%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit/Type</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(I\)</span></strong></td>
+<td style="text-align: left;"><strong>Arithmetic Intensity</strong></td>
+<td style="text-align: left;">FLOP/byte</td>
+<td style="text-align: left;">Workload FLOPs per byte moved. The Roofline Model uses <span class="math inline">\(I\)</span> as the independent variable.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(I_{\text{ridge}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Roofline Ridge Point</strong></td>
+<td style="text-align: left;">FLOP/byte</td>
+<td style="text-align: left;"><span class="math inline">\(I_{\text{ridge}} = R_{\text{peak}}/\text{BW}\)</span>. Prefer this explicit form over starred shorthand so the meaning remains clear in prose.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(R_{\text{attain}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Attainable Compute Rate</strong></td>
+<td style="text-align: left;">FLOP/s</td>
+<td style="text-align: left;">Roofline bound: <span class="math inline">\(R_{\text{attain}} \leq \min(R_{\text{peak}}, I \times \text{BW})\)</span>. Uses <span class="math inline">\(R\)</span>, not <span class="math inline">\(T\)</span>, because this quantity is a rate.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{MFU}\)</span></strong></td>
+<td style="text-align: left;"><strong>Model FLOPs Utilization</strong></td>
+<td style="text-align: left;">Dimensionless</td>
+<td style="text-align: left;">Useful model FLOP/s divided by available peak FLOP/s. Text acronym avoids overloading <span class="math inline">\(\eta\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(r_{\text{comp}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Compression Ratio</strong></td>
+<td style="text-align: left;">Dimensionless</td>
+<td style="text-align: left;">Uncompressed size divided by compressed size. A compressed payload has <span class="math inline">\(1/r_{\text{comp}}\)</span> of the uncompressed size; the subscript avoids bare <span class="math inline">\(C\)</span> collisions.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(Q_{\text{req}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Request Concurrency</strong></td>
+<td style="text-align: left;">requests</td>
+<td style="text-align: left;">Average in-flight requests in a stable serving system (<span class="math inline">\(Q_{\text{req}} = \lambda_{\text{arr}} \cdot T_{\text{lat}}\)</span> via Little’s Law). Avoids collision with <span class="math inline">\(N\)</span> as device count in distributed settings.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\lambda_{\text{arr}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Arrival Rate</strong></td>
+<td style="text-align: left;">requests/s</td>
+<td style="text-align: left;">Request arrival rate. The subscript avoids collision with <span class="math inline">\(\lambda\)</span> as degradation sensitivity or failure rate.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{lat}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Request Time in System</strong></td>
+<td style="text-align: left;">seconds</td>
+<td style="text-align: left;">End-to-end queueing/serving latency for Little’s Law. Distinct from <span class="math inline">\(L_{\text{lat}}\)</span>, the fixed-latency term in the iron law.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{svc}}(B)\)</span></strong></td>
+<td style="text-align: left;"><strong>Batch Service Time</strong></td>
+<td style="text-align: left;">seconds</td>
+<td style="text-align: left;">Time to serve a batch of size <span class="math inline">\(B\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\mu_{\text{eff}}(B)\)</span></strong></td>
+<td style="text-align: left;"><strong>Effective Service Rate</strong></td>
+<td style="text-align: left;">requests/s</td>
+<td style="text-align: left;">Batched service rate, typically <span class="math inline">\(\mu_{\text{eff}}(B) = B/T_{\text{svc}}(B)\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\rho_{\text{serv}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Serving Utilization</strong></td>
+<td style="text-align: left;">Dimensionless</td>
+<td style="text-align: left;">Queue/server utilization. Use instead of bare <span class="math inline">\(\rho\)</span>, which is reserved for communication-computation ratio in distributed contexts.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{total}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Total Memory Footprint</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;">Sum of explicit memory components; avoids bare <span class="math inline">\(M\)</span> ambiguity.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{weights}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Weight Memory</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;">Memory occupied by model parameters.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{gradients}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Gradient Memory</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;">Memory occupied by stored gradients.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{optimizer}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Optimizer-State Memory</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;">Momentum, variance, master weights, and related optimizer buffers.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{activations}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Activation Memory</strong></td>
+<td style="text-align: left;">bytes</td>
+<td style="text-align: left;">Retained activations for the backward pass or serving intermediates.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(s_{\text{elem}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Element Storage Size</strong></td>
+<td style="text-align: left;">bytes/element</td>
+<td style="text-align: left;">Bytes per stored tensor element.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="sec-notation-conventions-units-precision-fdaf" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-units-precision-fdaf">Units and Precision</h2>
+<ul>
+<li>Physical units: This book uses SI (metric) units throughout, including meters, kilograms, seconds, watts, and °C, consistent with standard engineering and scientific practice. Where source data was originally reported in imperial units, the book converts to SI and notes the original values parenthetically. A space always separates the number from the unit (for example, 100 ms, 2 TB/s).</li>
+<li>Data and memory: This book uses <strong>decimal SI prefixes only</strong>: KB = <span class="math inline">\(10^3\)</span> bytes, MB = <span class="math inline">\(10^6\)</span>, GB = <span class="math inline">\(10^9\)</span>, TB = <span class="math inline">\(10^{12}\)</span>. Binary-prefixed units do not appear in prose; all capacities, throughputs, and model sizes are reported in decimal units (for example, 80 GB, 2 TB/s, 102 MB).</li>
+<li>Compute: The notation distinguishes operation counts from rates. Total work uses FLOPs (for example, GFLOPs, TFLOPs), while throughput uses FLOP/s with decimal prefixes (for example, GFLOP/s, TFLOP/s).
+<ul>
+<li>1 TFLOP = <span class="math inline">\(10^{12}\)</span> FLOPs</li>
+<li>1 TFLOP/s = <span class="math inline">\(10^{12}\)</span> FLOPs per second</li>
+<li>Arithmetic intensity conventionally uses FLOP/byte as a unit ratio (floating-point operations per byte moved). This is a ratio unit, not a total-work symbol or throughput symbol.</li>
+</ul></li>
+<li>Currency: Dollar amounts use the dollar sign (<code>$</code>); unless otherwise noted, dollar-denominated costs are U.S. dollars (USD).</li>
+<li>Precision:
+<ul>
+<li><strong>FP64</strong>: Double precision (8 bytes)</li>
+<li><strong>FP32</strong>: Single precision (4 bytes)</li>
+<li><strong>TF32</strong>: TensorFloat-32 (19-bit Tensor Core compute mode; inputs and storage remain FP32)</li>
+<li><strong>FP16</strong>: Half precision (2 bytes, standard range)</li>
+<li><strong>BF16</strong>: Brain float (2 bytes, wide dynamic range)</li>
+<li><strong>FP8</strong>: Quarter precision (1 byte, E4M3 or E5M2 format)</li>
+<li><strong>FP4</strong>: 4-bit floating-point format</li>
+<li><strong>INT8</strong>: 8-bit integer (1 byte)</li>
+<li><strong>INT4</strong>: 4-bit integer; lower integer precisions follow the same uppercase <code>INTn</code> pattern (for example, INT3, INT2)</li>
+</ul></li>
+</ul>
+</section>
+<section id="sec-notation-conventions-quick-reference-resolving-collisions-a9cf" class="level2 unlisted">
+<h2 class="unlisted anchored" data-anchor-id="sec-notation-conventions-quick-reference-resolving-collisions-a9cf">Quick Reference: Resolving Collisions</h2>
+<p>Common collision points in ML Systems literature include:</p>
+<div data-tbl-colwidths="[15,20,25,40]">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 20%">
+<col style="width: 25%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>ML Meaning</strong></th>
+<th style="text-align: left;"><strong>Systems Meaning</strong></th>
+<th style="text-align: left;"><strong>Book Convention</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(B\)</span></td>
+<td style="text-align: left;">Batch Size</td>
+<td style="text-align: left;">Bandwidth</td>
+<td style="text-align: left;"><strong>Batch Size</strong>. Use <span class="math inline">\(\text{BW}\)</span> for bandwidth.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(P\)</span></td>
+<td style="text-align: left;">Parameters</td>
+<td style="text-align: left;">Peak FLOP/s</td>
+<td style="text-align: left;"><strong>Parameters</strong>. Use <span class="math inline">\(R_{\text{peak}}\)</span> for peak rate.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(D\)</span></td>
+<td style="text-align: left;">Dataset Size</td>
+<td style="text-align: left;">Data Volume</td>
+<td style="text-align: left;"><strong>Dataset Size</strong>. Use <span class="math inline">\(D_{\text{vol}}\)</span> for bytes moved.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(L\)</span></td>
+<td style="text-align: left;">Loss</td>
+<td style="text-align: left;">Latency</td>
+<td style="text-align: left;"><strong>Loss</strong> <span class="math inline">\((\mathcal{L})\)</span>. Use <span class="math inline">\(L_{\text{lat}}\)</span> for latency.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\eta\)</span></td>
+<td style="text-align: left;">Learning Rate</td>
+<td style="text-align: left;">Efficiency</td>
+<td style="text-align: left;"><strong>Learning Rate</strong>. Use <span class="math inline">\(\eta_{\text{hw}}\)</span> for efficiency.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>As a general principle, ML conventions take precedence for single letters, while systems concepts get subscripts or multi-letter symbols. This reflects the primary audience (ML practitioners learning systems) and preserves compatibility with the vast ML literature.</p>
+<!-- PARTIAL FILE: do not render standalone. -->
+<!-- This file is included by vol3/frontmatter/notation.qmd as a -->
+<!-- continuation of the shared notation chapter. The chapter H1 plus the -->
+<!-- early H2s come from shared/_partials/_notation_body.qmd. -->
+<!-- This file holds the vol3-only agentic-systems notation extension. -->
+<!-- DO NOT add a YAML header to this file. DO NOT add an H1. Start at H2. -->
+</section>
+<section id="sec-notation-agentic" class="level2">
+<h2 class="anchored" data-anchor-id="sec-notation-agentic">Agentic Systems Notation</h2>
+<p>Agentic machine learning systems operate at the software systems layer, introducing a dedicated notation for multi-turn execution trajectories, closed-loop runtime mediation, memory hierarchies, distributed Sagas, and trajectory economics. While single-model inference models individual forward passes and distributed infrastructure scales execution across clusters, this book defines the <strong>verifiable trajectory</strong> as the primary unit of systems engineering.</p>
+<p>The central governing relationship of this book is the <strong>Closed-Loop Agentic Trajectory</strong>:</p>
+<p><span class="math display">\[\tau = \big( (a_0, o_1, v_1), (a_1, o_2, v_2), \dots, (a_{N-1}, o_N, v_N) \big)\]</span></p>
+<p>evaluated against the <strong>Whole-Task Duration Law</strong>:</p>
+<p><span class="math display">\[T_{\text{task}} = T_{\text{model}} + T_{\text{tool}} + T_{\text{wait}} + T_{\text{runtime}}\]</span></p>
+<p>the <strong>Trajectory Goodput Law</strong>:</p>
+<p><span class="math display">\[\mathcal{G} = \frac{\sum_{i \in \mathcal{T}_{\text{success}}} T_i}{\sum_{j \in \mathcal{T}_{\text{all}}} T_j}\]</span></p>
+<p>and bounded by the <strong>Compounding Reliability Law</strong>:</p>
+<p><span class="math display">\[P_{\text{success}} \le \prod_{i=1}^N p_i \le p^N\]</span></p>
+<section id="sec-notation-trajectories" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-trajectories">Agent trajectories and closed-loop control</h3>
+<p>The closed-loop trajectory formalizes the execution trace of an agent policy interacting with external tools, isolated sandboxes, and deterministic verification oracles under runtime supervision.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 17%">
+<col style="width: 10%">
+<col style="width: 63%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\tau\)</span></strong></td>
+<td style="text-align: left;"><strong>Agentic Trajectory</strong></td>
+<td style="text-align: left;">Tuple</td>
+<td style="text-align: left;">Ordered sequence of candidate action proposals, environment observations, and verification signals over horizon <span class="math inline">\(N\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(a_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Action Proposal</strong></td>
+<td style="text-align: left;">Token sequence / RPC</td>
+<td style="text-align: left;">Candidate output emitted by policy <span class="math inline">\(\pi_\theta\)</span> at turn <span class="math inline">\(t\)</span> (internal deliberation or unprivileged tool call proposal).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(o_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Environment Observation</strong></td>
+<td style="text-align: left;">String / Bytes</td>
+<td style="text-align: left;">Telemetry payload (stdout, stderr, exit code) returned across the sandbox boundary after tool execution at turn <span class="math inline">\(t\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(v_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Verification Signal</strong></td>
+<td style="text-align: left;">Boolean / Score</td>
+<td style="text-align: left;">Empirical outcome from an external deterministic verifier (compiler, test runner, AST checker) gating state commitment.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(s_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Ground-Truth Environment State</strong></td>
+<td style="text-align: left;">State record</td>
+<td style="text-align: left;">Authoritative state of external systems (filesystem diff, database rows, Git commit tree) at turn <span class="math inline">\(t\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(h_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Working Context Buffer</strong></td>
+<td style="text-align: left;">Token sequence</td>
+<td style="text-align: left;">Logical working set assembled from task directives, structured state, and filtered observations for the forward pass at turn <span class="math inline">\(t\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\pi_\theta\)</span></strong></td>
+<td style="text-align: left;"><strong>Neural Policy Core</strong></td>
+<td style="text-align: left;">Distribution</td>
+<td style="text-align: left;">Stochastic autoregressive model parameterized by weights <span class="math inline">\(\theta\)</span> evaluated under Zero Ambient Authority.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{ACB}\)</span></strong></td>
+<td style="text-align: left;"><strong>Agent Control Block</strong></td>
+<td style="text-align: left;">Struct</td>
+<td style="text-align: left;">In-memory OS descriptor tracking trajectory identity, state machine phase, memory leases, and security capabilities.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-hsac" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-hsac">The H-S-A-C systems taxonomy</h3>
+<p>The H-S-A-C coordinate space classifies autonomous workloads across four orthogonal axes of systems complexity, state scope, and operational authority.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 11%">
+<col style="width: 6%">
+<col style="width: 76%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(H\)</span></strong></td>
+<td style="text-align: left;"><strong>Operational Horizon</strong></td>
+<td style="text-align: left;">Turns</td>
+<td style="text-align: left;">Trajectory turn depth; sequential model-tool cycles required to satisfy the objective (<span class="math inline">\(H=1\)</span> atomic call to <span class="math inline">\(H=1{,}000+\)</span> fleet).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(S\)</span></strong></td>
+<td style="text-align: left;"><strong>State Complexity</strong></td>
+<td style="text-align: left;">Discrete rank</td>
+<td style="text-align: left;">Scope of tracked mutable state: <span class="math inline">\(S_0\)</span> (stateless), <span class="math inline">\(S_1\)</span> (in-context buffer), <span class="math inline">\(S_2\)</span> (local sandboxed filesystem), <span class="math inline">\(S_3\)</span> (distributed external datastores).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(A\)</span></strong></td>
+<td style="text-align: left;"><strong>Permitted Authority</strong></td>
+<td style="text-align: left;">Discrete rank</td>
+<td style="text-align: left;">Effector blast radius: <span class="math inline">\(A_0\)</span> (read-only query), <span class="math inline">\(A_1\)</span> (isolated sandbox mutation), <span class="math inline">\(A_2\)</span> (reversible production edit), <span class="math inline">\(A_3\)</span> (irreversible external side effect).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(C\)</span></strong></td>
+<td style="text-align: left;"><strong>Invariant Closure</strong></td>
+<td style="text-align: left;">Discrete rank</td>
+<td style="text-align: left;">Verification rigor: <span class="math inline">\(C_0\)</span> (unverified open-loop text), <span class="math inline">\(C_1\)</span> (heuristic/LLM-as-judge score), <span class="math inline">\(C_2\)</span> (deterministic compilers/unit tests), <span class="math inline">\(C_3\)</span> (formal mathematical proof).</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-tokens-context" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-tokens-context">Token allocation, working memory, and context buffering</h3>
+<p>Context memory is managed as a multi-tier hierarchy: logical working-set tokens in host memory, physical key-value activation pages in GPU memory, and durable external storage.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 15%">
+<col style="width: 6%">
+<col style="width: 67%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(M\)</span></strong></td>
+<td style="text-align: left;"><strong>Input / Prompt Length</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Staged context sequence length processed in parallel during compute-bound GEMM prefill.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(K\)</span></strong></td>
+<td style="text-align: left;"><strong>Generated / Completion Length</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Output sequence length generated sequentially during memory-bandwidth-bound GEMV decode (<span class="math inline">\(O(K)\)</span> critical path).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(S_{\max}\)</span></strong></td>
+<td style="text-align: left;"><strong>Context Buffer Capacity</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Hard physical context window limit (<span class="math inline">\(M + K \le S_{\max}\)</span>). Exceeding <span class="math inline">\(S_{\max}\)</span> triggers mid-trajectory allocation faults.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(B\)</span></strong></td>
+<td style="text-align: left;"><strong>Serving Batch Size</strong></td>
+<td style="text-align: left;">Integer</td>
+<td style="text-align: left;">Number of concurrent forward passes. In single-agent autonomous loops, <span class="math inline">\(B=1\)</span>, exposing the memory shuttle wall.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(K_{\text{delib}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Deliberation Budget</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Test-time reasoning tokens allocated to explore hypotheses or intermediate lemmas prior to committing external actions.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{W}(t)\)</span></strong></td>
+<td style="text-align: left;"><strong>Active Working Set</strong></td>
+<td style="text-align: left;">Token subset</td>
+<td style="text-align: left;">Minimal subset of historical context and environment observations staged into active memory at turn <span class="math inline">\(t\)</span> (<span class="math inline">\(\mathcal{W}(t) \subset \mathcal{H}_{1:t-1}\)</span>).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(K_{\max}\)</span></strong></td>
+<td style="text-align: left;"><strong>Token Budget Ceiling</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Supervisory limit enforced by the Agent OS; execution halts when accumulated generation exceeds <span class="math inline">\(K_{\max}\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\max}\)</span></strong></td>
+<td style="text-align: left;"><strong>Wall-Clock Deadline</strong></td>
+<td style="text-align: left;">Seconds</td>
+<td style="text-align: left;">Hard end-to-end deadline enforced by runtime timers; triggers preemption or compensating rollback upon expiry.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-physics-walls" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-physics-walls">Silicon physics, memory hierarchies, and latency walls</h3>
+<p>Agentic workloads alternate between compute-bound prompt prefill, memory-bandwidth-bound token decode, and host-bound tool execution.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 9%">
+<col style="width: 3%">
+<col style="width: 45%">
+<col style="width: 5%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(N_{\text{params}}\)</span></strong> / **$\</td>
+<td style="text-align: left;">\</td>
+<td style="text-align: left;">$**</td>
+<td style="text-align: left;"><strong>Model Parameter Count</strong></td>
+<td>Integer / Billions</td>
+<td>Total number of trainable weights in the neural core (avoids collision with trajectory horizon <span class="math inline">\(N\)</span>).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(P\)</span></strong></td>
+<td style="text-align: left;"><strong>Numerical Precision</strong></td>
+<td style="text-align: left;">Bytes / param</td>
+<td style="text-align: left;">Data storage size per weight or activation (<span class="math inline">\(P=2\)</span> for FP16/BF16, <span class="math inline">\(P=1\)</span> for FP8, <span class="math inline">\(P=0.5\)</span> for INT4).</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{BW}_{\text{mem}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Memory Bus Bandwidth</strong></td>
+<td style="text-align: left;">GB/s or TB/s</td>
+<td style="text-align: left;">High-Bandwidth Memory (HBM) transfer speed across the processor memory bus.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(R_{\text{peak}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Peak Compute Throughput</strong></td>
+<td style="text-align: left;">TFLOP/s</td>
+<td style="text-align: left;">Maximum hardware tensor core floating-point rate.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(I_{\text{sat}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Roofline Saturation Intensity</strong></td>
+<td style="text-align: left;">FLOP/byte</td>
+<td style="text-align: left;">Hardware balance point <span class="math inline">\(I_{\text{sat}} = R_{\text{peak}} / \text{BW}_{\text{mem}}\)</span>. Prefill sits above <span class="math inline">\(I_{\text{sat}}\)</span>; decode sits far below.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(I_{\text{decode}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Decode Arithmetic Intensity</strong></td>
+<td style="text-align: left;">FLOP/byte</td>
+<td style="text-align: left;">Arithmetic intensity of unbatched generation: <span class="math inline">\(I_{\text{decode}} \approx 2/P\)</span> FLOP/byte, collapsing decode into memory-shuttle starvation.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{Mem}_{\text{token}}\)</span></strong></td>
+<td style="text-align: left;"><strong>KV Footprint per Token</strong></td>
+<td style="text-align: left;">Bytes / token</td>
+<td style="text-align: left;">Attention activation memory: <span class="math inline">\(\text{Mem}_{\text{token}} = 2 L H_{\text{kv}} d_{\text{head}} P\)</span> across layers <span class="math inline">\(L\)</span>, heads <span class="math inline">\(H_{\text{kv}}\)</span>, and dimension <span class="math inline">\(d_{\text{head}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(M_{\text{KV}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Total KV-Cache Footprint</strong></td>
+<td style="text-align: left;">Bytes (GB)</td>
+<td style="text-align: left;">Physical HBM allocation across active sequences managed via non-contiguous PagedAttention virtual block tables.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{prefill}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Prefill Ingestion Latency</strong></td>
+<td style="text-align: left;">Seconds</td>
+<td style="text-align: left;">Compute-bound wall-clock time to ingest prompt tokens <span class="math inline">\(M\)</span>: <span class="math inline">\(T_{\text{prefill}} \approx \frac{2 M N_{\text{params}}}{R_{\text{peak}} \cdot \text{MFU}} + T_{\text{queue}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{decode}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Serial Generation Latency</strong></td>
+<td style="text-align: left;">Seconds</td>
+<td style="text-align: left;">Memory-bandwidth-bound wall-clock time for <span class="math inline">\(K\)</span> decode steps: <span class="math inline">\(T_{\text{decode}} \approx K \cdot \frac{N_{\text{params}} P}{\text{BW}_{\text{mem}}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{tool}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Tool Execution Latency</strong></td>
+<td style="text-align: left;">Seconds</td>
+<td style="text-align: left;">Wall-clock duration consumed by external compilers, test runners, or sandboxes (incurs Tool-Wait memory stranding).</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(T_{\text{runtime}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Runtime Orchestration Latency</strong></td>
+<td style="text-align: left;">Seconds</td>
+<td style="text-align: left;">Wall-clock time spent in context assembly, schema validation, seccomp filtering, and Write-Ahead Logging.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-control-sagas" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-control-sagas">Supervisory runtime, fault tolerance, and distributed Sagas</h3>
+<p>Autonomous trajectories span external systems that lack distributed transactions; reliability is enforced through event sourcing and compensating Sagas.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 14%">
+<col style="width: 5%">
+<col style="width: 68%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(k_{\text{idem}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Idempotency Key</strong></td>
+<td style="text-align: left;">String</td>
+<td style="text-align: left;">Deterministic handle <span class="math inline">\(k_{\text{idem}} = \text{UUIDv7}(\text{agent\_id}, \text{turn\_idx}, \text{action\_hash})\)</span> preventing duplicate mutations under timeouts.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{T}\)</span></strong></td>
+<td style="text-align: left;"><strong>Forward Saga Sub-Transactions</strong></td>
+<td style="text-align: left;">Ordered list</td>
+<td style="text-align: left;">Sequence of discrete, forward sub-transactions: <span class="math inline">\(\mathcal{T} = [T_1, T_2, \dots, T_n]\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{C}\)</span></strong></td>
+<td style="text-align: left;"><strong>Compensating Transactions</strong></td>
+<td style="text-align: left;">Ordered list</td>
+<td style="text-align: left;">Sequence of semantic inverse actions: <span class="math inline">\(\mathcal{C} = [C_n, \dots, C_2, C_1]\)</span> executed in reverse to amend state upon failure.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{LSN}\)</span></strong></td>
+<td style="text-align: left;"><strong>Log Sequence Number</strong></td>
+<td style="text-align: left;">Integer</td>
+<td style="text-align: left;">Monotonically increasing sequence index assigned to every intent and observation record in the Write-Ahead Log.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(K_{\text{repair}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Forward Repair Bound</strong></td>
+<td style="text-align: left;">Integer</td>
+<td style="text-align: left;">Supervisory threshold on consecutive self-healing attempts (<span class="math inline">\(K_{\text{repair}} \le 3\)</span>) before forcing rollback or escalation.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-compiler" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-compiler">Policy compilation, SFT, and verifiable rewards</h3>
+<p>Offline policy compilation fine-tunes model weights from verified trajectory traces using targeted loss masks and deterministic reward oracles.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 13%">
+<col style="width: 7%">
+<col style="width: 61%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(m_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Action-Targeted Loss Mask</strong></td>
+<td style="text-align: left;">Binary <span class="math inline">\(\{0, 1\}\)</span></td>
+<td style="text-align: left;">Gradient indicator: <span class="math inline">\(m_t = 1\)</span> for model action and deliberation tokens; <span class="math inline">\(m_t = 0\)</span> for prompt and environment observation tokens.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{L}_{\text{SFT}}(\theta)\)</span></strong></td>
+<td style="text-align: left;"><strong>Action-Masked SFT Loss</strong></td>
+<td style="text-align: left;">Cross-entropy</td>
+<td style="text-align: left;">Supervised loss computed strictly over intended policy proposals: <span class="math inline">\(\mathcal{L}_{\text{SFT}}(\theta) = -\sum_t m_t \log P_\theta(x_t \mid x_{&lt;t})\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(R_{\text{oracle}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Deterministic Reward Oracle</strong></td>
+<td style="text-align: left;">Scalar / Boolean</td>
+<td style="text-align: left;">Automated objective reward computed by external software (compiler exit codes, unit tests, formal provers).</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\hat{A}_t\)</span></strong></td>
+<td style="text-align: left;"><strong>Relative Advantage Estimate</strong></td>
+<td style="text-align: left;">Scalar</td>
+<td style="text-align: left;">Policy optimization signal (e.g.&nbsp;GRPO normalized advantage) computed across candidate branches without a critic network.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-tokenomics" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-tokenomics">Macro-efficiency, fleet economics, and tokenomics</h3>
+<p>Macro-efficiency measures whole-trajectory economics, capacity dimensioning, and accepted outcomes rather than isolated server throughput.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 11%">
+<col style="width: 64%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Definition</strong></th>
+<th style="text-align: left;"><strong>Unit</strong></th>
+<th style="text-align: left;"><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\mathcal{G}\)</span></strong></td>
+<td style="text-align: left;"><strong>Trajectory Goodput</strong></td>
+<td style="text-align: left;">Fraction <span class="math inline">\([0, 1]\)</span></td>
+<td style="text-align: left;">Proportion of allocated compute time or FLOPs dedicated to trajectories that reach mechanically verified completion.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(O_{\text{mem}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Space-Time Memory Occupancy</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\text{GB} \cdot \text{s}\)</span></td>
+<td style="text-align: left;">Resource integral <span class="math inline">\(O_{\text{mem}} = \int_0^{T_{\text{task}}} \text{Mem}_{\text{KV}}(t) \, dt\)</span>, capturing memory stranding during high-latency tool waits.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(C_{\text{task}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Cost per Accepted Task</strong></td>
+<td style="text-align: left;">$/task</td>
+<td style="text-align: left;">Total financial expenditure (accelerator lease, host CPU, sandbox compute, tokens) per successfully verified deliverable.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(J_{\text{task}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Energy per Accepted Task</strong></td>
+<td style="text-align: left;">Joules / task</td>
+<td style="text-align: left;">Total electrical energy consumed across prefill, decode, host execution, and verification per accepted task.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{TAF}\)</span></strong></td>
+<td style="text-align: left;"><strong>Token Amplification Factor</strong></td>
+<td style="text-align: left;">Ratio (<span class="math inline">\(\ge 1.0\)</span>)</td>
+<td style="text-align: left;">Multiplier between total tokens consumed across an agent fleet and initial user prompt tokens.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(B_{\text{token}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Token Budget Allocation</strong></td>
+<td style="text-align: left;">Tokens</td>
+<td style="text-align: left;">Maximum token budget allocated to a trajectory before preemption or human escalation.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(B_{\text{cost}}\)</span></strong></td>
+<td style="text-align: left;"><strong>Financial Expenditure Ceiling</strong></td>
+<td style="text-align: left;">Dollars ($)</td>
+<td style="text-align: left;">Hard monetary budget ceiling enforced by admission control to prevent runaway spending loops.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-agentic-collisions" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-agentic-collisions">Cross-domain collision disambiguation</h3>
+<p>Agentic machine learning systems operate at the intersection of neural inference, operating systems, and distributed computing, creating unavoidable symbol collisions across these domains:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 4%">
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 52%">
+<col style="width: 2%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>Symbol</strong></th>
+<th style="text-align: left;"><strong>Neural Core Meaning</strong></th>
+<th style="text-align: left;"><strong>Distributed Systems Meaning</strong></th>
+<th style="text-align: left;"><strong>Agentic Systems Meaning</strong></th>
+<th style="text-align: left;"><strong>Canonical Resolution in this Book</strong></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(\tau\)</span></strong></td>
+<td style="text-align: left;">Drift threshold / Temperature</td>
+<td style="text-align: left;">Checkpoint interval <span class="math inline">\(\tau_{\text{ckpt}}\)</span></td>
+<td style="text-align: left;"><strong>Agentic Trajectory</strong></td>
+<td style="text-align: left;">Bare <span class="math inline">\(\tau\)</span> denotes the trajectory tuple. Temperature sampling uses <span class="math inline">\(\tau_{\text{temp}}\)</span>. Checkpoints use <span class="math inline">\(\tau_{\text{ckpt}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(\text{BW}\)</span></strong></td>
+<td style="text-align: left;">Bandwidth (Iron Law)</td>
+<td style="text-align: left;">Interconnect / Fabric bandwidth</td>
+<td style="text-align: left;"><strong>Accelerator Memory Bandwidth</strong></td>
+<td style="text-align: left;">Preserves the universal <span class="math inline">\(\text{BW}\)</span> rule. Accelerator memory bus bandwidth is explicitly written as <span class="math inline">\(\text{BW}_{\text{mem}}\)</span> (never bare <span class="math inline">\(B\)</span>).</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(B\)</span></strong></td>
+<td style="text-align: left;">Batch size (mini-batch)</td>
+<td style="text-align: left;">Global batch size / Micro-batch</td>
+<td style="text-align: left;"><strong>Single-Agent Batch Size</strong></td>
+<td style="text-align: left;"><span class="math inline">\(B\)</span> is strictly reserved for serving batch size. In single-agent loops, <span class="math inline">\(B=1\)</span> denotes the unbatched serialization wall.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(H\)</span></strong></td>
+<td style="text-align: left;">Hidden dimension / Heads</td>
+<td style="text-align: left;">Host cluster nodes</td>
+<td style="text-align: left;"><strong>Operational Horizon Depth</strong></td>
+<td style="text-align: left;"><span class="math inline">\(H\)</span> denotes sequential turn depth in H-S-A-C. Attention heads use <span class="math inline">\(H_{\text{heads}}\)</span> or <span class="math inline">\(H_{\text{kv}}\)</span>. Hidden dimension uses <span class="math inline">\(d_{\text{model}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(N\)</span></strong></td>
+<td style="text-align: left;">Dataset size (samples)</td>
+<td style="text-align: left;">Device / Accelerator count</td>
+<td style="text-align: left;"><strong>Trajectory Turn Count</strong></td>
+<td style="text-align: left;">In trajectory probability bounds (<span class="math inline">\(p^N\)</span>), <span class="math inline">\(N\)</span> denotes turns. Model parameter count uses <span class="math inline">\(N_{\text{params}}\)</span> or $\</td>
+<td>\</td>
+<td>$. Cluster nodes use <span class="math inline">\(N_{\text{nodes}}\)</span>.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(M\)</span></strong></td>
+<td style="text-align: left;">Minibatch size</td>
+<td style="text-align: left;">Message buffer volume</td>
+<td style="text-align: left;"><strong>Prompt / Prefill Tokens</strong></td>
+<td style="text-align: left;"><span class="math inline">\(M\)</span> denotes input sequence length. Memory footprint uses <span class="math inline">\(M_{\text{KV}}\)</span> or <span class="math inline">\(\text{Mem}\)</span>. Million is denoted by the unit suffix <span class="math inline">\(\text{M}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(K\)</span></strong></td>
+<td style="text-align: left;">Top-<span class="math inline">\(k\)</span> sampling parameter</td>
+<td style="text-align: left;">Pipeline stages</td>
+<td style="text-align: left;"><strong>Decode / Generated Tokens</strong></td>
+<td style="text-align: left;"><span class="math inline">\(K\)</span> denotes output token count (<span class="math inline">\(M + K \le S_{\max}\)</span>). Budget ceiling uses <span class="math inline">\(K_{\max}\)</span>. Thousand is denoted by the unit suffix <span class="math inline">\(\text{k}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(P\)</span></strong></td>
+<td style="text-align: left;">Model parameters <span class="math inline">\(P\)</span></td>
+<td style="text-align: left;">Partition count</td>
+<td style="text-align: left;"><strong>Precision / Byte Width</strong></td>
+<td style="text-align: left;"><span class="math inline">\(P\)</span> denotes numerical precision in bytes per parameter (<span class="math inline">\(P=2\)</span> for FP16). Parameter count is written as <span class="math inline">\(N_{\text{params}}\)</span> or $\</td>
+<td>\</td>
+<td>$. Probability is <span class="math inline">\(P_{\text{success}}\)</span>.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(T\)</span></strong></td>
+<td style="text-align: left;">Wall-clock time (seconds)</td>
+<td style="text-align: left;">Tensor parallel dimension</td>
+<td style="text-align: left;"><strong>Time / Sub-Transaction</strong></td>
+<td style="text-align: left;">Lowercase <span class="math inline">\(t\)</span> denotes step index; <span class="math inline">\(T\)</span> denotes wall-clock duration (e.g.&nbsp;<span class="math inline">\(T_{\text{prefill}}, T_{\text{task}}\)</span>). In Sagas, calligraphic <span class="math inline">\(\mathcal{T} = [T_1, \dots, T_n]\)</span> denotes sub-transactions.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(C\)</span></strong></td>
+<td style="text-align: left;">Compute cost (FLOPs)</td>
+<td style="text-align: left;">Channel capacity / Communicator</td>
+<td style="text-align: left;"><strong>Invariant Closure Rank</strong></td>
+<td style="text-align: left;">In H-S-A-C, <span class="math inline">\(C\)</span> denotes verification closure rank (<span class="math inline">\(C_0\text{--}C_3\)</span>). Compute FLOPs use <span class="math inline">\(C_{\text{compute}}\)</span>. Financial task cost uses <span class="math inline">\(C_{\text{task}}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong><span class="math inline">\(a\)</span></strong></td>
+<td style="text-align: left;">Activation tensor</td>
+<td style="text-align: left;">Acceleration factor</td>
+<td style="text-align: left;"><strong>Action Proposal</strong></td>
+<td style="text-align: left;"><span class="math inline">\(a_t\)</span> denotes the candidate action emitted at step <span class="math inline">\(t\)</span>. Learning rate uses <span class="math inline">\(\eta\)</span> or <span class="math inline">\(\alpha\)</span>. Activations use <span class="math inline">\(\mathbf{A}\)</span> or <span class="math inline">\(\mathbf{h}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong><span class="math inline">\(s\)</span></strong></td>
+<td style="text-align: left;">Sequence length</td>
+<td style="text-align: left;">Seconds (time unit)</td>
+<td style="text-align: left;"><strong>Environment State</strong></td>
+<td style="text-align: left;"><span class="math inline">\(s_t\)</span> denotes external environment state at turn <span class="math inline">\(t\)</span>. Sequence length uses <span class="math inline">\(M\)</span> (prefill) and <span class="math inline">\(K\)</span> (decode). Seconds uses the upright unit <span class="math inline">\(\text{s}\)</span>.</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sec-notation-agentic-units" class="level3">
+<h3 class="anchored" data-anchor-id="sec-notation-agentic-units">Additional systems units</h3>
+<ul>
+<li><strong>Trajectory Goodput (<span class="math inline">\(\mathcal{G}\)</span>)</strong>: Reported as a percentage or fraction in <span class="math inline">\([0, 1]\)</span>. In contrast to raw serving throughput (<span class="math inline">\(\text{tokens/s}\)</span>), goodput accounts only for compute and tokens expended on trajectories that pass external deterministic verification gates.</li>
+<li><strong>Space-Time Memory Occupancy (<span class="math inline">\(O_{\text{mem}}\)</span>)</strong>: Denominated in Gigabyte-seconds (<span class="math inline">\(\text{GB} \cdot \text{s}\)</span>) or Megabyte-hours (<span class="math inline">\(\text{MB} \cdot \text{h}\)</span>). Measures physical accelerator memory residency integrated across prefill, decode, and tool-wait intervals.</li>
+<li><strong>Unit Economics</strong>: Financial expenditure is normalized as US dollars per resolved task (<span class="math inline">\(\$/\text{task}\)</span>); energy efficiency is measured in Joules per resolved task (<span class="math inline">\(J/\text{task}\)</span>) or kilowatt-hours per resolved task (<span class="math inline">\(\text{kWh}/\text{task}\)</span>).</li>
+<li><strong>Token Volume and Velocity</strong>: Context capacities and cumulative consumption use <span class="math inline">\(\text{kTok}\)</span> (<span class="math inline">\(10^3\)</span> tokens) and <span class="math inline">\(\text{MTok}\)</span> (<span class="math inline">\(10^6\)</span> tokens); serving throughput uses <span class="math inline">\(\text{tokens/s}\)</span>.</li>
+</ul>
+
+
+
+</section>
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/vol3\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="ai_use.html" class="pagination-link" aria-label="A Note on AI Assistance">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">A Note on AI Assistance</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="../vol2/">← Volume II: Scaling</a> · <a href="../vol4/">Volume IV: Physical AI (Draft) →</a></p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+ <span class="release-pill" data-release-pill=""></span>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-star" role="img" aria-label="Star this repository">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+    <script type="text/javascript">
+    (function(d) {
+      function renderPseudocode() {
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let pseudocodeOptions = {
+            indentSize: el.dataset.indentSize,
+            commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+            lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+            lineNumberPunc: el.dataset.lineNumberPunc,
+            noEnd: el.dataset.noEnd.toLowerCase() === "true",
+            scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+            titlePrefix: el.dataset.captionPrefix,
+          };
+          pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+        });
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+          if (captionSpan !== null) {
+            let captionPrefix = el.dataset.captionPrefix + " ";
+            let captionNumber = "";
+            if (el.dataset.pseudocodeNumber) {
+              captionNumber = el.dataset.pseudocodeNumber + " ";
+              if (el.dataset.chapterLevel) {
+                captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+              }
+            }
+            captionSpan.innerHTML = captionPrefix + captionNumber;
+          }
+        });
+      }
+      // pseudocode.js needs a math backend (KaTeX or MathJax) present *at the
+      // moment* renderElement runs. This book renders math with MathJax loaded
+      // via `defer`, so window.MathJax does not exist yet when this after-body
+      // script executes at parse time — calling renderElement now throws
+      // "No math backend found" and the raw LaTeX source stays on the page.
+      // Wait for the math backend to be ready before rendering: KaTeX if it is
+      // present synchronously, otherwise MathJax's startup promise (available
+      // after the deferred MathJax script has run, by window 'load').
+      function whenMathReady(cb) {
+        if (window.katex) { cb(); return; }
+        var mj = window.MathJax;
+        if (mj && mj.startup && mj.startup.promise) { mj.startup.promise.then(cb); return; }
+        window.addEventListener("load", function() {
+          var m = window.MathJax;
+          if (m && m.startup && m.startup.promise) { m.startup.promise.then(cb); }
+          else { cb(); }
+        });
+      }
+      whenMathReady(renderPseudocode);
+    })(document);
+    </script>
+  
+
+
+
+
+</body></html>

@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agentic Machine Learning Systems</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="app_b_tool_design.html" rel="next">
+<link href="../backmatter/references.html" rel="prev">
+<link href="../shared/assets/images/icons/favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e1fd47000f6672cb275a5a4895666198.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script src="../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  theme-persist (inline, sync) — applies stored color-scheme before first paint.
+  Inlined deliberately: runs before any other <script>, no extra round-trip,
+  and avoids per-subsite asset path differences. Canonical source:
+  shared/scripts/theme-persist.js (kept identical for documentation/testability).
+  If you change one, mirror the change to the other.
+-->
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'quarto-color-scheme';
+  // Quarto's toggle writes 'alternate'/'default' (alternate = dark, the
+  // layered sheet); sibling non-Quarto sites write 'dark'/'light'. Both
+  // hit the same key, so we accept either. Quarto's own startup still
+  // checks `=== 'alternate'`, so we mirror onto <html> rather than rewrite.
+  function normalize(v) {
+    if (v === 'dark' || v === 'alternate') return 'dark';
+    if (v === 'light' || v === 'default') return 'light';
+    return null;
+  }
+  function preferredScheme() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) return n;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  function apply(scheme) {
+    var html = document.documentElement;
+    if (!html) return;
+    html.setAttribute('data-bs-theme', scheme);
+    html.setAttribute('data-quarto-color-scheme', scheme);
+    html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
+  }
+  apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
+  // Quarto's toggle updates localStorage but not <html>, so wrap it to
+  // mirror the new value onto data-bs-theme; otherwise clicking the toggle
+  // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
+  // stylesheet until the next reload.
+  function syncFromStorage() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) apply(n);
+    } catch (e) {}
+  }
+  function wrapToggle() {
+    var orig = window.quartoToggleColorScheme;
+    if (typeof orig !== 'function' || orig.__mlsbWrapped) return;
+    var wrapped = function () { var r = orig.apply(this, arguments); syncFromStorage(); return r; };
+    wrapped.__mlsbWrapped = true;
+    window.quartoToggleColorScheme = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
+  } else {
+    wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
+  }
+  window.addEventListener('storage', function (ev) {
+    if (ev.key !== STORAGE_KEY) return;
+    var n = normalize(ev.newValue);
+    if (n) apply(n);
+  });
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (ev) {
+        try { if (window.localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+        apply(ev.matches ? 'dark' : 'light');
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<!--
+  Build-stamp styling. Tiny, neutral, dark-mode aware. The actual stamp text
+  is injected by shared/scripts/inject-build-stamp.sh into footer markup
+  containing the literal MLSB_BUILD_STAMP HTML-comment token (see that
+  script for the exact pattern — we cannot write it here because HTML
+  comments cannot nest and the inner closer would terminate this block).
+-->
+<style>
+.mlsb-build-stamp {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+[data-bs-theme="dark"] .mlsb-build-stamp { opacity: 0.5; }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="icon" href="../../vol1/assets/images/icons/favicon.png" type="image/png">
+<meta name="author" content="Vijay Janapa Reddi">
+
+<!-- Schema.org JSON-LD structured data for Google Knowledge Graph & Rich Snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mlsysbook.ai/#website",
+      "url": "https://mlsysbook.ai/",
+      "name": "Machine Learning Systems",
+      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Harvard Edge Computing Lab",
+        "url": "https://edge.seas.harvard.edu"
+      }
+    },
+    {
+      "@type": "BookSeries",
+      "@id": "https://mlsysbook.ai/#bookseries",
+      "name": "Machine Learning Systems: Principles and Practices of Engineering Artificially Intelligent Systems",
+      "alternateName": ["MLSysBook", "Machine Learning Systems", "AI Engineering Textbook"],
+      "url": "https://mlsysbook.ai/",
+      "inLanguage": "en-US",
+      "author": {
+        "@type": "Person",
+        "name": "Vijay Janapa Reddi",
+        "jobTitle": "Gordon McKay Professor of Electrical Engineering and Computer Science",
+        "worksFor": {
+          "@type": "EducationalOrganization",
+          "name": "Harvard University",
+          "sameAs": "https://www.harvard.edu"
+        },
+        "sameAs": [
+          "https://profvjreddi.github.io/homepage/"
+        ]
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "MIT Press",
+        "url": "https://mitpress.mit.edu"
+      },
+      "hasPart": [
+        {
+          "@type": "Book",
+          "name": "Volume I: Introduction to Machine Learning Systems",
+          "url": "../../vol1/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Foundations, Lifecycle, Data Engineering, Training, Inference, Benchmarking, and Responsible AI"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume II: Scaling Machine Learning Systems",
+          "url": "../../vol2/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume III: Agentic Machine Learning Systems",
+          "url": "../",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume IV: Physical AI Systems",
+          "url": "../../vol4/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
+        }
+      ]
+    },
+    {
+      "@type": "Course",
+      "@id": "https://mlsysbook.ai/#course",
+      "name": "CS249r: Machine Learning Systems",
+      "description": "Harvard University course on principles and practices of engineering artificially intelligent systems.",
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "Harvard University",
+        "sameAs": "https://www.harvard.edu"
+      }
+    }
+  ]
+}
+</script>
+
+<!--
+  navbar-theme-toggle-relocate — moves the Quarto theme toggle into the
+  navbar's right-side .navbar-nav group at page load, so it collapses into
+  the hamburger menu alongside Subscribe/Star/Support/GitHub at narrow widths
+  instead of being stranded in the middle by Quarto's mx-auto brand layout.
+
+  Why JS: Quarto auto-injects the toggle into .quarto-navbar-tools (outside
+  .navbar-collapse). CSS can't move DOM nodes between containers, and CSS
+  positioning hacks (absolute/right: 50px) fight Bootstrap's responsive
+  layout below 992px. Moving the node once at startup is the standard
+  approach used across Quarto-based sites with the same problem.
+-->
+<script>
+(function () {
+  'use strict';
+  function relocateThemeToggle() {
+    var tools = document.querySelector('.quarto-navbar-tools');
+    if (!tools) return;
+    var toggle = tools.querySelector('.quarto-color-scheme-toggle');
+    if (!toggle) return;
+    var navRight = document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav.ms-auto'
+    ) || document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav:last-of-type'
+    );
+    if (!navRight) return;
+    var li = document.createElement('li');
+    li.className = 'nav-item navbar-theme-toggle-item';
+    toggle.classList.add('nav-link');
+    li.appendChild(toggle);
+    navRight.appendChild(li);
+    tools.style.display = 'none';
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relocateThemeToggle);
+  } else {
+    relocateThemeToggle();
+  }
+})();
+</script>
+
+<!--
+  navbar-brand-href-fix — force the navbar brand link to the ecosystem root
+  (https://mlsysbook.ai/) on every subsite.
+
+  Quarto sets each subsite's `site-url` to `https://mlsysbook.ai/<subsite>/`
+  and then relativizes any navbar.href value that lives inside the
+  site-url's domain. The shared `href: https://mlsysbook.ai/` in
+  navbar-common.yml therefore gets emitted as `./index.html`, which on
+  vol1/vol2/tinytorch/etc. resolves to *that subsite's* root rather than
+  the ecosystem landing page. Override the brand link href in JS after
+  Quarto's render: this is a one-line user-experience fix that does not
+  fight Quarto's URL machinery.
+-->
+<script>
+(function () {
+  'use strict';
+  function fixBrandHref() {
+    var brand = document.querySelectorAll(
+      '.navbar .navbar-brand, .navbar .navbar-brand-logo'
+    );
+    for (var i = 0; i < brand.length; i++) {
+      brand[i].setAttribute('href', 'https://mlsysbook.ai/');
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fixBrandHref);
+  } else {
+    fixBrandHref();
+  }
+})();
+</script>
+<link rel="manifest" href="../site.webmanifest">
+<link rel="apple-touch-icon" href="../shared/assets/images/icons/favicon.png">
+<meta name="theme-color" content="#581C87">
+<script src="../shared/assets/scripts/sidebar-auto-collapse.js" defer=""></script>
+<script src="../shared/assets/scripts/version-link.js" defer=""></script>
+<script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
+<style>
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-takeaways {
+  --color1: #FCF4F8;
+  --color2: #9D3C72;
+  --border-color: #9D3C72;
+  --background-color: rgba(157, 60, 114, 0.04);
+  --title-background-color: rgba(157, 60, 114, 0.04);
+  --dark-background-color: rgba(157, 60, 114, 0.12);
+  --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+}
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+body.quarto-dark details.callout-takeaways summary,
+body.quarto-dark details.callout-takeaways summary strong,
+body.quarto-dark details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+</style>
+<style>
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+</style>
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Agentic Machine Learning Systems">
+<meta property="og:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta property="og:image" content="../appendices/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta property="og:site_name" content="Agentic Machine Learning Systems">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Agentic Machine Learning Systems">
+<meta name="twitter:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta name="twitter:image" content="../appendices/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo light-content">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-read" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Read</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
+        <li>
+    <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: Scaling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume I PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume I EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume II PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume II EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume III PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume III EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV EPUB</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-build" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Build</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/games/"><i class="bi bi-controller" role="img">
+</i> 
+ <span class="dropdown-text">Playground Games</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/labs/"><i class="bi bi-sliders" role="img">
+</i> 
+ <span class="dropdown-text">Labs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·im</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-teach" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Teach</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/online/ai-engineering-for-leaders/"><i class="bi bi-person-badge" role="img">
+</i> 
+ <span class="dropdown-text">AI Engineering for Leaders (HarvardX)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+</i> 
+ <span class="dropdown-text">CS249r Course Map</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
+</i> 
+ <span class="dropdown-text">Instructor Hub</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-prepare" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Prepare</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/"><i class="bi bi-mortarboard" role="img">
+</i> 
+ <span class="dropdown-text">StaffML</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/plans"><i class="bi bi-map" role="img">
+</i> 
+ <span class="dropdown-text">Study Plans</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/gauntlet"><i class="bi bi-lightning" role="img">
+</i> 
+ <span class="dropdown-text">Gauntlet Mode</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">StaffML Paper</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-connect" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Connect</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/newsletter/"><i class="bi bi-envelope" role="img">
+</i> 
+ <span class="dropdown-text">Newsletter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/"><i class="bi bi-globe" role="img">
+</i> 
+ <span class="dropdown-text">Global Network</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/events.html"><i class="bi bi-calendar-event" role="img">
+</i> 
+ <span class="dropdown-text">Workshops &amp; Events</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/partners.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Partners &amp; Sponsors</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-about" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">About</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/"><i class="bi bi-bullseye" role="img">
+</i> 
+ <span class="dropdown-text">Mission</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/#story"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Our Story</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/people.html"><i class="bi bi-person-lines-fill" role="img">
+</i> 
+ <span class="dropdown-text">People</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/contributors.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Contributors</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/license.html"><i class="bi bi-cc-circle" role="img">
+</i> 
+ <span class="dropdown-text">License</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://mlsysbook.ai/newsletter/"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="app_a_reference_architecture.html">Appendices</a></li><li class="breadcrumb-item"><a href="app_a_reference_architecture.html">App A: Reference Architecture</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+  <div id="quarto-announcement" data-announcement-id="8a70ada3f63bd493daaa9ec15213591b" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">3b144739</code> • 2026-09-21 06:40 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🟣 <strong>DRAFT — Volume III: Agentic Machine Learning Systems.</strong> Work in progress · Early evolving draft ahead of target release in 2027.<br> 📘 <strong>Foundations:</strong> <a href="../../vol1/">Volume I: Foundations</a> · <a href="../../vol2/">Volume II: Scaling</a> · <a href="../../vol4/">Volume IV: Physical AI</a><br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+</div></div>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homepage</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/author_note.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Author’s Note</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/acknowledgements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Acknowledgments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/ai_use.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Note on AI Assistance</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/notation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Notation</span></a>
+  </div>
+</li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01_introduction/01_introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part1_processor.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I: The Stochastic Processor</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02_processor/02_processor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Foundation Model Engine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03_deliberation/03_deliberation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Test-Time Deliberation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part2_memory.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II: Context Memory and Storage</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04_working_sets/04_working_sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Working Context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05_virtual_memory/05_virtual_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Paged Attention Memory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06_episodic_memory/06_episodic_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Persistent Storage</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part3_io.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III: Tool Actuation and I/O Peripherals</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07_actuation/07_actuation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tool Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08_virtualization/08_virtualization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Environmental Isolation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part4_os.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part IV: The Agent Operating System</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09_checkpointing/09_checkpointing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervisory Control Planes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10_interrupts/10_interrupts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Persistence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../11_scheduling/11_scheduling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fault Recovery</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part5_compiler.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part V: The Policy Compiler</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../12_data_flywheel/12_data_flywheel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Harvesting</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../13_sft/13_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervised Adaptation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../14_rlvr/14_rlvr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verifiable Reinforcement Learning</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part6_fleet.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VI: Distributed Fleets and Operations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../15_multi_agent/15_multi_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multi-Agent Coordination</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../16_observability/16_observability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System Observability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../17_tokenomics/17_tokenomics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Serving Economics</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part7_synthesis.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VII: System Synthesis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../18_conclusion/18_conclusion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architectural Synthesis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="app_a_reference_architecture.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">App A: Reference Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="app_b_tool_design.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App B: Tool Design &amp; Typed ABIs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="app_c_failure_taxonomy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App C: Taxonomy of Failures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/appendix_math.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mathematical Foundations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../backmatter/glossary/glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Glossary</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-vol3-app-reference-architecture" id="toc-sec-vol3-app-reference-architecture" class="nav-link active" data-scroll-target="#sec-vol3-app-reference-architecture">Reference Architecture</a>
+  <ul>
+  <li><a href="#how-to-use-this-appendix" id="toc-how-to-use-this-appendix" class="nav-link" data-scroll-target="#how-to-use-this-appendix">How to Use This Appendix</a></li>
+  <li><a href="#sec-vol3-app-ref-arch-mapping" id="toc-sec-vol3-app-ref-arch-mapping" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-mapping">The Stochastic Von Neumann Stack: Conceptual to Concrete</a></li>
+  <li><a href="#sec-vol3-app-ref-arch-processor" id="toc-sec-vol3-app-ref-arch-processor" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-processor">The Stochastic Processor and Volatile Memory</a>
+  <ul class="collapse">
+  <li><a href="#modern-inference-engines-vllm-radixattention-and-tensorrt-llm" id="toc-modern-inference-engines-vllm-radixattention-and-tensorrt-llm" class="nav-link" data-scroll-target="#modern-inference-engines-vllm-radixattention-and-tensorrt-llm">Modern inference engines: vLLM, RadixAttention, and TensorRT-LLM</a></li>
+  <li><a href="#key-value-cache-sizing-arithmetic-and-memory-budgets" id="toc-key-value-cache-sizing-arithmetic-and-memory-budgets" class="nav-link" data-scroll-target="#key-value-cache-sizing-arithmetic-and-memory-budgets">Key-value cache sizing arithmetic and memory budgets</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-actuation" id="toc-sec-vol3-app-ref-arch-actuation" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-actuation">Actuation and Environment Sandboxing</a>
+  <ul class="collapse">
+  <li><a href="#sandboxing-technologies-microvms-containers-and-webassembly" id="toc-sandboxing-technologies-microvms-containers-and-webassembly" class="nav-link" data-scroll-target="#sandboxing-technologies-microvms-containers-and-webassembly">Sandboxing technologies: MicroVMs, containers, and WebAssembly</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-orchestration" id="toc-sec-vol3-app-ref-arch-orchestration" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-orchestration">Working Sets and Durable Orchestration</a>
+  <ul class="collapse">
+  <li><a href="#context-working-set-management" id="toc-context-working-set-management" class="nav-link" data-scroll-target="#context-working-set-management">Context working set management</a></li>
+  <li><a href="#durable-execution-with-temporal-and-distributed-sagas" id="toc-durable-execution-with-temporal-and-distributed-sagas" class="nav-link" data-scroll-target="#durable-execution-with-temporal-and-distributed-sagas">Durable execution with temporal and distributed Sagas</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-memory" id="toc-sec-vol3-app-ref-arch-memory" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-memory">Episodic Memory and Persistent State</a>
+  <ul class="collapse">
+  <li><a href="#the-multi-tier-agent-memory-hierarchy" id="toc-the-multi-tier-agent-memory-hierarchy" class="nav-link" data-scroll-target="#the-multi-tier-agent-memory-hierarchy">The multi-tier agent memory hierarchy</a></li>
+  <li><a href="#vector-indexing-topologies-hnsw-vs.-ivf-pq" id="toc-vector-indexing-topologies-hnsw-vs.-ivf-pq" class="nav-link" data-scroll-target="#vector-indexing-topologies-hnsw-vs.-ivf-pq">Vector indexing topologies: HNSW vs.&nbsp;IVF-PQ</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-observability" id="toc-sec-vol3-app-ref-arch-observability" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-observability">Observability, Checkpointing, and Auditability</a>
+  <ul class="collapse">
+  <li><a href="#opentelemetry-for-distributed-agent-trajectories" id="toc-opentelemetry-for-distributed-agent-trajectories" class="nav-link" data-scroll-target="#opentelemetry-for-distributed-agent-trajectories">OpenTelemetry for distributed agent trajectories</a></li>
+  <li><a href="#write-ahead-logging-wal-on-high-performance-nvme" id="toc-write-ahead-logging-wal-on-high-performance-nvme" class="nav-link" data-scroll-target="#write-ahead-logging-wal-on-high-performance-nvme">Write-ahead logging (WAL) on high-performance NVMe</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-blueprint" id="toc-sec-vol3-app-ref-arch-blueprint" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-blueprint">Production Deployment Blueprint and Failure Modes</a>
+  <ul class="collapse">
+  <li><a href="#kubernetes-infrastructure-partitioning" id="toc-kubernetes-infrastructure-partitioning" class="nav-link" data-scroll-target="#kubernetes-infrastructure-partitioning">Kubernetes infrastructure partitioning</a></li>
+  <li><a href="#zero-trust-network-architecture-and-egress-control" id="toc-zero-trust-network-architecture-and-egress-control" class="nav-link" data-scroll-target="#zero-trust-network-architecture-and-egress-control">Zero-trust network architecture and egress control</a></li>
+  <li><a href="#production-failure-modes-and-architectural-mitigations" id="toc-production-failure-modes-and-architectural-mitigations" class="nav-link" data-scroll-target="#production-failure-modes-and-architectural-mitigations">Production failure modes and architectural mitigations</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-app-ref-arch-summary" id="toc-sec-vol3-app-ref-arch-summary" class="nav-link" data-scroll-target="#sec-vol3-app-ref-arch-summary">Summary</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="app_a_reference_architecture.html">Appendices</a></li><li class="breadcrumb-item"><a href="app_a_reference_architecture.html">App A: Reference Architecture</a></li></ol></nav></header>
+
+
+
+
+
+<section id="sec-vol3-app-reference-architecture" class="level1 page-columns page-full">
+<h1>Reference Architecture</h1>
+<p>Throughout this book, agentic machine learning systems are analyzed through the conceptual lens of the Stochastic Von Neumann Architecture. This appendix translates those theoretical abstractions into a concrete, open-source production deployment stack. Systems architects and infrastructure engineers will find operational specifications, interface contracts, hardware sizing models, and deployment topologies spanning the stochastic processor, volatile key-value cache allocators, actuation sandboxes, durable workflow orchestrators, episodic retrieval tiers, and crash-consistent write-ahead logging pipelines.</p>
+<section id="how-to-use-this-appendix" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="how-to-use-this-appendix">How to Use This Appendix</h2>
+<p>This appendix serves as a systems reference manual for constructing and hardening production agent runtimes. Readers should consult specific sections based on the operational or architectural challenges encountered during design and deployment:</p>
+<ul>
+<li><strong>When selecting or sizing model inference engines and volatile memory allocators</strong>: Consult <a href="#sec-vol3-app-ref-arch-processor" class="quarto-xref">section&nbsp;1.2</a> for GPU memory layouts, PagedAttention block tables, Radix tree prefix caching, TensorRT-LLM compilation, and key-value cache sizing arithmetic.</li>
+<li><strong>When isolating tool execution and mitigating untrusted environment mutations</strong>: Consult <a href="#sec-vol3-app-ref-arch-actuation" class="quarto-xref">section&nbsp;1.3</a> for Linux KVM virtualization, Firecracker microVM startup budgets, copy-on-write snapshotting, gVisor syscall interception, and WebAssembly capability sandboxing.</li>
+<li><strong>When architecting agent working sets, cyclic execution graphs, and durable workflows</strong>: Consult <a href="#sec-vol3-app-ref-arch-orchestration" class="quarto-xref">section&nbsp;1.4</a> for context compaction pipelines, LangGraph state machines, LlamaIndex node schemas, and Temporal event-sourced distributed sagas.</li>
+<li><strong>When designing multi-tier episodic memory and working state stores</strong>: Consult <a href="#sec-vol3-app-ref-arch-memory" class="quarto-xref">section&nbsp;1.5</a> for vector indexing trade-offs (HNSW vs.&nbsp;IVF-PQ), Redis working-set cache eviction, and bi-temporal audit ledgers.</li>
+<li><strong>When instrumenting distributed telemetry and engineering crash-consistent recovery</strong>: Consult <a href="#sec-vol3-app-ref-arch-observability" class="quarto-xref">section&nbsp;1.6</a> for OpenTelemetry semantic conventions, W3C trace context propagation across microVM boundaries, and NVMe-backed write-ahead logging (WAL) protocols.</li>
+<li><strong>When deploying the complete reference stack across Kubernetes node pools</strong>: Consult <a href="#sec-vol3-app-ref-arch-blueprint" class="quarto-xref">section&nbsp;1.7</a> for cluster topology blueprints, zero-trust egress network controls, and the production failure mode mitigation matrix.</li>
+</ul>
+</section>
+<section id="sec-vol3-app-ref-arch-mapping" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-mapping">The Stochastic Von Neumann Stack: Conceptual to Concrete</h2>
+<p>In <strong><a href="../01_introduction/01_introduction.html#sec-vol3-intro">Foundations of Agentic Systems</a></strong>, the agentic runtime was formalized as a non-deterministic computer operating under systems principles established by classical computer architecture <span class="citation" data-cites="vonneumann1945first">(<a href="#ref-vonneumann1945first" role="doc-biblioref">Neumann 1945</a>)</span>. To build production systems, infrastructure engineers must map each conceptual subsystem to hardened, open-source software frameworks. <a href="#tbl-vol3-app-ref-arch-matrix" class="quarto-xref">Table&nbsp;1</a> establishes this operational translation, detailing the physical implementations, primary systems invariants, and hardware bottlenecks governing each architectural layer.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-vonneumann1945first" class="csl-entry" role="listitem">
+Neumann, John von. 1945. <em>First Draft of a Report on the EDVAC</em>. Moore School of Electrical Engineering, University of Pennsylvania.
+</div></div><div id="tbl-vol3-app-ref-arch-matrix" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-tbl-colwidths="[16,18,24,22,20]">
+<figure class="quarto-float quarto-float-tbl figure page-columns page-full">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: <strong>Stochastic Von Neumann Production Reference Matrix</strong>: Architectural layers, reference open-source technologies, interface contracts, and target SLAs.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 18%">
+<col style="width: 24%">
+<col style="width: 22%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Classical Subsystem</th>
+<th style="text-align: left;">Stochastic Metaphor</th>
+<th style="text-align: left;">Open-Source Reference Implementation</th>
+<th style="text-align: left;">Core Systems Invariant / SLA</th>
+<th style="text-align: left;">Primary Hardware / Runtime Bottleneck</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Arithmetic Logic Unit (ALU)</strong></td>
+<td style="text-align: left;">Stochastic Processor Core</td>
+<td style="text-align: left;">vLLM, SGLang, TensorRT-LLM (served over PyTorch / CUDA)</td>
+<td style="text-align: left;">Deterministic logit generation under temperature <span class="math inline">\(T=0\)</span>; bounded generation latency</td>
+<td style="text-align: left;">Accelerator compute saturation (GEMM Tensor Cores), memory bus bandwidth</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Volatile Random-Access Memory (RAM)</strong></td>
+<td style="text-align: left;">Working Context &amp; KV Cache</td>
+<td style="text-align: left;">PagedAttention, RadixAttention tree, FlashAttention-2 kernels</td>
+<td style="text-align: left;">Zero virtual memory page leakage; zero unmapped fragmentation</td>
+<td style="text-align: left;">GPU High-Bandwidth Memory (HBM3e) capacity (<span class="math inline">\(O(T)\)</span> token growth)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Instruction Bus &amp; Trap Gateway</strong></td>
+<td style="text-align: left;">System Call &amp; Actuation Interface</td>
+<td style="text-align: left;">Model Context Protocol (MCP), Typed JSON Schema ABI, CUDA grammar logit filters</td>
+<td style="text-align: left;">Complete mediation <span class="citation" data-cites="saltzer1975">(<a href="#ref-saltzer1975" role="doc-biblioref">Saltzer and Schroeder 1975</a>)</span>; zero unvalidated tool execution</td>
+<td style="text-align: left;">Grammar-constrained logit mask latency, network serialization overhead</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Execution Sandbox (Protection Rings)</strong></td>
+<td style="text-align: left;">Privilege Separation &amp; Isolation Boundary</td>
+<td style="text-align: left;">Firecracker microVMs (Linux KVM), gVisor (<code>runsc</code>), Wasmtime (Wasm/WASI)</td>
+<td style="text-align: left;">Deterministic environment containment; strict <span class="math inline">\(W \oplus X\)</span> enforcement outside the model</td>
+<td style="text-align: left;">MicroVM cold-boot latency (&lt; 5 ms), copy-on-write storage I/O, syscall virtualization overhead</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Operating System Kernel &amp; Scheduler</strong></td>
+<td style="text-align: left;">Agent Control Block (ACB) &amp; Orchestrator</td>
+<td style="text-align: left;">Temporal, Cadence, LangGraph, LlamaIndex</td>
+<td style="text-align: left;">Exactly-once trajectory transition; guaranteed termination via ranking functions</td>
+<td style="text-align: left;">Task scheduling overhead, distributed coordination contention, state-machine serialization</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>In-Memory Scratchpad &amp; Bus Lock</strong></td>
+<td style="text-align: left;">Fast State &amp; Concurrency Control</td>
+<td style="text-align: left;">Redis Cluster, DragonflyDB (Redlock distributed mutexes)</td>
+<td style="text-align: left;">Sub-millisecond read/write access; atomic lease acquisition</td>
+<td style="text-align: left;">Network interface card (NIC) latency, single-threaded Redis event loop saturation</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Persistent Secondary Storage (Disk)</strong></td>
+<td style="text-align: left;">Episodic &amp; Semantic Memory</td>
+<td style="text-align: left;">Milvus, Pinecone, Qdrant, PostgreSQL (pgvector)</td>
+<td style="text-align: left;">Monotonic recall retention; bounded approximate nearest neighbor (ANN) latency</td>
+<td style="text-align: left;">High-dimensional index memory footprint, IVF-PQ quantization error, disk random I/O</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Flight Recorder &amp; Audit Trail</strong></td>
+<td style="text-align: left;">Write-Ahead Log (WAL) &amp; Observability</td>
+<td style="text-align: left;">OpenTelemetry Collector, Prometheus, Jaeger, NVMe-backed append-only logs</td>
+<td style="text-align: left;">Synchronous durability gate (<span class="math inline">\(\text{Commit}(\text{WAL}) \prec \text{Actuate}(\text{Tool})\)</span>)</td>
+<td style="text-align: left;">NVMe synchronous write latency (<code>fsync</code>), telemetry network bandwidth amplification</td>
+</tr>
+</tbody>
+</table>
+<div class="no-row-height column-margin column-container"></div></div>
+</figure>
+</div>
+<p>The physical integration of these layers is shown in <a href="#fig-vol3-app-ref-arch-e2e" class="quarto-xref">figure&nbsp;1</a>. A production agentic runtime does not execute as an unconstrained loop on a single host. Instead, it operates as a distributed system partitioned across specialized compute, memory, and actuation boundaries.</p>
+<div id="fig-vol3-app-ref-arch-e2e" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Comprehensive architectural block diagram illustrating the six functional tiers of an enterprise agentic machine learning platform, showing data flow from ingress through orchestration, GPU inference, isolated sandboxes, episodic storage, and crash-consistent observability." data-fig-env="figure" data-fig-pos="htb">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vol3-app-ref-arch-e2e-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/svg/app_a_reference_architecture.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: The End-to-End Agentic Production Reference Architecture: Structural topology mapping the Stochastic Von Neumann Architecture across physical infrastructure tiers. Requests pass through ingress gateways into durable orchestrators (Temporal / LangGraph) managing the Agent Control Block. Stochastic inference requests execute across GPU clusters powered by vLLM, SGLang, and TensorRT-LLM, with volatile state managed in HBM via PagedAttention and RadixAttention. Operational actions trigger hardware-style traps across the actuation boundary into isolated sandboxes (Firecracker microVMs, gVisor, WebAssembly) mediated by Model Context Protocol (MCP) gateways. State persists across an in-memory scratchpad (Redis), episodic vector indices (Milvus / Pinecone), and NVMe-backed write-ahead logs (WAL) instrumented with OpenTelemetry. Source: Author."><img src="images/svg/app_a_reference_architecture.svg" class="img-fluid figure-img" style="width:100.0%"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vol3-app-ref-arch-e2e-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: <strong>The End-to-End Agentic Production Reference Architecture</strong>: Structural topology mapping the Stochastic Von Neumann Architecture across physical infrastructure tiers. Requests pass through ingress gateways into durable orchestrators (Temporal / LangGraph) managing the Agent Control Block. Stochastic inference requests execute across GPU clusters powered by vLLM, SGLang, and TensorRT-LLM, with volatile state managed in HBM via PagedAttention and RadixAttention. Operational actions trigger hardware-style traps across the actuation boundary into isolated sandboxes (Firecracker microVMs, gVisor, WebAssembly) mediated by Model Context Protocol (MCP) gateways. State persists across an in-memory scratchpad (Redis), episodic vector indices (Milvus / Pinecone), and NVMe-backed write-ahead logs (WAL) instrumented with OpenTelemetry. Source: Author.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="sec-vol3-app-ref-arch-processor" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-processor">The Stochastic Processor and Volatile Memory</h2>
+<p>In classical systems, the Central Processing Unit (CPU) executes deterministic machine code instructions against dynamic random-access memory (DRAM). In an agentic system, the processor core consists of an autoregressive transformer foundation model, while High-Bandwidth Memory (HBM) on the accelerator functions as volatile working memory. The primary systems constraint governing this layer is not arithmetic compute capacity during generation, but memory bandwidth and memory capacity bottlenecks imposed by the Key-Value (KV) cache.</p>
+<section id="modern-inference-engines-vllm-radixattention-and-tensorrt-llm" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="modern-inference-engines-vllm-radixattention-and-tensorrt-llm">Modern inference engines: vLLM, RadixAttention, and TensorRT-LLM</h3>
+<p>Production architectures require specialized serving engines to maximize throughput and eliminate memory waste:</p>
+<ol type="1">
+<li><strong>vLLM and PagedAttention</strong>: Classical inference allocators assign contiguous virtual memory spaces sized to the model’s maximum possible sequence length (<span class="math inline">\(S_{\max}\)</span>). Because real-world agent trajectories exhibit variable sequence lengths, this produces severe memory fragmentation (often exceeding 60 to 80 percent wasted HBM). vLLM resolves this bottleneck by implementing <strong>PagedAttention</strong> <span class="citation" data-cites="kwon2023">(<a href="#ref-kwon2023" role="doc-biblioref">Kwon et al. 2023</a>)</span>, which partitions the KV cache into fixed-size logical blocks (typically 16 or 32 tokens) mapped dynamically to physical memory frames via page tables, analogous to operating system virtual memory paging. By eliminating external fragmentation and bounding internal fragmentation to the final block, vLLM increases batching concurrency by a factor of two to four within identical HBM budgets.</li>
+<li><strong>SGLang and RadixAttention</strong>: While PagedAttention manages paging for linear requests, agentic execution is inherently tree-structured. Multi-turn reasoning, tool output observation cycles, and Monte Carlo Tree Search (MCTS) branches share extensive common prefixes. SGLang introduces <strong>RadixAttention</strong> <span class="citation" data-cites="zheng2024sglang">(<a href="#ref-zheng2024sglang" role="doc-biblioref">Zheng et al. 2024</a>)</span>, which maintains the KV cache as a Radix tree (trie) data structure directly in host and accelerator memory. When a new trajectory turn or speculative branch arrives, the runtime matches the longest prefix in the Radix tree, bypassing redundant prefill computation. Unused cache pages are retained until memory pressure triggers an eviction algorithm based on Least Recently Used (LRU) policies with recursive reference counting.</li>
+<li><strong>TensorRT-LLM</strong>: Engineered for maximum bare-metal throughput on NVIDIA architectures, TensorRT-LLM compiles model graphs into optimized execution runtimes using TensorRT. It employs static kernel fusion, custom FlashAttention-2 kernels <span class="citation" data-cites="dao2023flashattention2">(<a href="#ref-dao2023flashattention2" role="doc-biblioref">Dao 2023</a>)</span>, in-flight batching (also known as continuous iteration-level scheduling), and specialized multi-GPU communications over NVLink. While TensorRT-LLM yields the lowest per-token latency for fixed-shape production workloads, its static compilation model makes dynamic Radix tree modifications more complex compared to SGLang.</li>
+</ol>
+<div class="no-row-height column-margin column-container"><div id="ref-kwon2023" class="csl-entry" role="listitem">
+Kwon, Woosuk, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. 2023. <span>“Efficient Memory Management for Large Language Model Serving with PagedAttention.”</span> <em>Proceedings of the 29th Symposium on Operating Systems Principles</em>, 611–26. https://doi.org/10.1145/3600006.3613165.
+</div><div id="ref-zheng2024sglang" class="csl-entry" role="listitem">
+Zheng, Lianmin, Liangsheng Ying, Zhenghao Yin, Cody Hao Liu, Eric Yu, Prakhar Patel, Zhipeng Yang, Anthony K. Joseph, and Ion Stoica. 2024. <span>“<span>SGLang</span>: Efficient Execution of Structured Language Model Programs.”</span> <em>arXiv Preprint arXiv:2312.07104</em>, ahead of print. https://doi.org/10.48550/arXiv.2312.07104.
+</div><div id="ref-dao2023flashattention2" class="csl-entry" role="listitem">
+Dao, Tri. 2023. <span>“<span>FlashAttention-2</span>: Faster Attention with Better Parallelism and Work Partitioning.”</span> <em>arXiv Preprint arXiv:2307.08691</em>.
+</div></div><p><a href="#tbl-vol3-app-ref-arch-engines" class="quarto-xref">Table&nbsp;2</a> provides a quantitative systems comparison across these three production inference runtimes.</p>
+<div id="tbl-vol3-app-ref-arch-engines" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[22,26,26,26]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-engines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: <strong>Inference Engine and KV Cache Architecture Comparison</strong>: Features, paging implementations, prefix caching, and disaggregation capabilities.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-engines-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Systems Attribute</th>
+<th style="text-align: left;">vLLM (PagedAttention)</th>
+<th style="text-align: left;">SGLang (RadixAttention)</th>
+<th style="text-align: left;">TensorRT-LLM</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Primary Memory Abstraction</strong></td>
+<td style="text-align: left;">Logical-to-physical block paging tables</td>
+<td style="text-align: left;">Hierarchical Radix tree (trie) prefix cache</td>
+<td style="text-align: left;">Contiguous paged memory pools with static buffers</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Prefix Caching Strategy</strong></td>
+<td style="text-align: left;">Hash-based exact block prefix matching</td>
+<td style="text-align: left;">Structural Radix tree match with LRU cache</td>
+<td style="text-align: left;">KV cache reuse via pre-allocated slot mapping</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Prefill / Decode Scheduling</strong></td>
+<td style="text-align: left;">Chunked prefill with iteration-level batching</td>
+<td style="text-align: left;">Dynamic batching with chunked prompt sharing</td>
+<td style="text-align: left;">In-flight continuous batching with micro-scheduling</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Multi-GPU Parallelism</strong></td>
+<td style="text-align: left;">Tensor Parallelism (TP), Pipeline Parallelism (PP)</td>
+<td style="text-align: left;">Tensor Parallelism (TP), Data Parallelism (DP)</td>
+<td style="text-align: left;">TP, PP, and MoE Expert Parallelism (EP) via NCCL</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Kernel Launch Overhead</strong></td>
+<td style="text-align: left;">Moderate (Python / C++ hybrid runtime)</td>
+<td style="text-align: left;">Low (C++ backend with Python orchestration)</td>
+<td style="text-align: left;">Ultra-low (Compiled C++ / CUDA runtime engine)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Optimal Production Workload</strong></td>
+<td style="text-align: left;">High-concurrency linear agent dialogues</td>
+<td style="text-align: left;">Multi-turn agent trajectories, MCTS deliberation</td>
+<td style="text-align: left;">Enterprise-scale, latency-critical inference pipelines</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="key-value-cache-sizing-arithmetic-and-memory-budgets" class="level3">
+<h3 class="anchored" data-anchor-id="key-value-cache-sizing-arithmetic-and-memory-budgets">Key-value cache sizing arithmetic and memory budgets</h3>
+<p>To prevent out-of-memory (OOM) faults during deep trajectory exploration, systems architects must calculate the exact physical memory footprint of the model parameters and its backing KV cache. For a model with <span class="math inline">\(L\)</span> transformer layers, <span class="math inline">\(H_{\text{KV}}\)</span> key-value attention heads, head dimension <span class="math inline">\(D_{\text{head}}\)</span>, floating-point byte precision <span class="math inline">\(P_{\text{bytes}}\)</span> (e.g., 2 bytes for FP16/BF16, 1 byte for FP8), sequence length <span class="math inline">\(S\)</span>, and concurrent batch size <span class="math inline">\(B\)</span>, the required KV cache memory <span class="math inline">\(M_{\text{KV}}\)</span> in bytes is governed by:</p>
+<p><span class="math display">\[M_{\text{KV}} = 2 \times L \times H_{\text{KV}} \times D_{\text{head}} \times P_{\text{bytes}} \times S \times B\]</span></p>
+<p>The leading factor of 2 accounts for storing both key and value tensors. Consider a production deployment of a 70-billion parameter model utilizing Grouped-Query Attention (GQA):</p>
+<ul>
+<li>Number of layers: <span class="math inline">\(L = 80\)</span></li>
+<li>Key-Value heads: <span class="math inline">\(H_{\text{KV}} = 8\)</span></li>
+<li>Head dimension: <span class="math inline">\(D_{\text{head}} = 128\)</span></li>
+<li>Precision: <span class="math inline">\(P_{\text{bytes}} = 2\)</span> (BF16)</li>
+</ul>
+<p>Evaluating the per-token memory allocation yields:</p>
+<p><span class="math display">\[\text{Memory per token} = 2 \times 80 \times 8 \times 128 \times 2 = 327{,}680\text{ bytes} \approx 327.68\text{ KB/token}\]</span></p>
+<p>Across an agent trajectory carrying an accumulated working context of <span class="math inline">\(S = 32{,}768\)</span> tokens, a single agent session consumes:</p>
+<p><span class="math display">\[M_{\text{KV},\text{session}} = 327{,}680 \times 32{,}768 \approx 10.74\text{ GB of HBM}\]</span></p>
+<p>On an 80 GB NVIDIA H100 SXM5 GPU, model weights in 8-bit quantization (FP8) consume approximately 70 GB. A single GPU cannot hold the model weights and even two concurrent 32K agent sessions without exhausting HBM. Consequently, production deployments require partitioning across multi-GPU nodes using Tensor Parallelism (TP = 2 or TP = 4) to pool HBM capacity, or offloading inactive KV pages across PCIe Gen5 buses to host DDR5 memory as detailed in <strong><a href="../05_virtual_memory/05_virtual_memory.html#sec-vol3-virtual-memory">Paged Attention Memory</a></strong>.</p>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-actuation" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-actuation">Actuation and Environment Sandboxing</h2>
+<p>Classical computer architectures maintain system integrity by enforcing hardware-level privilege separation: user-space applications run in Ring 3, whereas the operating system kernel runs in Ring 0. When user applications require hardware operations, they must execute an explicit hardware trap instruction (such as <code>SYSCALL</code>), transferring control to the kernel.</p>
+<p>In an agentic system, the stochastic processor generates tokens that represent operational commands. As established in <strong><a href="../01_introduction/01_introduction.html#sec-vol3-intro">Foundations of Agentic Systems</a></strong>, the transformer architecture violates the classical <span class="math inline">\(W \oplus X\)</span> (Write XOR Execute) protection invariant: instructions (system prompts) and untrusted data (tool observations, user payloads, retrieved web pages) share an identical token stream processed by the same attention weights. Because prompt injection is an inevitable consequence of this unified token representation, security boundaries cannot be enforced via prompting. The actuation layer must enforce complete mediation <span class="citation" data-cites="saltzer1975">(<a href="#ref-saltzer1975" role="doc-biblioref">Saltzer and Schroeder 1975</a>)</span> through external isolation sandboxes.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-saltzer1975" class="csl-entry" role="listitem">
+Saltzer, J. H., and M. D. Schroeder. 1975. <span>“The Protection of Information in Computer Systems.”</span> <em>Proceedings of the IEEE</em> 63 (9): 1278–308. https://doi.org/10.1109/proc.1975.9939.
+</div></div><section id="sandboxing-technologies-microvms-containers-and-webassembly" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="sandboxing-technologies-microvms-containers-and-webassembly">Sandboxing technologies: MicroVMs, containers, and WebAssembly</h3>
+<p>Production environments deploy three distinct tiers of execution sandboxing, balancing security isolation against startup latency:</p>
+<ol type="1">
+<li><strong>Firecracker MicroVMs</strong>: Developed by Amazon Web Services, Firecracker uses the Linux Kernel-based Virtual Machine (KVM) interface (<code>/dev/kvm</code>) to launch minimalist virtual machines <span class="citation" data-cites="agache2020firecracker">(<a href="#ref-agache2020firecracker" role="doc-biblioref">Agache et al. 2020</a>)</span>. Firecracker strips away legacy PC peripherals, emulating only basic virtio devices (virtio-net, virtio-block, virtio-vsock) and a minimal serial console. Each microVM process is managed by an unprivileged <em>jailer</em> process that executes a chroot jail, creates isolated Linux namespaces (PID, NET, IPC, UTS), enforces cgroups v2 resource quotas, and applies an aggressive seccomp-bpf filter that drops all non-essential system calls. Through copy-on-write (CoW) memory snapshotting, a pre-warmed Firecracker microVM restores in under 5 ms with a baseline memory footprint of roughly 5 MB, providing hardware-level hardware virtualization security.</li>
+<li><strong>gVisor Container Sandboxing</strong>: Classical OCI containers (such as Docker or runc) share the host Linux kernel directly, relying purely on namespaces and cgroups. If an agent executes an untrusted script that exploits a host kernel vulnerability (such as privilege escalation via <code>CVE-2024-21626</code>), the container escapes to the host. gVisor resolves this by running a dedicated user-space kernel called <strong>Sentry</strong> <span class="citation" data-cites="google2019gvisor">(<a href="#ref-google2019gvisor" role="doc-biblioref">Google 2019</a>)</span>. Sentry intercepts application system calls via <code>ptrace</code> or KVM virtualization, implementing core Linux kernel semantics entirely in memory-safe Go. System calls never reach the host kernel directly; file and network I/O are mediated by a separate <strong>Gofer</strong> process. This design provides robust defence-in-depth at the cost of elevated I/O syscall latency.</li>
+<li><strong>WebAssembly (Wasmtime)</strong>: For deterministic compute tasks—such as executing mathematical routines, running data transformations, or parsing JSON/XML schemas—virtual machine startup overhead is unnecessary. WebAssembly runtimes like Wasmtime provide capability-based security through the WebAssembly System Interface (WASI). A Wasm module runs inside an isolated linear memory space with zero default access to the host filesystem, environment variables, or network sockets. Modules instantiate in under 50 microseconds with memory overheads below 1 MB.</li>
+</ol>
+<div class="no-row-height column-margin column-container"><div id="ref-agache2020firecracker" class="csl-entry" role="listitem">
+Agache, Alexandru, Marc Brooker, Andreea Florescu, Alexandra Iordache, Anthony Liguori, Rolf Neugebauer, Phil Piwonka, and Diana-Maria Popa. 2020. <span>“Firecracker: Lightweight Virtualization for Serverless Applications.”</span> <em>Proceedings of the 17th <span>USENIX</span> Symposium on Networked Systems Design and Implementation (<span>NSDI</span> 20)</em>, 419–34.
+</div><div id="ref-google2019gvisor" class="csl-entry" role="listitem">
+Google. 2019. <em>gVisor: Container Runtime Sandbox</em>.
+</div></div><p><a href="#tbl-vol3-app-ref-arch-sandboxes" class="quarto-xref">Table&nbsp;3</a> summarizes the operational trade-offs across these sandboxing substrates.</p>
+<div id="tbl-vol3-app-ref-arch-sandboxes" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[16,18,14,14,14,12,12]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-sandboxes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: <strong>Production Sandboxing and Actuation Isolation Technologies</strong>: Systems performance, startup latency, memory footprint, and containment security.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-sandboxes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 18%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Isolation Technology</th>
+<th style="text-align: left;">Underlying Mechanism</th>
+<th style="text-align: left;">Cold-Start Latency</th>
+<th style="text-align: left;">Memory Overhead per Instance</th>
+<th style="text-align: left;">Syscall Overhead</th>
+<th style="text-align: left;">Host Kernel Attack Surface</th>
+<th style="text-align: left;">Optimal Production Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Firecracker MicroVM</strong></td>
+<td style="text-align: left;">Linux KVM hardware virtualization (<code>/dev/kvm</code>)</td>
+<td style="text-align: left;">3–5 ms (snapshot restore)</td>
+<td style="text-align: left;">~5 MB</td>
+<td style="text-align: left;">Near zero (native virtualized kernel)</td>
+<td style="text-align: left;">Extremely low (minimalist VMM device model)</td>
+<td style="text-align: left;">Untrusted shell execution, root filesystem mutation, Python scripts</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>gVisor (<code>runsc</code>)</strong></td>
+<td style="text-align: left;">User-space kernel (Sentry) intercepting syscalls</td>
+<td style="text-align: left;">50–100 ms</td>
+<td style="text-align: left;">15–30 MB</td>
+<td style="text-align: left;">Moderate to high (context switches on I/O)</td>
+<td style="text-align: left;">Very low (intercepts all guest syscalls)</td>
+<td style="text-align: left;">Multi-tenant container workloads, web scrapers, compiler builds</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Docker / runc (Standard)</strong></td>
+<td style="text-align: left;">Linux cgroups v2, namespaces, seccomp-bpf</td>
+<td style="text-align: left;">300–800 ms</td>
+<td style="text-align: left;">30–60 MB</td>
+<td style="text-align: left;">Zero (direct host kernel execution)</td>
+<td style="text-align: left;">High (shares host kernel across all containers)</td>
+<td style="text-align: left;">Trusted internal workflows, trusted enterprise tool containers</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Wasmtime (Wasm/WASI)</strong></td>
+<td style="text-align: left;">Memory-safe bytecode in isolated linear memory</td>
+<td style="text-align: left;">&lt; 50 µs</td>
+<td style="text-align: left;">&lt; 1 MB</td>
+<td style="text-align: left;">Zero (sandboxed memory bounds checks)</td>
+<td style="text-align: left;">Minimal (executes within user-space runtime)</td>
+<td style="text-align: left;">Pure computation, mathematical verification, data schema parsing</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-orchestration" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-orchestration">Working Sets and Durable Orchestration</h2>
+<p>In classical operating systems, the kernel schedules processes, maintains execution threads, and preserves execution context across hardware interrupts. In agentic infrastructure, this role is filled by working set governors and durable orchestration engines.</p>
+<section id="context-working-set-management" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="context-working-set-management">Context working set management</h3>
+<p>An agent’s working context cannot expand indefinitely. Beyond the physical HBM limits analyzed in <a href="#sec-vol3-app-ref-arch-processor" class="quarto-xref">section&nbsp;1.2</a>, attention mechanisms suffer from performance degradation when irrelevant tokens accumulate (the Context Accumulation Wall, <strong><a href="../01_introduction/01_introduction.html#sec-vol3-intro">Foundations of Agentic Systems</a></strong>). Production runtimes implement active working set management:</p>
+<ul>
+<li><strong>Token Budget Governors</strong>: The working context is partitioned into rigid allocation budgets: 10 percent reserved for system invariants and tool definitions, 40 percent allocated to active retrieval and episodic memory, 30 percent dedicated to sliding dialogue and tool outputs, and 20 percent reserved for speculative chain-of-thought generation.</li>
+<li><strong>Attention Sink Anchoring</strong>: Based on the StreamingLLM discovery <span class="citation" data-cites="xiao2024streamingllm">(<a href="#ref-xiao2024streamingllm" role="doc-biblioref">Xiao et al. 2024</a>)</span>, autoregressive models assign massive attention scores to the initial tokens of a sequence regardless of their semantic content. Runtimes pin the initial 4 to 8 tokens (attention sinks) permanently in the KV cache, preventing attention map collapse when sliding-window eviction is applied to historical turns.</li>
+<li><strong>Hierarchical Compaction</strong>: When observation tokens threaten the context budget, deterministic summarization pipelines compress verbose terminal logs, compiler traces, and file contents into compact structural skeletons before re-injecting them into the prompt stream (<strong><a href="../04_working_sets/04_working_sets.html#sec-vol3-working-sets">Working Context</a></strong>).</li>
+</ul>
+<div class="no-row-height column-margin column-container"><div id="ref-xiao2024streamingllm" class="csl-entry" role="listitem">
+Xiao, Guangxuan, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. 2024. <span>“Efficient Streaming Language Models with Attention Sinks.”</span> <em>International Conference on Learning Representations (ICLR)</em>.
+</div></div></section>
+<section id="durable-execution-with-temporal-and-distributed-sagas" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="durable-execution-with-temporal-and-distributed-sagas">Durable execution with temporal and distributed Sagas</h3>
+<p>A common failure mode in naive agent prototypes is the unconstrained Python loop (<code>while not done:</code>). If the host process crashes, the host machine reboots, or an API call times out mid-trajectory, the agent’s internal state is permanently lost. Furthermore, if an agent successfully charges a credit card, books a flight, and subsequently fails while booking a hotel, simple retries result in duplicate charges or inconsistent real-world states.</p>
+<p>Production agent architectures deploy <strong>Temporal</strong> (or Cadence) as their durable execution engine:</p>
+<ol type="1">
+<li><strong>Event Sourcing and Deterministic Replay</strong>: Temporal persists every state transition, tool dispatch, and timer event to an append-only database (PostgreSQL, Cassandra, or MySQL). If an orchestration worker crashes mid-trajectory, a replacement worker rehydrates the exact internal state by replaying past execution events deterministically, eliminating state corruption.</li>
+<li><strong>Asynchronous Human-in-the-Loop Pauses</strong>: When an agent requires human authorization to execute a privileged mutation, Temporal suspends the workflow state durably without consuming CPU cycles or memory threads, resuming execution seamlessly hours or days later upon receiving an external signal.</li>
+<li><strong>The Distributed Saga Pattern</strong>: Because external environment mutations (such as creating cloud instances, committing database updates, or dispatching webhooks) lack distributed two-phase commit (2PC) transactions, agents must structure execution as a <strong>Saga</strong> <span class="citation" data-cites="gray1981transaction">(<a href="#ref-gray1981transaction" role="doc-biblioref">Gray 1981</a>)</span>. Every forward action <span class="math inline">\(A_i\)</span> must be paired with an idempotent compensating action <span class="math inline">\(C_i\)</span>:</li>
+</ol>
+<div class="no-row-height column-margin column-container"><div id="ref-gray1981transaction" class="csl-entry" role="listitem">
+Gray, Jim. 1981. <span>“The Transaction Concept: Virtues and Limitations.”</span> <em>Proceedings of the Seventh International Conference on Very Large Data Bases (VLDB)</em> 7: 144–54.
+</div></div><p><span class="math display">\[\text{Forward Sequence: } A_1 \to A_2 \to \dots \to A_k \quad \xrightarrow{\text{Failure at } A_k} \quad \text{Compensating Rollback: } C_{k-1} \to \dots \to C_2 \to C_1\]</span></p>
+<p>If action <span class="math inline">\(A_k\)</span> fails and cannot be recovered via retries, the orchestrator halts forward execution and invokes compensating routines in reverse order, restoring the external environment to a consistent baseline.</p>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-memory" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-memory">Episodic Memory and Persistent State</h2>
+<p>Because volatile GPU memory is bounded and costly, an agent runtime must offload long-term state to persistent storage. Analogous to the storage hierarchy of a computer system (registers <span class="math inline">\(\to\)</span> L1/L2 cache <span class="math inline">\(\to\)</span> DRAM <span class="math inline">\(\to\)</span> NVMe SSD <span class="math inline">\(\to\)</span> Cold Object Store), an agent manages a multi-tier memory hierarchy.</p>
+<section id="the-multi-tier-agent-memory-hierarchy" class="level3">
+<h3 class="anchored" data-anchor-id="the-multi-tier-agent-memory-hierarchy">The multi-tier agent memory hierarchy</h3>
+<p><a href="#tbl-vol3-app-ref-arch-memory" class="quarto-xref">Table&nbsp;4</a> details the latency, capacity, and persistence characteristics across the five tiers of agent storage.</p>
+<div id="tbl-vol3-app-ref-arch-memory" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[14,16,12,14,14,14,16]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-memory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: <strong>Five-Tier Agent Memory Hierarchy Specifications</strong>: Latency budgets, access granularities, persistence contracts, and reference technologies.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-memory-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 16%">
+<col style="width: 12%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Memory Hierarchy Tier</th>
+<th style="text-align: left;">Physical Implementation</th>
+<th style="text-align: left;">Access Latency</th>
+<th style="text-align: left;">Persistence Model</th>
+<th style="text-align: left;">Typical Capacity Envelope</th>
+<th style="text-align: left;">Cost per GB/Month</th>
+<th style="text-align: left;">Primary Systems Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 1: Active Context (L1)</strong></td>
+<td style="text-align: left;">GPU High-Bandwidth Memory (HBM3e)</td>
+<td style="text-align: left;">&lt; 1 ms</td>
+<td style="text-align: left;">Volatile (Lost on inference complete)</td>
+<td style="text-align: left;">16–128 GB per node</td>
+<td style="text-align: left;">~$30.00 (amortized compute)</td>
+<td style="text-align: left;">Active token generation, live self-attention matrix</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 2: Working Scratchpad (L2)</strong></td>
+<td style="text-align: left;">In-Memory Redis Cluster / Memcached</td>
+<td style="text-align: left;">1–3 ms</td>
+<td style="text-align: left;">Semi-volatile (AOF / RDB snapshots)</td>
+<td style="text-align: left;">32–256 GB</td>
+<td style="text-align: left;">~$3.00</td>
+<td style="text-align: left;">Conversation scratchpads, session locks, tool idempotency nonces</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 3: Episodic Vector Store (L3)</strong></td>
+<td style="text-align: left;">Milvus, Pinecone, Qdrant (HNSW / IVF)</td>
+<td style="text-align: left;">10–50 ms</td>
+<td style="text-align: left;">Fully persistent (DRAM index backed by SSD)</td>
+<td style="text-align: left;">100 GB–10 TB</td>
+<td style="text-align: left;">~$0.30–$0.80</td>
+<td style="text-align: left;">Unstructured episodic memory retrieval, semantic trajectory search</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 4: Relational &amp; Graph Store (L4)</strong></td>
+<td style="text-align: left;">PostgreSQL, Neo4j, Bi-temporal Ledgers</td>
+<td style="text-align: left;">20–100 ms</td>
+<td style="text-align: left;">ACID persistent (NVMe SSD storage)</td>
+<td style="text-align: left;">1–50 TB</td>
+<td style="text-align: left;">~$0.10–$0.20</td>
+<td style="text-align: left;">Structured entity relationships, AST repo maps, audit trails</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 5: Trajectory Blob Archive (L5)</strong></td>
+<td style="text-align: left;">Cloud Object Storage (S3, GCS, Ceph)</td>
+<td style="text-align: left;">100–500 ms</td>
+<td style="text-align: left;">Highly durable (Erasure-coded object store)</td>
+<td style="text-align: left;">Petabytes</td>
+<td style="text-align: left;">~$0.02</td>
+<td style="text-align: left;">Full execution traces, raw terminal outputs, historical telemetry</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="vector-indexing-topologies-hnsw-vs.-ivf-pq" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="vector-indexing-topologies-hnsw-vs.-ivf-pq">Vector indexing topologies: HNSW vs.&nbsp;IVF-PQ</h3>
+<p>Unstructured episodic memory relies on high-dimensional vector representations generated by embedding models. When searching over millions of historical trajectory chunks, exact nearest neighbor search requires an exhaustive linear scan of computational complexity <span class="math inline">\(O(N \cdot D)\)</span>, which introduces unacceptable latency. Production systems use Approximate Nearest Neighbor (ANN) indexing:</p>
+<ol type="1">
+<li><strong>Hierarchical Navigable Small World (HNSW)</strong>: HNSW constructs a multi-layer geometric proximity graph <span class="citation" data-cites="malkov2020hnsw">(<a href="#ref-malkov2020hnsw" role="doc-biblioref">Malkov and Yashunin 2020</a>)</span>. Upper layers contain sparse, long-range skip edges that route queries across the vector space with logarithmic search complexity <span class="math inline">\(O(\log N)\)</span>. Lower layers transition into dense proximity graphs for local convergence. HNSW delivers outstanding recall (often exceeding 95 to 98 percent) and sub-10 millisecond search latencies. However, because HNSW maintains high-degree graph edges and unquantized floating-point vectors in host memory, it requires approximately 1.5 to 2.0 KB of DRAM per 1536-dimensional vector, making billion-scale deployments memory-intensive.</li>
+<li><strong>Inverted File Product Quantization (IVF-PQ)</strong>: IVF-PQ combines coarse spatial clustering with lossy vector compression <span class="citation" data-cites="jegou2011product">(<a href="#ref-jegou2011product" role="doc-biblioref">Jégou et al. 2011</a>)</span>. The vector space is partitioned into <span class="math inline">\(K\)</span> Voronoi cells using <span class="math inline">\(k\)</span>-means centroids. High-dimensional residual vectors are then sliced into <span class="math inline">\(M\)</span> sub-vectors, each quantized to the nearest centroid in an 8-bit codebook. At query time, Asymmetric Distance Computation (ADC) computes distances using precomputed lookup tables without decompressing stored vectors. IVF-PQ compresses vector storage footprints by 90 to 95 percent, enabling billion-vector datasets to reside within modest RAM footprints at the expense of lower recall (80 to 90 percent) and higher build indexing latency.</li>
+</ol>
+<div class="no-row-height column-margin column-container"><div id="ref-malkov2020hnsw" class="csl-entry" role="listitem">
+Malkov, Yury A., and Dmitry A. Yashunin. 2020. <span>“Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs.”</span> <em><span>IEEE</span> Transactions on Pattern Analysis and Machine Intelligence</em> 42 (4): 824–36. https://doi.org/10.1109/TPAMI.2018.2889473.
+</div><div id="ref-jegou2011product" class="csl-entry" role="listitem">
+Jégou, Hervé, Matthijs Douze, and Cordelia Schmid. 2011. <span>“Product Quantization for Nearest Neighbor Search.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 33 (1): 117–28. https://doi.org/10.1109/TPAMI.2010.57.
+</div></div><p>Production architectures deploy Milvus or Qdrant with hybrid indexing: recent, active trajectory memories are indexed in high-recall HNSW graphs, while older historical records are archived into compressed IVF-PQ segments.</p>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-observability" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-observability">Observability, Checkpointing, and Auditability</h2>
+<p>In single-turn model serving, monitoring consists of tracking request latency, token throughput, and HTTP 5xx error rates. In an agentic system, operational failures manifest as semantic loops, unhandled tool exceptions, privilege violations, and cascading hallucinations. To debug and govern autonomous systems, infrastructure must implement distributed observability and crash-consistent write-ahead logging.</p>
+<section id="opentelemetry-for-distributed-agent-trajectories" class="level3">
+<h3 class="anchored" data-anchor-id="opentelemetry-for-distributed-agent-trajectories">OpenTelemetry for distributed agent trajectories</h3>
+<p>Because an agent trajectory fans out across inference clusters, workflow engines, and sandboxed microVMs, observability requires standardized distributed tracing. The open-source standard for this instrumentation is <strong>OpenTelemetry (OTel)</strong>:</p>
+<ul>
+<li><strong>Trace Context Propagation</strong>: Trajectories establish a root trace span. As the agent invokes asynchronous tool calls or delegates sub-tasks to child agents, the runtime injects the W3C TraceContext headers (<code>traceparent</code>, <code>tracestate</code>) across HTTP, gRPC, and microVM vsock boundaries, ensuring that every tool invocation links back to its parent reasoning step.</li>
+<li><strong>Semantic Conventions for Generative AI</strong>: Telemetry pipelines adhere to established OpenTelemetry GenAI semantic conventions, recording standardized attributes across every inference call: <code>gen_ai.system</code> (e.g., <code>vllm</code>), <code>gen_ai.request.model</code>, <code>gen_ai.usage.prompt_tokens</code>, <code>gen_ai.usage.completion_tokens</code>, and <code>gen_ai.response.finish_reasons</code>.</li>
+<li><strong>Tool Actuation Spans</strong>: Runtimes wrap tool dispatches with custom spans capturing tool names, JSON input parameter hashes, execution durations, exit codes, and byte counts of stdout/stderr outputs.</li>
+</ul>
+</section>
+<section id="write-ahead-logging-wal-on-high-performance-nvme" class="level3">
+<h3 class="anchored" data-anchor-id="write-ahead-logging-wal-on-high-performance-nvme">Write-ahead logging (WAL) on high-performance NVMe</h3>
+<p>To guarantee crash consistency across host restarts and catastrophic hardware faults, the agent runtime enforces the <strong>Agent Write-Ahead Log Invariant</strong> (<strong><a href="../06_episodic_memory/06_episodic_memory.html#sec-vol3-episodic-memory">Persistent Storage</a></strong>):</p>
+<p><span class="math display">\[\text{Commit}(\mathcal{L}_{\text{WAL}}, \langle \text{seq}, t, s_t, a_t, \text{nonce} \rangle) \prec \text{Dispatch}(a_t, \text{Sandbox})\]</span></p>
+<p>The runtime must never dispatch an operational action <span class="math inline">\(a_t\)</span> across the actuation boundary until the proposed action record and current state belief <span class="math inline">\(s_t\)</span> have been durably persisted to an append-only log on non-volatile storage. <a href="#fig-vol3-wal-record-format" class="quarto-xref">Figure&nbsp;2</a> gives the byte-exact frame that carries this record. The leading magic identifier and sequence number let a recovery pass locate frame boundaries in a partially written log, the state hash binds the record to the belief it was written under, and the trailing CRC32-C checksum is what distinguishes a torn write from a complete one.</p>
+<div id="fig-vol3-wal-record-format" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Horizontal byte-frame diagram of a write-ahead log record, showing fields left to right: magic identifier, sequence identifier, timestamp, trajectory nonce, state hash, tool action identifier, payload length, action arguments, and a trailing checksum, each annotated with its byte width." data-fig-env="figure" data-fig-pos="htb">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vol3-wal-record-format-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="images/svg/fig-vol3-wal-record-format.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Binary WAL Record Frame Layout: Byte-exact serialization frame enforcing the Write-Ahead Log Invariant prior to tool actuation. The record contains an 8-byte magic identifier, sequence ID, nanosecond timestamp, trajectory nonce, SHA-256 state hash, tool action ID, payload length, raw action arguments, and a trailing Castagnoli CRC32-C integrity checksum."><img src="images/svg/fig-vol3-wal-record-format.svg" class="img-fluid figure-img" style="width:95.0%"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vol3-wal-record-format-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: <strong>Binary WAL Record Frame Layout</strong>: Byte-exact serialization frame enforcing the Write-Ahead Log Invariant prior to tool actuation. The record contains an 8-byte magic identifier, sequence ID, nanosecond timestamp, trajectory nonce, SHA-256 state hash, tool action ID, payload length, raw action arguments, and a trailing Castagnoli CRC32-C integrity checksum.
+</figcaption>
+</figure>
+</div>
+<p>WAL write operations bypass the operating system page cache using direct I/O (<code>O_DIRECT</code>) and issue explicit <code>fdatasync</code> barriers to enterprise NVMe solid-state drives. Modern enterprise NVMe drives (such as PCIe Gen5 U.2/E1.S SSDs) achieve sequential fsync commit latencies under 80 microseconds, introducing negligible overhead relative to the hundred-millisecond inference generation times of the stochastic processor.</p>
+<p><a href="#tbl-vol3-app-ref-arch-telemetry" class="quarto-xref">Table&nbsp;5</a> synthesizes the observability and auditability stack across the reference architecture.</p>
+<div id="tbl-vol3-app-ref-arch-telemetry" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[18,22,20,22,18]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-telemetry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: <strong>Production Telemetry Signals and Observability Infrastructure</strong>: Metrics, tracing signals, semantic conventions, and reference storage backends.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-telemetry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 22%">
+<col style="width: 20%">
+<col style="width: 22%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Telemetry Signal</th>
+<th style="text-align: left;">Instrumentation Standard</th>
+<th style="text-align: left;">Storage &amp; Ingestion Substrate</th>
+<th style="text-align: left;">Key Recorded Attributes / Metrics</th>
+<th style="text-align: left;">Retention &amp; Audit SLA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Distributed Traces</strong></td>
+<td style="text-align: left;">OpenTelemetry Trace SDK (W3C TraceContext)</td>
+<td style="text-align: left;">Jaeger, OpenSearch, Tempo</td>
+<td style="text-align: left;">Span duration, parent-child DAG relationships, tool error states</td>
+<td style="text-align: left;">30 days online; 99.9th percentile search &lt; 2 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Operational Metrics</strong></td>
+<td style="text-align: left;">OpenTelemetry Metrics / Prometheus</td>
+<td style="text-align: left;">Prometheus, Thanos, VictoriaMetrics</td>
+<td style="text-align: left;">Trajectory Goodput (<span class="math inline">\(G_{\text{traj}}\)</span>), Token Consumption, CPVG</td>
+<td style="text-align: left;">90 days aggregated (1-minute resolution)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Model Generation Logs</strong></td>
+<td style="text-align: left;">OpenTelemetry GenAI Semantic Conventions</td>
+<td style="text-align: left;">ClickHouse, Elasticsearch</td>
+<td style="text-align: left;">Prompt tokens, completion tokens, temperature, finish reasons</td>
+<td style="text-align: left;">180 days indexed for behavioral evaluation</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Write-Ahead Log (WAL)</strong></td>
+<td style="text-align: left;">Structured Binary Frame with CRC32-C</td>
+<td style="text-align: left;">Local NVMe SSD mirrored to Ceph / S3</td>
+<td style="text-align: left;">Trajectory nonces, pre-actuation tool payloads, state digests</td>
+<td style="text-align: left;">Immutable; retained for legal and safety compliance</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-blueprint" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-blueprint">Production Deployment Blueprint and Failure Modes</h2>
+<p>Deploying an agentic platform in production requires partitioning hardware resources across specialized Kubernetes node pools to isolate distinct performance and security profiles.</p>
+<section id="kubernetes-infrastructure-partitioning" class="level3">
+<h3 class="anchored" data-anchor-id="kubernetes-infrastructure-partitioning">Kubernetes infrastructure partitioning</h3>
+<p>A resilient deployment topology isolates workloads into four dedicated node pools:</p>
+<ol type="1">
+<li><strong>GPU Inference Pool (Accelerated Compute)</strong>: High-density GPU nodes (e.g., 8x NVIDIA H100 SXM5 with NVLink). Nodes run containerized inference servers (vLLM or SGLang) with memory-locked HBM allocations, pinned CPU cores, and SR-IOV network interfaces configured for RoCE v2 (remote direct memory access (RDMA) over Converged Ethernet) or InfiniBand interconnects.</li>
+<li><strong>Orchestration &amp; Workflow Pool (High-Reliability CPU)</strong>: General-purpose compute nodes running Temporal server instances, LangGraph runtimes, and ingress controllers. Workloads are configured with aggressive pod disruption budgets (PDBs), redundant replicas across availability zones, and persistent volume attachments for local state.</li>
+<li><strong>Sandboxed Worker Pool (Virtualization Nodes)</strong>: Bare-metal compute instances equipped with hardware-assisted virtualization extensions (Intel VT-x or AMD-V) enabled. Standard cloud virtual machines cannot be used unless nested virtualization is explicitly supported. These nodes run the Firecracker jailer daemons and gVisor container runtimes, isolated from internal corporate networks.</li>
+<li><strong>State &amp; Storage Pool (High-IOPS Data Tier)</strong>: Storage-optimized instances housing Redis clusters, Milvus query/data nodes, and PostgreSQL replicas backed by local PCIe Gen5 NVMe drives configured in redundant array of independent disks (RAID) 10.</li>
+</ol>
+</section>
+<section id="zero-trust-network-architecture-and-egress-control" class="level3">
+<h3 class="anchored" data-anchor-id="zero-trust-network-architecture-and-egress-control">Zero-trust network architecture and egress control</h3>
+<p>Because agents execute non-deterministic code capable of accessing external networks, network egress represents a critical vulnerability. Sandboxed execution environments must operate under a zero-trust network perimeter:</p>
+<ul>
+<li><strong>Default Egress Deny</strong>: All outbound network traffic from actuation sandboxes is blocked by default via Kubernetes <code>NetworkPolicy</code> and Linux <code>iptables</code> / <code>nftables</code> rules.</li>
+<li><strong>Transparent Egress Proxying</strong>: Sandboxes requiring external web access must route connections through an authoritative, terminating forward proxy (such as Envoy). The proxy enforces mutual TLS (mTLS), terminates SSL connections to inspect payloads for data exfiltration, restricts access to explicit domain allow-lists, and logs all network transactions to the telemetry pipeline.</li>
+<li><strong>Cryptographic SPIFFE/SPIRE Identities</strong>: MicroVM instances and subagent processes receive short-lived cryptographic identity x509 SVID tokens via SPIFFE/SPIRE, eliminating hard-coded API credentials and preventing unauthorized horizontal privilege escalation across subagents.</li>
+</ul>
+</section>
+<section id="production-failure-modes-and-architectural-mitigations" class="level3">
+<h3 class="anchored" data-anchor-id="production-failure-modes-and-architectural-mitigations">Production failure modes and architectural mitigations</h3>
+<p>When deploying autonomous agents at scale, infrastructure encounters failure modes distinct from classical stateless microservices. <a href="#tbl-vol3-app-ref-arch-failures" class="quarto-xref">Table&nbsp;6</a> provides an operational diagnostic guide mapping common failure symptoms to root causes and automated systems mitigations.</p>
+<div id="tbl-vol3-app-ref-arch-failures" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[18,16,22,22,22]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol3-app-ref-arch-failures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: <strong>Production Failure Modes and Architectural Mitigations</strong>: Diagnostic signals, operational alerts, root causes, and automated remediations.
+</figcaption>
+<div aria-describedby="tbl-vol3-app-ref-arch-failures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 16%">
+<col style="width: 22%">
+<col style="width: 22%">
+<col style="width: 22%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Failure Symptom</th>
+<th style="text-align: left;">Physical Subsystem</th>
+<th style="text-align: left;">Root Systems Cause</th>
+<th style="text-align: left;">Observability Detection Metric</th>
+<th style="text-align: left;">Automated Systems Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Sudden Inference OOM (CUDA Error)</strong></td>
+<td style="text-align: left;">Processor &amp; HBM Memory</td>
+<td style="text-align: left;">KV cache fragmentation under deep trajectory tree search</td>
+<td style="text-align: left;">GPU HBM utilization &gt; 95%; allocation failure spikes</td>
+<td style="text-align: left;">Trigger SGLang LRU prefix eviction; route overflow requests to fallback GPU node pool</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Sandbox Hang / Resource Starvation</strong></td>
+<td style="text-align: left;">Actuation &amp; Sandbox Tier</td>
+<td style="text-align: left;">Unconstrained shell script fork bomb or infinite CPU loop</td>
+<td style="text-align: left;">MicroVM CPU utilization at 100% for &gt; <span class="math inline">\(\tau_{\text{timeout}}\)</span></td>
+<td style="text-align: left;">Jailer cgroups v2 quota enforcement; hard SIGKILL dispatched after grace period</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Cascading Hallucination / Semantic Loop</strong></td>
+<td style="text-align: left;">Control Plane &amp; Working Set</td>
+<td style="text-align: left;">Context saturation; self-reinforcing errors in dialogue history</td>
+<td style="text-align: left;">Action repetitiveness index &gt; 0.85; trajectory progress rate <span class="math inline">\(\to 0\)</span></td>
+<td style="text-align: left;">Circuit breaker trips; context governor compacts history and forces backtracking to prior checkpoint</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Divergent Replay State on Recovery</strong></td>
+<td style="text-align: left;">Durable Orchestration</td>
+<td style="text-align: left;">Non-deterministic code execution during Temporal replay</td>
+<td style="text-align: left;">Temporal <code>NonDeterministicWorkflowError</code> event</td>
+<td style="text-align: left;">Enforce pure workflow functions; isolate non-deterministic operations inside Temporal Activities</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>High Vector Retrieval Latency (&gt; 200 ms)</strong></td>
+<td style="text-align: left;">Episodic Memory Tier</td>
+<td style="text-align: left;">Unindexed high-dimensional scan or HNSW memory thrashing</td>
+<td style="text-align: left;">Milvus query duration p99 &gt; 150 ms; disk page cache misses</td>
+<td style="text-align: left;">Transition cold vector partitions from HNSW to IVF-PQ; scale out vector query nodes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Actuation Boundary Stall</strong></td>
+<td style="text-align: left;">Checkpointing Tier</td>
+<td style="text-align: left;">High NVMe write latency during synchronous fsync</td>
+<td style="text-align: left;">WAL write latency p99 &gt; 10 ms; disk queue depth saturation</td>
+<td style="text-align: left;">Re-route WAL commit pipeline to secondary mirrored NVMe drive; alert on storage hardware degradation</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-vol3-app-ref-arch-summary" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-app-ref-arch-summary">Summary</h2>
+<p>The reference architecture detailed in this appendix demonstrates that constructing robust agentic systems is fundamentally an exercise in systems engineering rather than prompt design. By grounding the Stochastic Von Neumann Architecture into concrete, open-source technologies—vLLM and SGLang for volatile memory management, Firecracker and gVisor for actuation isolation, Temporal for durable state orchestration, Redis and Milvus for episodic memory hierarchies, and OpenTelemetry and NVMe write-ahead logging for crash-consistent governance—engineers can transform non-deterministic foundation models into resilient, auditable, and secure enterprise software systems.</p>
+
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/vol3\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../backmatter/references.html" class="pagination-link" aria-label="References">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">References</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="app_b_tool_design.html" class="pagination-link" aria-label="App B: Tool Design &amp; Typed ABIs">
+        <span class="nav-page-text">App B: Tool Design &amp; Typed ABIs</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="../vol2/">← Volume II: Scaling</a> · <a href="../vol4/">Volume IV: Physical AI (Draft) →</a></p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+ <span class="release-pill" data-release-pill=""></span>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-star" role="img" aria-label="Star this repository">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+    <script type="text/javascript">
+    (function(d) {
+      function renderPseudocode() {
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let pseudocodeOptions = {
+            indentSize: el.dataset.indentSize,
+            commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+            lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+            lineNumberPunc: el.dataset.lineNumberPunc,
+            noEnd: el.dataset.noEnd.toLowerCase() === "true",
+            scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+            titlePrefix: el.dataset.captionPrefix,
+          };
+          pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+        });
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+          if (captionSpan !== null) {
+            let captionPrefix = el.dataset.captionPrefix + " ";
+            let captionNumber = "";
+            if (el.dataset.pseudocodeNumber) {
+              captionNumber = el.dataset.pseudocodeNumber + " ";
+              if (el.dataset.chapterLevel) {
+                captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+              }
+            }
+            captionSpan.innerHTML = captionPrefix + captionNumber;
+          }
+        });
+      }
+      // pseudocode.js needs a math backend (KaTeX or MathJax) present *at the
+      // moment* renderElement runs. This book renders math with MathJax loaded
+      // via `defer`, so window.MathJax does not exist yet when this after-body
+      // script executes at parse time — calling renderElement now throws
+      // "No math backend found" and the raw LaTeX source stays on the page.
+      // Wait for the math backend to be ready before rendering: KaTeX if it is
+      // present synchronously, otherwise MathJax's startup promise (available
+      // after the deferred MathJax script has run, by window 'load').
+      function whenMathReady(cb) {
+        if (window.katex) { cb(); return; }
+        var mj = window.MathJax;
+        if (mj && mj.startup && mj.startup.promise) { mj.startup.promise.then(cb); return; }
+        window.addEventListener("load", function() {
+          var m = window.MathJax;
+          if (m && m.startup && m.startup.promise) { m.startup.promise.then(cb); }
+          else { cb(); }
+        });
+      }
+      whenMathReady(renderPseudocode);
+    })(document);
+    </script>
+  
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>

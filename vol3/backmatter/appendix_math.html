@@ -1,0 +1,3030 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agentic Machine Learning Systems</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="glossary/glossary.html" rel="next">
+<link href="../appendices/app_c_failure_taxonomy.html" rel="prev">
+<link href="../shared/assets/images/icons/favicon.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-e1fd47000f6672cb275a5a4895666198.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-daa3de76f6866e2ce3034d0b569f1dd7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
+<script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
+<link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "/"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  theme-persist (inline, sync) — applies stored color-scheme before first paint.
+  Inlined deliberately: runs before any other <script>, no extra round-trip,
+  and avoids per-subsite asset path differences. Canonical source:
+  shared/scripts/theme-persist.js (kept identical for documentation/testability).
+  If you change one, mirror the change to the other.
+-->
+<script>
+(function () {
+  'use strict';
+  var STORAGE_KEY = 'quarto-color-scheme';
+  // Quarto's toggle writes 'alternate'/'default' (alternate = dark, the
+  // layered sheet); sibling non-Quarto sites write 'dark'/'light'. Both
+  // hit the same key, so we accept either. Quarto's own startup still
+  // checks `=== 'alternate'`, so we mirror onto <html> rather than rewrite.
+  function normalize(v) {
+    if (v === 'dark' || v === 'alternate') return 'dark';
+    if (v === 'light' || v === 'default') return 'light';
+    return null;
+  }
+  function preferredScheme() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) return n;
+    } catch (e) {}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  }
+  function apply(scheme) {
+    var html = document.documentElement;
+    if (!html) return;
+    html.setAttribute('data-bs-theme', scheme);
+    html.setAttribute('data-quarto-color-scheme', scheme);
+    html.style.colorScheme = scheme;
+    // Bridge to legacy `.quarto-dark` body class — about.css,
+    // community.css, and newsletter.css key their dark-mode CSS
+    // variables off `.quarto-dark { ... }`. Quarto's own toggle adds
+    // that class on click, but the OS-pref / first-paint path never
+    // does. Mirror the scheme onto body so those CSS variables fire
+    // on every dark path, not just toggle clicks. body may not exist
+    // yet on the first call (this script runs in <head>); a
+    // MutationObserver below catches it as soon as it parses.
+    var body = document.body;
+    if (body) body.classList.toggle('quarto-dark', scheme === 'dark');
+  }
+  apply(preferredScheme());
+  // Catch the FOUC window between <head> apply() and DOMContentLoaded:
+  // <body> may not exist yet at first apply(), but as soon as the
+  // parser appends it we want the legacy class bridge in place so any
+  // CSS keyed on `.quarto-dark` paints correctly on first render.
+  if (!document.body) {
+    var earlyObserver = new MutationObserver(function () {
+      if (document.body) {
+        apply(preferredScheme());
+        earlyObserver.disconnect();
+      }
+    });
+    earlyObserver.observe(document.documentElement, { childList: true });
+  }
+  // Quarto's toggle updates localStorage but not <html>, so wrap it to
+  // mirror the new value onto data-bs-theme; otherwise clicking the toggle
+  // leaves CSS keyed off [data-bs-theme="dark"] rendering against the wrong
+  // stylesheet until the next reload.
+  function syncFromStorage() {
+    try {
+      var n = normalize(window.localStorage.getItem(STORAGE_KEY));
+      if (n) apply(n);
+    } catch (e) {}
+  }
+  function wrapToggle() {
+    var orig = window.quartoToggleColorScheme;
+    if (typeof orig !== 'function' || orig.__mlsbWrapped) return;
+    var wrapped = function () { var r = orig.apply(this, arguments); syncFromStorage(); return r; };
+    wrapped.__mlsbWrapped = true;
+    window.quartoToggleColorScheme = wrapped;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { wrapToggle(); syncFromStorage(); });
+  } else {
+    wrapToggle(); syncFromStorage();
+  }
+  // Defend the legacy `.quarto-dark` body class against Quarto's own
+  // `toggleBodyColor(mode)`, which runs *after* this script and re-asserts
+  // the body class based on `mode` — and `mode` defaults to 'light' when
+  // there's no stored quarto-color-scheme value, even when the OS / first
+  // paint already resolved to dark via `data-bs-theme`. Without this
+  // observer, on every fresh visit Quarto would clobber our bridge and
+  // restore `.quarto-light`, leaving `.quarto-dark`-keyed CSS variables
+  // (about/community/newsletter pages) at their light-mode defaults
+  // against the dark `data-bs-theme="dark"` background.
+  function bridgeBody() {
+    var body = document.body;
+    if (!body) return;
+    var wantDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    if (wantDark && !body.classList.contains('quarto-dark')) {
+      body.classList.add('quarto-dark');
+      body.classList.remove('quarto-light');
+    } else if (!wantDark && body.classList.contains('quarto-dark')) {
+      body.classList.remove('quarto-dark');
+      body.classList.add('quarto-light');
+    }
+  }
+  function watchBody() {
+    if (!document.body) return;
+    bridgeBody();
+    var bodyObs = new MutationObserver(bridgeBody);
+    bodyObs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var htmlObs = new MutationObserver(bridgeBody);
+    htmlObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchBody);
+  } else {
+    watchBody();
+  }
+  window.addEventListener('storage', function (ev) {
+    if (ev.key !== STORAGE_KEY) return;
+    var n = normalize(ev.newValue);
+    if (n) apply(n);
+  });
+  if (window.matchMedia) {
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (ev) {
+        try { if (window.localStorage.getItem(STORAGE_KEY)) return; } catch (e) {}
+        apply(ev.matches ? 'dark' : 'light');
+      });
+    } catch (e) {}
+  }
+})();
+</script>
+
+<!--
+  Build-stamp styling. Tiny, neutral, dark-mode aware. The actual stamp text
+  is injected by shared/scripts/inject-build-stamp.sh into footer markup
+  containing the literal MLSB_BUILD_STAMP HTML-comment token (see that
+  script for the exact pattern — we cannot write it here because HTML
+  comments cannot nest and the inner closer would terminate this block).
+-->
+<style>
+.mlsb-build-stamp {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+[data-bs-theme="dark"] .mlsb-build-stamp { opacity: 0.5; }
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="icon" href="../../vol1/assets/images/icons/favicon.png" type="image/png">
+<meta name="author" content="Vijay Janapa Reddi">
+
+<!-- Schema.org JSON-LD structured data for Google Knowledge Graph & Rich Snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mlsysbook.ai/#website",
+      "url": "https://mlsysbook.ai/",
+      "name": "Machine Learning Systems",
+      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Harvard Edge Computing Lab",
+        "url": "https://edge.seas.harvard.edu"
+      }
+    },
+    {
+      "@type": "BookSeries",
+      "@id": "https://mlsysbook.ai/#bookseries",
+      "name": "Machine Learning Systems: Principles and Practices of Engineering Artificially Intelligent Systems",
+      "alternateName": ["MLSysBook", "Machine Learning Systems", "AI Engineering Textbook"],
+      "url": "https://mlsysbook.ai/",
+      "inLanguage": "en-US",
+      "author": {
+        "@type": "Person",
+        "name": "Vijay Janapa Reddi",
+        "jobTitle": "Gordon McKay Professor of Electrical Engineering and Computer Science",
+        "worksFor": {
+          "@type": "EducationalOrganization",
+          "name": "Harvard University",
+          "sameAs": "https://www.harvard.edu"
+        },
+        "sameAs": [
+          "https://profvjreddi.github.io/homepage/"
+        ]
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "MIT Press",
+        "url": "https://mitpress.mit.edu"
+      },
+      "hasPart": [
+        {
+          "@type": "Book",
+          "name": "Volume I: Introduction to Machine Learning Systems",
+          "url": "../../vol1/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Foundations, Lifecycle, Data Engineering, Training, Inference, Benchmarking, and Responsible AI"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume II: Scaling Machine Learning Systems",
+          "url": "../../vol2/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume III: Agentic Machine Learning Systems",
+          "url": "../",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
+        },
+        {
+          "@type": "Book",
+          "name": "Volume IV: Physical AI Systems",
+          "url": "../../vol4/",
+          "bookFormat": "https://schema.org/EBook",
+          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
+        }
+      ]
+    },
+    {
+      "@type": "Course",
+      "@id": "https://mlsysbook.ai/#course",
+      "name": "CS249r: Machine Learning Systems",
+      "description": "Harvard University course on principles and practices of engineering artificially intelligent systems.",
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "Harvard University",
+        "sameAs": "https://www.harvard.edu"
+      }
+    }
+  ]
+}
+</script>
+
+<!--
+  navbar-theme-toggle-relocate — moves the Quarto theme toggle into the
+  navbar's right-side .navbar-nav group at page load, so it collapses into
+  the hamburger menu alongside Subscribe/Star/Support/GitHub at narrow widths
+  instead of being stranded in the middle by Quarto's mx-auto brand layout.
+
+  Why JS: Quarto auto-injects the toggle into .quarto-navbar-tools (outside
+  .navbar-collapse). CSS can't move DOM nodes between containers, and CSS
+  positioning hacks (absolute/right: 50px) fight Bootstrap's responsive
+  layout below 992px. Moving the node once at startup is the standard
+  approach used across Quarto-based sites with the same problem.
+-->
+<script>
+(function () {
+  'use strict';
+  function relocateThemeToggle() {
+    var tools = document.querySelector('.quarto-navbar-tools');
+    if (!tools) return;
+    var toggle = tools.querySelector('.quarto-color-scheme-toggle');
+    if (!toggle) return;
+    var navRight = document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav.ms-auto'
+    ) || document.querySelector(
+      '.navbar .navbar-collapse .navbar-nav:last-of-type'
+    );
+    if (!navRight) return;
+    var li = document.createElement('li');
+    li.className = 'nav-item navbar-theme-toggle-item';
+    toggle.classList.add('nav-link');
+    li.appendChild(toggle);
+    navRight.appendChild(li);
+    tools.style.display = 'none';
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', relocateThemeToggle);
+  } else {
+    relocateThemeToggle();
+  }
+})();
+</script>
+
+<!--
+  navbar-brand-href-fix — force the navbar brand link to the ecosystem root
+  (https://mlsysbook.ai/) on every subsite.
+
+  Quarto sets each subsite's `site-url` to `https://mlsysbook.ai/<subsite>/`
+  and then relativizes any navbar.href value that lives inside the
+  site-url's domain. The shared `href: https://mlsysbook.ai/` in
+  navbar-common.yml therefore gets emitted as `./index.html`, which on
+  vol1/vol2/tinytorch/etc. resolves to *that subsite's* root rather than
+  the ecosystem landing page. Override the brand link href in JS after
+  Quarto's render: this is a one-line user-experience fix that does not
+  fight Quarto's URL machinery.
+-->
+<script>
+(function () {
+  'use strict';
+  function fixBrandHref() {
+    var brand = document.querySelectorAll(
+      '.navbar .navbar-brand, .navbar .navbar-brand-logo'
+    );
+    for (var i = 0; i < brand.length; i++) {
+      brand[i].setAttribute('href', 'https://mlsysbook.ai/');
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fixBrandHref);
+  } else {
+    fixBrandHref();
+  }
+})();
+</script>
+<link rel="manifest" href="../site.webmanifest">
+<link rel="apple-touch-icon" href="../shared/assets/images/icons/favicon.png">
+<meta name="theme-color" content="#581C87">
+<script src="../shared/assets/scripts/sidebar-auto-collapse.js" defer=""></script>
+<script src="../shared/assets/scripts/version-link.js" defer=""></script>
+<script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
+<style>
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-takeaways {
+  --color1: #FCF4F8;
+  --color2: #9D3C72;
+  --border-color: #9D3C72;
+  --background-color: rgba(157, 60, 114, 0.04);
+  --title-background-color: rgba(157, 60, 114, 0.04);
+  --dark-background-color: rgba(157, 60, 114, 0.12);
+  --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+}
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+body.quarto-dark details.callout-takeaways summary,
+body.quarto-dark details.callout-takeaways summary strong,
+body.quarto-dark details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+</style>
+<style>
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+</style>
+    <style type="text/css">
+    .ps-root .ps-algorithm {
+      border-top: 2px solid;
+      border-bottom: 2px solid;
+    }
+    .pseudocode-container {
+      text-align: left;
+    }
+    </style>
+  
+      <style type="text/css">
+      .ps-algorithm > .ps-line {
+        text-align: left;
+      }
+      </style>
+    
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Agentic Machine Learning Systems">
+<meta property="og:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta property="og:image" content="../backmatter/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta property="og:site_name" content="Agentic Machine Learning Systems">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:title" content="Agentic Machine Learning Systems">
+<meta name="twitter:description" content="Volume III: systems foundations for stateful trajectories, constrained action, and agentic operations.">
+<meta name="twitter:image" content="../backmatter/shared/assets/images/covers/cover-hardcover-book-vol3.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed slimcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-xl " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo light-content">
+    <img src="../shared/assets/images/icons/logo-seas-shield.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Machine Learning Systems</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-read" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Read</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
+        <li>
+    <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume I: Foundations</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume II: Scaling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume I PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume I EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume II PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume II EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume III PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume III EPUB</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV PDF</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Volume IV EPUB</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-build" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Build</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/games/"><i class="bi bi-controller" role="img">
+</i> 
+ <span class="dropdown-text">Playground Games</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/labs/"><i class="bi bi-sliders" role="img">
+</i> 
+ <span class="dropdown-text">Labs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
+</i> 
+ <span class="dropdown-text">TinyTorch</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/kits/"><i class="bi bi-cpu" role="img">
+</i> 
+ <span class="dropdown-text">Hardware Kits</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/mlsysim/"><i class="bi bi-calculator" role="img">
+</i> 
+ <span class="dropdown-text">MLSys·im</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-teach" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Teach</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/online/ai-engineering-for-leaders/"><i class="bi bi-person-badge" role="img">
+</i> 
+ <span class="dropdown-text">AI Engineering for Leaders (HarvardX)</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
+</i> 
+ <span class="dropdown-text">CS249r Course Map</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
+</i> 
+ <span class="dropdown-text">Instructor Hub</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-prepare" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Prepare</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/"><i class="bi bi-mortarboard" role="img">
+</i> 
+ <span class="dropdown-text">StaffML</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/plans"><i class="bi bi-map" role="img">
+</i> 
+ <span class="dropdown-text">Study Plans</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/gauntlet"><i class="bi bi-lightning" role="img">
+</i> 
+ <span class="dropdown-text">Gauntlet Mode</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/staffml/downloads/StaffML-Paper.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
+</i> 
+ <span class="dropdown-text">StaffML Paper</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-connect" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Connect</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-connect">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/newsletter/"><i class="bi bi-envelope" role="img">
+</i> 
+ <span class="dropdown-text">Newsletter</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/"><i class="bi bi-globe" role="img">
+</i> 
+ <span class="dropdown-text">Global Network</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/events.html"><i class="bi bi-calendar-event" role="img">
+</i> 
+ <span class="dropdown-text">Workshops &amp; Events</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/community/partners.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Partners &amp; Sponsors</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-about" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">About</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-about">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/"><i class="bi bi-bullseye" role="img">
+</i> 
+ <span class="dropdown-text">Mission</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/#story"><i class="bi bi-book" role="img">
+</i> 
+ <span class="dropdown-text">Our Story</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/people.html"><i class="bi bi-person-lines-fill" role="img">
+</i> 
+ <span class="dropdown-text">People</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/contributors.html"><i class="bi bi-people" role="img">
+</i> 
+ <span class="dropdown-text">Contributors</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/about/license.html"><i class="bi bi-cc-circle" role="img">
+</i> 
+ <span class="dropdown-text">License</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://mlsysbook.ai/newsletter/"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text">Subscribe</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book" target="_blank"> <i class="bi bi-star" role="img">
+</i> 
+<span class="menu-text">Star</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://opencollective.com/mlsysbook" target="_blank"> <i class="bi bi-heart" role="img">
+</i> 
+<span class="menu-text">Support</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-github" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text">GitHub</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-github">    
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/discussions" target="_blank"><i class="bi bi-chat" role="img">
+</i> 
+ <span class="dropdown-text">Discussions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-pencil" role="img">
+</i> 
+ <span class="dropdown-text">Edit this page</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book/issues/new" target="_blank"><i class="bi bi-bug" role="img">
+</i> 
+ <span class="dropdown-text">Report an issue</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://github.com/harvard-edge/cs249r_book" target="_blank"><i class="bi bi-code" role="img">
+</i> 
+ <span class="dropdown-text">View source</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../appendices/app_a_reference_architecture.html">Appendices</a></li><li class="breadcrumb-item"><a href="appendix_math.html">Mathematical Foundations</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+  <div id="quarto-announcement" data-announcement-id="8a70ada3f63bd493daaa9ec15213591b" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">3b144739</code> • 2026-09-21 06:40 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p>🟣 <strong>DRAFT — Volume III: Agentic Machine Learning Systems.</strong> Work in progress · Early evolving draft ahead of target release in 2027.<br> 📘 <strong>Foundations:</strong> <a href="../../vol1/">Volume I: Foundations</a> · <a href="../../vol2/">Volume II: Scaling</a> · <a href="../../vol4/">Volume IV: Physical AI</a><br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+</div></div>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Homepage</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/dedication.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dedication</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/author_note.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Author’s Note</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/about.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/acknowledgements.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Acknowledgments</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/ai_use.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A Note on AI Assistance</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../frontmatter/notation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Notation</span></a>
+  </div>
+</li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01_introduction/01_introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part1_processor.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part I: The Stochastic Processor</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02_processor/02_processor.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">The Foundation Model Engine</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03_deliberation/03_deliberation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Test-Time Deliberation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part2_memory.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part II: Context Memory and Storage</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04_working_sets/04_working_sets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Working Context</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05_virtual_memory/05_virtual_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Paged Attention Memory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06_episodic_memory/06_episodic_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Persistent Storage</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part3_io.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part III: Tool Actuation and I/O Peripherals</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07_actuation/07_actuation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tool Execution</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08_virtualization/08_virtualization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Environmental Isolation</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part4_os.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part IV: The Agent Operating System</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09_checkpointing/09_checkpointing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervisory Control Planes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10_interrupts/10_interrupts.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Persistence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../11_scheduling/11_scheduling.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fault Recovery</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part5_compiler.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part V: The Policy Compiler</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../12_data_flywheel/12_data_flywheel.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Trajectory Harvesting</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../13_sft/13_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Supervised Adaptation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../14_rlvr/14_rlvr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Verifiable Reinforcement Learning</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part6_fleet.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VI: Distributed Fleets and Operations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../15_multi_agent/15_multi_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multi-Agent Coordination</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../16_observability/16_observability.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">System Observability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../17_tokenomics/17_tokenomics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Serving Economics</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../parts/part7_synthesis.qmd" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Part VII: System Synthesis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../18_conclusion/18_conclusion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Architectural Synthesis</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="px-0"><hr class="sidebar-divider hi "></li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_a_reference_architecture.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App A: Reference Architecture</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_b_tool_design.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App B: Tool Design &amp; Typed ABIs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendices/app_c_failure_taxonomy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">App C: Taxonomy of Failures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="appendix_math.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Mathematical Foundations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="glossary/glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Glossary</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-vol3-appendix-math" id="toc-sec-vol3-appendix-math" class="nav-link active" data-scroll-target="#sec-vol3-appendix-math">Formal Systems Invariants</a>
+  <ul>
+  <li><a href="#sec-vol3-appendix-math-pomdp" id="toc-sec-vol3-appendix-math-pomdp" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-pomdp">POMDP Formalization of Trajectories</a></li>
+  <li><a href="#sec-vol3-appendix-math-lyapunov" id="toc-sec-vol3-appendix-math-lyapunov" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-lyapunov">Lyapunov Liveness Verification</a></li>
+  <li><a href="#sec-vol3-appendix-math-lattice" id="toc-sec-vol3-appendix-math-lattice" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-lattice">Information Flow Security Lattice</a></li>
+  <li><a href="#sec-vol3-appendix-math-queueing" id="toc-sec-vol3-appendix-math-queueing" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-queueing">Heavy-Tailed Queueing Theory</a></li>
+  <li><a href="#sec-vol3-appendix-math-pareto" id="toc-sec-vol3-appendix-math-pareto" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-pareto">Heavy-Tailed Pareto Service Times</a></li>
+  <li><a href="#sec-vol3-appendix-math-lora" id="toc-sec-vol3-appendix-math-lora" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-lora">LoRA Matrix Decomposition</a></li>
+  <li><a href="#sec-vol3-appendix-math-rl" id="toc-sec-vol3-appendix-math-rl" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-rl">Generalized Advantage Estimation and KL Divergence</a></li>
+  <li><a href="#sec-vol3-appendix-math-credit-assignment" id="toc-sec-vol3-appendix-math-credit-assignment" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-credit-assignment">Credit Assignment Variance in Trajectory Optimization</a></li>
+  <li><a href="#sec-vol3-appendix-math-verification" id="toc-sec-vol3-appendix-math-verification" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-verification">Continuous Cost Functions for Verification</a>
+  <ul class="collapse">
+  <li><a href="#analytical-minimization-of-discrete-block-latency" id="toc-analytical-minimization-of-discrete-block-latency" class="nav-link" data-scroll-target="#analytical-minimization-of-discrete-block-latency">Analytical minimization of discrete block latency</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-appendix-math-pagerank" id="toc-sec-vol3-appendix-math-pagerank" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-pagerank">PageRank Symbol Graphing for Repository Maps</a></li>
+  <li><a href="#sec-vol3-appendix-math-bootstrap" id="toc-sec-vol3-appendix-math-bootstrap" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-bootstrap">Statistical Significance and Monte Carlo Bootstrapping</a></li>
+  <li><a href="#sec-vol3-appendix-math-dfa" id="toc-sec-vol3-appendix-math-dfa" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-dfa">Deterministic Finite Automata and Grammar-Constrained Logit Decoding</a></li>
+  <li><a href="#sec-vol3-appendix-math-daly" id="toc-sec-vol3-appendix-math-daly" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-daly">Higher-Order Daly Checkpoint Cadence Derivation</a></li>
+  <li><a href="#sec-vol3-appendix-math-pass-at-k" id="toc-sec-vol3-appendix-math-pass-at-k" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-pass-at-k">Unbiased Pass@<span class="math inline">\(k\)</span> Combinatorial Derivation and Numerical Stability</a>
+  <ul class="collapse">
+  <li><a href="#numerical-stability-via-log-sum-expansion" id="toc-numerical-stability-via-log-sum-expansion" class="nav-link" data-scroll-target="#numerical-stability-via-log-sum-expansion">Numerical stability via log-sum expansion</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-appendix-math-sprt" id="toc-sec-vol3-appendix-math-sprt" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-sprt">Wald’s Sequential Probability Ratio Test (SPRT) Decision Boundaries</a>
+  <ul class="collapse">
+  <li><a href="#derivation-of-absorbing-boundaries-a-and-b" id="toc-derivation-of-absorbing-boundaries-a-and-b" class="nav-link" data-scroll-target="#derivation-of-absorbing-boundaries-a-and-b">Derivation of absorbing boundaries <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span></a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-appendix-math-svd" id="toc-sec-vol3-appendix-math-svd" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-svd">Truncated SVD and Low-Rank Attention Approximations</a></li>
+  <li><a href="#sec-vol3-appendix-math-compounding-error" id="toc-sec-vol3-appendix-math-compounding-error" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-compounding-error">Quadratic Compounding Error in Trajectory Imitation</a></li>
+  <li><a href="#sec-vol3-appendix-math-escalation" id="toc-sec-vol3-appendix-math-escalation" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-escalation">Optimal Supervisory Escalation Thresholds under Asymmetric Damage</a>
+  <ul class="collapse">
+  <li><a href="#risk-averse-escalation-under-estimator-variance" id="toc-risk-averse-escalation-under-estimator-variance" class="nav-link" data-scroll-target="#risk-averse-escalation-under-estimator-variance">Risk-averse escalation under estimator variance</a></li>
+  </ul></li>
+  <li><a href="#sec-vol3-appendix-math-amdahl" id="toc-sec-vol3-appendix-math-amdahl" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-amdahl">Multi-Agent Amdahl’s Law Stationary Root Analysis</a></li>
+  <li><a href="#sec-vol3-appendix-math-correlated-quorum" id="toc-sec-vol3-appendix-math-correlated-quorum" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-correlated-quorum">Correlated Failures in Multi-Agent Quorum Voting</a></li>
+  <li><a href="#sec-vol3-appendix-math-curse-dimensionality" id="toc-sec-vol3-appendix-math-curse-dimensionality" class="nav-link" data-scroll-target="#sec-vol3-appendix-math-curse-dimensionality">High-Dimensional Measure Concentration and the Curse of Dimensionality</a>
+  <ul class="collapse">
+  <li><a href="#continuous-hypersphere-volume-and-shell-concentration" id="toc-continuous-hypersphere-volume-and-shell-concentration" class="nav-link" data-scroll-target="#continuous-hypersphere-volume-and-shell-concentration">Continuous hypersphere volume and shell concentration</a></li>
+  <li><a href="#vanishing-distance-contrast-beyers-theorem" id="toc-vanishing-distance-contrast-beyers-theorem" class="nav-link" data-scroll-target="#vanishing-distance-contrast-beyers-theorem">Vanishing distance contrast (beyer’s theorem)</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../appendices/app_a_reference_architecture.html">Appendices</a></li><li class="breadcrumb-item"><a href="appendix_math.html">Mathematical Foundations</a></li></ol></nav></header>
+
+
+
+
+
+<section id="sec-vol3-appendix-math" class="level1 page-columns page-full">
+<h1>Formal Systems Invariants</h1>
+<p>This appendix provides the rigorous mathematical formalisms and theoretical derivations that underpin the agentic systems principles discussed in the main text. By migrating these algebraic formulations here, the core chapters remain focused on high-level systems architecture and physical engineering constraints, while still providing the necessary theoretical depth for advanced readers and researchers.</p>
+<section id="sec-vol3-appendix-math-pomdp" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-pomdp">POMDP Formalization of Trajectories</h2>
+<p>Formally, an agent operates over a Partially Observable Markov Decision Process (POMDP) defined by the 7-tuple:</p>
+<p><span class="math display">\[\langle \mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma \rangle\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(\mathcal{S}\)</span> is the set of hidden environment states (e.g., the complete virtual machine filesystem, remote database state, and network socket buffers).</li>
+<li><span class="math inline">\(\mathcal{A}\)</span> is the set of discrete actions available to the agent (e.g., shell commands, code edits, and HTTP requests).</li>
+<li><span class="math inline">\(\mathcal{T}(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)\)</span> is the state transition probability distribution of the external environment.</li>
+<li><span class="math inline">\(\mathcal{R}(s, a)\)</span> is the reward function evaluating progress toward the user’s objective.</li>
+<li><span class="math inline">\(\Omega\)</span> is the set of observations returned to the agent (e.g., stdout logs, compiler error messages, and API response JSON).</li>
+<li><span class="math inline">\(\mathcal{O}(o \mid s', a) = \mathbb{P}(O_{t+1} = o \mid S_{t+1} = s', A_t = a)\)</span> is the observation probability distribution conditioned on the underlying state.</li>
+<li><span class="math inline">\(\gamma \in [0, 1)\)</span> is the discount factor.</li>
+</ul>
+<p>Because the agent cannot directly inspect the complete state <span class="math inline">\(s \in \mathcal{S}\)</span>, it maintains an internal <em>belief state</em> or <em>trajectory context</em> <span class="math inline">\(b_t \in \mathcal{B}\)</span>, represented by the sequence of past tokens:</p>
+<p><span class="math display">\[b_t = (x_0, a_0, o_0, x_1, a_1, o_1, \dots, x_t)\]</span></p>
+<p>where <span class="math inline">\(x_t\)</span> denotes internal model thoughts and reasoning tokens. This formalism underpins the necessity of directed acyclic graphs (DAGs) of execution in agentic systems, as detailed in <strong><a href="../03_deliberation/03_deliberation.html#sec-vol3-deliberation">Test-Time Deliberation</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-lyapunov" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-lyapunov">Lyapunov Liveness Verification</h2>
+<p>To mathematically prove liveness and guarantee termination in a stochastic control graph, the runtime constructs a <strong>Monotonically Decreasing Variant Function</strong> (a Lyapunov or ranking function) <span class="math inline">\(V: \mathcal{S} \times \mathcal{B} \to \mathbb{R}^+\)</span>. A control topology satisfies guaranteed termination if, for every execution step <span class="math inline">\(t\)</span>, the expected value of <span class="math inline">\(V\)</span> decreases by at least a strictly positive constant <span class="math inline">\(\delta &gt; 0\)</span>:</p>
+<p><span class="math display">\[\mathbb{E}\left[ V(S_{t+1}, b_{t+1}) \mid S_t, b_t \right] \le V(S_t, b_t) - \delta\]</span></p>
+<p>The runtime enforces this condition by defining <span class="math inline">\(V\)</span> over an explicit composite vector of execution resources:</p>
+<p><span class="math display">\[V(t) = \mathbf{w}^T \begin{bmatrix} K_{\max} - k_t \\ T_{\text{budget}} - T_{\text{consumed},t} \\ \mathcal{D}_{\text{goal}}(S_t, S^*) \end{bmatrix}\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(K_{\max} - k_t\)</span> is the remaining step ceiling.</li>
+<li><span class="math inline">\(T_{\text{budget}} - T_{\text{consumed},t}\)</span> is the remaining token and financial compute balance.</li>
+<li><span class="math inline">\(\mathcal{D}_{\text{goal}}(S_t, S^*)\)</span> is a metric measuring distance to goal state completion.</li>
+</ul>
+<p>If an agent executes an action that fails to reduce <span class="math inline">\(\mathcal{D}_{\text{goal}}\)</span>, the step and token budget terms enforce that <span class="math inline">\(V(t)\)</span> strictly decreases. When <span class="math inline">\(V(t) \le 0\)</span>, the runtime intercepts execution and triggers deterministic termination handlers as discussed in the main text.</p>
+</section>
+<section id="sec-vol3-appendix-math-lattice" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-lattice">Information Flow Security Lattice</h2>
+<p>An <strong>information flow security lattice</strong> formalizes how data and privileges can flow through an agentic system, modeled as a partially ordered set:</p>
+<p><span class="math display">\[\mathcal{L} = \langle S, \sqsubseteq, \sqcup, \sqcap \rangle\]</span></p>
+<p>where <span class="math inline">\(S\)</span> is the set of security labels, <span class="math inline">\(\sqsubseteq\)</span> defines the flow relation (“can flow to”), <span class="math inline">\(\sqcup\)</span> is the join operator (least upper bound), and <span class="math inline">\(\sqcap\)</span> is the meet operator (greatest lower bound).</p>
+<p>In an autonomous agent runtime, we define two orthogonal label dimensions: <strong>Secrecy</strong> (Confidentiality) and <strong>Integrity</strong> (Trustworthiness). For our threat model, let integrity be represented by a dynamic taint tag <span class="math inline">\(\tau \in \{\text{Trusted}, \text{Untrusted}\}\)</span>:</p>
+<p><span class="math display">\[\text{Trusted} \sqsubset \text{Untrusted}\]</span></p>
+<ul>
+<li>A user prompt authored by the verified system operator carries label <span class="math inline">\(\tau = \text{Trusted}\)</span>.</li>
+<li>Any text ingested from the external environment—including web pages, GitHub issues, pull request diffs, compiler stderr traces, and database records—carries label <span class="math inline">\(\tau = \text{Untrusted}\)</span>.</li>
+</ul>
+<p>During autoregressive context assembly, every segment <span class="math inline">\(x_i\)</span> in the agent context window <span class="math inline">\(C_t\)</span> has an associated taint tag <span class="math inline">\(\tau(x_i)\)</span>. The cumulative context taint <span class="math inline">\(\tau(C_t)\)</span> is the join across all constituent tokens:</p>
+<p><span class="math display">\[\tau(C_t) = \bigsqcup_{i=1}^{|C_t|} \tau(x_i)\]</span></p>
+<p>If a single untrusted document enters the context window, the cumulative context transitions to <span class="math inline">\(\tau(C_t) = \text{Untrusted}\)</span>. This formalism rigorously enforces dynamic capability revocation, as discussed in <strong><a href="../08_virtualization/08_virtualization.html#sec-vol3-virtualization-threat-model">Adversarial Threat Models</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-queueing" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-queueing">Heavy-Tailed Queueing Theory</h2>
+<p>When task variance is unbounded, classical queueing models completely collapse. In an <span class="math inline">\(M/G/1\)</span> queue governed by the Pollaczek-Khinchine formula, the mean waiting time in the queue is directly proportional to the second moment of service time <span class="math inline">\(\mathbb{E}[S^2]\)</span>:</p>
+<p><span class="math display">\[\mathbb{E}[W_{\text{queue}}] = \frac{\lambda \mathbb{E}[S^2]}{2 (1 - \rho)}\]</span></p>
+<p>Under heavy-tailed Pareto workloads, <span class="math inline">\(\mathbb{E}[S^2] \to \infty\)</span>. In practical clusters, this mathematical reality manifests as catastrophic Head-of-Line (HoL) blocking: when a standard First-In-First-Out (FIFO) queue schedules a 200-step agent, it monopolizes accelerator resources for tens of minutes, causing queue backpressure that delays hundreds of quick 2-step tasks. This necessitates the specialized admission control and scheduling techniques outlined in <strong><a href="../11_scheduling/11_scheduling.html#sec-vol3-scheduling">Fault Recovery</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-pareto" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-pareto">Heavy-Tailed Pareto Service Times</h2>
+<p>Unlike stateless large language model (LLM) requests which follow predictable Gaussian or Poisson arrival distributions, multi-step agent trajectories exhibit severe heavy-tailed behavior. The probability that an agent task requires <span class="math inline">\(N\)</span> steps is modeled by a Pareto distribution:</p>
+<p><span class="math display">\[\mathbb{P}(N &gt; x) \approx \left( \frac{x_{\min}}{x} \right)^\alpha \quad \text{for } x \ge x_{\min}\]</span></p>
+<p>where <span class="math inline">\(x_{\min} \ge 1\)</span> is the minimum task length, and <span class="math inline">\(\alpha\)</span> is the Pareto tail index.</p>
+<p>In real-world agent clusters, empirical measurements reveal tail indices in the range <span class="math inline">\(1.0 &lt; \alpha &lt; 1.4\)</span>. Because <span class="math inline">\(\alpha \le 2\)</span>, the theoretical variance of the service time distribution is strictly infinite:</p>
+<p><span class="math display">\[\operatorname{Var}(N) = \begin{cases}
+\infty &amp; \text{if } 1 &lt; \alpha \le 2 \\
+\text{undefined} &amp; \text{if } \alpha \le 1
+\end{cases}\]</span></p>
+<p>This infinite variance fundamentally invalidates traditional FIFO scheduling mechanisms.</p>
+</section>
+<section id="sec-vol3-appendix-math-lora" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-lora">LoRA Matrix Decomposition</h2>
+<p>Parameter-Efficient Fine-Tuning (PEFT) techniques rely on decomposing dense weight updates into low-rank matrices. For a dense weight matrix <span class="math inline">\(W_0 \in \mathbb{R}^{d \times k}\)</span>, LoRA decomposes the accumulated weight update <span class="math inline">\(\Delta W\)</span> into the product of two low-rank matrices <span class="math inline">\(B \in \mathbb{R}^{d \times r}\)</span> and <span class="math inline">\(A \in \mathbb{R}^{r \times k}\)</span>, where the rank satisfies <span class="math inline">\(r \ll \min(d, k)\)</span>:</p>
+<p><span class="math display">\[W = W_0 + \Delta W = W_0 + \frac{\alpha}{r} (B \cdot A)\]</span></p>
+<p>where <span class="math inline">\(\alpha\)</span> is a constant scaling hyperparameter.</p>
+<p>During forward computation on an input activation vector <span class="math inline">\(x\)</span>:</p>
+<p><span class="math display">\[h = W_0 x + \Delta W x = W_0 x + \frac{\alpha}{r} B (A x)\]</span></p>
+<p>Matrix <span class="math inline">\(A\)</span> is initialized from a Gaussian distribution <span class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>, while matrix <span class="math inline">\(B\)</span> is initialized to zero, ensuring that <span class="math inline">\(\Delta W = 0\)</span> at the start of training. This mathematical decomposition allows agentic systems to dynamically swap small adapter matrices (representing different tool capabilities) in and out of GPU memory with sub-millisecond latency, as explored in <strong><a href="../13_sft/13_sft.html#sec-vol3-sft-peft">Parameter-Efficient Memory Bounds</a></strong>.</p>
+<p>During backward propagation, gradients of the scalar loss <span class="math inline">\(\mathcal{L}\)</span> with respect to the adapter projection matrices <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are computed using the matrix chain rule:</p>
+<p><span class="math display">\[\frac{\partial \mathcal{L}}{\partial A} = \frac{\alpha}{r} B^T \left( \frac{\partial \mathcal{L}}{\partial h} \right) x^T, \quad \frac{\partial \mathcal{L}}{\partial B} = \frac{\alpha}{r} \left( \frac{\partial \mathcal{L}}{\partial h} \right) (x^T A^T)\]</span></p>
+<p>The frozen base weights <span class="math inline">\(W_0\)</span> receive zero gradient accumulation, eliminating optimizer state memory for <span class="math inline">\(W_0\)</span> while preserving exact activation gradients <span class="math inline">\(\frac{\partial \mathcal{L}}{\partial x} = W_0^T \left( \frac{\partial \mathcal{L}}{\partial h} \right) + \frac{\alpha}{r} A^T B^T \left( \frac{\partial \mathcal{L}}{\partial h} \right)\)</span> to backpropagate through preceding layers.</p>
+</section>
+<section id="sec-vol3-appendix-math-rl" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-rl">Generalized Advantage Estimation and KL Divergence</h2>
+<p>In reinforcement learning trajectories governed by intermediate rewards <span class="math inline">\(r_t\)</span> and potential terminal outcomes <span class="math inline">\(R\)</span>, temporal credit assignment is formally modeled using <strong>Generalized Advantage Estimation (GAE)</strong> <span class="citation" data-cites="schulman2016high">(<a href="#ref-schulman2016high" role="doc-biblioref">Schulman et al. 2016</a>)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-schulman2016high" class="csl-entry" role="listitem">
+Schulman, John, Philipp Moritz, Sergey Levine, Michael Jordan, and Pieter Abbeel. 2016. <span>“High-Dimensional Continuous Control Using Generalized Advantage Estimation.”</span> <em>International Conference on Learning Representations (ICLR)</em>.
+</div></div><p>Let <span class="math inline">\(\delta_t^V = r_t + \gamma V(s_{t+1}) - V(s_t)\)</span> denote the temporal difference (TD) residual at time-step <span class="math inline">\(t\)</span>, where <span class="math inline">\(\gamma \in [0, 1]\)</span> is the discount factor. The generalized advantage estimator <span class="math inline">\(\hat{A}_t^{\text{GAE}(\gamma, \lambda)}\)</span> is defined as an exponentially weighted average of <span class="math inline">\(k\)</span>-step advantage estimators:</p>
+<p><span class="math display">\[\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}^V = \delta_t^V + (\gamma \lambda) \hat{A}_{t+1}^{\text{GAE}(\gamma, \lambda)}\]</span></p>
+<p>where <span class="math inline">\(\lambda \in [0, 1]\)</span> controls the bias-variance trade-off.</p>
+<p>When optimizing policies such as in GRPO, the objective function constrains divergence from a reference model <span class="math inline">\(\pi_{\text{ref}}\)</span> using a token-level Kullback-Leibler (KL) divergence penalty. This KL divergence is computed analytically or approximated via:</p>
+<p><span class="math display">\[D_{\text{KL}}(\pi_\theta \parallel \pi_{\text{ref}}) = \frac{\pi_{\text{ref}}(o_{i,t} \mid q, o_{i,&lt;t})}{\pi_\theta(o_{i,t} \mid q, o_{i,&lt;t})} - \log \frac{\pi_{\text{ref}}(o_{i,t} \mid q, o_{i,&lt;t})}{\pi_\theta(o_{i,t} \mid q, o_{i,&lt;t})} - 1\]</span></p>
+<p>This penalty enforces that the optimized policy <span class="math inline">\(\pi_\theta\)</span> does not deviate too far from the foundational knowledge encoded in the base model <span class="math inline">\(\pi_{\text{ref}}\)</span>, as discussed in <strong><a href="../14_rlvr/14_rlvr.html#sec-vol3-rlvr-grpo">Group Relative Policy Optimization</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-credit-assignment" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-credit-assignment">Credit Assignment Variance in Trajectory Optimization</h2>
+<p>In sequential trajectory optimization, assigning credit to individual actions governs the sample efficiency of training and the speculative waste of test-time search.</p>
+<p>Let an agent trajectory of horizon <span class="math inline">\(T\)</span> be denoted by <span class="math inline">\(\tau = (s_0, a_1, s_1, \dots, a_T, s_T)\)</span>. In an Outcome Reward Model (ORM), credit is provided as a scalar terminal reward <span class="math inline">\(R_{\text{ORM}}(\tau) \in [0, 1]\)</span> conditioned on task completion at leaf state <span class="math inline">\(s_T\)</span>. Under policy gradient optimization (REINFORCE), the gradient estimator with baseline <span class="math inline">\(b\)</span> is:</p>
+<p><span class="math display">\[g_{\text{ORM}} = \sum_{t=1}^T \nabla_\theta \log \pi_\theta(a_t \mid s_{t-1}) \cdot \left(R_{\text{ORM}}(\tau) - b\right)\]</span></p>
+<p>Because the terminal reward <span class="math inline">\(R_{\text{ORM}}(\tau)\)</span> is a function of the entire trajectory, it acts as a global multiplier across all step gradients. The variance of this estimator expands with the sum of all pairwise covariances between steps:</p>
+<p><span class="math display">\[\operatorname{Var}\left(g_{\text{ORM}}\right) = \sum_{t=1}^T \operatorname{Var}\left(\mathbf{\psi}_t \Delta R\right) + 2 \sum_{1 \le t &lt; t' \le T} \operatorname{Cov}\left(\mathbf{\psi}_t \Delta R, \mathbf{\psi}_{t'} \Delta R\right)\]</span></p>
+<p>where <span class="math inline">\(\mathbf{\psi}_t = \nabla_\theta \log \pi_\theta(a_t \mid s_{t-1})\)</span> and <span class="math inline">\(\Delta R = R_{\text{ORM}}(\tau) - b\)</span>. Because each action <span class="math inline">\(a_t\)</span> affects the terminal outcome and conditions on all previous steps, cross-step correlations do not vanish. For an unguided trajectory of length <span class="math inline">\(T\)</span>, the number of covariance pairs scales quadratically:</p>
+<p><span class="math display">\[\operatorname{Var}\left(g_{\text{ORM}}\right) = \mathcal{O}\left(T^2\right)\]</span></p>
+<p>This <span class="math inline">\(\mathcal{O}(T^2)\)</span> variance explosion means that as reasoning trajectories grow to hundreds of tokens or tool interactions, the signal-to-noise ratio of policy gradients collapses, requiring an exponential number of rollout trajectories to distinguish valid intermediate deductions from fatal reasoning errors.</p>
+<p>Conversely, a Process Reward Model (PRM) supplies dense, localized step rewards <span class="math inline">\(r_t = r_{\text{PRM}}(s_{t-1}, a_t)\)</span>. Under localized credit assignment, the policy gradient uses the step advantage <span class="math inline">\(\hat{A}_t = \sum_{k=t}^T \gamma^{k-t} r_k - V(s_{t-1})\)</span>:</p>
+<p><span class="math display">\[g_{\text{PRM}} = \sum_{t=1}^T \nabla_\theta \log \pi_\theta(a_t \mid s_{t-1}) \cdot \hat{A}_t\]</span></p>
+<p>By the law of total expectation and causality, future rewards are conditionally independent of past actions given intermediate state <span class="math inline">\(s_t\)</span>. For discount factor <span class="math inline">\(\gamma &lt; 1\)</span>, the temporal horizon of correlation is bounded by the effective horizon <span class="math inline">\(1 / (1 - \gamma)\)</span>. Consequently, cross-step covariances decay exponentially with temporal separation <span class="math inline">\(|t' - t|\)</span>, collapsing the variance:</p>
+<p><span class="math display">\[\operatorname{Var}\left(g_{\text{PRM}}\right) = \mathcal{O}\left(\frac{T}{1 - \gamma}\right) = \mathcal{O}(T)\]</span></p>
+<p>The linear scaling <span class="math inline">\(\mathcal{O}(T)\)</span> under PRMs fundamentally explains why step-level supervision achieves sample efficiency gains of several orders of magnitude over sparse terminal rewards in multi-step deliberation tasks, as discussed in <strong><a href="../03_deliberation/03_deliberation.html#sec-vol3-deliberation">Test-Time Deliberation</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-verification" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-verification">Continuous Cost Functions for Verification</h2>
+<p>The economics of system execution dictates that we cannot verify an agent after every single micro-action. We formalize this trade-off using a continuous cost function.</p>
+<p>Let <span class="math inline">\(N\)</span> denote the total trajectory length in steps. Let <span class="math inline">\(K\)</span> denote the number of verification checkpoints scheduled across the trajectory. The total compute and latency cost of an agent task is modeled as:</p>
+<p><span class="math display">\[C_{\text{total}} = N \cdot C_{\text{gen}} + K \cdot C_{\text{ver}} + \mathbb{E}[N_{\text{wasted}}] \cdot C_{\text{gen}} + \mathbb{E}[N_{\text{rollback}}] \cdot C_{\text{rollback}}\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(C_{\text{gen}}\)</span> is the cost of generating a single action step.</li>
+<li><span class="math inline">\(C_{\text{ver}}\)</span> is the verification tax.</li>
+<li><span class="math inline">\(\mathbb{E}[N_{\text{wasted}}]\)</span> is the expected number of steps executed between the occurrence of an error and its detection.</li>
+<li><span class="math inline">\(C_{\text{rollback}}\)</span> is the overhead of rewinding state.</li>
+</ul>
+<p>The optimal checkpoint cadence <span class="math inline">\(K^*\)</span> balances the marginal cost of verification against the expected cost of discarded forward progress:</p>
+<p><span class="math display">\[K^* = N \sqrt{\frac{\lambda_{\text{error}} \cdot C_{\text{gen}}}{2 \cdot C_{\text{ver}}}}\]</span></p>
+<p>where <span class="math inline">\(\lambda_{\text{error}}\)</span> is the per-step error arrival rate. The checkpoint count grows linearly with trajectory length, which is another way of saying that the optimal checkpoint <em>interval</em> does not depend on how long the trajectory runs:</p>
+<p><span class="math display">\[\frac{N}{K^*} = \sqrt{\frac{2 \cdot C_{\text{ver}}}{\lambda_{\text{error}} \cdot C_{\text{gen}}}}\]</span></p>
+<p>A runtime therefore sets its cadence from the verification tax and the environment’s error rate alone, and does not need to know the trajectory length in advance.</p>
+<section id="analytical-minimization-of-discrete-block-latency" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="analytical-minimization-of-discrete-block-latency">Analytical minimization of discrete block latency</h3>
+<p>In <strong><a href="../03_deliberation/03_deliberation.html#sec-vol3-deliberation-bounded-search">Search Stopping Criteria</a></strong>, execution latency over <span class="math inline">\(N\)</span> steps partitioned into blocks of length <span class="math inline">\(m\)</span> with per-step reliability <span class="math inline">\(p\)</span> and per-block verification latency <span class="math inline">\(T_{\text{ver}}\)</span> is modeled discretely as:</p>
+<p><span class="math display">\[T(m) = \frac{N}{m} \cdot \frac{m \cdot T_{\text{step}} + T_{\text{ver}}}{p^m} = N \cdot p^{-m} \left( T_{\text{step}} + \frac{T_{\text{ver}}}{m} \right)\]</span></p>
+<p>To find the cadence <span class="math inline">\(m^*\)</span> that minimizes <span class="math inline">\(T(m)\)</span>, we take the natural logarithm and differentiate with respect to <span class="math inline">\(m\)</span>:</p>
+<p><span class="math display">\[\ln T(m) = \ln N - m \ln p + \ln \left( T_{\text{step}} + \frac{T_{\text{ver}}}{m} \right)\]</span></p>
+<p><span class="math display">\[\frac{d}{dm} \ln T(m) = -\ln p - \frac{T_{\text{ver}} / m^2}{T_{\text{step}} + T_{\text{ver}} / m} = 0\]</span></p>
+<p>Multiplying by <span class="math inline">\(m^2 (T_{\text{step}} + T_{\text{ver}} / m)\)</span> yields the characteristic quadratic equation:</p>
+<p><span class="math display">\[m^2 T_{\text{step}} (-\ln p) + m T_{\text{ver}} (-\ln p) - T_{\text{ver}} = 0\]</span></p>
+<p>For high-reliability models (<span class="math inline">\(p \approx 1\)</span>), we use the first-order Taylor approximation <span class="math inline">\(-\ln p = -\ln(1 - (1 - p)) \approx 1 - p\)</span>. Dividing through by <span class="math inline">\(T_{\text{step}} (1 - p)\)</span>:</p>
+<p><span class="math display">\[m^2 + m \left(\frac{T_{\text{ver}}}{T_{\text{step}}}\right) - \frac{T_{\text{ver}}}{(1 - p) T_{\text{step}}} = 0\]</span></p>
+<p>When the failure rate <span class="math inline">\((1 - p)\)</span> is small, the constant term <span class="math inline">\(\frac{T_{\text{ver}}}{(1 - p) T_{\text{step}}}\)</span> dominates the linear term <span class="math inline">\(m \frac{T_{\text{ver}}}{T_{\text{step}}}\)</span>. Solving for the positive root yields the first-principles square-root scaling law:</p>
+<p><span class="math display">\[m^* \approx \sqrt{\frac{T_{\text{ver}}}{(1 - p) T_{\text{step}}}}\]</span></p>
+<p>When accounting for unrecoverable branch restarts and state rollbacks (where each failure incurs an expected penalty of <span class="math inline">\(m/2\)</span> wasted steps), the exact factor of 2 matches Young’s classical checkpointing formula <span class="citation" data-cites="young1974 daly2006">(<a href="#ref-young1974" role="doc-biblioref">Young 1974</a>; <a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>:</p>
+<div class="no-row-height column-margin column-container"><div id="ref-young1974" class="csl-entry" role="listitem">
+Young, John W. 1974. <span>“A First Order Approximation to the Optimum Checkpoint Interval.”</span> <em>Communications of the ACM</em> 17 (9): 530–31. https://doi.org/10.1145/361147.361115.
+</div></div><p><span class="math display">\[m^* \approx \sqrt{\frac{2 \cdot T_{\text{ver}}}{(1 - p) \cdot T_{\text{step}}}}\]</span></p>
+<p>This equivalence confirms that optimal verification cadence in test-time deliberation is structurally identical to optimal checkpoint scheduling in fault-tolerant distributed computing.</p>
+</section>
+</section>
+<section id="sec-vol3-appendix-math-pagerank" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-pagerank">PageRank Symbol Graphing for Repository Maps</h2>
+<p>To construct an optimal repository map within a tight token budget, agent runtimes model the codebase as a directed graph <span class="math inline">\(G = (V, E)\)</span> of symbol definitions and references. The system computes the personalized PageRank vector <span class="math inline">\(\mathbf{r} \in \mathbb{R}^{|V|}\)</span> over <span class="math inline">\(G\)</span>:</p>
+<p><span class="math display">\[\mathbf{r} = (1 - d) \mathbf{p} + d A^T D^{-1} \mathbf{r}\]</span></p>
+<p>where <span class="math inline">\(d \approx 0.85\)</span> is the damping factor, <span class="math inline">\(A\)</span> is the adjacency matrix, <span class="math inline">\(D\)</span> is the degree matrix, and <span class="math inline">\(\mathbf{p}\)</span> is a personalization preference vector initialized to bias toward files mentioned in the user’s issue description or recent git diffs.</p>
+<p>By sorting symbols in descending order of PageRank score <span class="math inline">\(\mathbf{r}_i\)</span> and greedily packing them, systems guarantee that the most topologically central and task-relevant architectural abstractions are exposed to the agent’s context window, as discussed in <strong><a href="../06_episodic_memory/06_episodic_memory.html#sec-vol3-persistent-graphrag">Multi-Hop Retrieval</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-bootstrap" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-bootstrap">Statistical Significance and Monte Carlo Bootstrapping</h2>
+<p>Due to inherent hardware and execution non-determinism, detecting true agent capability improvements requires rigorous statistical testing.</p>
+<p>The required sample size <span class="math inline">\(N\)</span> to detect an effect size <span class="math inline">\(\Delta p = p_2 - p_1\)</span> with statistical significance <span class="math inline">\(\alpha\)</span> and statistical power <span class="math inline">\(1 - \beta\)</span> is formally governed by the two-proportion hypothesis test:</p>
+<p><span class="math display">\[N \ge \frac{\left( z_{1 - \alpha/2} \sqrt{2 \bar{p}(1 - \bar{p})} + z_{1 - \beta} \sqrt{p_1(1 - p_1) + p_2(1 - p_2)} \right)^2}{(p_2 - p_1)^2}\]</span></p>
+<p>where <span class="math inline">\(\bar{p} = (p_1 + p_2) / 2\)</span>, <span class="math inline">\(z_{1 - \alpha/2}\)</span> is the standard normal critical value, and <span class="math inline">\(z_{1 - \beta}\)</span> is the power critical value.</p>
+<p>For an agent baseline success rate <span class="math inline">\(p_1\)</span> of 0.30 and a targeted improvement to a <span class="math inline">\(p_2\)</span> of 0.35 with <span class="math inline">\(\alpha = 0.05\)</span> and <span class="math inline">\(\beta = 0.20\)</span>, the required <span class="math inline">\(N\)</span> is 1,375 tasks per arm.</p>
+<p>Furthermore, because trajectory metrics follow heavy-tailed non-Gaussian distributions, classical parametric distributions fail. Runtimes employ non-parametric <strong>Monte Carlo Bootstrapping</strong> (<span class="citation" data-cites="efron1994bootstrap">Efron and Tibshirani (<a href="#ref-efron1994bootstrap" role="doc-biblioref">1994</a>)</span>) by drawing <span class="math inline">\(B\)</span> bootstrap resamples with replacement and computing the empirical percentile confidence interval:</p>
+<div class="no-row-height column-margin column-container"><div id="ref-efron1994bootstrap" class="csl-entry" role="listitem">
+Efron, Bradley, and Robert J. Tibshirani. 1994. <em>An Introduction to the Bootstrap</em>. Routledge. https://doi.org/10.1201/9780429246593.
+</div></div><p><span class="math display">\[[\theta_{\text{lower}}, \theta_{\text{upper}}] = \left[ \hat{\theta}^*_{\lfloor 0.025 B \rfloor}, \; \hat{\theta}^*_{\lfloor 0.975 B \rfloor} \right]\]</span></p>
+<p>This ensures that system updates are statistically valid before production deployment, as discussed in <strong><a href="../16_observability/16_observability.html#sec-vol3-observability-gyms">Hermetic Evaluation Gyms</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-dfa" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-dfa">Deterministic Finite Automata and Grammar-Constrained Logit Decoding</h2>
+<p>Grammar-constrained logit decoding enforces formal language compliance at the GPU tensor layer by compiling a context-free grammar or regular JSON schema into a Deterministic Finite Automaton (DFA) <span class="citation" data-cites="willard2023outlines">(<a href="#ref-willard2023outlines" role="doc-biblioref">Willard and Louf 2023</a>)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-willard2023outlines" class="csl-entry" role="listitem">
+Willard, Brandon T., and Rémi Louf. 2023. <span>“Efficient Guided Generation for Large Language Models.”</span> <em>arXiv Preprint arXiv:2307.09702</em>.
+</div></div><p>Formally, let the target grammar be compiled into a DFA 5-tuple:</p>
+<p><span class="math display">\[\mathcal{D} = \langle Q, \Sigma, \delta, q_0, F \rangle\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(Q\)</span> is the finite set of parser automaton states.</li>
+<li><span class="math inline">\(\Sigma\)</span> is the input alphabet consisting of raw byte sequences (<span class="math inline">\(\Sigma = \{0, \dots, 255\}\)</span>).</li>
+<li><span class="math inline">\(\delta: Q \times \Sigma \to Q\)</span> is the deterministic state transition function.</li>
+<li><span class="math inline">\(q_0 \in Q\)</span> is the designated start state.</li>
+<li><span class="math inline">\(F \subseteq Q\)</span> is the set of accepting states.</li>
+</ul>
+<p>Let <span class="math inline">\(\mathcal{V}\)</span> denote the model’s vocabulary of size <span class="math inline">\(|\mathcal{V}|\)</span>, where each token <span class="math inline">\(v \in \mathcal{V}\)</span> corresponds to an immutable byte sequence <span class="math inline">\(s(v) = (b_1, b_2, \dots, b_m)\)</span> with <span class="math inline">\(b_j \in \Sigma\)</span>. The extended transition function <span class="math inline">\(\delta^*: Q \times \Sigma^* \to Q \cup \{\bot\}\)</span> evaluates the sequential consumption of a byte sequence from state <span class="math inline">\(q\)</span>:</p>
+<p><span class="math display">\[\delta^*(q, \epsilon) = q, \quad \delta^*(q, (b_1, \dots, b_m)) = \delta^*(\delta(q, b_1), (b_2, \dots, b_m))\]</span></p>
+<p>where <span class="math inline">\(\bot\)</span> indicates an illegal transition (syntax error).</p>
+<p>At generation step <span class="math inline">\(t\)</span>, let the automaton reside in state <span class="math inline">\(q_t \in Q\)</span> after consuming prefix tokens <span class="math inline">\(x_{&lt;t}\)</span>. The set of valid next tokens <span class="math inline">\(\mathcal{V}_{\text{valid}}(q_t) \subseteq \mathcal{V}\)</span> comprises all vocabulary entries whose byte sequences do not lead to <span class="math inline">\(\bot\)</span>:</p>
+<p><span class="math display">\[\mathcal{V}_{\text{valid}}(q_t) = \left\{ v \in \mathcal{V} \;\middle|\; \delta^*(q_t, s(v)) \ne \bot \right\}\]</span></p>
+<p>Prior to the GPU softmax kernel, the unnormalized logit vector <span class="math inline">\(\mathbf{z}_t \in \mathbb{R}^{|\mathcal{V}|}\)</span> is transformed elementwise:</p>
+<p><span class="math display">\[z_{t, v}' = \begin{cases} z_{t, v} &amp; \text{if } v \in \mathcal{V}_{\text{valid}}(q_t) \\ -\infty &amp; \text{if } v \notin \mathcal{V}_{\text{valid}}(q_t) \end{cases}\]</span></p>
+<p>The normalized probability distribution is:</p>
+<p><span class="math display">\[\Pr(x_t = v \mid x_{&lt;t}) = \frac{\exp(z_{t, v}')}{\sum_{w \in \mathcal{V}} \exp(z_{t, w}')}\]</span></p>
+<p>Because <span class="math inline">\(\exp(-\infty) = 0\)</span>, the probability of sampling any token <span class="math inline">\(v \notin \mathcal{V}_{\text{valid}}(q_t)\)</span> is strictly zero:</p>
+<p><span class="math display">\[\forall v \notin \mathcal{V}_{\text{valid}}(q_t), \quad \Pr(x_t = v \mid x_{&lt;t}) = 0\]</span></p>
+<p>By induction over the sequence length, every completed generation trajectory <span class="math inline">\(x_{1:T}\)</span> ending in <span class="math inline">\(q_T \in F\)</span> is guaranteed to belong to the formal language <span class="math inline">\(\mathcal{L}(\mathcal{D})\)</span> accepted by the grammar. At runtime, the transition matrix is precomputed into a compressed bitmask tensor <span class="math inline">\(\mathbf{M} \in \{0, 1\}^{|Q| \times \lceil |\mathcal{V}| / 32 \rceil}\)</span>, allowing a GPU warp to determine validity in <span class="math inline">\(\mathcal{O}(1)\)</span> time using a single 32-bit bitwise AND instruction (<code>__ballot_sync</code>), bypassing costly host-side parsing as discussed in <strong><a href="../07_actuation/07_actuation.html#sec-vol3-actuation">Tool Execution</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-daly" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-daly">Higher-Order Daly Checkpoint Cadence Derivation</h2>
+<p>In <strong><a href="../09_checkpointing/09_checkpointing.html#sec-vol3-checkpointing">Supervisory Control Planes</a></strong>, the optimal checkpoint interval is derived from first principles using Young’s balanced trade-off between checkpoint save overhead and recompute waste:</p>
+<p><span class="math display">\[T_{\text{opt}} = \sqrt{2 \cdot T_{\text{save}} \cdot M_{\text{MTBF}}}\]</span></p>
+<p>When restart latency <span class="math inline">\(T_{\text{restart}}\)</span> is non-negligible and the system is vulnerable to failure during the checkpoint commit phase itself, Daly <span class="citation" data-cites="daly2006">(<a href="#ref-daly2006" role="doc-biblioref">2006</a>)</span> extended Young’s model using a perturbation expansion over the Poisson failure process with arrival rate <span class="math inline">\(\lambda = 1 / M_{\text{MTBF}}\)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-daly2006" class="csl-entry" role="listitem">
+Daly, J. T. 2006. <span>“A Higher Order Estimate of the Optimum Checkpoint Interval for Restart Dumps.”</span> <em>Future Generation Computer Systems</em> 22 (3): 303–12. https://doi.org/10.1016/j.future.2004.11.016.
+</div></div><p>Let <span class="math inline">\(\tau\)</span> denote the checkpoint interval. The total expected wall-clock time <span class="math inline">\(\mathbb{E}[T_{\text{total}}]\)</span> required to accomplish a unit of useful work <span class="math inline">\(T_{\text{work}}\)</span> under checkpoint serialization latency <span class="math inline">\(T_{\text{save}}\)</span> and recovery restart latency <span class="math inline">\(R = T_{\text{restart}}\)</span> satisfies:</p>
+<p><span class="math display">\[\mathbb{E}[T_{\text{total}}] = T_{\text{work}} \cdot \frac{e^{\lambda (\tau + T_{\text{save}})} - 1}{\lambda \tau} + \lambda \mathbb{E}[T_{\text{total}}] \cdot R\]</span></p>
+<p>Expanding the exponential term <span class="math inline">\(e^{\lambda (\tau + T_{\text{save}})}\)</span> into a Taylor series up to second order in <span class="math inline">\(\lambda\)</span>:</p>
+<p><span class="math display">\[e^{\lambda (\tau + T_{\text{save}})} \approx 1 + \lambda (\tau + T_{\text{save}}) + \frac{\lambda^2 (\tau + T_{\text{save}})^2}{2} + \mathcal{O}(\lambda^3)\]</span></p>
+<p>Substituting into the expected execution time and differentiating with respect to <span class="math inline">\(\tau\)</span> to solve for the minimizing interval <span class="math inline">\(\tau^*\)</span>:</p>
+<p><span class="math display">\[\frac{\partial \mathbb{E}[T_{\text{total}}]}{\partial \tau} = 0 \implies \tau^* = \sqrt{\frac{2 T_{\text{save}}}{\lambda}} \left[ 1 + \frac{1}{3}\sqrt{\frac{\lambda T_{\text{save}}}{2}} \right] - T_{\text{save}} + \mathcal{O}(\lambda)\]</span></p>
+<p>Substituting <span class="math inline">\(\lambda = 1 / M_{\text{MTBF}}\)</span> yields Daly’s higher-order analytical equation:</p>
+<p><span class="math display">\[T_{\text{opt}}^{\text{Daly}} = \sqrt{2 \cdot T_{\text{save}} \cdot M_{\text{MTBF}}} \cdot \left[ 1 + \frac{1}{3}\sqrt{\frac{T_{\text{save}}}{2 M_{\text{MTBF}}}} \right] - T_{\text{save}}\]</span></p>
+<p>In typical machine learning agent deployments where checkpoint serialization latency is much smaller than the mean time between failures (<span class="math inline">\(T_{\text{save}} \ll M_{\text{MTBF}}\)</span>, such as <span class="math inline">\(T_{\text{save}} = 2.5\text{ s}\)</span> versus <span class="math inline">\(M_{\text{MTBF}} = 1{,}600\text{ s}\)</span>), the second-order perturbation term <span class="math inline">\(\frac{1}{3}\sqrt{\frac{T_{\text{save}}}{2 M_{\text{MTBF}}}} \approx \frac{1}{3}\sqrt{0.00078} \approx 0.0093\)</span> represents an adjustment of less than 1 percent. Consequently, Young’s first-principles geometric mean provides an exceptionally robust operational rule of thumb for systems runtime schedulers.</p>
+</section>
+<section id="sec-vol3-appendix-math-pass-at-k" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-pass-at-k">Unbiased Pass@<span class="math inline">\(k\)</span> Combinatorial Derivation and Numerical Stability</h2>
+<p>When evaluating stochastic generative models and multi-step agents, drawing <span class="math inline">\(k\)</span> samples per task and counting empirical passes introduces severe sample bias unless thousands of trajectories are generated per task. <span class="citation" data-cites="chen2021evaluating">Chen et al. (<a href="#ref-chen2021evaluating" role="doc-biblioref">2021</a>)</span> introduced the unbiased Pass@<span class="math inline">\(k\)</span> estimator by framing evaluation as hyper-geometric sampling without replacement.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-chen2021evaluating" class="csl-entry" role="listitem">
+Chen, Mark, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, et al. 2021. <span>“Evaluating Large Language Models Trained on Code.”</span> <em>arXiv Preprint arXiv:2107.03374</em>.
+</div></div><p>Let <span class="math inline">\(n\)</span> denote the total number of candidate trajectories generated and evaluated for a given benchmark task (<span class="math inline">\(n \ge k\)</span>), and let <span class="math inline">\(c\)</span> denote the number of trajectories that successfully satisfy the verification oracle (<span class="math inline">\(0 \le c \le n\)</span>).</p>
+<p>Suppose an evaluation system selects a subset of <span class="math inline">\(k\)</span> trajectories uniformly at random without replacement. The task is counted as solved under the Pass@<span class="math inline">\(k\)</span> metric if at least one of the <span class="math inline">\(k\)</span> selected trajectories succeeded. Conversely, the failure condition occurs if and only if all <span class="math inline">\(k\)</span> selected trajectories were drawn from the pool of <span class="math inline">\(n - c\)</span> failed trajectories.</p>
+<p>The total number of ways to draw <span class="math inline">\(k\)</span> trajectories from the candidate pool of size <span class="math inline">\(n\)</span> is <span class="math inline">\(\binom{n}{k}\)</span>. If <span class="math inline">\(n - c &lt; k\)</span>, the pool contains fewer than <span class="math inline">\(k\)</span> failures, making it impossible to select <span class="math inline">\(k\)</span> failing trajectories; thus, the probability of complete failure is strictly zero, and <span class="math inline">\(\text{Pass}@k = 1.0\)</span>.</p>
+<p>If <span class="math inline">\(n - c \ge k\)</span>, the number of ways to draw <span class="math inline">\(k\)</span> failures from the <span class="math inline">\(n - c\)</span> failed trajectories is <span class="math inline">\(\binom{n - c}{k}\)</span>. Under uniform random sampling without replacement, the probability that all <span class="math inline">\(k\)</span> drawn trajectories fail is:</p>
+<p><span class="math display">\[\Pr(\text{all } k \text{ selections fail}) = \frac{\binom{n - c}{k}}{\binom{n}{k}}\]</span></p>
+<p>The unbiased probability that at least one of the <span class="math inline">\(k\)</span> trajectories succeeds is the complement:</p>
+<p><span class="math display">\[\text{Pass}@k = 1 - \frac{\binom{n - c}{k}}{\binom{n}{k}}\]</span></p>
+<p>Averaging across a test suite of <span class="math inline">\(M\)</span> benchmark tasks yields the global unbiased estimator:</p>
+<p><span class="math display">\[\text{Pass}@k = \mathbb{E}_{\text{tasks}}\left[ 1 - \frac{\binom{n - c}{k}}{\binom{n}{k}} \right]\]</span></p>
+<section id="numerical-stability-via-log-sum-expansion" class="level3">
+<h3 class="anchored" data-anchor-id="numerical-stability-via-log-sum-expansion">Numerical stability via log-sum expansion</h3>
+<p>Evaluating binomial coefficients via direct factorials (<span class="math inline">\(\binom{n}{k} = \frac{n!}{k!(n-k)!}\)</span>) rapidly causes floating-point overflow on standard 64-bit hardware, where factorials exceed IEEE 754 float limits at <span class="math inline">\(171! \approx 7.26 \times 10^{306}\)</span>. Expanding the ratio into a telescoping product:</p>
+<p><span class="math display">\[\frac{\binom{n - c}{k}}{\binom{n}{k}} = \frac{\frac{(n - c)!}{k! (n - c - k)!}}{\frac{n!}{k! (n - k)!}} = \frac{(n - c)! (n - k)!}{n! (n - c - k)!} = \prod_{i=1}^k \frac{n - c - k + i}{n - k + i}\]</span></p>
+<p>Computing this product directly can suffer from arithmetic underflow when <span class="math inline">\(k\)</span> is large. Converting the product into the log-domain yields a numerically stable summation:</p>
+<p><span class="math display">\[\ln\left( \frac{\binom{n - c}{k}}{\binom{n}{k}} \right) = \sum_{i=1}^k \ln\left( \frac{n - c - k + i}{n - k + i} \right)\]</span></p>
+<p>Exponentiating and subtracting from unity yields the standard runtime formulation implemented in evaluation harnesses:</p>
+<p><span class="math display">\[1 - \frac{\binom{n - c}{k}}{\binom{n}{k}} = 1 - \exp\left( \sum_{i=1}^k \ln\left( \frac{n - c - k + i}{n - k + i} \right) \right)\]</span></p>
+<p>This formulation enables stable computation for arbitrary rollout counts (e.g., <span class="math inline">\(n = 1{,}000, k = 100\)</span>) in <span class="math inline">\(\mathcal{O}(k)\)</span> time with zero precision degradation, as discussed in <strong><a href="../16_observability/16_observability.html#sec-vol3-observability-gyms">Hermetic Evaluation Gyms</a></strong>.</p>
+</section>
+</section>
+<section id="sec-vol3-appendix-math-sprt" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-sprt">Wald’s Sequential Probability Ratio Test (SPRT) Decision Boundaries</h2>
+<p>In <strong><a href="../16_observability/16_observability.html#sec-vol3-observability-releases">Staged Canary Deployments</a></strong>, canary routing decisions are governed by Wald’s Sequential Probability Ratio Test (SPRT) <span class="citation" data-cites="wald1945sequential">(<a href="#ref-wald1945sequential" role="doc-biblioref">Wald 1945</a>)</span>. This derivation establishes the exact log-likelihood formulation and the absorbing boundary thresholds <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-wald1945sequential" class="csl-entry" role="listitem">
+Wald, Abraham. 1945. <span>“Sequential Tests of Statistical Hypotheses.”</span> <em>The Annals of Mathematical Statistics</em> 16 (2): 117–86. https://doi.org/10.1214/aoms/1177731118.
+</div></div><p>Let <span class="math inline">\(X_1, X_2, \dots, X_m\)</span> denote a sequence of independent and identically distributed Bernoulli trials representing consecutive canary trajectory outcomes, where <span class="math inline">\(X_i = 1\)</span> indicates a trajectory failure (or quality regression) with probability <span class="math inline">\(p\)</span>, and <span class="math inline">\(X_i = 0\)</span> indicates a verified success with probability <span class="math inline">\(1 - p\)</span>.</p>
+<p>We test the composite null hypothesis against the alternative:</p>
+<p><span class="math display">\[H_0: p = p_0 \quad (\text{nominal failure rate}), \qquad H_1: p = p_1 \quad (\text{degraded failure rate, } p_1 &gt; p_0)\]</span></p>
+<p>The probability mass function of an individual trial under parameter <span class="math inline">\(p\)</span> is:</p>
+<p><span class="math display">\[P(X_i \mid p) = p^{X_i} (1 - p)^{1 - X_i}\]</span></p>
+<p>For <span class="math inline">\(m\)</span> independent observations with <span class="math inline">\(k = \sum_{i=1}^m X_i\)</span> total observed failures and <span class="math inline">\(m - k\)</span> successes, the joint likelihood ratio <span class="math inline">\(\Lambda_m\)</span> is:</p>
+<p><span class="math display">\[\Lambda_m = \frac{\prod_{i=1}^m P(X_i \mid p_1)}{\prod_{i=1}^m P(X_i \mid p_0)} = \frac{p_1^k (1 - p_1)^{m - k}}{p_0^k (1 - p_0)^{m - k}} = \left( \frac{p_1}{p_0} \right)^k \left( \frac{1 - p_1}{1 - p_0} \right)^{m - k}\]</span></p>
+<p>Taking the natural logarithm transforms the multiplicative likelihood into an additive cumulative sum:</p>
+<p><span class="math display">\[\ln \Lambda_m = k \ln\left( \frac{p_1}{p_0} \right) + (m - k) \ln\left( \frac{1 - p_1}{1 - p_0} \right)\]</span></p>
+<section id="derivation-of-absorbing-boundaries-a-and-b" class="level3">
+<h3 class="anchored" data-anchor-id="derivation-of-absorbing-boundaries-a-and-b">Derivation of absorbing boundaries <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span></h3>
+<p>Let <span class="math inline">\(\alpha\)</span> denote the target Type I error rate (<span class="math inline">\(\Pr(\text{reject } H_0 \mid H_0 \text{ true})\)</span>) and <span class="math inline">\(\beta\)</span> denote the target Type II error rate (<span class="math inline">\(\Pr(\text{accept } H_0 \mid H_1 \text{ true})\)</span>).</p>
+<p>Let <span class="math inline">\(\Omega_1 \subset \{0, 1\}^m\)</span> denote the set of all sample paths leading to the rejection of <span class="math inline">\(H_0\)</span> (crossing upper threshold <span class="math inline">\(A\)</span>). By definition of the test:</p>
+<p><span class="math display">\[\alpha = \sum_{\mathbf{x} \in \Omega_1} P(\mathbf{x} \mid H_0)\]</span></p>
+<p>Because every path <span class="math inline">\(\mathbf{x} \in \Omega_1\)</span> satisfies <span class="math inline">\(\Lambda_m(\mathbf{x}) \ge A\)</span>, we have <span class="math inline">\(P(\mathbf{x} \mid H_1) \ge A \cdot P(\mathbf{x} \mid H_0)\)</span>. Summing over all paths in <span class="math inline">\(\Omega_1\)</span>:</p>
+<p><span class="math display">\[1 - \beta = \sum_{\mathbf{x} \in \Omega_1} P(\mathbf{x} \mid H_1) \ge A \sum_{\mathbf{x} \in \Omega_1} P(\mathbf{x} \mid H_0) = A \cdot \alpha\]</span></p>
+<p>Rearranging gives the upper stopping bound:</p>
+<p><span class="math display">\[A \le \frac{1 - \beta}{\alpha}\]</span></p>
+<p>Similarly, let <span class="math inline">\(\Omega_0\)</span> denote the set of sample paths leading to the acceptance of <span class="math inline">\(H_0\)</span> (crossing lower threshold <span class="math inline">\(B\)</span>). For every path <span class="math inline">\(\mathbf{x} \in \Omega_0\)</span>, <span class="math inline">\(\Lambda_m(\mathbf{x}) \le B\)</span>, which implies <span class="math inline">\(P(\mathbf{x} \mid H_1) \le B \cdot P(\mathbf{x} \mid H_0)\)</span>. Summing over <span class="math inline">\(\Omega_0\)</span>:</p>
+<p><span class="math display">\[\beta = \sum_{\mathbf{x} \in \Omega_0} P(\mathbf{x} \mid H_1) \le B \sum_{\mathbf{x} \in \Omega_0} P(\mathbf{x} \mid H_0) = B (1 - \alpha)\]</span></p>
+<p>Rearranging gives the lower stopping bound:</p>
+<p><span class="math display">\[B \ge \frac{\beta}{1 - \alpha}\]</span></p>
+<p>Neglecting the infinitesimal overshoot at the boundary crossings (Wald’s approximation), we define the operational decision thresholds:</p>
+<p><span class="math display">\[A = \frac{1 - \beta}{\alpha}, \qquad B = \frac{\beta}{1 - \alpha}\]</span></p>
+<p>The sequential canary router evaluates <span class="math inline">\(\ln \Lambda_m\)</span> after every trajectory:</p>
+<ul>
+<li>If <span class="math inline">\(\ln \Lambda_m \ge \ln A\)</span>: abort the canary rollout immediately.</li>
+<li>If <span class="math inline">\(\ln \Lambda_m \le \ln B\)</span>: promote the canary policy to the next traffic tier.</li>
+<li>If <span class="math inline">\(\ln B &lt; \ln \Lambda_m &lt; \ln A\)</span>: continue sampling.</li>
+</ul>
+</section>
+</section>
+<section id="sec-vol3-appendix-math-svd" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-svd">Truncated SVD and Low-Rank Attention Approximations</h2>
+<p>In low-rank attention compression and Multi-Head Latent Attention (MLA), the serving runtime approximates high-dimensional Key and Value activation matrices via truncated Singular Value Decomposition (SVD).</p>
+<p>Let <span class="math inline">\(\mathbf{K}^{(l)} \in \mathbb{R}^{S \times d_{\text{head}}}\)</span> denote the uncompressed Key activation matrix for layer <span class="math inline">\(l\)</span> across an active sequence of <span class="math inline">\(S\)</span> tokens. The singular value decomposition factors <span class="math inline">\(\mathbf{K}^{(l)}\)</span> into orthogonal singular vectors:</p>
+<p><span class="math display">\[\mathbf{K}^{(l)} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T = \sum_{i=1}^{\min(S, d_{\text{head}})} \sigma_i \mathbf{u}_i \mathbf{v}_i^T\]</span></p>
+<p>where <span class="math inline">\(\mathbf{U} \in \mathbb{R}^{S \times S}\)</span> and <span class="math inline">\(\mathbf{V} \in \mathbb{R}^{d_{\text{head}} \times d_{\text{head}}}\)</span> are orthonormal basis matrices, and <span class="math inline">\(\mathbf{\Sigma}\)</span> contains ordered singular values <span class="math inline">\(\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_{\min(S, d_{\text{head}})} \ge 0\)</span>.</p>
+<p>A rank-<span class="math inline">\(r\)</span> truncated SVD approximation <span class="math inline">\(\hat{\mathbf{K}}_r^{(l)}\)</span> retains only the top <span class="math inline">\(r\)</span> principal components (<span class="math inline">\(r \ll d_{\text{head}}\)</span>):</p>
+<p><span class="math display">\[\hat{\mathbf{K}}_r^{(l)} = \mathbf{U}_r \mathbf{\Sigma}_r \mathbf{V}_r^T = \sum_{i=1}^{r} \sigma_i \mathbf{u}_i \mathbf{v}_i^T\]</span></p>
+<p>By the classical <strong>Eckart-Young-Mirsky Theorem</strong>, the truncated matrix <span class="math inline">\(\hat{\mathbf{K}}_r^{(l)}\)</span> is the mathematically optimal rank-<span class="math inline">\(r\)</span> approximation to <span class="math inline">\(\mathbf{K}^{(l)}\)</span> under both the spectral norm (<span class="math inline">\(\|\cdot\|_2\)</span>) and the Frobenius norm (<span class="math inline">\(\|\cdot\|_F\)</span>). Specifically, the minimum Frobenius reconstruction error is determined entirely by the discarded tail singular values:</p>
+<p><span class="math display">\[\min_{\operatorname{rank}(\mathbf{A}) \le r} \|\mathbf{K}^{(l)} - \mathbf{A}\|_F = \|\mathbf{K}^{(l)} - \hat{\mathbf{K}}_r^{(l)}\|_F = \sqrt{\sum_{j=r+1}^{d_{\text{head}}} \sigma_j^2}\]</span></p>
+<p>The fraction of total activation energy preserved by the rank-<span class="math inline">\(r\)</span> subspace projection is:</p>
+<p><span class="math display">\[\eta_r = \frac{\sum_{i=1}^r \sigma_i^2}{\sum_{i=1}^{d_{\text{head}}} \sigma_i^2}\]</span></p>
+<p>In foundation model attention layers, the empirical spectrum of Key and Value activation matrices exhibits steep power-law singular value decay (<span class="math inline">\(\sigma_j \propto j^{-\alpha}\)</span> where <span class="math inline">\(\alpha &gt; 1\)</span>). Retaining rank <span class="math inline">\(r = d_{\text{head}} / 4\)</span> typically captures over <span class="math inline">\(98\%\)</span> of the total spectral energy (<span class="math inline">\(\eta_r &gt; 0.98\)</span>). This ensures that reconstructed attention dot products <span class="math inline">\(\mathbf{q}_i^T \hat{\mathbf{k}}_k \approx (\mathbf{q}_i \mathbf{V}_r) (\mathbf{c}_{K, k})^T\)</span> preserve ranking order with provably bounded perturbation, as applied in <strong><a href="../05_virtual_memory/05_virtual_memory.html#sec-vol3-virtual-memory">Paged Attention Memory</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-compounding-error" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-compounding-error">Quadratic Compounding Error in Trajectory Imitation</h2>
+<p>The error compounding bound of sequential imitation learning under autoregressive distribution shift was formally established by <span class="citation" data-cites="ross2011reduction">Ross et al. (<a href="#ref-ross2011reduction" role="doc-biblioref">2011</a>)</span>. Here we provide the complete measure-theoretic derivation.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-ross2011reduction" class="csl-entry" role="listitem">
+Ross, Stéphane, Geoffrey Gordon, and J. Andrew Bagnell. 2011. <span>“A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning.”</span> <em>Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics (AISTATS)</em> 15: 627–35.
+</div></div><p>Let an agent policy <span class="math inline">\(\pi_\theta\)</span> interact with a discrete-time Markov Decision Process over horizon <span class="math inline">\(H\)</span>. Assume the policy incurs an expected per-step 0-1 error rate bounded by <span class="math inline">\(\epsilon \in (0, 1)\)</span> under the state distribution <span class="math inline">\(d_{\pi^*}^t\)</span> induced by an optimal expert <span class="math inline">\(\pi^*\)</span>:</p>
+<p><span class="math display">\[\mathbb{E}_{s \sim d_{\pi^*}^t} \left[ \mathbb{I}\left( \pi_\theta(s) \neq \pi^*(s) \right) \right] \le \epsilon\]</span></p>
+<p>Let <span class="math inline">\(d_{\pi_\theta}^t\)</span> denote the state distribution induced by running policy <span class="math inline">\(\pi_\theta\)</span> up to time step <span class="math inline">\(t\)</span>. At step <span class="math inline">\(t\)</span>, the Total Variation distance between the student and expert state distributions is bounded by the probability that <span class="math inline">\(\pi_\theta\)</span> has committed at least one mistake at any prior step <span class="math inline">\(\tau &lt; t\)</span>:</p>
+<p><span class="math display">\[D_{\text{TV}}\left( d_{\pi_\theta}^t, d_{\pi^*}^t \right) \le 1 - (1 - \epsilon)^t \le t \epsilon\]</span></p>
+<p>The expected cumulative task loss <span class="math inline">\(\mathcal{J}(\pi_\theta)\)</span> over horizon <span class="math inline">\(H\)</span> evaluates to the sum of error expectations across all time steps:</p>
+<p><span class="math display">\[\mathcal{J}(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=1}^H \mathbb{I}\left( \pi_\theta(s_t) \neq \pi^*(s_t) \right) \right] = \sum_{t=1}^H \mathbb{E}_{s \sim d_{\pi_\theta}^t} \left[ \mathbb{I}\left( \pi_\theta(s) \neq \pi^*(s) \right) \right]\]</span></p>
+<p>Applying the variational inequality <span class="math inline">\(\mathbb{E}_{P}[f] \le \mathbb{E}_{Q}[f] + \|f\|_\infty D_{\text{TV}}(P, Q)\)</span> where <span class="math inline">\(\|f\|_\infty = 1\)</span>:</p>
+<p><span class="math display">\[\begin{aligned}
+\mathcal{J}(\pi_\theta) &amp;\le \sum_{t=1}^H \left( \mathbb{E}_{s \sim d_{\pi^*}^t} \left[ \mathbb{I}\left( \pi_\theta(s) \neq \pi^*(s) \right) \right] + D_{\text{TV}}\left( d_{\pi_\theta}^t, d_{\pi^*}^t \right) \right) \\
+&amp;\le \sum_{t=1}^H \left( \epsilon + t \epsilon \right) \\
+&amp;= \epsilon H + \epsilon \frac{H(H+1)}{2} \\
+&amp;= \mathcal{O}\left( \epsilon H^2 \right)
+\end{aligned}\]</span></p>
+<p>Under the DAgger algorithm, by collecting corrective demonstrations on states sampled from the policy’s own rollout distribution <span class="math inline">\(d_{\pi_{\theta_k}}\)</span>, the Total Variation penalty vanishes because the training distribution directly covers the student’s operational mistakes. The expected cumulative regret simplifies to:</p>
+<p><span class="math display">\[\mathcal{J}(\pi_{\text{DAgger}}) \le \epsilon H + \mathcal{O}(1) = \mathcal{O}(\epsilon H)\]</span></p>
+<p>recovering the optimal linear scaling bound as explored in <strong><a href="../13_sft/13_sft.html#sec-vol3-sft-exposure-bias">Autoregressive Exposure Bias</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-escalation" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-escalation">Optimal Supervisory Escalation Thresholds under Asymmetric Damage</h2>
+<p>In autonomous agent runtime scheduling (<strong><a href="../10_interrupts/10_interrupts.html#sec-vol3-interrupts">Trajectory Persistence</a></strong>), determining when to escalate an action across the Reversibility Boundary to human inspection rather than attempting automated recovery is formulated as an asymmetric binary decision problem under uncertainty.</p>
+<p>Let <span class="math inline">\(a \in \mathcal{A}\)</span> denote a candidate action proposed by the neural policy. The true outcome state is binary: success (<span class="math inline">\(Y = 0\)</span>) or catastrophic invariant failure (<span class="math inline">\(Y = 1\)</span>). The runtime possesses an empirical failure probability estimator <span class="math inline">\(\hat{p} = \mathbb{P}(Y = 1 \mid \mathbf{x}, a) \in [0, 1]\)</span> parameterized by context <span class="math inline">\(\mathbf{x}\)</span> (e.g., model logit entropy, tool reflection error counts, or domain classification).</p>
+<p>We define the loss matrix <span class="math inline">\(\mathbf{L}(d, y)\)</span> for decision <span class="math inline">\(d \in \{\text{Auto}, \text{Escalate}\}\)</span> and outcome <span class="math inline">\(y \in \{0, 1\}\)</span>:</p>
+<ul>
+<li><span class="math inline">\(\mathbf{L}(\text{Auto}, 0) = C_{\text{compute}}\)</span>: The direct token and compute cost of autonomous execution.</li>
+<li><span class="math inline">\(\mathbf{L}(\text{Auto}, 1) = C_{\text{compute}} + C_{\text{blast}}\)</span>: The compute cost plus the unrecoverable damage of external failure.</li>
+<li><span class="math inline">\(\mathbf{L}(\text{Escalate}, 0) = C_{\text{compute}} + C_{\text{human}}\)</span>: The compute cost plus human supervisor inspection latency and labor cost.</li>
+<li><span class="math inline">\(\mathbf{L}(\text{Escalate}, 1) = C_{\text{compute}} + C_{\text{human}}\)</span>: Human intervention prevents the failure, incurring only inspection cost.</li>
+</ul>
+<p>Under risk-neutral Bayesian decision theory, the expected risk <span class="math inline">\(\mathcal{R}(d \mid \hat{p})\)</span> of each action is:</p>
+<p><span class="math display">\[\mathcal{R}(\text{Auto} \mid \hat{p}) = (1 - \hat{p}) C_{\text{compute}} + \hat{p} (C_{\text{compute}} + C_{\text{blast}}) = C_{\text{compute}} + \hat{p} \cdot C_{\text{blast}}\]</span></p>
+<p><span class="math display">\[\mathcal{R}(\text{Escalate} \mid \hat{p}) = C_{\text{compute}} + C_{\text{human}}\]</span></p>
+<p>The optimal decision rule escalates to a human supervisor (<span class="math inline">\(d^* = \text{Escalate}\)</span>) if and only if <span class="math inline">\(\mathcal{R}(\text{Auto} \mid \hat{p}) &gt; \mathcal{R}(\text{Escalate} \mid \hat{p})\)</span>:</p>
+<p><span class="math display">\[\hat{p} \cdot C_{\text{blast}} &gt; C_{\text{human}} \iff \hat{p} &gt; \frac{C_{\text{human}}}{C_{\text{blast}}} \equiv P_{\text{threshold}}\]</span></p>
+<section id="risk-averse-escalation-under-estimator-variance" class="level3">
+<h3 class="anchored" data-anchor-id="risk-averse-escalation-under-estimator-variance">Risk-averse escalation under estimator variance</h3>
+<p>When the estimated failure probability <span class="math inline">\(\hat{p}\)</span> has nonzero estimation variance <span class="math inline">\(\sigma_p^2\)</span> (such as during out-of-distribution prompts), risk-neutral thresholding underestimates tail risk. Under a minimax or Neyman-Pearson risk-aversion framework with significance level <span class="math inline">\(\alpha\)</span>, the runtime bounds the probability of an unhandled catastrophic failure:</p>
+<p><span class="math display">\[\mathbb{P}\left( Y = 1 \land d = \text{Auto} \right) \le \epsilon\]</span></p>
+<p>Using the upper confidence bound <span class="math inline">\(p_{\text{UCB}}(\hat{p}, \alpha) \approx \hat{p} + z_{1-\alpha} \sigma_p\)</span>, the risk-averse escalation condition becomes:</p>
+<p><span class="math display">\[d^* = \text{Escalate} \iff p_{\text{UCB}}(\hat{p}, \alpha) &gt; \frac{C_{\text{human}}}{C_{\text{blast}}}\]</span></p>
+<p>This guarantees that as uncertainty <span class="math inline">\(\sigma_p\)</span> increases in unfamiliar execution domains, the agent autonomously attenuates authority and retreats to human supervision, preserving system safety invariants without requiring manual rule tuning.</p>
+</section>
+</section>
+<section id="sec-vol3-appendix-math-amdahl" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-amdahl">Multi-Agent Amdahl’s Law Stationary Root Analysis</h2>
+<p>In <strong><a href="../15_multi_agent/15_multi_agent.html#sec-vol3-multi-agent">Multi-Agent Coordination</a></strong>, the effective parallel speedup of an <span class="math inline">\(M\)</span>-agent fleet subject to linear provisioning overhead <span class="math inline">\(\beta\)</span> and quadratic synchronization tax <span class="math inline">\(\alpha\)</span> is given by:</p>
+<p><span class="math display">\[S(M) = \frac{1}{D(M)} = \frac{1}{s + \frac{1 - s}{M} + \alpha M^2 + \beta M}\]</span></p>
+<p>where <span class="math inline">\(s \in (0, 1]\)</span> is the irreducible serial fraction, <span class="math inline">\(\alpha &gt; 0\)</span> is the synchronization coefficient, and <span class="math inline">\(\beta &gt; 0\)</span> is the provisioning coefficient.</p>
+<p>To find the optimal concurrency <span class="math inline">\(M^*\)</span> that maximizes <span class="math inline">\(S(M)\)</span>, we minimize the denominator <span class="math inline">\(D(M)\)</span> over <span class="math inline">\(M &gt; 0\)</span>. Differentiating with respect to <span class="math inline">\(M\)</span>:</p>
+<p><span class="math display">\[\frac{d D(M)}{d M} = -\frac{1 - s}{M^2} + 2\alpha M + \beta\]</span></p>
+<p>Setting the derivative to zero yields the stationary condition:</p>
+<p><span class="math display">\[2\alpha M + \beta = \frac{1 - s}{M^2} \implies 2\alpha M^3 + \beta M^2 - (1 - s) = 0\]</span></p>
+<p>Let <span class="math inline">\(P(M) = 2\alpha M^3 + \beta M^2 - (1 - s)\)</span>. We establish the existence and uniqueness of the optimal fleet boundary <span class="math inline">\(M^*\)</span>:</p>
+<ol type="1">
+<li><strong>Existence and Uniqueness:</strong> The coefficients of <span class="math inline">\(P(M)\)</span> are <span class="math inline">\(a_3 = 2\alpha &gt; 0\)</span>, <span class="math inline">\(a_2 = \beta &gt; 0\)</span>, <span class="math inline">\(a_1 = 0\)</span>, and <span class="math inline">\(a_0 = -(1 - s) &lt; 0\)</span>. The sequence of signs is <span class="math inline">\((+, +, 0, -)\)</span>, which exhibits exactly one sign change. By Descartes’ Rule of Signs, <span class="math inline">\(P(M)\)</span> has strictly one positive real root <span class="math inline">\(M^* \in (0, \infty)\)</span>.</li>
+<li><strong>Global Minimum of <span class="math inline">\(D(M)\)</span>:</strong> Evaluating the second derivative of the denominator: <span class="math display">\[\frac{d^2 D(M)}{d M^2} = \frac{2(1 - s)}{M^3} + 2\alpha\]</span> Because <span class="math inline">\(s &lt; 1\)</span>, <span class="math inline">\(\alpha &gt; 0\)</span>, and <span class="math inline">\(M &gt; 0\)</span>, we have <span class="math inline">\(d^2 D(M) / d M^2 &gt; 0\)</span> everywhere on <span class="math inline">\((0, \infty)\)</span>. The denominator function <span class="math inline">\(D(M)\)</span> is strictly convex, guaranteeing that <span class="math inline">\(M^*\)</span> is a unique global minimum of <span class="math inline">\(D(M)\)</span>, and therefore the unique global maximum of <span class="math inline">\(S(M)\)</span>.</li>
+</ol>
+<p>To obtain the closed-form solution, we transform the cubic equation into depressed form via the Tschirnhaus substitution <span class="math inline">\(M = y - \frac{\beta}{6\alpha}\)</span>:</p>
+<p><span class="math display">\[y^3 + p y + q = 0\]</span></p>
+<p>where:</p>
+<p><span class="math display">\[p = -\frac{\beta^2}{12 \alpha^2}, \quad q = \frac{\beta^3}{108 \alpha^3} - \frac{1 - s}{2\alpha}\]</span></p>
+<p>Cardano’s formula yields the unique positive real root:</p>
+<p><span class="math display">\[M^* = \sqrt[3]{-\frac{q}{2} + \sqrt{\frac{q^2}{4} + \frac{p^3}{27}}} + \sqrt[3]{-\frac{q}{2} - \sqrt{\frac{q^2}{4} + \frac{p^3}{27}}} - \frac{\beta}{6\alpha}\]</span></p>
+<p>In production cluster sizing, evaluating <span class="math inline">\(P(M)\)</span> numerically across integer candidate fleet sizes (<span class="math inline">\(M \in \{1, 2, \dots, 32\}\)</span>) is computationally instantaneous and avoids numerical precision issues in cubic radical evaluation.</p>
+</section>
+<section id="sec-vol3-appendix-math-correlated-quorum" class="level2">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-correlated-quorum">Correlated Failures in Multi-Agent Quorum Voting</h2>
+<p>In classical distributed systems, majority quorum voting relies on Condorcet’s Jury Theorem (1785). Consider an ensemble of <span class="math inline">\(M = 2f + 1\)</span> voters evaluating a binary proposition. Under the assumption that each voter makes an independent decision with correct probability <span class="math inline">\(p &gt; 0.5\)</span>, the collective majority probability evaluates to:</p>
+<p><span class="math display">\[P_{\text{majority}}(M) = \sum_{k = f + 1}^{M} \binom{M}{k} p^k (1 - p)^{M - k}\]</span></p>
+<p>By the Weak Law of Large Numbers, <span class="math inline">\(\lim_{M \to \infty} P_{\text{majority}}(M) = 1\)</span>.</p>
+<p>In neural multi-agent systems, this independence axiom fails because agents instantiated from foundation models share pretraining distributions, tokenizer representations, and post-training alignment priors. We formalize this failure correlation using a mixture model over task difficulty.</p>
+<p>Let the problem space be partitioned into two regimes:</p>
+<ol type="1">
+<li><strong>Standard Tasks (<span class="math inline">\(\mathcal{T}_{\text{clean}}\)</span>):</strong> Occurring with probability <span class="math inline">\(1 - \rho_{\text{blind}}\)</span>, the task falls within the model’s standard generalization boundary. Individual agents succeed with probability <span class="math inline">\(p_{\text{clean}} &gt; 0.5\)</span> with conditionally independent execution traces.</li>
+<li><strong>Correlated Blind Spots (<span class="math inline">\(\mathcal{T}_{\text{blind}}\)</span>):</strong> Occurring with probability <span class="math inline">\(\rho_{\text{blind}} \in (0, 1)\)</span>, the task involves an out-of-distribution syntax pattern, deceptive prompt injection, or subtle API race condition. Because all agents share underlying weights and representations, their error distribution is completely correlated: <span class="math display">\[\mathbb{P}(\mathcal{A}_1 = \text{incorrect} \land \mathcal{A}_2 = \text{incorrect} \land \dots \land \mathcal{A}_M = \text{incorrect} \mid \mathcal{T}_{\text{blind}}) = 1\]</span></li>
+</ol>
+<p>Under this mixture distribution, the expected majority accuracy across an ensemble of size <span class="math inline">\(M = 2f + 1\)</span> is:</p>
+<p><span class="math display">\[P_{\text{majority}}(M) = (1 - \rho_{\text{blind}}) \sum_{k = f + 1}^{M} \binom{M}{k} p_{\text{clean}}^k (1 - p_{\text{clean}})^{M - k} + \rho_{\text{blind}} \cdot 0\]</span></p>
+<p>Taking the infinite ensemble limit:</p>
+<p><span class="math display">\[\lim_{M \to \infty} P_{\text{majority}}(M) = (1 - \rho_{\text{blind}}) \cdot 1 = 1 - \rho_{\text{blind}} &lt; 1\]</span></p>
+<p>Even with an infinite quorum of neural voters, the collective accuracy is strictly bounded by <span class="math inline">\(1 - \rho_{\text{blind}}\)</span>. When <span class="math inline">\(\rho_{\text{blind}} = 0.15\)</span>, majority voting cannot exceed <span class="math inline">\(85\%\)</span> reliability, regardless of compute budget or agent count. This proves that neural quorum voting cannot eliminate correlated hallucinations, establishing why deterministic software oracles must strictly gate all external state transitions, as discussed in <strong><a href="../15_multi_agent/15_multi_agent.html#sec-vol3-multi-agent">Multi-Agent Coordination</a></strong>.</p>
+</section>
+<section id="sec-vol3-appendix-math-curse-dimensionality" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-vol3-appendix-math-curse-dimensionality">High-Dimensional Measure Concentration and the Curse of Dimensionality</h2>
+<p>As discussed in <strong><a href="../06_episodic_memory/06_episodic_memory.html#sec-vol3-persistent-dense-retrieval">Hybrid Retrieval</a></strong>, high-dimensional vector retrieval breaks spatial partitioning trees (such as <span class="math inline">\(k\)</span>-d trees and <span class="math inline">\(R\)</span>-trees), degrading them into exhaustive linear scans. This section derives the closed-form volume of a <span class="math inline">\(D\)</span>-dimensional continuous Euclidean ball and formalizes the loss of distance contrast under Beyer’s theorem.</p>
+<section id="continuous-hypersphere-volume-and-shell-concentration" class="level3">
+<h3 class="anchored" data-anchor-id="continuous-hypersphere-volume-and-shell-concentration">Continuous hypersphere volume and shell concentration</h3>
+<p>The volume of a <span class="math inline">\(D\)</span>-dimensional Euclidean ball of radius <span class="math inline">\(r\)</span> is given by:</p>
+<p><span class="math display">\[V_D(r) = \int_{\|\mathbf{x}\|_2 \le r} d\mathbf{x} = r^D \cdot V_D(1)\]</span></p>
+<p>To compute the unit ball volume <span class="math inline">\(V_D(1)\)</span>, we integrate the separable Gaussian function <span class="math inline">\(\exp(-\|\mathbf{x}\|_2^2)\)</span> over all <span class="math inline">\(\mathbb{R}^D\)</span>:</p>
+<p><span class="math display">\[\int_{\mathbb{R}^D} e^{-\|\mathbf{x}\|_2^2} d\mathbf{x} = \prod_{i=1}^D \int_{-\infty}^{\infty} e^{-x_i^2} dx_i = (\sqrt{\pi})^D = \pi^{D/2}\]</span></p>
+<p>Switching to spherical polar coordinates, with differential surface area <span class="math inline">\(S_{D-1}(r) = \frac{d}{dr} V_D(r) = D \cdot r^{D-1} V_D(1)\)</span>:</p>
+<p><span class="math display">\[\int_{\mathbb{R}^D} e^{-\|\mathbf{x}\|_2^2} d\mathbf{x} = \int_0^\infty e^{-r^2} S_{D-1}(r) dr = D \cdot V_D(1) \int_0^\infty r^{D-1} e^{-r^2} dr\]</span></p>
+<p>Applying the substitution <span class="math inline">\(u = r^2\)</span> (<span class="math inline">\(du = 2r dr\)</span>):</p>
+<p><span class="math display">\[\int_0^\infty r^{D-1} e^{-r^2} dr = \frac{1}{2} \int_0^\infty u^{\frac{D}{2} - 1} e^{-u} du = \frac{1}{2} \Gamma\left(\frac{D}{2}\right)\]</span></p>
+<p>Equating the Cartesian and spherical integrals:</p>
+<p><span class="math display">\[\pi^{D/2} = D \cdot V_D(1) \cdot \frac{1}{2} \Gamma\left(\frac{D}{2}\right) = V_D(1) \cdot \frac{D}{2} \Gamma\left(\frac{D}{2}\right) = V_D(1) \cdot \Gamma\left(\frac{D}{2} + 1\right)\]</span></p>
+<p>Solving for <span class="math inline">\(V_D(1)\)</span> and scaling by <span class="math inline">\(r^D\)</span> yields the closed-form volume:</p>
+<p><span class="math display">\[V_D(r) = \frac{\pi^{D/2}}{\Gamma\left(\frac{D}{2} + 1\right)} r^D\]</span></p>
+<p>For an outer shell of relative thickness <span class="math inline">\(\epsilon\)</span> (<span class="math inline">\(0 &lt; \epsilon &lt; 1\)</span>), the volume of the inner sphere of radius <span class="math inline">\(r(1 - \epsilon)\)</span> is <span class="math inline">\(V_D(r(1 - \epsilon)) = (1 - \epsilon)^D V_D(r)\)</span>. The fraction of total volume contained in the outer shell is:</p>
+<p><span class="math display">\[\frac{V_D(r) - V_D(r(1 - \epsilon))}{V_D(r)} = 1 - (1 - \epsilon)^D\]</span></p>
+<p>As <span class="math inline">\(D \to \infty\)</span>, <span class="math inline">\((1 - \epsilon)^D \to 0\)</span> exponentially fast. For <span class="math inline">\(D = 1536\)</span> and <span class="math inline">\(\epsilon = 0.01\)</span>, over 99.99998 percent of the volume resides in the outer 1 percent of the radius.</p>
+</section>
+<section id="vanishing-distance-contrast-beyers-theorem" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="vanishing-distance-contrast-beyers-theorem">Vanishing distance contrast (beyer’s theorem)</h3>
+<p><span class="citation" data-cites="beyer1999nearest">Beyer et al. (<a href="#ref-beyer1999nearest" role="doc-biblioref">1999</a>)</span> established that nearest neighbor search becomes topologically ill-defined when the contrast between the nearest and farthest data points asymptotically vanishes.</p>
+<div class="no-row-height column-margin column-container"><div id="ref-beyer1999nearest" class="csl-entry" role="listitem">
+Beyer, Kevin, Jonathan Goldstein, Raghu Ramakrishnan, and Uri Shaft. 1999. <span>“When Is <span>‘Nearest Neighbor’</span> Meaningful?”</span> <em>International Conference on Database Theory (ICDT)</em>, 217–35. https://doi.org/10.1007/3-540-49257-7_15.
+</div></div><p>Let <span class="math inline">\(\mathbf{x}_1, \dots, \mathbf{x}_N\)</span> be independent random vectors in <span class="math inline">\(\mathbb{R}^D\)</span> drawn from a distribution with finite moments, and let <span class="math inline">\(\mathbf{q}\)</span> be an independent query vector. Define <span class="math inline">\(D_{\min}(N, D) = \min_{1 \le i \le N} \|\mathbf{x}_i - \mathbf{q}\|_p\)</span> and <span class="math inline">\(D_{\max}(N, D) = \max_{1 \le i \le N} \|\mathbf{x}_i - \mathbf{q}\|_p\)</span>.</p>
+<p>If the relative variance of pairwise distance scales sub-quadratically relative to the mean distance:</p>
+<p><span class="math display">\[\lim_{D \to \infty} \frac{\operatorname{Var}(\|\mathbf{x} - \mathbf{q}\|_p)}{\mathbb{E}[\|\mathbf{x} - \mathbf{q}\|_p]^2} = 0\]</span></p>
+<p>then for any fixed dataset size <span class="math inline">\(N\)</span> and any <span class="math inline">\(\epsilon &gt; 0\)</span>:</p>
+<p><span class="math display">\[\lim_{D \to \infty} \mathbb{P}\left( \frac{D_{\max}(N, D) - D_{\min}(N, D)}{D_{\min}(N, D)} \le \epsilon \right) = 1\]</span></p>
+<p>Under this condition, the ratio of distance to the nearest neighbor versus the farthest neighbor converges in probability to 1. In high-dimensional latent space, every stored memory vector is approximately equidistant from the query vector <span class="math inline">\(\mathbf{q}\)</span>. Consequently, a query bounding ball centered at <span class="math inline">\(\mathbf{q}\)</span> must expand to encompass virtually all data points to guarantee finding the exact nearest neighbor, forcing spatial tree index structures to traverse every leaf node.</p>
+
+
+
+</section>
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mlsysbook\.ai\/vol3\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../appendices/app_c_failure_taxonomy.html" class="pagination-link" aria-label="App C: Taxonomy of Failures">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">App C: Taxonomy of Failures</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="glossary/glossary.html" class="pagination-link" aria-label="Glossary">
+        <span class="nav-page-text">Glossary</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+</div>   
+    <div class="nav-footer-center">
+<p><a href="../vol2/">← Volume II: Scaling</a> · <a href="../vol4/">Volume IV: Physical AI (Draft) →</a></p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+ <span class="release-pill" data-release-pill=""></span>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-github" role="img" aria-label="View source on GitHub">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/harvard-edge/cs249r_book">
+      <i class="bi bi-star" role="img" aria-label="Star this repository">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+    <script type="text/javascript">
+    (function(d) {
+      function renderPseudocode() {
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let pseudocodeOptions = {
+            indentSize: el.dataset.indentSize,
+            commentDelimiter: " " + el.dataset.commentDelimiter + " ",
+            lineNumber: el.dataset.lineNumber.toLowerCase() === "true",
+            lineNumberPunc: el.dataset.lineNumberPunc,
+            noEnd: el.dataset.noEnd.toLowerCase() === "true",
+            scopeLines: el.dataset.indentLines.toLowerCase() === "true",
+            titlePrefix: el.dataset.captionPrefix,
+          };
+          pseudocode.renderElement(el.querySelector(".pseudocode"), pseudocodeOptions);
+        });
+        d.querySelectorAll(".pseudocode-container").forEach(function(el) {
+          let captionSpan = el.querySelector(".ps-root > .ps-algorithm > .ps-line > .ps-keyword")
+          if (captionSpan !== null) {
+            let captionPrefix = el.dataset.captionPrefix + " ";
+            let captionNumber = "";
+            if (el.dataset.pseudocodeNumber) {
+              captionNumber = el.dataset.pseudocodeNumber + " ";
+              if (el.dataset.chapterLevel) {
+                captionNumber = el.dataset.chapterLevel + "." + captionNumber;
+              }
+            }
+            captionSpan.innerHTML = captionPrefix + captionNumber;
+          }
+        });
+      }
+      // pseudocode.js needs a math backend (KaTeX or MathJax) present *at the
+      // moment* renderElement runs. This book renders math with MathJax loaded
+      // via `defer`, so window.MathJax does not exist yet when this after-body
+      // script executes at parse time — calling renderElement now throws
+      // "No math backend found" and the raw LaTeX source stays on the page.
+      // Wait for the math backend to be ready before rendering: KaTeX if it is
+      // present synchronously, otherwise MathJax's startup promise (available
+      // after the deferred MathJax script has run, by window 'load').
+      function whenMathReady(cb) {
+        if (window.katex) { cb(); return; }
+        var mj = window.MathJax;
+        if (mj && mj.startup && mj.startup.promise) { mj.startup.promise.then(cb); return; }
+        window.addEventListener("load", function() {
+          var m = window.MathJax;
+          if (m && m.startup && m.startup.promise) { m.startup.promise.then(cb); }
+          else { cb(); }
+        });
+      }
+      whenMathReady(renderPseudocode);
+    })(document);
+    </script>
+  
+
+
+
+
+</body></html>
