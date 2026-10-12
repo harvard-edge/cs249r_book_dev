@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-d1a50f0547aff4e61e382825735d7a56.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-2b9d3fb57d3cd0a0780ec4c8056e6036.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-d1a50f0547aff4e61e382825735d7a56.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-ae0ae246ad73b89f412bc1116d59ce33.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -437,6 +437,77 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   } else {
     fixBrandHref();
   }
+})();
+</script>
+
+<!--
+  margin-figure-size — keep margin illustrations proportionate.
+
+  Margin figures are authored narrow (about 120 pt wide) and stretched to
+  the full margin column by width="100%". Tall ones (the architecture-stack
+  locator, vertical ladders) then run 350-520 px down the page. CSS cannot
+  say "full column width unless that makes the image taller than X" without
+  each image's aspect ratio, so this sets that width once per image from
+  its natural size: min(100%, cap x aspect). Short images are untouched.
+-->
+<script>
+(function () {
+  'use strict';
+  var CAP_REM = 20;
+  function capOne(img) {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var maxW = CAP_REM * rem * img.naturalWidth / img.naturalHeight;
+    img.style.setProperty('width', 'min(100%, ' + Math.round(maxW) + 'px)', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.display = 'block';
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+  }
+  function capMarginFigures() {
+    var imgs = document.querySelectorAll('.column-margin img');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.complete) capOne(img);
+      else img.addEventListener('load', capOne.bind(null, img), { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', capMarginFigures);
+  } else {
+    capMarginFigures();
+  }
+})();
+</script>
+
+<!--
+  lightbox-caption — show the typeset figure caption inside the zoom view.
+
+  Quarto's GLightbox copies each caption into the slide as plain text with
+  the math delimiters stripped, so notation macros (\RecurrentInputWeights)
+  appear raw. After each slide loads, replace that text with the figure's
+  own rendered <figcaption>, which MathJax has already typeset.
+-->
+<script>
+(function () {
+  'use strict';
+  function captionFor(trigger) {
+    if (!trigger) return null;
+    var fig = trigger.closest('figure, .quarto-float, .quarto-figure');
+    return fig ? fig.querySelector('figcaption') : null;
+  }
+  function hook() {
+    var lb = window.lightboxQuarto;
+    if (!lb || !lb.on) return;
+    lb.on('slide_after_load', function (data) {
+      var node = data && data.slideNode;
+      var cap = captionFor(data && data.trigger);
+      if (!node || !cap) return;
+      var desc = node.querySelector('.gslide-title') || node.querySelector('.gslide-desc');
+      if (desc) desc.innerHTML = cap.innerHTML;
+    });
+  }
+  window.addEventListener('load', hook);
 })();
 </script>
 <!-- AUTO-GENERATED NOTATION MACROS FROM MLSYSIM -->
@@ -4755,7 +4826,7 @@ $$
 \newcommand{\SchedulingIntervalLength}{t}
 \newcommand{\ScoreNoiseStandardDeviation}{\sigma}
 \newcommand{\ScoreNoiseVector}{\mathbf{z}}
-\newcommand{\ScoreRefreshInterval}{k}
+\newcommand{\ScoreRefreshInterval}{k_{\text{refresh}}}
 \newcommand{\ScoredPrefixLength}{S_{\text{step}}}
 \newcommand{\ScoredStepCount}{J}
 \newcommand{\ScoredStepIndex}{j}
@@ -4983,6 +5054,7 @@ $$
 \newcommand{\SpareStoppingClearance}{d_{\text{spare}}}
 \newcommand{\SparseMatrixEntryCount}{n_{\text{elem}}}
 \newcommand{\SparseMatrixRowCount}{n_{\text{rows}}}
+\newcommand{\SparseProductInputComponent}{v}
 \newcommand{\SparseWeightMatrix}{\mathbf{W}_{\text{sparse}}}
 \newcommand{\SparsityPenaltyWeight}{\lambda_{\text{L1}}}
 \newcommand{\SparsityRatio}{\rho_{\text{sparse}}}
@@ -5142,7 +5214,7 @@ $$
 \newcommand{\StoredDataVolume}{D_{\text{vol,store}}}
 \newcommand{\StoredEmbedding}{\mathbf{z}}
 \newcommand{\StoredIndexVector}{\mathbf{x}}
-\newcommand{\StoredSystemState}{x}
+\newcommand{\StoredSystemState}{s}
 \newcommand{\StoredTokenVolume}{V}
 \newcommand{\StragglerStepTime}{T_{\text{step,straggler}}}
 \newcommand{\StreamAcceptanceProbability}{p}
@@ -6112,33 +6184,6 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
 .callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -6147,33 +6192,6 @@ $$
   --title-background-color: rgba(32, 178, 170, 0.04);
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
 }
 .callout-takeaways {
   --color1: #FCF4F8;
@@ -6202,42 +6220,6 @@ $$
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #F1F5F9;
-  --color2: #64748B;
-  --border-color: #64748B;
-  --background-color: rgba(100, 116, 139, 0.04);
-  --title-background-color: rgba(100, 116, 139, 0.04);
-  --dark-background-color: rgba(100, 116, 139, 0.12);
-  --dark-title-background-color: rgba(100, 116, 139, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
-}
 .callout-resource-slides {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -6247,59 +6229,23 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-war-story {
+.callout-warning {
   --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
 }
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
 .callout-notebook {
   --color1: #F4F7FA;
@@ -6310,6 +6256,60 @@ $$
   --dark-background-color: rgba(63, 96, 119, 0.12);
   --dark-title-background-color: rgba(63, 96, 119, 0.12);
 }
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
 .callout-caution {
   --color1: #FFFBEB;
   --color2: #D97706;
@@ -6319,51 +6319,81 @@ $$
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6376,48 +6406,6 @@ $$
     color: #f0f0f0 !important;
   }
   details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-  details.callout-warning summary,
-  details.callout-warning summary strong,
-  details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-warning code {
     color: #e6e6e6 !important;
   }
   details.callout-takeaways {
@@ -6462,62 +6450,6 @@ $$
   details.callout-case-study code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
   details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6532,88 +6464,32 @@ $$
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
+  details.callout-warning {
     --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
   }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
+  details.callout-warning summary,
+  details.callout-warning summary strong,
+  details.callout-warning > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-example code {
+  details.callout-warning code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
+  details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-notebook {
@@ -6630,6 +6506,90 @@ $$
   details.callout-notebook code {
     color: #e6e6e6 !important;
   }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
   details.callout-caution {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -6644,49 +6604,119 @@ $$
   details.callout-caution code {
     color: #e6e6e6 !important;
   }
-}
-body.quarto-dark details.callout-theorem {
+  details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-theorem code {
+  details.callout-principle code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-lighthouse {
+  details.callout-lighthouse {
     --text-color: #e6e6e6;
     --background-color: rgba(184, 134, 11, 0.12);
     --title-background-color: rgba(184, 134, 11, 0.12);
     border-color: #B8860B;
   }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-lighthouse code {
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+}
 body.quarto-dark details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6699,48 +6729,6 @@ body.quarto-dark details.callout-resource-exercises > summary {
     color: #f0f0f0 !important;
   }
 body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-body.quarto-dark details.callout-warning summary,
-body.quarto-dark details.callout-warning summary strong,
-body.quarto-dark details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-warning code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-takeaways {
@@ -6785,62 +6773,6 @@ body.quarto-dark details.callout-case-study > summary {
 body.quarto-dark details.callout-case-study code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-body.quarto-dark details.callout-chapter-connection summary,
-body.quarto-dark details.callout-chapter-connection summary strong,
-body.quarto-dark details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-code code {
-    color: #e6e6e6 !important;
-  }
 body.quarto-dark details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6855,88 +6787,32 @@ body.quarto-dark details.callout-resource-slides > summary {
 body.quarto-dark details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-example {
+body.quarto-dark details.callout-warning {
     --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
   }
-body.quarto-dark details.callout-example summary,
-body.quarto-dark details.callout-example summary strong,
-body.quarto-dark details.callout-example > summary {
+body.quarto-dark details.callout-warning summary,
+body.quarto-dark details.callout-warning summary strong,
+body.quarto-dark details.callout-warning > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-example code {
+body.quarto-dark details.callout-warning code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-checkpoint {
+body.quarto-dark details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-body.quarto-dark details.callout-principle summary,
-body.quarto-dark details.callout-principle summary strong,
-body.quarto-dark details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-principle code {
+body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-notebook {
@@ -6953,6 +6829,90 @@ body.quarto-dark details.callout-notebook > summary {
 body.quarto-dark details.callout-notebook code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
 body.quarto-dark details.callout-caution {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -6967,28 +6927,122 @@ body.quarto-dark details.callout-caution > summary {
 body.quarto-dark details.callout-caution code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
 </style>
 <style>
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
 details.callout-resource-exercises > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-warning > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
 details.callout-takeaways > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
@@ -6999,44 +7053,62 @@ details.callout-quiz-question > summary::before {
 details.callout-case-study > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
-}
 details.callout-resource-slides > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+details.callout-warning > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-notebook > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
 }
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
 details.callout-caution > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
 }
 </style>
     <style type="text/css">
@@ -7395,7 +7467,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="d3cc121d05ef1a79684f139997959c79" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cbfe2d32</code> • 2026-10-11 04:23 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">5e824f71</code> • 2026-10-12 18:22 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines.<br> 🚀 <strong>Ready for scale?</strong> <a href="../../vol2/">Volume II: Scaling</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -7483,8 +7555,8 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../03_ml_workflow/03_ml_workflow.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ML Workflow</span></a>
+  <a href="../03_ml_lifecycle/03_ml_lifecycle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ML Lifecycle</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -7667,19 +7739,19 @@ window.Quarto = {
   <li><a href="#sec-appdx-data-foundations" id="toc-sec-appdx-data-foundations" class="nav-link active" data-scroll-target="#sec-appdx-data-foundations">Data Foundations</a>
   <ul>
   <li><a href="#how-to-use-this-appendix" id="toc-how-to-use-this-appendix" class="nav-link" data-scroll-target="#how-to-use-this-appendix">How to Use This Appendix</a></li>
-  <li><a href="#sec-appdx-data-foundations-data-engineering-foundations-0c20" id="toc-sec-appdx-data-foundations-data-engineering-foundations-0c20" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-data-engineering-foundations-0c20">Data Engineering Foundations</a>
+  <li><a href="#sec-appdx-data-foundations-data-engineering-foundations-0c20" id="toc-sec-appdx-data-foundations-data-engineering-foundations-0c20" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-data-engineering-foundations-0c20">Moving and Storing Data</a>
   <ul class="collapse">
-  <li><a href="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" id="toc-sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0">Napkin math: The physics of data gravity</a></li>
-  <li><a href="#sec-appdx-data-foundations-cost-serialization-b921" id="toc-sec-appdx-data-foundations-cost-serialization-b921" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-cost-serialization-b921">The cost of serialization</a></li>
-  <li><a href="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2" id="toc-sec-appdx-data-foundations-row-vs-columnar-formats-bca2" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2">Row vs.&nbsp;columnar formats</a></li>
+  <li><a href="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" id="toc-sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0">Data gravity</a></li>
+  <li><a href="#sec-appdx-data-foundations-cost-serialization-b921" id="toc-sec-appdx-data-foundations-cost-serialization-b921" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-cost-serialization-b921">Serialization cost</a></li>
+  <li><a href="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2" id="toc-sec-appdx-data-foundations-row-vs-columnar-formats-bca2" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2">Row and columnar formats</a></li>
   <li><a href="#sec-appdx-data-foundations-algebra-data-9792" id="toc-sec-appdx-data-foundations-algebra-data-9792" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-algebra-data-9792">The algebra of data</a></li>
   </ul></li>
   <li><a href="#sec-appdx-data-foundations-probability-statistics-3934" id="toc-sec-appdx-data-foundations-probability-statistics-3934" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-probability-statistics-3934">Probability and Statistics</a>
   <ul class="collapse">
   <li><a href="#sec-appdx-data-foundations-distributions-long-tail-901f" id="toc-sec-appdx-data-foundations-distributions-long-tail-901f" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-distributions-long-tail-901f">Distributions and the long tail</a></li>
-  <li><a href="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd" id="toc-sec-appdx-data-foundations-measuring-drift-divergence-a6dd" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd">Measuring drift (divergence)</a></li>
+  <li><a href="#sec-appdx-data-foundations-sampling-estimation-5b1e" id="toc-sec-appdx-data-foundations-sampling-estimation-5b1e" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-sampling-estimation-5b1e">Sampling and estimation</a></li>
+  <li><a href="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd" id="toc-sec-appdx-data-foundations-measuring-drift-divergence-a6dd" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd">Measuring drift</a></li>
   <li><a href="#sec-appdx-data-foundations-information-theory-systems-c033" id="toc-sec-appdx-data-foundations-information-theory-systems-c033" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-information-theory-systems-c033">Information theory for systems</a></li>
-  <li><a href="#sec-appdx-data-foundations-logits-numerical-stability-13e2" id="toc-sec-appdx-data-foundations-logits-numerical-stability-13e2" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-logits-numerical-stability-13e2">Logits and numerical stability</a></li>
   </ul></li>
   <li><a href="#sec-appdx-data-foundations-summary-3c72" id="toc-sec-appdx-data-foundations-summary-3c72" class="nav-link" data-scroll-target="#sec-appdx-data-foundations-summary-3c72">Summary</a></li>
   </ul></li>
@@ -7695,34 +7767,91 @@ window.Quarto = {
 
 <section id="sec-appdx-data-foundations" class="level1 page-columns page-full" data-dropcap="chapter-opening">
 <h1 data-dropcap="chapter-opening">Data Foundations</h1>
-<p>Data problems rarely present as data problems; they surface as a training run that will not speed up, an accelerator sitting idle, or accuracy eroding while dashboards stay green. To keep chapter arguments focused on system design, this appendix gathers the back-of-the-envelope calculations and statistical tools that trace such symptoms back to measurable data bottlenecks: transfer times, storage-layout costs, drift diagnostics, and numerical-stability tools. The tools here lean on basic probability and on the data term of the iron law.</p>
+<p>Data problems rarely present as data problems; they surface as a training run that will not speed up, an accelerator sitting idle, accuracy eroding while dashboards stay green, or an evaluation whose verdict does not survive a second test set. The chapters use the back-of-the-envelope calculations and statistical tools that trace such symptoms back to measurable quantities without deriving them, and this appendix supplies the derivations: transfer times, decode and storage-layout costs, tail probabilities, the sample sizes that make a measured rate trustworthy, and drift divergences. The tools lean on basic probability and on the data term of the iron law.</p>
 <section id="how-to-use-this-appendix" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="how-to-use-this-appendix">How to Use This Appendix</h2>
-<p>This appendix is designed as a reference. Reach for it when debugging “slow training,” “low accelerator utilization,” or “production accuracy drift” calls for the quickest path from symptom to measurement.</p>
-<p>Conventions used here follow the book-wide notation (for example, <span class="math inline">\(\BatchSize\)</span> is reserved for batch size and <span class="math inline">\(\Bandwidth\)</span> denotes bandwidth).</p>
-<ul>
-<li><strong>When data will not move</strong>: Start with <a href="#tbl-data-gravity" class="quarto-xref">table&nbsp;1</a> and the transfer-time equation in <a href="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" class="quarto-xref">section&nbsp;1.1.1</a>.</li>
-<li><strong>When the accelerator is starving</strong>: Use <a href="#tbl-serialization-cost" class="quarto-xref">table&nbsp;2</a> and the layout discussion in <a href="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2" class="quarto-xref">section&nbsp;1.1.3</a>.</li>
-<li><strong>When pipelines explode in cost</strong>: Use the primitives in <a href="#sec-appdx-data-foundations-algebra-data-9792" class="quarto-xref">section&nbsp;1.1.4</a>, especially join-induced shuffles.</li>
-<li><strong>When “average looks fine” but users complain</strong>: Use <a href="#sec-appdx-data-foundations-distributions-long-tail-901f" class="quarto-xref">section&nbsp;1.2.1</a> and session-level tail probability.</li>
-<li><strong>When accuracy drifts silently</strong>: Use <a href="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd" class="quarto-xref">section&nbsp;1.2.2</a> to compare full distributions.</li>
-</ul>
-<p>While production pipelines encounter an overwhelming variety of formats, encodings, and storage layers, this appendix focuses on the physical and statistical constants that govern them all.</p>
-<p>With those reference points in place, the appendix begins with the physical constraints of data engineering and then moves to the statistical monitoring that keeps ML systems healthy. From storage formats that determine I/O throughput to drift metrics that detect silent failures, these foundations connect directly to the data pipelines in <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-data-pipeline-architecture-b527">Data Pipeline Architecture</a></strong> and the operational monitoring in <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations-model-infrastructure-monitoring-3988">Statistical monitoring and drift detection</a></strong>.</p>
+<p>This appendix is a reference organized by symptom. Each section states its tool compactly and points to the chapter that teaches the concept and applies it to a lighthouse workload.</p>
+<p><a href="#tbl-appdx-data-lookup" class="quarto-xref">Table&nbsp;1</a> maps each symptom to the section that carries the tool.</p>
+<div id="tbl-appdx-data-lookup" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[38,30,32]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-appdx-data-lookup-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: <strong>Symptom-to-Section Lookup</strong>: Each row pairs a symptom a chapter may name with the tool in this appendix that turns it into a measurement.
+</figcaption>
+<div aria-describedby="tbl-appdx-data-lookup-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 38%">
+<col style="width: 30%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"><strong>When the need is…</strong></th>
+<th style="text-align: left;"><strong>Tool</strong></th>
+<th style="text-align: left;"><strong>Section</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Moving a dataset between sites or regions</strong></td>
+<td style="text-align: left;">Transfer time <span class="math inline">\(\DataVolume/\Bandwidth\)</span></td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" class="quarto-xref">section&nbsp;1.1.1</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>An accelerator starving behind CPU decode</strong></td>
+<td style="text-align: left;">Decode throughput by format</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-cost-serialization-b921" class="quarto-xref">section&nbsp;1.1.2</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Reading a few features from wide records</strong></td>
+<td style="text-align: left;">Row versus columnar layout</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-row-vs-columnar-formats-bca2" class="quarto-xref">section&nbsp;1.1.3</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>A feature pipeline whose cost explodes</strong></td>
+<td style="text-align: left;">Selection, projection, and join costs</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-algebra-data-9792" class="quarto-xref">section&nbsp;1.1.4</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>An average that looks fine while users complain</strong></td>
+<td style="text-align: left;">Session-level tail probability</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-distributions-long-tail-901f" class="quarto-xref">section&nbsp;1.2.1</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Deciding whether a measured rate or difference is real</strong></td>
+<td style="text-align: left;">Confidence interval, sample size, McNemar, A/B</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-sampling-estimation-5b1e" class="quarto-xref">section&nbsp;1.2.2</a></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Accuracy drifting silently in production</strong></td>
+<td style="text-align: left;">KL divergence, PSI, KS statistic</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-measuring-drift-divergence-a6dd" class="quarto-xref">section&nbsp;1.2.3</a></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>More data that no longer improves the model</strong></td>
+<td style="text-align: left;">Entropy and signal per byte</td>
+<td style="text-align: left;"><a href="#sec-appdx-data-foundations-information-theory-systems-c033" class="quarto-xref">section&nbsp;1.2.4</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Moving and Storing Data serves the data pipelines in <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-data-pipeline-architecture-b527">Ingestion and Validation</a></strong>. Probability and Statistics decides whether a number can be trusted, and serves the evaluations in <strong><a href="../12_benchmarking/12_benchmarking.html#sec-benchmarking-statistical-methodological-issues-7aa5">Statistical and methodological issues</a></strong> and the operational monitoring in <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations-model-infrastructure-monitoring-3988">Statistical monitoring and drift detection</a></strong>.</p>
 </section>
 <section id="sec-appdx-data-foundations-data-engineering-foundations-0c20" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="sec-appdx-data-foundations-data-engineering-foundations-0c20">Data Engineering Foundations</h2>
-<p>Understanding hardware constraints is only the first requirement; systems engineering must also shape data to fit them. Data engineering applies the principles of the memory hierarchy to storage formats and pipeline design, ensuring that the accelerator never starves. This process begins with recognizing that data is physical—it has volume, it takes time to move, and it requires energy to parse.</p>
+<h2 class="anchored" data-anchor-id="sec-appdx-data-foundations-data-engineering-foundations-0c20">Moving and Storing Data</h2>
+<p>Before a model can learn from a record, the record must leave storage, cross a network, and be decoded into tensors, and each step costs time. This section collects the reference cost of each step. <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering">Data Engineering</a></strong> develops each of them inside a working pipeline; the numbers here are templates for checking one by hand.</p>
 <section id="sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0">Napkin math: The physics of data gravity</h3>
-<p>Data gravity<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> is a metaphor grounded in transfer-time calculations. Unlike compute, which gets faster every year, the speed of light is fixed and network bandwidth is a finite resource. When datasets grow large enough, their practical inertia grows—moving them can cost more time and energy than moving computation to where the data already lives.</p>
-<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Data gravity</strong>: Coined by Dave McCrory in 2010 to describe how large datasets attract services and applications toward them, much as massive bodies attract smaller ones in physics <span class="citation" data-cites="mccrory2010datagravity">(<a href="#ref-mccrory2010datagravity" role="doc-biblioref">McCrory 2010</a>)</span>. The analogy is apt: the “escape velocity” required to move a petabyte-scale dataset is often measured in weeks.</p><div id="ref-mccrory2010datagravity" class="csl-entry" role="listitem">
+<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-napkin-math-physics-data-gravity-9ae0">Data gravity</h3>
+<p>Data gravity<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> names a constraint that transfer-time arithmetic makes precise, and <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-data-gravity-adcb">Data gravity</a></strong> applies it to petabyte-scale training data. Network bandwidth is finite and does not grow with compute, so moving a large dataset can cost more time and energy than moving computation to where the data already lives.</p>
+<div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Data gravity</strong>: Coined by Dave McCrory in 2010 to describe how large datasets attract services and applications toward them, much as massive bodies attract smaller ones in physics <span class="citation" data-cites="mccrory2010datagravity">(<a href="#ref-mccrory2010datagravity" role="doc-biblioref">McCrory 2010</a>)</span>.</p><div id="ref-mccrory2010datagravity" class="csl-entry" role="listitem">
 McCrory, Dave. 2010. <em>Data Gravity – in the Clouds</em>.
-</div></div></div><p>The ideal line-rate transfer time is <span class="math inline">\(\DatasetTransferTime= \DataVolume/\Bandwidth\)</span> after converting data volume and bandwidth to compatible units (the calculations below convert decimal bytes and bits per second explicitly). For the large volumes here, latency is negligible; the full equation appears in <strong><a href="appendix_machine.html#sec-appdx-machine-foundations-bandwidth-vs-latency-5320">Bandwidth vs. latency</a></strong>. <a href="#tbl-data-gravity" class="quarto-xref">Table&nbsp;1</a> gives lower bounds; protocol overhead and endpoint limits increase them.</p>
+</div></div></div><p>The ideal line-rate transfer time is <span class="math inline">\(\DatasetTransferTime= \DataVolume/\Bandwidth\)</span> after converting data volume and bandwidth to compatible units (the calculations below convert decimal bytes and bits per second explicitly). For the large volumes here, latency is negligible; <strong><a href="appendix_machine.html#sec-appdx-machine-foundations-bandwidth-vs-latency-5320">Bandwidth versus latency</a></strong> gives the full equation with its latency term. <a href="#tbl-data-gravity" class="quarto-xref">Table&nbsp;2</a> gives lower bounds; protocol overhead and endpoint limits increase them.</p>
 <div id="tbl-data-gravity" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[23,20,20,20,17]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-data-gravity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: <strong>The Cost of Inertia</strong>: These transfer times explain why we often “ship compute to data” rather than “ship data to compute.” Network columns are lower bounds at sustained line rate. The truck entry is an illustrative elapsed-time model for 1 PB: 8 hours to load, 32 hours in transit, and 8 hours to unload, excluding scheduling and provisioning overhead.
+Table&nbsp;2: <strong>The Cost of Inertia</strong>: These transfer times explain why we often “ship compute to data” rather than “ship data to compute.” Network columns are lower bounds at sustained line rate. The truck entry is an illustrative elapsed-time model for 1 PB: 8 hours to load, 32 hours in transit, and 8 hours to unload, excluding scheduling and provisioning overhead.
 </figcaption>
 <div aria-describedby="tbl-data-gravity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -7771,12 +7900,12 @@ Table&nbsp;1: <strong>The Cost of Inertia</strong>: These transfer times explain
 </div>
 </section>
 <section id="sec-appdx-data-foundations-cost-serialization-b921" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-cost-serialization-b921">The cost of serialization</h3>
-<p>Even after data arrives at the machine, the serialization tax remains a final hurdle.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> As <a href="#tbl-serialization-cost" class="quarto-xref">table&nbsp;2</a> shows, many engineers meticulously optimize their accelerator kernels while ignoring the CPU overhead of decoding data. Parsing text-based formats like JavaScript Object Notation (JSON) or CSV is extremely CPU-intensive, often leaving the accelerator idling while the CPU struggles to convert strings into floating-point numbers.</p>
-<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Serialization</strong>: From Latin <em>serialis</em> (forming a series). The process of converting in-memory data structures into a byte stream for storage or transmission, and the reverse (<em>deserialization</em>). In ML pipelines, the choice of serialization format can dominate end-to-end training time; <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-data-ingestion-8efc">Data ingestion</a></strong> covers pipeline design strategies that minimize this overhead.</p></div></div><div id="tbl-serialization-cost" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[21,27,27,25]">
+<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-cost-serialization-b921">Serialization cost</h3>
+<p>Even after data arrives at the machine, it must be decoded before the accelerator can use it.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> The CPU cost of that decoding can differ by an order of magnitude across formats (<a href="#tbl-serialization-cost" class="quarto-xref">table&nbsp;3</a>). Parsing text-based formats like JavaScript Object Notation (JSON) or CSV into floating-point numbers is CPU-bound and often leaves the accelerator idle.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup>&nbsp;<strong>Serialization</strong>: From Latin <em>serialis</em> (forming a series). The process of converting in-memory data structures into a byte stream for storage or transmission, and the reverse (<em>deserialization</em>). In ML pipelines, the choice of serialization format can dominate end-to-end training time; <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-data-ingestion-8efc">The dataloader</a></strong> covers pipeline design strategies that minimize this overhead.</p></div></div><div id="tbl-serialization-cost" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[21,27,27,25]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-serialization-cost-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: <strong>Serialization Overhead</strong>: These illustrative values show why binary columnar formats can outperform row-based text, but they are not portable benchmarks. Arrow is an in-memory/IPC format; Parquet is a compressed storage format.
+Table&nbsp;3: <strong>Serialization Overhead</strong>: These illustrative values show why binary columnar formats can outperform row-based text, but they are not portable benchmarks. Arrow is an in-memory/IPC format; Parquet is a compressed storage format.
 </figcaption>
 <div aria-describedby="tbl-serialization-cost-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -7820,9 +7949,9 @@ Table&nbsp;2: <strong>Serialization Overhead</strong>: These illustrative values
 </div>
 </section>
 <section id="sec-appdx-data-foundations-row-vs-columnar-formats-bca2" class="level3">
-<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-row-vs-columnar-formats-bca2">Row vs.&nbsp;columnar formats</h3>
-<p>The choice of file format determines the “physics” of how data traverses the storage hierarchy. Row-oriented formats such as CSV and JSON store data record-by-record, so reading the <code>age</code> field still requires parsing every attribute in each row. This layout suits append-only logs but incurs steep overhead for feature filtering. Parquet stores compressed column chunks on disk, while Arrow provides a contiguous columnar in-memory and IPC representation. Parquet readers exploit <em>projection pushdown</em> to fetch selected column chunks directly, and both formats support <em>vectorized processing</em>. <a href="#fig-row-vs-col" class="quarto-xref">Figure&nbsp;1</a> diagrams this structural contrast: where the row layout forces a wide scan across all fields (<code>ID</code>, <code>Age</code>, <code>Loc</code>), the columnar layout isolates the target <code>Age</code> chunk, avoiding data movement for irrelevant attributes.</p>
-<div id="fig-row-vs-col" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Diagram contrasting row and column stores. The row store groups ID, Age, and Loc values by record and reads every column. The column store groups values by column and reads only Age." data-fig-env="figure" data-fig-pos="htb">
+<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-row-vs-columnar-formats-bca2">Row and columnar formats</h3>
+<p>The choice of file format determines how many bytes a query moves through the storage hierarchy. Row-oriented formats such as CSV and JSON store data record-by-record, so reading the <code>age</code> field still requires parsing every attribute in each row. This layout suits append-only logs but incurs steep overhead for feature filtering. Parquet stores compressed column chunks on disk, while Arrow provides a contiguous columnar in-memory and IPC representation. Parquet readers exploit <em>projection pushdown</em> to fetch selected column chunks directly, and both formats support <em>vectorized processing</em>. Where the row layout forces a wide scan across all fields (<code>ID</code>, <code>Age</code>, <code>Loc</code>), the columnar layout isolates the target <code>Age</code> chunk and avoids moving irrelevant attributes (<a href="#fig-row-vs-col" class="quarto-xref">figure&nbsp;1</a>). <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-formats-compression-partitioning-8b17">Formats, compression, and partitioning</a></strong> develops format choice as a lever on the data term of the iron law.</p>
+<div id="fig-row-vs-col" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb" alt="Diagram contrasting row and column stores. The row store groups ID, Age, and Loc values by record and reads every column. The column store groups values by column and reads only Age.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-row-vs-col-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="appendix_data_files/mediabag/a1f65a2d07086c8f32f17330ffd893f89f218238.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Storage Layouts: Row-oriented formats group values by record, so the illustrated scan reads every field. Column-oriented formats group values by feature, so the illustrated scan reads only Age."><img src="appendix_data_files/mediabag/a1f65a2d07086c8f32f17330ffd893f89f218238.svg" class="img-fluid figure-img"></a>
@@ -7832,15 +7961,15 @@ Figure&nbsp;1: <strong>Storage Layouts</strong>: Row-oriented formats group valu
 </figcaption>
 </figure>
 </div>
-<p>This physical partitioning in <a href="#fig-row-vs-col" class="quarto-xref">figure&nbsp;1</a> isolates how storage layout dictates bus traffic: extracting a single feature from a row store forces every intervening attribute into the host memory bus, whereas columnar chunking allows the storage subsystem to skip unreferenced columns entirely before deserialization.</p>
+<p>Extracting a single feature from a row store reads every intervening attribute, whereas columnar chunking lets the storage subsystem skip unreferenced columns before deserialization.</p>
 <div id="psp-appendix-data-accelerator-starvation-problem" class="callout callout-perspective" title="The accelerator starvation problem">
-<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The accelerator starvation problem</strong></summary><div>The choice of file format often determines whether a training pipeline is I/O bound or compute bound. Because row-oriented formats enforce full-record scans while columnar layouts enable projection pushdown, storage layout compounds the serialization tax whenever models consume a subset of tabular features. When ingest pipelines fail to filter at the storage layer, the data-movement term in the iron law can silently become the critical-path bottleneck, starving accelerators and leaving matrix cores idling.<p></p>
+<p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The accelerator starvation problem</strong></summary><div>The choice of file format often determines whether a training pipeline is I/O bound or compute bound. Row-oriented formats force full-record scans, so storage layout compounds the decode cost whenever models consume a subset of tabular features, and the data-movement term of the iron law can silently become the critical path. <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-feeding-problem">The feeding problem</a></strong> develops that starvation condition and the stage that binds it.<p></p>
 </div></details>
 </div>
 </section>
 <section id="sec-appdx-data-foundations-algebra-data-9792" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-algebra-data-9792">The algebra of data</h3>
-<p>Feature engineering turns raw records into the columns a model can learn from, and that transformation is usually a dataflow problem before it is a modeling problem. A pipeline first narrows the population, then chooses the features, then attaches context from other tables. Those three moves correspond to three Structured Query Language (SQL) primitives, and their computational cost determines whether the feature job stays local, scans unnecessary bytes, or turns into a network shuffle.</p>
+<p>Layout fixes what a scan can skip; the operations a feature pipeline applies decide how much it must read. Feature engineering turns raw records into the columns a model can learn from. A pipeline first narrows the population, then chooses the features, then attaches context from other tables. Those three moves correspond to three Structured Query Language (SQL) primitives, and their computational cost determines whether the feature job stays local, scans unnecessary bytes, or turns into a network shuffle.</p>
 <ol type="1">
 <li><strong>Selection (<span class="math inline">\(\RelationalSelection\)</span>)</strong>: Filtering rows (for example, <code>WHERE age &gt; 30</code>).
 <ul>
@@ -7850,11 +7979,11 @@ Figure&nbsp;1: <strong>Storage Layouts</strong>: Row-oriented formats group valu
 <ul>
 <li><strong>Cost</strong>: Selected chunks plus decoding and metadata in columnar formats. This row-format example reads 1 KB for a 4-byte integer, wasting 99.6 percent of the read.</li>
 </ul></li>
-<li><strong>Join (<span class="math inline">\(\bowtie\)</span>)</strong>: Combining tables. The most expensive operation.
+<li><strong>Join (<span class="math inline">\(\bowtie\)</span>)</strong>: Combining tables. Usually the most expensive operation.
 <ul>
 <li><strong>Shuffle Join</strong>: Both tables are partitioned by key and exchanged over the network.
 <ul>
-<li><strong>Cost</strong>: Reshuffling both 1 TB tables moves about ~2 TB; partitioning and locality can reduce this.</li>
+<li><strong>Cost</strong>: Reshuffling both 1 TB tables moves ~2 TB; partitioning and locality can reduce this.</li>
 </ul></li>
 <li><strong>Broadcast Join</strong>: One small table is sent to all workers.
 <ul>
@@ -7862,33 +7991,49 @@ Figure&nbsp;1: <strong>Storage Layouts</strong>: Row-oriented formats group valu
 </ul></li>
 </ul></li>
 </ol>
-<p>Understanding data formats, serialization costs, and algebraic primitives tells how to move data efficiently. Even a perfectly engineered pipeline, however, can silently fail if the data it carries changes character over time. Detecting that change—and quantifying how much it matters—requires a different set of tools: probability and statistics.</p>
+<p><strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-scaling-distributed-processing-cb9b">Distributed processing</a></strong> shows when these costs push feature processing beyond one machine. Formats, serialization, and algebraic primitives determine how efficiently data moves. They say nothing about whether the numbers computed from that data can be trusted, or whether the data has changed character since training. Answering those questions requires probability and statistics.</p>
 </section>
 </section>
 <section id="sec-appdx-data-foundations-probability-statistics-3934" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-data-foundations-probability-statistics-3934">Probability and Statistics</h2>
-<p>Once data is flowing through our pipelines, we need mathematical tools to ensure its quality and consistency. Probability and statistics provide the language for monitoring system health, detecting the silent failures of data drift, and managing uncertainty.</p>
+<p>This section carries four tools, in the order a system needs them: tail probabilities, which explain why averages hide user-visible failures; sampling and estimation, which decide whether a measured rate or a measured difference is real; drift divergences, which detect when production data no longer resembles training data; and information-theoretic units, which give the vocabulary for asking how much useful signal a dataset carries.</p>
 <section id="sec-appdx-data-foundations-distributions-long-tail-901f" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-distributions-long-tail-901f">Distributions and the long tail</h3>
 <p>In systems, the mean is often misleading. Latency distributions are often long-tailed, and user-visible services are commonly governed by high-percentile behavior rather than mean response time <span class="citation" data-cites="dean2013">(<a href="#ref-dean2013" role="doc-biblioref">Dean and Barroso 2013</a>)</span>. A “p99” (99th percentile) latency of 500 ms means at most 1 percent of requests take longer than 500 ms; with many requests per session, the fraction of users who see at least one slow request can be much higher. At scale (1M users), even a 1 percent affected-user rate would affect 10,000 users.</p>
 <div class="no-row-height column-margin column-container"></div><div id="nbk-appendix-data-median-experience" class="callout callout-notebook" title="The median experience">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.1: The median experience</strong></summary><div>For <span class="math inline">\(\SessionRequestCount= 100\)</span> independent requests, each with a 0.01 chance of being slow, the probability of at least one p99-tail event is <span class="math inline">\(\Pr(\text{Slow}) = 1 - (0.99)^{100} \approx 1 - 0.366 = 63.4\%\)</span>.<p></p>
-<p><strong>Systems insight</strong>: Under this model, a 100-request session is more likely than not to include an event beyond p99. Correlated slowdowns can change this probability <span class="citation" data-cites="dean2013">(<a href="#ref-dean2013" role="doc-biblioref">Dean and Barroso 2013</a>)</span>.</p>
+<p><strong>Systems insight</strong>: With independent requests, a 100-request session is more likely than not to include an event beyond p99. Correlated slowdowns can change this probability <span class="citation" data-cites="dean2013">(<a href="#ref-dean2013" role="doc-biblioref">Dean and Barroso 2013</a>)</span>.</p>
 </div></details>
 </div>
 <div class="no-row-height column-margin column-container"><div id="ref-dean2013" class="csl-entry" role="listitem">
 Dean, Jeffrey, and Luiz André Barroso. 2013. <span>“The Tail at Scale.”</span> <em>Communications of the ACM</em> 56 (2): 74–80. https://doi.org/10.1145/2408776.2408794.
-</div></div></section>
+</div></div><p><strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-tail-latency-5376">Tail latency</a></strong> develops tail latency for a serving system, where queuing produces the tail and request fan-out amplifies it. Tail probabilities describe one measured distribution; deciding whether a measured rate is itself trustworthy is a sampling question.</p>
+</section>
+<section id="sec-appdx-data-foundations-sampling-estimation-5b1e" class="level3">
+<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-sampling-estimation-5b1e">Sampling and estimation</h3>
+<p>Every accuracy, error rate, and conversion rate in this book is measured on a finite sample, so every one of them carries sampling error. The question that decides a release is whether a measured number, or a measured difference, is larger than that error. Four tools answer it: an interval for one rate, the sample size that makes the interval narrow enough, a paired test for two models scored on the same examples, and the traffic an online A/B test needs. Each reduces to a short formula for the number of labeled examples or user sessions an engineer must collect.</p>
+<p><strong>Confidence interval for a rate.</strong> A model that classifies a fraction <span class="math inline">\(\EstimatedAccuracy\)</span> of <span class="math inline">\(\EvaluationSampleCount\)</span> independent examples correctly has, by the normal approximation to the binomial, an interval of</p>
+<p><span id="eq-appdx-data-rate-interval"><span class="math display">\[ \EstimatedAccuracy \pm \ConfidenceCriticalQuantile \sqrt{\frac{\EstimatedAccuracy(1-\EstimatedAccuracy)}{\EvaluationSampleCount}}  \tag{1}\]</span></span></p>
+<p>at the confidence level <span class="math inline">\(\ConfidenceCriticalQuantile\)</span> encodes (1.96 for 95 percent). ResNet-50 at 76 percent top-1 on the 50,000-image ImageNet validation set is therefore known only to within about 0.4 percentage points. Two models scored on independent samples of that size have a difference interval about <span class="math inline">\(\sqrt{2}\)</span> times wider, because the variances of the two estimates add, roughly 0.5 percentage points, so a smaller accuracy gap between them cannot be resolved that way. <strong><a href="../12_benchmarking/12_benchmarking.html#sec-benchmarking-statistical-methodological-issues-7aa5">Statistical and methodological issues</a></strong> applies the interval to benchmark reports and shows why a single accuracy number without one is not a result.</p>
+<p><strong>Sample size for a rate.</strong> Solving <a href="#eq-appdx-data-rate-interval" class="quarto-xref">equation&nbsp;1</a> for <span class="math inline">\(\EvaluationSampleCount\)</span> gives the number of examples a target half-width requires: the critical value squared, times <span class="math inline">\(\EstimatedAccuracy(1-\EstimatedAccuracy)\)</span>, divided by the square of the half-width. Because the half-width falls only as the square root of the count, halving it quadruples the labeling cost. A keyword spotter expected to detect 98 percent of wake words needs 3,012 labeled one-second clips to pin that rate within 0.5 percentage points (about 50 minutes of audio), and 12,047 clips (3.3 hours) to reach 0.25 percentage points. The count applies to every slice that must be certified separately. <strong><a href="../15_responsible_engr/15_responsible_engr.html#sec-responsible-engineering-predeployment-assessment-2324">Specify: Requirements before training</a></strong> multiplies it across demographic subgroups, where a rare group must be oversampled to reach the count at all, and <strong><a href="../09_data_selection/09_data_selection.html#sec-data-selection-computeoptimal-frontier-24ba">The compute-optimal frontier</a></strong> needs it to confirm that a curated subset still reaches the target accuracy.</p>
+<p><strong>McNemar’s test for two models on the same examples.</strong> When a baseline and a compressed model are scored on the same examples, the examples both get right or both get wrong say nothing about which is better. Only the discordant counts matter: <span class="math inline">\(\BaselineOnlyCorrectCount\)</span> examples that only the baseline gets right and <span class="math inline">\(\CompressedOnlyCorrectCount\)</span> that only the compressed model gets right. The test statistic is</p>
+<p><span id="eq-appdx-data-mcnemar"><span class="math display">\[ \McnemarTestStatistic = \frac{(\BaselineOnlyCorrectCount - \CompressedOnlyCorrectCount)^2}{\BaselineOnlyCorrectCount + \CompressedOnlyCorrectCount},  \tag{2}\]</span></span></p>
+<p>and the difference is significant at 95 percent when it exceeds 3.84 (the square of 1.96). Suppose FP32 and INT8 ResNet-50 disagree on the ImageNet validation set as follows, an illustrative split: 300 images only the FP32 model gets right and 250 only the INT8 model gets right. The net loss is 50 images, 0.1 percentage points of accuracy, well inside the unpaired interval above, yet <a href="#eq-appdx-data-mcnemar" class="quarto-xref">equation&nbsp;2</a> gives <span class="math inline">\(\McnemarTestStatistic=\)</span> 4.55, which exceeds the threshold. Pairing resolves a drop that independent samples could not, which is why an evaluation harness must keep per-example outcomes rather than only the two accuracies. <strong><a href="../12_benchmarking/12_benchmarking.html#sec-benchmarking-statistical-methodological-issues-7aa5">Statistical and methodological issues</a></strong> works through the case in which the same marginal scores leave the verdict open, and <strong><a href="../10_model_compression/10_model_compression.html#sec-model-compression">Model Compression</a></strong> produces the INT8 model whose accuracy loss the test checks.</p>
+<p><strong>A/B tests.</strong> An online comparison of two model versions assigns users at random to a control arm and a treatment arm and compares a rate, such as conversion, between them. With <span class="math inline">\(\MinimumDetectableEffect\)</span> the smallest absolute difference worth detecting, <span class="math inline">\(\OutcomeStandardDeviation^2\)</span> the per-user variance (the baseline rate times one minus it for a yes-or-no outcome), and <span class="math inline">\(\PowerCriticalQuantile\)</span> the critical value for the chosen power, the users needed per arm are</p>
+<p><span id="eq-appdx-data-ab-sample-size"><span class="math display">\[ \RequiredUsersPerVariant = \frac{2(\ConfidenceCriticalQuantile + \PowerCriticalQuantile)^2 \OutcomeStandardDeviation^2}{\MinimumDetectableEffect^2}.  \tag{3}\]</span></span></p>
+<p>For a 2 percent relative lift on a 5 percent baseline at 95 percent confidence and 80 percent power, <a href="#eq-appdx-data-ab-sample-size" class="quarto-xref">equation&nbsp;3</a> gives the release scenario of <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations-ab-testing-model-validation-e480">A/B testing for model validation</a></strong> 745,644 users per arm. A service that can route 100,000 users per day to each arm needs about 7.5 days to finish one test, and that duration, not compute, sets how often a recommendation model can be released on evidence.</p>
+<p>Each of these tools assumes the examples come from one fixed population. When the population itself moves, the question changes from estimating a rate to detecting that the distribution has shifted.</p>
+</section>
 <section id="sec-appdx-data-foundations-measuring-drift-divergence-a6dd" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-measuring-drift-divergence-a6dd">Measuring drift (divergence)</h3>
-<p>Because distributions have long tails where the most dangerous failures hide, simple metrics like “mean shift” are insufficient. We need tools that compare the entire shape of the distribution. Detecting drift between the serving distribution (<span class="math inline">\(\CurrentDistribution\)</span>) and training distribution (<span class="math inline">\(\TrainingDistribution\)</span>) requires measuring the “distance” between distributions.</p>
-<p>For discrete outcomes <span class="math inline">\(\DiscreteOutcome\)</span>, <a href="#eq-appdx-data-kl-divergence" class="quarto-xref">equation&nbsp;1</a> expresses KL divergence<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> as the expected extra coding cost of approximating <span class="math inline">\(\CurrentDistribution\)</span> with <span class="math inline">\(\TrainingDistribution\)</span> <span class="citation" data-cites="kullback1951 cover2006">(<a href="#ref-kullback1951" role="doc-biblioref">Kullback and Leibler 1951</a>; <a href="#ref-cover2006" role="doc-biblioref">Cover and Thomas 2006</a>)</span>. The displayed form is finite only when <span class="math inline">\(\TrainingDistribution(\DiscreteOutcome) &gt; 0\)</span> wherever <span class="math inline">\(\CurrentDistribution(\DiscreteOutcome) &gt; 0\)</span>; production implementations therefore need explicit smoothing or zero handling. <span id="eq-appdx-data-kl-divergence"><span class="math display">\[ \KlDivergence(\CurrentDistribution \lVert \TrainingDistribution) = \sum_\DiscreteOutcome\CurrentDistribution(\DiscreteOutcome) \log \frac{\CurrentDistribution(\DiscreteOutcome)}{\TrainingDistribution(\DiscreteOutcome)}  \tag{1}\]</span></span></p>
-<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>KL divergence</strong>: Named after Solomon Kullback and Richard Leibler, who introduced it in 1951. Also called <em>relative entropy</em>, it quantifies the expected extra information needed to encode samples from one distribution using a code optimized for another; for drift monitoring in this book, the canonical direction is <span class="math inline">\(\KlDivergence(\CurrentDistribution \lVert \TrainingDistribution)\)</span>. With natural logarithms, as in the example above, the unit is nats; with base-2 logarithms, the unit is bits. In production ML, KL divergence is the theoretical backbone of many drift-detection metrics.</p></div><div id="ref-kullback1951" class="csl-entry" role="listitem">
+<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-measuring-drift-divergence-a6dd">Measuring drift</h3>
+<p>A shift in the mean is an insufficient drift signal; detection must compare the entire shape of the distribution. Detecting drift between the serving distribution (<span class="math inline">\(\CurrentDistribution\)</span>) and the training distribution (<span class="math inline">\(\TrainingDistribution\)</span>) therefore requires a measure of the distance between two distributions. <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-detecting-responding-data-drift-509a">Data drift detection and response</a></strong> owns drift detection and its taxonomy, and <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations-production-monitoring-5e1b">Production Monitoring</a></strong> decides what an alert should trigger; this section collects the three divergence measures they use, with one worked example.</p>
+<p>For discrete outcomes <span class="math inline">\(\DiscreteOutcome\)</span>, <a href="#eq-appdx-data-kl-divergence" class="quarto-xref">equation&nbsp;4</a> expresses KL divergence<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> as the expected extra coding cost of approximating <span class="math inline">\(\CurrentDistribution\)</span> with <span class="math inline">\(\TrainingDistribution\)</span> <span class="citation" data-cites="kullback1951 cover2006">(<a href="#ref-kullback1951" role="doc-biblioref">Kullback and Leibler 1951</a>; <a href="#ref-cover2006" role="doc-biblioref">Cover and Thomas 2006</a>)</span>. The displayed form is finite only when <span class="math inline">\(\TrainingDistribution(\DiscreteOutcome) &gt; 0\)</span> wherever <span class="math inline">\(\CurrentDistribution(\DiscreteOutcome) &gt; 0\)</span>; production implementations therefore need explicit smoothing or zero handling. <span id="eq-appdx-data-kl-divergence"><span class="math display">\[ \KlDivergence(\CurrentDistribution \lVert \TrainingDistribution) = \sum_\DiscreteOutcome\CurrentDistribution(\DiscreteOutcome) \log \frac{\CurrentDistribution(\DiscreteOutcome)}{\TrainingDistribution(\DiscreteOutcome)}  \tag{4}\]</span></span></p>
+<div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup>&nbsp;<strong>KL divergence</strong>: Named after Solomon Kullback and Richard Leibler, who introduced it in 1951. Also called <em>relative entropy</em>, it quantifies the expected extra information needed to encode samples from one distribution using a code optimized for another; for drift monitoring in this book, the canonical direction is <span class="math inline">\(\KlDivergence(\CurrentDistribution \lVert \TrainingDistribution)\)</span>. With natural logarithms, as in the example above, the unit is nats; with base-2 logarithms, the unit is bits.</p></div><div id="ref-kullback1951" class="csl-entry" role="listitem">
 Kullback, Solomon, and Richard A. Leibler. 1951. <span>“On Information and Sufficiency.”</span> <em>The Annals of Mathematical Statistics</em> 22 (1): 79–86. https://doi.org/10.1214/aoms/1177729694.
 </div><div id="ref-cover2006" class="csl-entry" role="listitem">
 Cover, Thomas M., and Joy A. Thomas. 2006. <em>Elements of Information Theory</em>. 2nd ed. Wiley. https://doi.org/10.1002/047174882X.
 </div></div><div id="nbk-appendix-data-kl-divergence-drift-detection" class="callout callout-notebook" title="Worked example: KL divergence for drift detection">
-<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.2: Worked example: KL divergence for drift detection</strong></summary><div><strong>Scenario</strong>: A sentiment classifier was trained on data where 60 percent of reviews were positive, 30 percent negative, and 10 percent neutral. After deployment, the serving distribution shifts to 45 percent positive, 40 percent negative, and 15 percent neutral.<p></p>
+<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.2: Worked example: KL divergence for drift detection</strong></summary><div><strong>Scenario</strong>: A keyword-spotting model was trained on audio windows binned by signal-to-noise ratio: 60 percent high, 30 percent medium, and 10 percent low. After the device maker changes the microphone in a new product generation, the windows arriving from the fleet shift to 45 percent high, 40 percent medium, and 15 percent low.<p></p>
 <p><strong>Math</strong>:</p>
 <p>Training distribution <span class="math inline">\(\TrainingDistribution\)</span>: [0.60, 0.30, 0.10]. Serving distribution <span class="math inline">\(\CurrentDistribution\)</span>: [0.45, 0.40, 0.15].</p>
 <p><span class="math display">\[\begin{gather*}
@@ -7898,53 +8043,34 @@ Cover, Thomas M., and Joy A. Thomas. 2006. <em>Elements of Information Theory</e
 \mathcal{D}_{\text{KL}}(P_0 \lVert P_t) = 0.60 \log\frac{0.60}{0.45} + 0.30 \log\frac{0.30}{0.40} + 0.10 \log\frac{0.10}{0.15}\end{gather*}\]</span> <span class="math display">\[\begin{gather*}
 = 0.60 \times 0.2877 + 0.30 \times (-0.2877) + 0.10 \times (-0.4055) \\[-1pt]
 = 0.1726 + (-0.0863) + (-0.0405) = 0.0458\text{ nats}\end{gather*}\]</span></p>
-<p>Notice the asymmetry: <span class="math inline">\(\KlDivergence(\TrainingDistribution \lVert \CurrentDistribution) \neq \KlDivergence(\CurrentDistribution \lVert \TrainingDistribution)\)</span>. The population stability index (PSI) symmetrizes this; the calculation below uses natural logarithms:</p>
+<p>The two directions give different values, <span class="math inline">\(\KlDivergence(\TrainingDistribution \lVert \CurrentDistribution) \neq \KlDivergence(\CurrentDistribution \lVert \TrainingDistribution)\)</span>. The population stability index (PSI) symmetrizes this by summing the two directions; the calculation below uses natural logarithms:</p>
 <p><span class="math display">\[\begin{gather*}
 \text{PSI} = \sum (P_{0,i} - P_{t,i}) \log\frac{P_{0,i}}{P_{t,i}} = (0.15)(0.2877) + (-0.10)(-0.2877) + (-0.05)(-0.4055) \\[-1pt]
 = 0.04315 + 0.02877 + 0.02027 = 0.0922
 \end{gather*}\]</span></p>
-<p><strong>Systems insight</strong>: Since PSI = 0.0922 &lt; 0.1, this drift sits just below the conventional warning threshold and well short of the critical threshold of 0.25 used in <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations">ML Operations</a></strong>. The right response is to keep the feature on the monitoring dashboard and look for corroborating drift signals rather than retraining from this statistic alone.</p>
+<p><strong>Systems insight</strong>: Since PSI = 0.0922 &lt; 0.1, this drift sits just below the conventional warning threshold and well short of the critical threshold of 0.25 used in <strong><a href="../14_ml_ops/14_ml_ops.html#sec-ml-operations">ML Operations</a></strong>. The right response is to keep the feature on the monitoring dashboard and look for corroborating drift signals rather than retraining from this statistic alone. The statistic is also cheap to collect on an always-on device, which can report three bin counters per interval instead of raw audio, so the check fits the power budget and raw recordings never need to leave the device.</p>
 </div></details>
 </div>
 <p>The threshold remains illustrative: its meaning depends on sample size, binning, smoothing, and zero handling, and retraining requires model-quality evidence.</p>
-<p>Both KL divergence and PSI are grounded in a deeper framework—information theory—which provides the units and bounds that make these metrics principled rather than <em>ad hoc</em>.</p>
+<p>KL divergence and PSI compare binned or categorical distributions. For a continuous feature, such as the loudness of an audio window, the two-sample Kolmogorov-Smirnov statistic avoids binning altogether: it is the largest gap between the empirical cumulative distribution functions of a training sample and a serving sample,</p>
+<p><span class="math display">\[\KolmogorovSmirnovStatistic= \max_{\MonitoredFeatureLevel}|\TrainingEmpiricalCdf(\MonitoredFeatureLevel) - \ServingEmpiricalCdf(\MonitoredFeatureLevel)|.\]</span></p>
+<p>Its critical value shrinks with the square root of the sample sizes, so a large serving sample flags even a tiny shift as significant; whether that shift matters is a separate question. <strong><a href="../04_data_engineering/04_data_engineering.html#sec-data-engineering-quality-validation-monitoring-498f">Quality through validation and monitoring</a></strong> works the test through with its critical value. All three measures rest on information theory, which supplies their units.</p>
 </section>
 <section id="sec-appdx-data-foundations-information-theory-systems-c033" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-information-theory-systems-c033">Information theory for systems</h3>
-<p>A training run can consume more examples, run longer, and still stop improving if the added data carries too little useful signal. At that point, the bottleneck is not only compute or bandwidth; it is the amount of information the data pipeline delivers to the learner. <strong><a href="appendix_dam.html#sec-appdx-dam-taxonomy-information-roofline-destination-6426">Information roofline (the destination)</a></strong> treats that data quality limit as a diagnostic constraint, and information theory provides the units for reasoning about it.</p>
+<p>A training run can consume more examples, run longer, and still stop improving if the added data carries too little useful signal. At that point the limit is the information the data pipeline delivers to the learner, not compute or bandwidth. <strong><a href="appendix_dam.html#sec-appdx-dam-taxonomy-information-roofline-destination-6426">The information roofline</a></strong> treats that data quality limit as a diagnostic constraint, and information theory provides the units for reasoning about it.</p>
 <ul>
 <li><strong>Entropy (<span class="math inline">\(\ShannonEntropy\)</span>)</strong>:<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> The average uncertainty in a distribution, defined as <span class="math inline">\(\ShannonEntropy(\DiscreteRandomVariable) = -\sum \ProbabilityFunction(\DiscreteOutcome) \log \ProbabilityFunction(\DiscreteOutcome)\)</span>. The log base sets the unit: natural logs give nats, while <span class="math inline">\(\log_2\)</span> gives bits. A uniform distribution has maximum entropy only over a fixed finite support. This connects directly to KL divergence above: <span class="math inline">\(\KlDivergence\)</span> measures the excess coding cost of using the wrong distribution.</li>
 <li><strong>Information density</strong>: Used here as a book-level heuristic for useful learning signal per unit of storage, not as a standard information-theory quantity.</li>
 <li><strong>Signal-to-noise ratio (SNR)</strong>: The ratio of signal power to noise power. In ML, the book uses low SNR qualitatively for data in which task-relevant structure is weak relative to noise; adding compute cannot compensate for missing task-relevant signal.</li>
 </ul>
-<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Entropy</strong>: Shannon adopted the term in 1948 to quantify information content <span class="citation" data-cites="shannon1948">(<a href="#ref-shannon1948" role="doc-biblioref">Shannon 1948</a>)</span>. In systems terms, Shannon entropy is a lower bound on average lossless code length. Practical prefix codes approach it, and block codes can approach it asymptotically. With <span class="math inline">\(\log_2\)</span>, the unit is bits; natural logs give nats. These bounds inform compression ratios and data-pipeline sizing.</p><div id="ref-shannon1948" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Entropy</strong>: Shannon adopted the term in 1948 to quantify information content <span class="citation" data-cites="shannon1948">(<a href="#ref-shannon1948" role="doc-biblioref">Shannon 1948</a>)</span>. In systems terms, Shannon entropy is a lower bound on average lossless code length. Practical prefix codes approach it, and block codes can approach it asymptotically. These bounds inform compression ratios and data-pipeline sizing.</p><div id="ref-shannon1948" class="csl-entry" role="listitem">
 Shannon, Claude E. 1948. <span>“A Mathematical Theory of Communication.”</span> <em>Bell System Technical Journal</em> 27 (3): 379–423. https://doi.org/10.1002/j.1538-7305.1948.tb01338.x.
 </div></div></div></section>
-<section id="sec-appdx-data-foundations-logits-numerical-stability-13e2" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="sec-appdx-data-foundations-logits-numerical-stability-13e2">Logits and numerical stability</h3>
-<p>Neural-network classifiers commonly output a vector of <em>logits</em><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> <span class="math inline">\(\LogitVector\)</span> (unnormalized scores). For class index <span class="math inline">\(\ClassIndex\)</span>, softmax normalizes <span class="math inline">\(\OutputLogit_{\ClassIndex}\)</span> over all class indices <span class="math inline">\(\NormalizingClassIndex\)</span> to produce a probability:</p>
-<div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>Logit</strong>: Joseph Berkson coined the term in 1944 by analogy with <em>probit</em>. The logit function is the inverse of the logistic (sigmoid) function: <span class="math inline">\(\text{logit}(\LogisticProbability) = \log(\LogisticProbability/(1-\LogisticProbability))\)</span>. In deep learning, “logits” refers more loosely to the raw, unnormalized output of the final linear layer before any activation function is applied.</p></div></div><p><span class="math display">\[ \text{Softmax}(\OutputLogit_{\ClassIndex}) = \frac{e^{\OutputLogit_{\ClassIndex}}}{\sum_{\NormalizingClassIndex} e^{\OutputLogit_{\NormalizingClassIndex}}} \]</span></p>
-<p>The problem is that if <span class="math inline">\(\OutputLogit_{\ClassIndex}\)</span> is large (for example, 100), the exponential <span class="math inline">\(e^{\OutputLogit_{\ClassIndex}}\)</span> overflows common training and inference formats such as FP32, BF16, and FP16. FP64 can represent this specific value, but production ML kernels rarely use FP64 for softmax. The solution is to compute in log-space: the “Log-Sum-Exp” trick allows us to compute <span class="math inline">\(\log\left(\sum_{\NormalizingClassIndex} e^{\OutputLogit_{\NormalizingClassIndex}}\right)\)</span> without ever calculating the massive exponentials directly, preserving numerical precision.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a></p>
-<div class="no-row-height column-margin column-container"><div id="fn6"><p><sup>6</sup>&nbsp;<strong>Log-sum-exp</strong>: Implemented as <code>torch.logsumexp</code> in PyTorch and <code>scipy.special.logsumexp</code> in SciPy. It relies on the identity <span class="math inline">\(\log\left(\sum e^{\OutputLogit_{\NormalizingClassIndex}}\right) = \SoftmaxRowMaximum + \log\left(\sum e^{\OutputLogit_{\NormalizingClassIndex} - \SoftmaxRowMaximum}\right)\)</span>, where <span class="math inline">\(\SoftmaxRowMaximum = \max(\OutputLogit_{\NormalizingClassIndex})\)</span>. Shifted values <span class="math inline">\(\OutputLogit_{\NormalizingClassIndex} - \SoftmaxRowMaximum\)</span> are <span class="math inline">\(\le 0\)</span>, ensuring exponentials never overflow.</p></div></div><p>A small worked example shows why this trick matters in practice, even for large but realistic logit values:</p>
-<div id="nbk-appendix-data-log-sum-exp-action" class="callout callout-notebook" title="Log-sum-exp in action">
-<p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.3: Log-sum-exp in action</strong></summary><div><strong>Setup</strong>: A three-class classifier outputs logits <span class="math inline">\(\LogitVector=\)</span> <span class="math inline">\([100, 101, 102]\)</span>.<p></p>
-<p><strong>Without the trick (naive softmax)</strong>: <span class="math display">\[\text{
-$\exp(100) \approx 2.7 \times 10^{43}$, $\exp(101) \approx 7.3 \times 10^{43}$, $\exp(102) \approx 2.0 \times 10^{44}$}\]</span></p>
-<p>These numbers are representable in FP64 but overflow FP32 (max <span class="math inline">\(\approx 3.4 \times 10^{38}\)</span>). With FP16 (max <span class="math inline">\(\approx 65{,}504\)</span>), even <span class="math inline">\(e^{12}\)</span> overflows. Raw logits rarely reach magnitude 100, but large intermediate values do arise (for example, unscaled attention scores or overconfident outputs), and because FP16 and BF16 are the standard training precisions, a naive softmax risks overflow often enough that the stable form is used by default.</p>
-<p><strong>With the trick</strong>: Subtract <span class="math inline">\(\SoftmaxRowMaximum = \max(\LogitVector) =\)</span> 102:</p>
-<p>Shifted logits: <span class="math inline">\(\LogitVector- \SoftmaxRowMaximum =\)</span> <span class="math inline">\([-2, -1, 0]\)</span></p>
-<p>Exponentials: <span class="math inline">\(\exp(-2) \approx 0.135\)</span>, <span class="math inline">\(\exp(-1) \approx 0.368\)</span>, <span class="math inline">\(\exp(0) = 1.0\)</span></p>
-<p>Sum = 1.503. LogSumExp = 102 <span class="math inline">\(+ \log(1.503) = 102.408\)</span>.</p>
-<p>Softmax: <span class="math inline">\([0.135/1.503,\; 0.368/1.503,\; 1.0/1.503] = [0.090,\; 0.245,\; 0.665]\)</span></p>
-<p><strong>Systems insight</strong>: The exponentiated shifted values and the resulting softmax probabilities are in <span class="math inline">\([0, 1]\)</span>—no overflow risk, even in FP16.</p>
-</div></details>
-</div>
-<p>Together, these worked examples connect the full chain, from physical data movement to distribution shift and numerical stability.</p>
-</section>
 </section>
 <section id="sec-appdx-data-foundations-summary-3c72" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-data-foundations-summary-3c72">Summary</h2>
-<p>The tools in this appendix—tail-aware metrics, drift divergences, information-theoretic bounds, and numerical stability techniques—support quantitative diagnosis of data-related failures rather than anecdotal explanations.</p>
+<p>When a data symptom appears, find its row in <a href="#tbl-appdx-data-lookup" class="quarto-xref">table&nbsp;1</a> and compute the number. Each section points back to the chapter that teaches the tool, where the lighthouse workloads show it deciding a design.</p>
 
 
 

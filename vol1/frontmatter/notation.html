@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-d1a50f0547aff4e61e382825735d7a56.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-2b9d3fb57d3cd0a0780ec4c8056e6036.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-d1a50f0547aff4e61e382825735d7a56.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-ae0ae246ad73b89f412bc1116d59ce33.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -434,6 +434,77 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   } else {
     fixBrandHref();
   }
+})();
+</script>
+
+<!--
+  margin-figure-size — keep margin illustrations proportionate.
+
+  Margin figures are authored narrow (about 120 pt wide) and stretched to
+  the full margin column by width="100%". Tall ones (the architecture-stack
+  locator, vertical ladders) then run 350-520 px down the page. CSS cannot
+  say "full column width unless that makes the image taller than X" without
+  each image's aspect ratio, so this sets that width once per image from
+  its natural size: min(100%, cap x aspect). Short images are untouched.
+-->
+<script>
+(function () {
+  'use strict';
+  var CAP_REM = 20;
+  function capOne(img) {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var maxW = CAP_REM * rem * img.naturalWidth / img.naturalHeight;
+    img.style.setProperty('width', 'min(100%, ' + Math.round(maxW) + 'px)', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.display = 'block';
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+  }
+  function capMarginFigures() {
+    var imgs = document.querySelectorAll('.column-margin img');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.complete) capOne(img);
+      else img.addEventListener('load', capOne.bind(null, img), { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', capMarginFigures);
+  } else {
+    capMarginFigures();
+  }
+})();
+</script>
+
+<!--
+  lightbox-caption — show the typeset figure caption inside the zoom view.
+
+  Quarto's GLightbox copies each caption into the slide as plain text with
+  the math delimiters stripped, so notation macros (\RecurrentInputWeights)
+  appear raw. After each slide loads, replace that text with the figure's
+  own rendered <figcaption>, which MathJax has already typeset.
+-->
+<script>
+(function () {
+  'use strict';
+  function captionFor(trigger) {
+    if (!trigger) return null;
+    var fig = trigger.closest('figure, .quarto-float, .quarto-figure');
+    return fig ? fig.querySelector('figcaption') : null;
+  }
+  function hook() {
+    var lb = window.lightboxQuarto;
+    if (!lb || !lb.on) return;
+    lb.on('slide_after_load', function (data) {
+      var node = data && data.slideNode;
+      var cap = captionFor(data && data.trigger);
+      if (!node || !cap) return;
+      var desc = node.querySelector('.gslide-title') || node.querySelector('.gslide-desc');
+      if (desc) desc.innerHTML = cap.innerHTML;
+    });
+  }
+  window.addEventListener('load', hook);
 })();
 </script>
 <!-- AUTO-GENERATED NOTATION MACROS FROM MLSYSIM -->
@@ -4752,7 +4823,7 @@ $$
 \newcommand{\SchedulingIntervalLength}{t}
 \newcommand{\ScoreNoiseStandardDeviation}{\sigma}
 \newcommand{\ScoreNoiseVector}{\mathbf{z}}
-\newcommand{\ScoreRefreshInterval}{k}
+\newcommand{\ScoreRefreshInterval}{k_{\text{refresh}}}
 \newcommand{\ScoredPrefixLength}{S_{\text{step}}}
 \newcommand{\ScoredStepCount}{J}
 \newcommand{\ScoredStepIndex}{j}
@@ -4980,6 +5051,7 @@ $$
 \newcommand{\SpareStoppingClearance}{d_{\text{spare}}}
 \newcommand{\SparseMatrixEntryCount}{n_{\text{elem}}}
 \newcommand{\SparseMatrixRowCount}{n_{\text{rows}}}
+\newcommand{\SparseProductInputComponent}{v}
 \newcommand{\SparseWeightMatrix}{\mathbf{W}_{\text{sparse}}}
 \newcommand{\SparsityPenaltyWeight}{\lambda_{\text{L1}}}
 \newcommand{\SparsityRatio}{\rho_{\text{sparse}}}
@@ -5139,7 +5211,7 @@ $$
 \newcommand{\StoredDataVolume}{D_{\text{vol,store}}}
 \newcommand{\StoredEmbedding}{\mathbf{z}}
 \newcommand{\StoredIndexVector}{\mathbf{x}}
-\newcommand{\StoredSystemState}{x}
+\newcommand{\StoredSystemState}{s}
 \newcommand{\StoredTokenVolume}{V}
 \newcommand{\StragglerStepTime}{T_{\text{step,straggler}}}
 \newcommand{\StreamAcceptanceProbability}{p}
@@ -6109,14 +6181,14 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
 }
 .callout-quiz-answer {
   --color1: #E8F2EA;
@@ -6127,23 +6199,14 @@ $$
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
 .callout-warning {
   --color1: #FEF2F2;
@@ -6154,68 +6217,14 @@ $$
   --dark-background-color: rgba(220, 38, 38, 0.12);
   --dark-title-background-color: rgba(220, 38, 38, 0.12);
 }
-.callout-caution {
-  --color1: #FFFBEB;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-theorem {
   --color1: #F5F0FA;
@@ -6226,50 +6235,23 @@ $$
   --dark-background-color: rgba(107, 70, 193, 0.12);
   --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
-.callout-notebook {
-  --color1: #F4F7FA;
-  --color2: #3F6077;
-  --border-color: #3F6077;
-  --background-color: rgba(63, 96, 119, 0.04);
-  --title-background-color: rgba(63, 96, 119, 0.04);
-  --dark-background-color: rgba(63, 96, 119, 0.12);
-  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-case-study {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
 .callout-resource-exercises {
   --color1: #E0F2F1;
@@ -6280,14 +6262,14 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
 .callout-takeaways {
   --color1: #FCF4F8;
@@ -6307,6 +6289,60 @@ $$
   --dark-background-color: rgba(100, 116, 139, 0.12);
   --dark-title-background-color: rgba(100, 116, 139, 0.12);
 }
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-caution {
+  --color1: #FFFBEB;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
 .callout-resource-slides {
   --color1: #E0F2F1;
   --color2: #20B2AA;
@@ -6316,21 +6352,57 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-lighthouse {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
   }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-lighthouse code {
+  details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-answer {
@@ -6347,32 +6419,18 @@ $$
   details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-  details.callout-code {
+  details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
+  details.callout-colab code {
     color: #e6e6e6 !important;
   }
   details.callout-warning {
@@ -6389,102 +6447,18 @@ $$
   details.callout-warning code {
     color: #e6e6e6 !important;
   }
-  details.callout-caution {
+  details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-theorem {
@@ -6501,74 +6475,32 @@ $$
   details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-resource-videos {
     --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-  details.callout-research-questions {
+  details.callout-example {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
   }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-case-study {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-case-study summary,
-  details.callout-case-study summary strong,
-  details.callout-case-study > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
+  details.callout-example code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-exercises {
@@ -6585,18 +6517,18 @@ $$
   details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-takeaways {
@@ -6627,6 +6559,90 @@ $$
   details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
   details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6641,19 +6657,75 @@ $$
   details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-}
-body.quarto-dark details.callout-lighthouse {
+  details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-lighthouse code {
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+}
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-quiz-answer {
@@ -6670,32 +6742,18 @@ body.quarto-dark details.callout-quiz-answer > summary {
 body.quarto-dark details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-code {
+body.quarto-dark details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-body.quarto-dark details.callout-example summary,
-body.quarto-dark details.callout-example summary strong,
-body.quarto-dark details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-example code {
+body.quarto-dark details.callout-colab code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-warning {
@@ -6712,102 +6770,18 @@ body.quarto-dark details.callout-warning > summary {
 body.quarto-dark details.callout-warning code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-caution {
+body.quarto-dark details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-quiz-question summary,
-body.quarto-dark details.callout-quiz-question summary strong,
-body.quarto-dark details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
+body.quarto-dark details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-theorem {
@@ -6824,74 +6798,32 @@ body.quarto-dark details.callout-theorem > summary {
 body.quarto-dark details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-notebook {
+body.quarto-dark details.callout-resource-videos {
     --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-notebook code {
+body.quarto-dark details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-research-questions {
+body.quarto-dark details.callout-example {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
   }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-body.quarto-dark details.callout-principle summary,
-body.quarto-dark details.callout-principle summary strong,
-body.quarto-dark details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-case-study {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-case-study summary,
-body.quarto-dark details.callout-case-study summary strong,
-body.quarto-dark details.callout-case-study > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-perspective code {
+body.quarto-dark details.callout-example code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-resource-exercises {
@@ -6908,18 +6840,18 @@ body.quarto-dark details.callout-resource-exercises > summary {
 body.quarto-dark details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-colab {
+body.quarto-dark details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-colab code {
+body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-takeaways {
@@ -6950,6 +6882,90 @@ body.quarto-dark details.callout-chapter-connection > summary {
 body.quarto-dark details.callout-chapter-connection code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
 body.quarto-dark details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
@@ -6964,67 +6980,93 @@ body.quarto-dark details.callout-resource-slides > summary {
 body.quarto-dark details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
 </style>
 <style>
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
 details.callout-quiz-answer > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
 details.callout-warning > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-theorem > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-case-study > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
 }
 details.callout-resource-exercises > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-takeaways > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
@@ -7032,8 +7074,38 @@ details.callout-takeaways > summary::before {
 details.callout-chapter-connection > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
 }
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
 details.callout-resource-slides > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
 </style>
     <style type="text/css">
@@ -7392,7 +7464,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="d3cc121d05ef1a79684f139997959c79" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cbfe2d32</code> • 2026-10-11 04:23 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">5e824f71</code> • 2026-10-12 18:22 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines.<br> 🚀 <strong>Ready for scale?</strong> <a href="../../vol2/">Volume II: Scaling</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -7480,8 +7552,8 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../03_ml_workflow/03_ml_workflow.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">ML Workflow</span></a>
+  <a href="../03_ml_lifecycle/03_ml_lifecycle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ML Lifecycle</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -9095,144 +9167,138 @@ Goodfellow, Ian, Yoshua Bengio, and Aaron Courville. 2016. <em>Deep Learning</em
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong><span class="math inline">\(\AdversarialPerturbationBudget\)</span></strong></td>
-<td style="text-align: left;"><strong>Adversarial Perturbation Budget</strong></td>
-<td style="text-align: left;">Scalar</td>
-<td style="text-align: left;">Maximum norm bound on allowable input perturbations <span class="math inline">\(\AdversarialPerturbationBudget\)</span>.</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\InterAnnotatorAgreement\)</span></strong></td>
 <td style="text-align: left;"><strong>Cohen’s Kappa</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Inter-annotator agreement coefficient <span class="math inline">\(\InterAnnotatorAgreement \in [-1, 1]\)</span>.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\CompletionDeadline\)</span></strong></td>
 <td style="text-align: left;"><strong>Deadline</strong></td>
 <td style="text-align: left;">seconds</td>
 <td style="text-align: left;">Latency deadline for query completion or batch execution.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\OperationalOverheadFraction\)</span></strong></td>
 <td style="text-align: left;"><strong>Operational Overhead Fraction</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Fraction of wall time spent outside productive step execution (<span class="math inline">\(\OperationalOverheadFraction\)</span>).</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\ParallelFraction\)</span></strong></td>
 <td style="text-align: left;"><strong>Parallel Fraction</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Fraction of workload execution that can be parallelized in Amdahl’s Law (<span class="math inline">\(0 \le \ParallelFraction \le 1\)</span>).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\SignificanceLevel\)</span></strong></td>
 <td style="text-align: left;"><strong>Significance Level</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Statistical significance threshold <span class="math inline">\(\SignificanceLevel\)</span> for hypothesis tests.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\NumericalStabilityConstant\)</span></strong></td>
 <td style="text-align: left;"><strong>Numerical Stability Constant</strong></td>
 <td style="text-align: left;">Scalar</td>
 <td style="text-align: left;">Small numerical constant <span class="math inline">\(\NumericalStabilityConstant &gt; 0\)</span> for numerical stability.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\WorkerCount\)</span></strong></td>
 <td style="text-align: left;"><strong>Worker Count</strong></td>
 <td style="text-align: left;">Integer</td>
 <td style="text-align: left;">Number of parallel worker threads, processes, or devices.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\ObservationTimestamp\)</span></strong></td>
 <td style="text-align: left;"><strong>Observation Timestamp</strong></td>
 <td style="text-align: left;">seconds</td>
 <td style="text-align: left;">Time at which a labeled observation, such as a churn event, occurred. Upper bound on the feature timestamps an as-of join may use.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\ErroneousPredictionCost\)</span></strong></td>
 <td style="text-align: left;"><strong>Erroneous Prediction Cost</strong></td>
 <td style="text-align: left;">dollars</td>
 <td style="text-align: left;">Average business cost incurred by one erroneous prediction. Multiplies the skew rate and query volume in the training-serving skew cost.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\StorageAccessFactor\)</span></strong></td>
 <td style="text-align: left;"><strong>Storage Access Factor</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Fraction of peak storage throughput a workload’s access pattern achieves.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\SubgroupIndex\)</span></strong></td>
 <td style="text-align: left;"><strong>Subgroup Index</strong></td>
 <td style="text-align: left;">Index</td>
 <td style="text-align: left;">Label of one population subgroup whose outcomes are compared against a reference group.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\FeedbackIntervalCount\)</span></strong></td>
 <td style="text-align: left;"><strong>Feedback Interval Count</strong></td>
 <td style="text-align: left;">Integer</td>
 <td style="text-align: left;">Number of fixed feedback intervals, such as retraining cycles, elapsed since the disparity was first measured.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\BiasFeedbackFactor\)</span></strong></td>
 <td style="text-align: left;"><strong>Bias Feedback Factor</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Factor by which a group’s disparity is multiplied over one feedback interval, fitted from observed disparities. Above 1 the feedback loop is self-reinforcing; at or below 1 it is stable or damped.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\GroupDisparity\)</span></strong></td>
 <td style="text-align: left;"><strong>Group Disparity</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Size of the performance gap between one group and a reference group; the feedback analysis tracks how it grows from one feedback interval to the next.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\AnonymitySetSize\)</span></strong></td>
 <td style="text-align: left;"><strong>Anonymity Set Size</strong></td>
 <td style="text-align: left;">Integer</td>
 <td style="text-align: left;">Smallest number of records that share every quasi-identifier value in a k-anonymous release.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\DeploymentDistribution\)</span></strong></td>
 <td style="text-align: left;"><strong>Deployment Distribution</strong></td>
 <td style="text-align: left;">Distribution</td>
 <td style="text-align: left;">Joint distribution of inputs and labels a deployed model must serve, the population a verification guarantee is stated over.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\TaskDistance\)</span></strong></td>
 <td style="text-align: left;"><strong>Task Distance</strong></td>
 <td style="text-align: left;">Function</td>
 <td style="text-align: left;">Task-specific distance between a model’s prediction and the correct label, the error measure a verification guarantee bounds.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\TaskErrorTolerance\)</span></strong></td>
 <td style="text-align: left;"><strong>Task Error Tolerance</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Largest task distance between a prediction and its label that still counts as an acceptable output.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\ToleratedFailureProbability\)</span></strong></td>
 <td style="text-align: left;"><strong>Tolerated Failure Probability</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Maximum allowed probability that a deployed model exceeds its task error tolerance. The confidence level used to estimate this probability is specified separately.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\TrainingServingSkew\)</span></strong></td>
 <td style="text-align: left;"><strong>Training Serving Skew</strong></td>
 <td style="text-align: left;">Dimensionless</td>
 <td style="text-align: left;">Expected absolute difference between the serving-path and training-path model scores on the same inputs, over a stated comparison-input distribution. Measurable without labels; a risk signal, not an accuracy-loss equation.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\ServingPathPredictor\)</span></strong></td>
 <td style="text-align: left;"><strong>Serving Path Predictor</strong></td>
 <td style="text-align: left;">Function</td>
 <td style="text-align: left;">Serving code path viewed as a function from a raw input to the model’s output, including its preprocessing and runtime.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong><span class="math inline">\(\TrainingPathPredictor\)</span></strong></td>
 <td style="text-align: left;"><strong>Training Path Predictor</strong></td>
 <td style="text-align: left;">Function</td>
 <td style="text-align: left;">Training code path viewed as a function from a raw input to the model’s output, as offline validation evaluates it.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong><span class="math inline">\(\TargetCompletionQuantile\)</span></strong></td>
 <td style="text-align: left;"><strong>Target Completion Quantile</strong></td>
 <td style="text-align: left;">Dimensionless</td>
