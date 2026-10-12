@@ -399,6 +399,77 @@ ul.task-list li input[type="checkbox"] {
   }
 })();
 </script>
+
+<!--
+  margin-figure-size — keep margin illustrations proportionate.
+
+  Margin figures are authored narrow (about 120 pt wide) and stretched to
+  the full margin column by width="100%". Tall ones (the architecture-stack
+  locator, vertical ladders) then run 350-520 px down the page. CSS cannot
+  say "full column width unless that makes the image taller than X" without
+  each image's aspect ratio, so this sets that width once per image from
+  its natural size: min(100%, cap x aspect). Short images are untouched.
+-->
+<script>
+(function () {
+  'use strict';
+  var CAP_REM = 20;
+  function capOne(img) {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var maxW = CAP_REM * rem * img.naturalWidth / img.naturalHeight;
+    img.style.setProperty('width', 'min(100%, ' + Math.round(maxW) + 'px)', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.display = 'block';
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+  }
+  function capMarginFigures() {
+    var imgs = document.querySelectorAll('.column-margin img');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.complete) capOne(img);
+      else img.addEventListener('load', capOne.bind(null, img), { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', capMarginFigures);
+  } else {
+    capMarginFigures();
+  }
+})();
+</script>
+
+<!--
+  lightbox-caption — show the typeset figure caption inside the zoom view.
+
+  Quarto's GLightbox copies each caption into the slide as plain text with
+  the math delimiters stripped, so notation macros (\RecurrentInputWeights)
+  appear raw. After each slide loads, replace that text with the figure's
+  own rendered <figcaption>, which MathJax has already typeset.
+-->
+<script>
+(function () {
+  'use strict';
+  function captionFor(trigger) {
+    if (!trigger) return null;
+    var fig = trigger.closest('figure, .quarto-float, .quarto-figure');
+    return fig ? fig.querySelector('figcaption') : null;
+  }
+  function hook() {
+    var lb = window.lightboxQuarto;
+    if (!lb || !lb.on) return;
+    lb.on('slide_after_load', function (data) {
+      var node = data && data.slideNode;
+      var cap = captionFor(data && data.trigger);
+      if (!node || !cap) return;
+      var desc = node.querySelector('.gslide-title') || node.querySelector('.gslide-desc');
+      if (desc) desc.innerHTML = cap.innerHTML;
+    });
+  }
+  window.addEventListener('load', hook);
+})();
+</script>
 <!-- Release identity (rendered into the footer pill below). -->
 <meta name="release-manifest" content="/instructors/release-manifest.json">
 
@@ -970,7 +1041,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="c60cc486b97f078d5f043d05b8fc46de" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cbfe2d32</code> • 2026-10-11 04:00 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">5e824f71</code> • 2026-10-12 17:36 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><strong>Instructor Hub</strong> — complete course materials, slides, exercises, and grading tools.<br> <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: Scaling</a> — open access.<br> <strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="../slides/">Lecture Slides</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="../newsletter/">Newsletter</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1116,7 +1187,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#week-1-why-ml-systems" id="toc-week-1-why-ml-systems" class="nav-link" data-scroll-target="#week-1-why-ml-systems">Week 1: Why ML Systems?</a></li>
   <li><a href="#week-2-the-ml-systems-landscape" id="toc-week-2-the-ml-systems-landscape" class="nav-link" data-scroll-target="#week-2-the-ml-systems-landscape">Week 2: The ML Systems Landscape</a></li>
-  <li><a href="#week-3-the-ml-workflow" id="toc-week-3-the-ml-workflow" class="nav-link" data-scroll-target="#week-3-the-ml-workflow">Week 3: The ML Workflow</a></li>
+  <li><a href="#week-3-the-ml-lifecycle" id="toc-week-3-the-ml-lifecycle" class="nav-link" data-scroll-target="#week-3-the-ml-lifecycle">Week 3: The ML Lifecycle</a></li>
   <li><a href="#week-4-data-engineering" id="toc-week-4-data-engineering" class="nav-link" data-scroll-target="#week-4-data-engineering">Week 4: Data Engineering</a></li>
   </ul></li>
   <li><a href="#part-ii" id="toc-part-ii" class="nav-link" data-scroll-target="#part-ii">Part II: Building the Stack (Weeks 5–8)</a>
@@ -1304,8 +1375,8 @@ window.Quarto = {
 </table>
 <p><strong>Learning Objectives</strong>: Map the full ML systems stack (application → framework → runtime → hardware). Quantify the memory wall using real hardware specs. Distinguish compute-bound from memory-bound workloads.</p>
 </section>
-<section id="week-3-the-ml-workflow" class="level3">
-<h3 class="anchored" data-anchor-id="week-3-the-ml-workflow">Week 3: The ML Workflow</h3>
+<section id="week-3-the-ml-lifecycle" class="level3">
+<h3 class="anchored" data-anchor-id="week-3-the-ml-lifecycle">Week 3: The ML Lifecycle</h3>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -1316,7 +1387,7 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>Read</strong></td>
-<td style="text-align: left;"><a href="../vol1/ml_workflow/ml_workflow.html">ML Workflow</a></td>
+<td style="text-align: left;"><a href="../vol1/03_ml_lifecycle/03_ml_lifecycle.html">ML Lifecycle</a></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Lab</strong></td>
@@ -1350,7 +1421,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Lab</strong></td>
-<td style="text-align: left;"><a href="../labs/vol1/lab_03_ml_workflow/">Lab 03</a>: Carry the Constraint</td>
+<td style="text-align: left;"><a href="../labs/vol1/lab_03_ml_lifecycle/">Lab 03</a>: Carry the Constraint</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Build</strong></td>
@@ -1384,14 +1455,18 @@ window.Quarto = {
 <td style="text-align: left;"><a href="../vol1/nn_computation/nn_computation.html">Neural Computation</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><strong>Lectures</strong></td>
+<td style="text-align: left;">Lecture 1 through <em>Learning Process</em>, ending at the mid-chapter checkpoint; Lecture 2 from <em>Inference Pipeline</em></td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><strong>Lab</strong></td>
 <td style="text-align: left;"><a href="../labs/vol1/lab_04_data_engr/">Lab 04</a>: Evidence Through the Data Pipeline</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong>Build</strong></td>
 <td style="text-align: left;"><a href="../tinytorch/modules/03_layers.html">TinyTorch Module 03: Layers</a></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong>Due</strong></td>
 <td style="text-align: left;">Lab 04 Decision Log</td>
 </tr>
@@ -1487,14 +1562,18 @@ window.Quarto = {
 <td style="text-align: left;"><a href="../vol1/training/training.html">Training</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><strong>Lectures</strong></td>
+<td style="text-align: left;">Lecture 1 through <em>Pipeline Architecture</em>, ending at the mid-chapter checkpoint; Lecture 2 from <em>Identifying Bottlenecks</em></td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><strong>Lab</strong></td>
 <td style="text-align: left;"><a href="../labs/vol1/lab_07_ml_frameworks/">Lab 07</a>: The Framework Tax</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong>Build</strong></td>
 <td style="text-align: left;"><a href="../tinytorch/modules/06_autograd.html">TinyTorch Module 06: Autograd</a></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong>Due</strong></td>
 <td style="text-align: left;">Module 05 notebook + Lab 07 Decision Log</td>
 </tr>
@@ -1608,14 +1687,18 @@ window.Quarto = {
 <td style="text-align: left;"><a href="../vol1/hw_acceleration/hw_acceleration.html">Hardware Acceleration</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><strong>Lectures</strong></td>
+<td style="text-align: left;">Lecture 1 through <em>Performance Bounds</em>, ending at the mid-chapter checkpoint; Lecture 2 from <em>Hardware Mapping</em></td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><strong>Lab</strong></td>
 <td style="text-align: left;"><a href="../labs/vol1/lab_10_model_compress/">Lab 10</a>: Compression That Executes</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong>Build</strong></td>
 <td style="text-align: left;">TinyTorch Module 08: Training (continued)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong>Due</strong></td>
 <td style="text-align: left;">Module 08 notebook + Lab 10 Decision Log</td>
 </tr>
@@ -1638,14 +1721,18 @@ window.Quarto = {
 <td style="text-align: left;"><a href="../vol1/benchmarking/benchmarking.html">Benchmarking</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><strong>Lectures</strong></td>
+<td style="text-align: left;">Lecture 1 through <em>Training Benchmarks</em>, ending at the mid-chapter checkpoint; Lecture 2 from <em>Inference Benchmarks</em></td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><strong>Lab</strong></td>
 <td style="text-align: left;"><a href="../labs/vol1/lab_11_hw_accel/">Lab 11</a>: Acceleration That Survives the Whole Path</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong>Build</strong></td>
 <td style="text-align: left;"><em>No new module — catch-up week</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong>Due</strong></td>
 <td style="text-align: left;">Lab 11 Decision Log</td>
 </tr>
@@ -1673,14 +1760,18 @@ window.Quarto = {
 <td style="text-align: left;"><a href="../vol1/model_serving/model_serving.html">Model Serving</a></td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><strong>Lectures</strong></td>
+<td style="text-align: left;">Lecture 1 through <em>Throughput Optimization</em>, ending at the mid-chapter checkpoint; Lecture 2 from <em>Inference Runtime Selection</em></td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><strong>Lab</strong></td>
 <td style="text-align: left;"><a href="../labs/vol1/lab_12_perf_bench/">Lab 12</a>: Benchmark Claims That Survive</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><strong>Build</strong></td>
 <td style="text-align: left;"><em>Capstone prep</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><strong>Due</strong></td>
 <td style="text-align: left;">Lab 12 Decision Log</td>
 </tr>
