@@ -517,6 +517,77 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   }
 })();
 </script>
+
+<!--
+  margin-figure-size — keep margin illustrations proportionate.
+
+  Margin figures are authored narrow (about 120 pt wide) and stretched to
+  the full margin column by width="100%". Tall ones (the architecture-stack
+  locator, vertical ladders) then run 350-520 px down the page. CSS cannot
+  say "full column width unless that makes the image taller than X" without
+  each image's aspect ratio, so this sets that width once per image from
+  its natural size: min(100%, cap x aspect). Short images are untouched.
+-->
+<script>
+(function () {
+  'use strict';
+  var CAP_REM = 20;
+  function capOne(img) {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var maxW = CAP_REM * rem * img.naturalWidth / img.naturalHeight;
+    img.style.setProperty('width', 'min(100%, ' + Math.round(maxW) + 'px)', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.display = 'block';
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+  }
+  function capMarginFigures() {
+    var imgs = document.querySelectorAll('.column-margin img');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.complete) capOne(img);
+      else img.addEventListener('load', capOne.bind(null, img), { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', capMarginFigures);
+  } else {
+    capMarginFigures();
+  }
+})();
+</script>
+
+<!--
+  lightbox-caption — show the typeset figure caption inside the zoom view.
+
+  Quarto's GLightbox copies each caption into the slide as plain text with
+  the math delimiters stripped, so notation macros (\RecurrentInputWeights)
+  appear raw. After each slide loads, replace that text with the figure's
+  own rendered <figcaption>, which MathJax has already typeset.
+-->
+<script>
+(function () {
+  'use strict';
+  function captionFor(trigger) {
+    if (!trigger) return null;
+    var fig = trigger.closest('figure, .quarto-float, .quarto-figure');
+    return fig ? fig.querySelector('figcaption') : null;
+  }
+  function hook() {
+    var lb = window.lightboxQuarto;
+    if (!lb || !lb.on) return;
+    lb.on('slide_after_load', function (data) {
+      var node = data && data.slideNode;
+      var cap = captionFor(data && data.trigger);
+      if (!node || !cap) return;
+      var desc = node.querySelector('.gslide-title') || node.querySelector('.gslide-desc');
+      if (desc) desc.innerHTML = cap.innerHTML;
+    });
+  }
+  window.addEventListener('load', hook);
+})();
+</script>
 <meta name="theme-color" content="#A51C30">
 <script src="../assets/scripts/subscribe-modal.js?v=c67d712d" defer=""></script>
 
@@ -1075,7 +1146,7 @@ window.Quarto = {
       </div> <!-- /container-fluid -->
     </nav>
   <div id="quarto-announcement" data-announcement-id="87c07c1db9c6a72a5f4421576502f58a" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cbfe2d32</code> • 2026-10-11 04:02 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">5e824f71</code> • 2026-10-12 17:37 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><span class="mls-ann-line"><strong>ML Systems</strong> — an open-access textbook series on the engineering of intelligent systems.</span> <span class="mls-ann-line"><strong>The books:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: Scaling (Preview)</a> · <a href="../vol3/">Vol III: Agentic (Draft)</a> · <a href="../vol4/">Vol IV: Physical AI (Draft)</a></span> <span class="mls-ann-line mls-ann-siblings"><strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="../slides/">Lecture Slides</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="./">Newsletter</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1220,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <div id="listing-listing-all" class="quarto-listing quarto-listing-container-grid">
 <div class="list grid quarto-listing-cols-1">
-<div class="g-col-1" data-index="0" data-categories="aGFuZHMtb24=" data-listing-date-sort="1788393600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="848">
+<div class="g-col-1" data-index="0" data-categories="aGFuZHMtb24=" data-listing-date-sort="1788393600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="848">
 <a href="../newsletter/posts/2026/2026-09-03_team-update-engineering-from-the-global-south-what-aieng4d-is-doing.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1249,7 +1320,7 @@ September 3, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="1" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1782864000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="571">
+<div class="g-col-1" data-index="1" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1782864000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="571">
 <a href="../newsletter/posts/2026/2026-07-01_community-update-ai-for-good-geneva.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1280,7 +1351,7 @@ July 1, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="2" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1779408000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1484">
+<div class="g-col-1" data-index="2" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1779408000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1484">
 <a href="../newsletter/posts/2026/2026-05-22_team-newsletter-beyond-the-spiral-tinyml-pedagogy-at-the-hardware-edge.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1311,7 +1382,7 @@ May 22, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="ZXNzYXk=" data-listing-date-sort="1779148800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2160">
+<div class="g-col-1" data-index="3" data-categories="ZXNzYXk=" data-listing-date-sort="1779148800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2160">
 <a href="../newsletter/posts/2026/2026-05-19_from-the-builders-gap-to-a-builders-stack.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1340,7 +1411,7 @@ May 19, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="4" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776902400000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="917">
+<div class="g-col-1" data-index="4" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776902400000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="917">
 <a href="../newsletter/posts/2026/2026-04-23_team-newsletter-bringing-ai-to-the-edge-of-the-world.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1369,7 +1440,7 @@ April 23, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="5" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776816000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="211">
+<div class="g-col-1" data-index="5" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776816000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="211">
 <a href="../newsletter/posts/2026/2026-04-22_community-update-tinytorch-tomorrow-whats-coming-next.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1396,7 +1467,7 @@ April 22, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="6" data-categories="ZXNzYXk=" data-listing-date-sort="1776729600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1584">
+<div class="g-col-1" data-index="6" data-categories="ZXNzYXk=" data-listing-date-sort="1776729600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1584">
 <a href="../newsletter/posts/2026/2026-04-21_the-builders-gap.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1425,7 +1496,7 @@ April 21, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="7" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776124800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1370">
+<div class="g-col-1" data-index="7" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776124800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1370">
 <a href="../newsletter/posts/2026/2026-04-14_team-newsletter-from-tool-training-to-process-thinking-a-spiral-model-for-ai-in.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1454,7 +1525,7 @@ April 14, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="8" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1773705600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="578">
+<div class="g-col-1" data-index="8" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1773705600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="578">
 <a href="../newsletter/posts/2026/2026-03-17_community-spotlight-tinyml-innovation-emerging-from-colombian-universities.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1483,7 +1554,7 @@ March 17, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="9" data-categories="ZXNzYXk=" data-listing-date-sort="1773100800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1381">
+<div class="g-col-1" data-index="9" data-categories="ZXNzYXk=" data-listing-date-sort="1773100800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1381">
 <a href="../newsletter/posts/2026/2026-03-10_the-model-is-not-the-product.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1510,7 +1581,7 @@ March 10, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="10" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1772064000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="91">
+<div class="g-col-1" data-index="10" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1772064000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="91">
 <a href="../newsletter/posts/2026/2026-02-26_correction-show-tell-time-update-please-note.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1537,7 +1608,7 @@ February 26, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="11" data-categories="aGFuZHMtb24=" data-listing-date-sort="1771891200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="374">
+<div class="g-col-1" data-index="11" data-categories="aGFuZHMtb24=" data-listing-date-sort="1771891200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="374">
 <a href="../newsletter/posts/2026/2026-02-24_community-update-kits-and-this-months-student-show-and-tell.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1566,7 +1637,7 @@ February 24, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="12" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770163200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="336">
+<div class="g-col-1" data-index="12" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770163200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="336">
 <a href="../newsletter/posts/2026/2026-02-04_building-tinytorch-together-live-kickoff.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1593,7 +1664,7 @@ February 4, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="13" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770076800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="226">
+<div class="g-col-1" data-index="13" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770076800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="226">
 <a href="../newsletter/posts/2026/2026-02-03_calling-for-kit-applications-xiaoml-for-applied-ai-engineering.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1622,7 +1693,7 @@ February 3, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="14" data-categories="ZXNzYXk=" data-listing-date-sort="1769472000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1409">
+<div class="g-col-1" data-index="14" data-categories="ZXNzYXk=" data-listing-date-sort="1769472000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1409">
 <a href="../newsletter/posts/2026/2026-01-27_the-shift-toward-ai-engineering.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1651,7 +1722,7 @@ January 27, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="15" data-categories="aGFuZHMtb24=" data-listing-date-sort="1766448000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="218">
+<div class="g-col-1" data-index="15" data-categories="aGFuZHMtb24=" data-listing-date-sort="1766448000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="218">
 <a href="../newsletter/posts/2025/2025-12-23_mlsysbookai-livestream-resources-2-days-left-for-the-seeed-discount.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1678,7 +1749,7 @@ December 23, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="16" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765929600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="326">
+<div class="g-col-1" data-index="16" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765929600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="326">
 <a href="../newsletter/posts/2025/2025-12-17_thank-you-for-joining-the-mlsysbookai-community-celebration.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1705,7 +1776,7 @@ December 17, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="17" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765843200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="177">
+<div class="g-col-1" data-index="17" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765843200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="177">
 <a href="../newsletter/posts/2025/2025-12-16_mlsysbookai-live-event-global-community-updates-ama.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1737,7 +1808,7 @@ December 16, 2025
 </div>
 <div id="listing-listing-essays" class="quarto-listing quarto-listing-container-grid">
 <div class="list grid quarto-listing-cols-1">
-<div class="g-col-1" data-index="0" data-categories="ZXNzYXk=" data-listing-date-sort="1779148800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2160">
+<div class="g-col-1" data-index="0" data-categories="ZXNzYXk=" data-listing-date-sort="1779148800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2160">
 <a href="../newsletter/posts/2026/2026-05-19_from-the-builders-gap-to-a-builders-stack.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1761,7 +1832,7 @@ May 19, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="1" data-categories="ZXNzYXk=" data-listing-date-sort="1776729600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1584">
+<div class="g-col-1" data-index="1" data-categories="ZXNzYXk=" data-listing-date-sort="1776729600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1584">
 <a href="../newsletter/posts/2026/2026-04-21_the-builders-gap.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1785,7 +1856,7 @@ April 21, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="2" data-categories="ZXNzYXk=" data-listing-date-sort="1773100800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1381">
+<div class="g-col-1" data-index="2" data-categories="ZXNzYXk=" data-listing-date-sort="1773100800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1381">
 <a href="../newsletter/posts/2026/2026-03-10_the-model-is-not-the-product.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1807,7 +1878,7 @@ March 10, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="ZXNzYXk=" data-listing-date-sort="1769472000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1409">
+<div class="g-col-1" data-index="3" data-categories="ZXNzYXk=" data-listing-date-sort="1769472000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1409">
 <a href="../newsletter/posts/2026/2026-01-27_the-shift-toward-ai-engineering.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1836,7 +1907,7 @@ January 27, 2026
 </div>
 <div id="listing-listing-community" class="quarto-listing quarto-listing-container-grid">
 <div class="list grid quarto-listing-cols-1">
-<div class="g-col-1" data-index="0" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1782864000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="571">
+<div class="g-col-1" data-index="0" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1782864000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="571">
 <a href="../newsletter/posts/2026/2026-07-01_community-update-ai-for-good-geneva.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1862,7 +1933,7 @@ July 1, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="1" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1779408000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1484">
+<div class="g-col-1" data-index="1" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1779408000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1484">
 <a href="../newsletter/posts/2026/2026-05-22_team-newsletter-beyond-the-spiral-tinyml-pedagogy-at-the-hardware-edge.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1888,7 +1959,7 @@ May 22, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="2" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776902400000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="917">
+<div class="g-col-1" data-index="2" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776902400000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="917">
 <a href="../newsletter/posts/2026/2026-04-23_team-newsletter-bringing-ai-to-the-edge-of-the-world.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1912,7 +1983,7 @@ April 23, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776816000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="211">
+<div class="g-col-1" data-index="3" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776816000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="211">
 <a href="../newsletter/posts/2026/2026-04-22_community-update-tinytorch-tomorrow-whats-coming-next.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -1934,7 +2005,7 @@ April 22, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="4" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776124800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1370">
+<div class="g-col-1" data-index="4" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1776124800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1370">
 <a href="../newsletter/posts/2026/2026-04-14_team-newsletter-from-tool-training-to-process-thinking-a-spiral-model-for-ai-in.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1958,7 +2029,7 @@ April 14, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="5" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1773705600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="578">
+<div class="g-col-1" data-index="5" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1773705600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="578">
 <a href="../newsletter/posts/2026/2026-03-17_community-spotlight-tinyml-innovation-emerging-from-colombian-universities.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -1982,7 +2053,7 @@ March 17, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="6" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1772064000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="91">
+<div class="g-col-1" data-index="6" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1772064000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="91">
 <a href="../newsletter/posts/2026/2026-02-26_correction-show-tell-time-update-please-note.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -2004,7 +2075,7 @@ February 26, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="7" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765929600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="326">
+<div class="g-col-1" data-index="7" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765929600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="326">
 <a href="../newsletter/posts/2025/2025-12-17_thank-you-for-joining-the-mlsysbookai-community-celebration.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -2026,7 +2097,7 @@ December 17, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="8" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765843200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="177">
+<div class="g-col-1" data-index="8" data-categories="Y29tbXVuaXR5" data-listing-date-sort="1765843200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="177">
 <a href="../newsletter/posts/2025/2025-12-16_mlsysbookai-live-event-global-community-updates-ama.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -2053,7 +2124,7 @@ December 16, 2025
 </div>
 <div id="listing-listing-handson" class="quarto-listing quarto-listing-container-grid">
 <div class="list grid quarto-listing-cols-1">
-<div class="g-col-1" data-index="0" data-categories="aGFuZHMtb24=" data-listing-date-sort="1788393600000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="848">
+<div class="g-col-1" data-index="0" data-categories="aGFuZHMtb24=" data-listing-date-sort="1788393600000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="848">
 <a href="../newsletter/posts/2026/2026-09-03_team-update-engineering-from-the-global-south-what-aieng4d-is-doing.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -2077,7 +2148,7 @@ September 3, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="1" data-categories="aGFuZHMtb24=" data-listing-date-sort="1771891200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="374">
+<div class="g-col-1" data-index="1" data-categories="aGFuZHMtb24=" data-listing-date-sort="1771891200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="374">
 <a href="../newsletter/posts/2026/2026-02-24_community-update-kits-and-this-months-student-show-and-tell.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -2101,7 +2172,7 @@ February 24, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="2" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770163200000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="336">
+<div class="g-col-1" data-index="2" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770163200000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="336">
 <a href="../newsletter/posts/2026/2026-02-04_building-tinytorch-together-live-kickoff.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
@@ -2123,7 +2194,7 @@ February 4, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770076800000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="226">
+<div class="g-col-1" data-index="3" data-categories="aGFuZHMtb24=" data-listing-date-sort="1770076800000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="226">
 <a href="../newsletter/posts/2026/2026-02-03_calling-for-kit-applications-xiaoml-for-applied-ai-engineering.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <p class="card-img-top">
@@ -2147,7 +2218,7 @@ February 3, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="4" data-categories="aGFuZHMtb24=" data-listing-date-sort="1766448000000" data-listing-file-modified-sort="1791705719382" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="218">
+<div class="g-col-1" data-index="4" data-categories="aGFuZHMtb24=" data-listing-date-sort="1766448000000" data-listing-file-modified-sort="1791840990603" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="218">
 <a href="../newsletter/posts/2025/2025-12-23_mlsysbookai-livestream-resources-2-days-left-for-the-seeed-discount.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left">
 <div class="listing-item-img-placeholder card-img-top" style="height: 200px;">&nbsp;</div>
