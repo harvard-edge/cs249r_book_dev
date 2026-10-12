@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.18">
+<meta name="generator" content="quarto-1.10.19">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-5d0a22d5375dadc0ddf890a35cf88ce7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-6c0ad46e1861a38265c10768182fb462.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-5d0a22d5375dadc0ddf890a35cf88ce7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-842b59a411228a47553837caccf5722c.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-43f9c5728a6ecd39305b58679907e2cb.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-842b59a411228a47553837caccf5722c.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-9113d2f56afc956e50a640fa9f799270.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
@@ -430,6 +430,77 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   } else {
     fixBrandHref();
   }
+})();
+</script>
+
+<!--
+  margin-figure-size — keep margin illustrations proportionate.
+
+  Margin figures are authored narrow (about 120 pt wide) and stretched to
+  the full margin column by width="100%". Tall ones (the architecture-stack
+  locator, vertical ladders) then run 350-520 px down the page. CSS cannot
+  say "full column width unless that makes the image taller than X" without
+  each image's aspect ratio, so this sets that width once per image from
+  its natural size: min(100%, cap x aspect). Short images are untouched.
+-->
+<script>
+(function () {
+  'use strict';
+  var CAP_REM = 20;
+  function capOne(img) {
+    if (!img.naturalWidth || !img.naturalHeight) return;
+    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var maxW = CAP_REM * rem * img.naturalWidth / img.naturalHeight;
+    img.style.setProperty('width', 'min(100%, ' + Math.round(maxW) + 'px)', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.display = 'block';
+    img.style.marginLeft = 'auto';
+    img.style.marginRight = 'auto';
+  }
+  function capMarginFigures() {
+    var imgs = document.querySelectorAll('.column-margin img');
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i];
+      if (img.complete) capOne(img);
+      else img.addEventListener('load', capOne.bind(null, img), { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', capMarginFigures);
+  } else {
+    capMarginFigures();
+  }
+})();
+</script>
+
+<!--
+  lightbox-caption — show the typeset figure caption inside the zoom view.
+
+  Quarto's GLightbox copies each caption into the slide as plain text with
+  the math delimiters stripped, so notation macros (\RecurrentInputWeights)
+  appear raw. After each slide loads, replace that text with the figure's
+  own rendered <figcaption>, which MathJax has already typeset.
+-->
+<script>
+(function () {
+  'use strict';
+  function captionFor(trigger) {
+    if (!trigger) return null;
+    var fig = trigger.closest('figure, .quarto-float, .quarto-figure');
+    return fig ? fig.querySelector('figcaption') : null;
+  }
+  function hook() {
+    var lb = window.lightboxQuarto;
+    if (!lb || !lb.on) return;
+    lb.on('slide_after_load', function (data) {
+      var node = data && data.slideNode;
+      var cap = captionFor(data && data.trigger);
+      if (!node || !cap) return;
+      var desc = node.querySelector('.gslide-title') || node.querySelector('.gslide-desc');
+      if (desc) desc.innerHTML = cap.innerHTML;
+    });
+  }
+  window.addEventListener('load', hook);
 })();
 </script>
 <meta name="theme-color" content="#0284C7">
@@ -1009,7 +1080,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="d0161ba54f20b0572b89e97bb2904e43" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">221f8e28</code> • 2026-10-01 05:08 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">d4399578</code> • 2026-10-12 18:43 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><strong>MLSys·im</strong> — first-principles analytical modeling for ML training and inference.<br> <strong>The book:</strong> <a href="../vol1/">Vol I: Foundations</a> · <a href="../vol2/">Vol II: Scaling</a> — open access.<br> <strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="./">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="../slides/">Lecture Slides</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="../newsletter/">Newsletter</a></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
@@ -1772,7 +1843,7 @@ window.Quarto = {
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ref</span><span class="kw">:</span><span class="at"> Example accelerator datasheet</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">url</span><span class="kw">:</span><span class="at"> https://...</span></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">verified</span><span class="kw">:</span><span class="at"> </span><span class="st">"2026-05-30"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Reuse shared records from <code>mlsysim/core/provenance_catalog.py</code> when several entries share one source. See <code>mlsysim/PROVENANCE.md</code> and run <code>python -m mlsysim.tools.audit_provenance --scope all --strict</code> before opening a PR.</p>
+<p>Reuse shared records from <code>mlsysim/core/provenance_catalog.py</code> when several entries share one external paper, benchmark, or report. For component-specific hardware or server nodes, define provenance colocated with the item (or inherit from the accelerator’s <code>metadata.provenance</code>). See <code>mlsysim/PROVENANCE.md</code> and run <code>python -m mlsysim.tools.audit_provenance --scope all --strict</code> before opening a PR.</p>
 <p>The YAML data layer is intentionally strict: duplicate YAML keys, duplicate <code>__key__</code> values, missing data directories, and unknown schema fields fail loading. If the value is a technology-class reference, use <code>@tech:</code> rather than copying a shared fact into many devices, for example <code>latency: "@tech:Interconnect.NVLink.latency"</code>.</p>
 </section>
 <section id="step-2-verify-with-the-registry-contract-tests" class="level3">
@@ -1852,12 +1923,19 @@ window.Quarto = {
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">__type__</span><span class="kw">:</span><span class="at"> TransformerWorkload</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Llama-3.1-8B</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">architecture</span><span class="kw">:</span><span class="at"> Transformer</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parameters</span><span class="kw">:</span><span class="at"> 8030000000 param</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">inference_flops</span><span class="kw">:</span><span class="at"> 16060000000 flop</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">layers</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">hidden_dim</span><span class="kw">:</span><span class="at"> </span><span class="dv">4096</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heads</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">kv_heads</span><span class="kw">:</span><span class="at"> </span><span class="dv">8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">metadata</span><span class="kw">:</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">provenance</span><span class="kw">:</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">kind</span><span class="kw">:</span><span class="at"> literature</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ref</span><span class="kw">:</span><span class="at"> </span><span class="st">'Dubey et al. (2024), The Llama 3 Herd of Models'</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">url</span><span class="kw">:</span><span class="at"> https://arxiv.org/abs/2407.21783</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">verified</span><span class="kw">:</span><span class="at"> </span><span class="st">'2026-03-06'</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">id</span><span class="kw">:</span><span class="at"> prov:dubey-llama3-2024</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parameters</span><span class="kw">:</span><span class="at"> 8030000000 param</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">inference_flops</span><span class="kw">:</span><span class="at"> 16060000000 flop</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">layers</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">hidden_dim</span><span class="kw">:</span><span class="at"> </span><span class="dv">4096</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">heads</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">kv_heads</span><span class="kw">:</span><span class="at"> </span><span class="dv">8</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>For <code>inference_flops</code>, the standard approximation is <span class="math inline">\(2P\)</span> FLOPs per token for transformer forward passes (multiply-accumulate counted as 2 operations). When a more precise count is available from the paper, use it and note the source in a comment.</p>
 </section>
 <section id="cnn-workloads" class="level3">
@@ -1866,9 +1944,16 @@ window.Quarto = {
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">__type__</span><span class="kw">:</span><span class="at"> CNNWorkload</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> ResNet-50</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">architecture</span><span class="kw">:</span><span class="at"> CNN</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parameters</span><span class="kw">:</span><span class="at"> 25600000 param</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">inference_flops</span><span class="kw">:</span><span class="at"> 4100000000 flop</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">layers</span><span class="kw">:</span><span class="at"> </span><span class="dv">50</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">metadata</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">provenance</span><span class="kw">:</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">kind</span><span class="kw">:</span><span class="at"> literature</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">ref</span><span class="kw">:</span><span class="at"> </span><span class="st">'He et al. (2016), Deep Residual Learning for Image Recognition'</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">url</span><span class="kw">:</span><span class="at"> https://arxiv.org/abs/1512.03385</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">verified</span><span class="kw">:</span><span class="at"> </span><span class="st">'2026-03-06'</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">id</span><span class="kw">:</span><span class="at"> prov:he-resnet-2015</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parameters</span><span class="kw">:</span><span class="at"> 25600000 param</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">inference_flops</span><span class="kw">:</span><span class="at"> 4100000000 flop</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">layers</span><span class="kw">:</span><span class="at"> </span><span class="dv">50</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
 </section>
@@ -1890,22 +1975,34 @@ window.Quarto = {
 </div>
 <section id="adding-a-fleet-or-fabric-systemsregistry.py" class="level3">
 <h3 class="anchored" data-anchor-id="adding-a-fleet-or-fabric-systemsregistry.py">Adding a fleet or fabric (<code>systems/registry.py</code>)</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A new reference node</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># A new reference node (inheriting or defining colocated provenance)</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>DGX_B200 <span class="op">=</span> Node(</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"DGX B200"</span>,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    accelerator<span class="op">=</span>Hardware.Cloud.B200,</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    accelerators_per_node<span class="op">=</span><span class="dv">8</span>,</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    intra_node_bw<span class="op">=</span><span class="dv">1800</span> <span class="op">*</span> ureg.GB <span class="op">/</span> ureg.second,</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    nics_per_node<span class="op">=</span><span class="dv">8</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># A new cluster built from that node</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>Training_2K <span class="op">=</span> Fleet(</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Training Cluster (2048 GPUs)"</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    node<span class="op">=</span>DGX_B200,</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    count<span class="op">=</span><span class="dv">256</span>,  <span class="co"># 256 nodes x 8 GPUs = 2048</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    fabric<span class="op">=</span>Fabrics.InfiniBand_NDR,</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    psus_per_node<span class="op">=</span><span class="dv">6</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    psu_redundancy<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    psu_rating<span class="op">=</span><span class="fl">3.3</span> <span class="op">*</span> kilowatt,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    max_power<span class="op">=</span><span class="fl">14.3</span> <span class="op">*</span> kilowatt,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    metadata<span class="op">=</span>Metadata(</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        provenance<span class="op">=</span>pc.DGX_B200_USER_GUIDE_POWER,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        description<span class="op">=</span><span class="st">"Official NVIDIA DGX B200 server: 8x B200 180GB SXM6, six 3.3 kW PSUs in 5+1 redundancy (14.3 kW max)."</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co"># A new cluster built from that node</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>Training_2K <span class="op">=</span> Fleet(</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">"Training Cluster (2048 GPUs)"</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    node<span class="op">=</span>DGX_B200,</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    count<span class="op">=</span><span class="dv">256</span>,  <span class="co"># 256 nodes x 8 GPUs = 2048</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    fabric<span class="op">=</span>Fabrics.InfiniBand_NDR,</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    metadata<span class="op">=</span>Metadata(</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        provenance<span class="op">=</span>pc.CLUSTER_TIER_CONVENTIONS,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        description<span class="op">=</span><span class="st">"2,048-GPU training cluster tier on InfiniBand NDR."</span>,</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="adding-a-grid-profile-infrastructuredatagrids.yaml" class="level3">
 <h3 class="anchored" data-anchor-id="adding-a-grid-profile-infrastructuredatagrids.yaml">Adding a grid profile (<code>infrastructure/data/grids.yaml</code>)</h3>
