@@ -64,9 +64,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-36b07967708498ecd461e0ea002a939c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-bb57b4d25002181ffbc35f1a773f7fa2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -119,6 +119,37 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   });
 </script>
 <!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  release-gate (inline, sync) — the live site (mlsysbook.ai) shows only the
+  released volumes; every other host (the dev preview at
+  harvard-edge.github.io/cs249r_book_dev, local previews) shows the whole
+  series. Unreleased content is hidden by default and revealed by the
+  `mls-staging` class, so a page without JavaScript still hides it.
+  To release a volume, drop its `.mls-unreleased` markers and its href rule
+  below. Added 2026-10-23: Volumes III and IV stay staging-only until their
+  public preview.
+-->
+<script>
+(function () {
+  var host = window.location.hostname;
+  if (!/(^|\.)mlsysbook\.ai$/.test(host)) {
+    document.documentElement.classList.add('mls-staging');
+  }
+})();
+</script>
+<style>
+  html:not(.mls-staging) .mls-unreleased,
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol3/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol4/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html.mls-staging .mls-live-only {
+    display: none !important;
+  }
+</style>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -288,7 +319,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       "@id": "https://mlsysbook.ai/#website",
       "url": "https://mlsysbook.ai/",
       "name": "Machine Learning Systems",
-      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "description": "An open textbook series on machine learning systems.",
       "publisher": {
         "@type": "Organization",
         "name": "Harvard Edge Computing Lab",
@@ -334,20 +365,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
           "url": "../",
           "bookFormat": "https://schema.org/EBook",
           "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume III: Agentic Machine Learning Systems",
-          "url": "../../vol3/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume IV: Physical AI Systems",
-          "url": "../../vol4/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
         }
       ]
     },
@@ -800,9 +817,7 @@ $$
 \newcommand{\AdaptationWindowEnergy}{E_{\text{update}}}
 \newcommand{\AdaptedHiddenActivation}{\mathbf{h}'}
 \newcommand{\AdaptedTaskCost}{C_{\text{task, adapt}}}
-\newcommand{\AdaptedWeightMatrix}{\mathbf{W}_{\text{adapted}}}
 \newcommand{\AdapterActivationFunction}{\sigma}
-\newcommand{\AdapterAssignmentVector}{\mathbf{m}}
 \newcommand{\AdapterDownProjectionMatrix}{\mathbf{A}}
 \newcommand{\AdapterIndex}{k}
 \newcommand{\AdapterInitializationStandardDeviation}{\sigma}
@@ -811,7 +826,6 @@ $$
 \newcommand{\AdapterUpProjectionMatrix}{\mathbf{B}}
 \newcommand{\AdjacentNeighboringDataset}{X'}
 \newcommand{\AdjacentQueryResult}{v'}
-\newcommand{\AdminLeaseTime}{T_{\text{admin}}}
 \newcommand{\AdmissibleBacklogCount}{n}
 \newcommand{\AdmissibleControlSet}{\mathcal{U}_{\text{adm}}}
 \newcommand{\AdmissibleDisturbanceSet}{\mathcal{W}}
@@ -839,7 +853,6 @@ $$
 \newcommand{\AffordanceSuccessEstimate}{V_{\text{policy}}}
 \newcommand{\AgeBlindTravel}{\Delta x_{\text{blind}}}
 \newcommand{\AgeCheckInstant}{t_{\text{curr}}}
-\newcommand{\AggregateServerPower}{P_{\text{servers}}}
 \newcommand{\AggregateSlotWork}{W}
 \newcommand{\AggregatedRecoveryDataset}{\mathcal{D}}
 \newcommand{\AggregatedSurrogateLoss}{\epsilon_N}
@@ -866,7 +879,6 @@ $$
 \newcommand{\AllocatedBlockCount}{N_{\text{blocks}}}
 \newcommand{\AllocatedHazardRate}{\lambda_{\text{alloc}}}
 \newcommand{\AllocatedWallTime}{T_{\text{wall}}}
-\newcommand{\AllowableCollisionEnergy}{E_{k, \text{allow}}}
 \newcommand{\AllowableRailDroop}{\Delta V_{\text{droop, max}}}
 \newcommand{\AllowableRailExcursion}{\Delta V_{\max}}
 \newcommand{\AllowableWindingTemperatureRise}{\Delta T_{\max}}
@@ -936,7 +948,6 @@ $$
 \newcommand{\AttemptVerificationCost}{C_{\text{verify}}}
 \newcommand{\AttentionHeadCount}{N_{\text{heads}}}
 \newcommand{\AttentionHeadDimension}{d_{\text{head}}}
-\newcommand{\AttentionHeadIndex}{i}
 \newcommand{\AttentionHeadOutput}{\mathbf{O}}
 \newcommand{\AttentionKeyMatrix}{\mathbf{K}}
 \newcommand{\AttentionOutputMatrix}{\mathbf{O}}
@@ -1028,11 +1039,9 @@ $$
 \newcommand{\BaseTravelDistance}{d}
 \newcommand{\BaseTravelSpeed}{v_{\text{base}}}
 \newcommand{\BaseWidthMultiplier}{w_{\text{mult},0}}
-\newcommand{\BaseWorkerCount}{N_{\text{base}}}
 \newcommand{\BaseWristTransform}{\mathbf{T}_{\text{base} \leftarrow \text{wrist}}}
 \newcommand{\BaseYawRateBias}{\omega_{\text{bias}}}
 \newcommand{\BaselineAcceptanceEstimate}{\hat{p}_{\text{base}}}
-\newcommand{\BaselineAnnualOperationsCost}{C_{\text{current}}}
 \newcommand{\BaselineControllerAction}{\mathbf{a}_t^{\text{base}}}
 \newcommand{\BaselineConversionRate}{p_0}
 \newcommand{\BaselineFeatureMean}{\mu_{\text{base}}}
@@ -1375,7 +1384,6 @@ $$
 \newcommand{\CentroidalMomentumRate}{\dot{\mathbf{h}}_G}
 \newcommand{\CertifiedCommandWindow}{\mathbf{u}^*_{t:t+H-1}}
 \newcommand{\CertifiedControlAction}{\mathbf{u}^*}
-\newcommand{\CertifiedJointTorque}{u^*}
 \newcommand{\CertifiedRadius}{R}
 \newcommand{\ChainRuleInput}{x}
 \newcommand{\ChainRuleIntermediate}{u}
@@ -1393,7 +1401,6 @@ $$
 \newcommand{\CheckIntervalStepCount}{m}
 \newcommand{\CheckPassProbability}{p^{\text{chk}}}
 \newcommand{\CheckSlotTime}{T}
-\newcommand{\CheckWindowTurnCount}{w}
 \newcommand{\CheckedSignal}{x}
 \newcommand{\CheckedSignalLimit}{L_{\text{limit}}}
 \newcommand{\CheckpointAttemptDuration}{T_{\text{att}}}
@@ -1428,7 +1435,6 @@ $$
 \newcommand{\ChunkExecutionHorizon}{H_{\text{exec}}}
 \newcommand{\ChunkImitationLoss}{\mathcal{L}_{\text{chunk}}}
 \newcommand{\ChunkLease}{T_{\text{lease}}}
-\newcommand{\ChunkLeaseTime}{T_{\text{lease}}}
 \newcommand{\ChunkReactionLatency}{T_{\text{reaction}}}
 \newcommand{\ChunkRenewalPeriod}{T_{\text{chunk}}}
 \newcommand{\ChunkRenewalRate}{f_{\text{replan}}}
@@ -1455,11 +1461,9 @@ $$
 \newcommand{\ClearanceTimeBudget}{T_{\text{total}}}
 \newcommand{\ClfClassKFunction}{\alpha_V}
 \newcommand{\ClfDescentControlSet}{\mathcal{U}_{\text{CLF}}}
-\newcommand{\ClientGradientVector}{\mathbf{g}}
 \newcommand{\ClientIndex}{k}
 \newcommand{\ClientLocalDataset}{\mathcal{D}}
 \newcommand{\ClientLocalTrainingEnergy}{E_{\text{client}}}
-\newcommand{\ClientMaskVector}{\mathbf{r}}
 \newcommand{\ClientObjectiveWeight}{w}
 \newcommand{\ClientSampleCount}{n}
 \newcommand{\ClientUpdateUploadEnergy}{E_{\text{upload}}}
@@ -1478,7 +1482,6 @@ $$
 \newcommand{\CloudInferenceEnergy}{E_{\text{cloud}}}
 \newcommand{\CloudOffloadEnergy}{E_{\text{transmit}}}
 \newcommand{\CloudTrainingRunEnergy}{E_{\text{cloud,train}}}
-\newcommand{\ClusterAvailability}{A_{\text{cluster}}}
 \newcommand{\ClusterCount}{k}
 \newcommand{\ClusterHeadroom}{N}
 \newcommand{\ClusterNodeCount}{N_{\text{nodes}}}
@@ -1496,7 +1499,6 @@ $$
 \newcommand{\CollectionCohortCost}{C_{\text{cohort}}}
 \newcommand{\CollectionStateVisitationDistribution}{p^{\pi_{\text{col}}}}
 \newcommand{\CollectiveCallStartupLatency}{\alpha_{\text{eff}}}
-\newcommand{\CollectiveInputTensor}{\mathbf{X}}
 \newcommand{\CollectivePayloadSize}{M}
 \newcommand{\CollectiveTensorSize}{M_{\text{coll}}}
 \newcommand{\CollisionHullCount}{N_{\text{hulls}}}
@@ -1581,7 +1583,6 @@ $$
 \newcommand{\CompressedGradientUpdateElement}{v}
 \newcommand{\CompressedOnlyCorrectCount}{n_{\text{comp}}}
 \newcommand{\CompressionRatio}{r_{\text{comp}}}
-\newcommand{\ComputationalDimensionCount}{N_{\text{comp}}}
 \newcommand{\ComputationalGraph}{G}
 \newcommand{\ComputeBudgetConstraint}{g}
 \newcommand{\ComputeChipPower}{P_{\text{chip}}}
@@ -1700,7 +1701,6 @@ $$
 \newcommand{\ControlAffineDriftField}{\mathbf{f}}
 \newcommand{\ControlAffineInputField}{\mathbf{g}}
 \newcommand{\ControlCommand}{\mathbf{u}}
-\newcommand{\ControlCommandDerivative}{\dot{\mathbf{u}}}
 \newcommand{\ControlCommandSpace}{\mathcal{U}}
 \newcommand{\ControlConversionRate}{\hat{p}_A}
 \newcommand{\ControlCycleIndex}{i}
@@ -1712,7 +1712,6 @@ $$
 \newcommand{\ControlInputWindow}{\mathbf{u}_{[t, t+\Delta t]}}
 \newcommand{\ControlSampleIndex}{k}
 \newcommand{\ControlSampleSize}{m_A}
-\newcommand{\ControlSetpointJerk}{\mathbf{j}}
 \newcommand{\ControlSetpointPeriod}{\Delta t_{\text{ctrl}}}
 \newcommand{\ControlStepIndex}{t}
 \newcommand{\ControlTaskIndex}{i}
@@ -2025,8 +2024,6 @@ $$
 \newcommand{\DivergenceInstant}{t_{\text{div}}}
 \newcommand{\DivergenceMeasure}{\mathcal{D}}
 \newcommand{\DivergenceTolerance}{\delta_{\text{tol}}}
-\newcommand{\DmaBurstPeriod}{T_{\text{dma}}}
-\newcommand{\DmaBurstStallTime}{C_{\text{dma}}}
 \newcommand{\DmaQueueTime}{t_{\text{DMA}}}
 \newcommand{\DocumentPayloadFraction}{q}
 \newcommand{\DomainRandomizationDistribution}{\mathcal{D}_{\text{DR}}}
@@ -2045,7 +2042,6 @@ $$
 \newcommand{\DraftCandidateToken}{\tilde{x}}
 \newcommand{\DraftModelDistribution}{q_{\phi}}
 \newcommand{\DraftPositionAcceptanceProbability}{\alpha_{\text{spec}, j}}
-\newcommand{\DraftPositionIndex}{i}
 \newcommand{\DraftSamplingDistribution}{q}
 \newcommand{\DraftTokenAcceptanceProbability}{\alpha_{\text{acc}}}
 \newcommand{\DraftTokenCostRatio}{\beta}
@@ -2178,14 +2174,12 @@ $$
 \newcommand{\EnforcerComputeTime}{T_{\text{comp}}}
 \newcommand{\EnforcerDeadline}{T_{\text{deadline,enf}}}
 \newcommand{\EngineerHourlyCost}{C_{\text{engineer}}}
-\newcommand{\EngineeringTeamSize}{n}
 \newcommand{\EngineeringTemperatureCeiling}{T_{\text{ceil}}}
 \newcommand{\EnsembleSpreadThreshold}{\sigma_{\text{thresh}}}
 \newcommand{\EnsemblingDecayRate}{m}
 \newcommand{\EnsemblingWindowLength}{K}
 \newcommand{\EntityCount}{N_{\text{entities}}}
 \newcommand{\EntityEmbedding}{\mathbf{e}}
-\newcommand{\EntityIndex}{j}
 \newcommand{\EntropyTemperature}{\alpha}
 \newcommand{\EnvelopeCallCount}{N}
 \newcommand{\EnvelopeSetupTime}{T_{\text{setup}}}
@@ -2437,7 +2431,6 @@ $$
 \newcommand{\FirstAdjacentCheckIndex}{a}
 \newcommand{\FirstAdjacentCheckPassProbability}{p_{a}}
 \newcommand{\FirstAdjacentCheckSlotTime}{T_{a}}
-\newcommand{\FirstAtomicGradientUpdate}{A}
 \newcommand{\FirstCatalogDefinitionCount}{n_{\text{def},A}}
 \newcommand{\FirstCatalogDefinitionSize}{S_{A}}
 \newcommand{\FirstClassCoverageFloor}{a}
@@ -2469,7 +2462,6 @@ $$
 \newcommand{\FlangeReferenceFrame}{\mathcal{F}_{\text{flange}}}
 \newcommand{\FlangeTargetTransform}{\mathbf{T}_{\text{flange}}^{\text{target}}}
 \newcommand{\FlattenedFilterWeights}{\mathbf{w}_{\text{col}}}
-\newcommand{\FleetAcceleratorCount}{N_{\text{fleet}}}
 \newcommand{\FleetCommunicationTaxonomyAxis}{C_2}
 \newcommand{\FleetComputeTaxonomyAxis}{C_1}
 \newcommand{\FleetCoordinationTaxonomyAxis}{C_3}
@@ -2543,7 +2535,6 @@ $$
 \newcommand{\FrobeniusNorm}{F}
 \newcommand{\FrozenBackboneFunction}{f}
 \newcommand{\FrozenFeatureEncoder}{f}
-\newcommand{\FrozenWeightMatrix}{\mathbf{W}_{\text{frozen}}}
 \newcommand{\FrustumFeature}{\mathbf{c}_{u, v, k}}
 \newcommand{\FullBatchLoss}{\mathcal{L}_B}
 \newcommand{\FullDatasetSize}{D_{\text{total}}}
@@ -2569,9 +2560,6 @@ $$
 \newcommand{\FusionCandidate}{x_{\text{cand}}}
 \newcommand{\FusionInputList}{\mathcal{L}}
 \newcommand{\FusionInputRank}{r}
-\newcommand{\FusionInputTensor}{\mathbf{X}}
-\newcommand{\FusionIntermediateTensor}{\mathbf{Z}}
-\newcommand{\FusionOutputTensor}{\mathbf{Y}}
 \newcommand{\FutureControlTrajectory}{\mathbf{u}_{[t, \infty)}}
 \newcommand{\FutureTimeInstant}{t'}
 \newcommand{\GaeAdvantageEstimate}{\widehat{A}^{\text{GAE}}}
@@ -2706,7 +2694,6 @@ $$
 \newcommand{\GuardedContactPredicate}{P_{\text{contact}}}
 \newcommand{\GuestImageMemory}{M_{\text{guest}}}
 \newcommand{\GuestKernelBootTime}{T_{\text{kernel}}}
-\newcommand{\HadamardRotationMatrix}{\mathbf{H}}
 \newcommand{\HalfPrecisionGemvIntensity}{I_{\text{GEMV, 16-bit}}}
 \newcommand{\HammingDataBitCount}{n}
 \newcommand{\HandForceCriterion}{F_h}
@@ -2826,7 +2813,6 @@ $$
 \newcommand{\ImageColumnIndex}{w}
 \newcommand{\ImageEpipole}{\mathbf{e}}
 \newcommand{\ImageHeight}{H}
-\newcommand{\ImagePlanePixelCoordinates}{\mathbf{u}_{\text{px}}}
 \newcommand{\ImageRowIndex}{h}
 \newcommand{\ImageTensorElement}{X}
 \newcommand{\ImageWidth}{W}
@@ -3181,7 +3167,6 @@ $$
 \newcommand{\LaterRolloutTurnIndex}{j}
 \newcommand{\LaterStepIndex}{j}
 \newcommand{\LateralClearance}{W_{\text{clear}}}
-\newcommand{\LatestSequentialObservation}{X_m}
 \newcommand{\LayerAllReduceTime}{T_{\text{layer comm}}}
 \newcommand{\LayerBackwardTime}{T_{\text{layer backward}}}
 \newcommand{\LayerCount}{N_L}
@@ -3308,7 +3293,6 @@ $$
 \newcommand{\LoopOrderCount}{N_{\text{order}}}
 \newcommand{\LoopParallelizationChoiceCount}{\mathcal{P}_{\text{parallel}}}
 \newcommand{\LoopTurnCost}{C}
-\newcommand{\Loss}{L}
 \newcommand{\LossAdjointSeed}{\bar{\mathcal{L}}}
 \newcommand{\LossFunction}{\mathcal{L}}
 \newcommand{\LossGradient}{g}
@@ -3355,7 +3339,6 @@ $$
 \newcommand{\MapPoseCovariance}{\boldsymbol{\Sigma}_{\text{map}}}
 \newcommand{\MapReferenceFrame}{\mathcal{F}_{\text{map}}}
 \newcommand{\MappedCommandTap}{a_{\text{cmd}}}
-\newcommand{\MappingSearchSpaceSize}{\mathcal{S}_{\text{mapping}}}
 \newcommand{\MarginalFalseApprovalProbability}{p}
 \newcommand{\MarginalRequestServiceTime}{t_{\text{req}}}
 \newcommand{\MarginalStoppingThreshold}{\epsilon_{\text{stop}}}
@@ -3363,7 +3346,6 @@ $$
 \newcommand{\MarginalizedModelParameters}{\theta'}
 \newcommand{\MarkovDecisionProcess}{\mathcal{M}}
 \newcommand{\MaskTokenIndex}{i}
-\newcommand{\MaskedClientUpdate}{\mathbf{y}}
 \newcommand{\MaskedFinetuningLoss}{\mathcal{L}_{\text{SFT}}}
 \newcommand{\MaskedImitationDataset}{\mathcal{D}_{\text{train}}}
 \newcommand{\MaskedImitationLoss}{\mathcal{L}_{\text{imitation}}}
@@ -3457,12 +3439,10 @@ $$
 \newcommand{\MemoryEntryDeathGeneration}{g_{\text{death}}}
 \newcommand{\MemoryHierarchyLevelCount}{N_{\text{mem}}}
 \newcommand{\MemoryHoldDuringWait}{O_{\text{mem}}}
-\newcommand{\MemoryPlacementCount}{\mathcal{M}_{\text{placement}}}
 \newcommand{\MemorySubsystemEnergy}{E_{\text{memory}}}
 \newcommand{\MergedAttentionOutput}{\mathbf{O}^{\text{new}}}
 \newcommand{\MergedSoftmaxMaximum}{m^{\text{new}}}
 \newcommand{\MergedSoftmaxNormalizer}{z^{\text{new}}}
-\newcommand{\MergedWeightMatrix}{\mathbf{W}_{\text{final}}}
 \newcommand{\MessageInjectionGap}{g}
 \newcommand{\MessageQueueDelay}{T_q}
 \newcommand{\MessageStartupLatency}{\alpha}
@@ -3516,8 +3496,6 @@ $$
 \newcommand{\MlProductivityGoodput}{\text{MPG}}
 \newcommand{\MlpWeightArithmeticIntensity}{I_{\text{MLP}}}
 \newcommand{\MobileBaseBarrierFunction}{h_{\text{base}}}
-\newcommand{\MobilenetWidthMultiplier}{\alpha_{\text{width}}}
-\newcommand{\ModelBandwidthUtilization}{\text{MBU}}
 \newcommand{\ModelCallIndex}{i}
 \newcommand{\ModelCallRequest}{\mathcal{R}}
 \newcommand{\ModelDownloadEnergy}{E_{\text{download}}}
@@ -3590,7 +3568,6 @@ $$
 \newcommand{\NetworkBandwidth}{\text{BW}_{\text{network}}}
 \newcommand{\NetworkDelayStandardDeviation}{\sigma_d}
 \newcommand{\NetworkEnergy}{E_{\text{network}}}
-\newcommand{\NetworkEquipmentPower}{P_{\text{network}}}
 \newcommand{\NetworkFunction}{f_{\text{net}}}
 \newcommand{\NetworkLatency}{L_{\text{lat,network}}}
 \newcommand{\NetworkOutput}{y}
@@ -3601,10 +3578,8 @@ $$
 \newcommand{\NeuronConnectionWeight}{w_{ij}}
 \newcommand{\NeuronIndex}{j}
 \newcommand{\NeuronPreactivation}{z}
-\newcommand{\NewSoftmaxRunningMaximum}{m_{\text{new}}}
 \newcommand{\NextDecisionProcessState}{s'}
 \newcommand{\NextFailureTime}{F}
-\newcommand{\NextLayerActivationMemory}{M_{\text{activations}}^{(\ell+1)}}
 \newcommand{\NextProprioceptiveObservation}{\mathbf{o}_{\text{proprio}, t+1}}
 \newcommand{\NextRobotAction}{\mathbf{a}'}
 \newcommand{\NextTokenDistribution}{p}
@@ -3745,11 +3720,7 @@ $$
 \newcommand{\OffloadTransactionWindow}{W}
 \newcommand{\OhmUnit}{\Omega}
 \newcommand{\OilBulkModulus}{\beta}
-\newcommand{\OldSoftmaxRunningMaximum}{m_{\text{old}}}
 \newcommand{\OnDieDecouplingCapacitance}{C_{\text{die}}}
-\newcommand{\OnlineSoftmaxKeyTile}{\mathbf{K}_{\text{tile}}}
-\newcommand{\OnlineSoftmaxQueryBlock}{\mathbf{Q}_{\text{block}}}
-\newcommand{\OnlineSoftmaxScoreBlock}{\mathbf{A}_{\text{block}}}
 \newcommand{\OpenLoopTransferFunction}{L}
 \newcommand{\OpenLoopTransferMatrix}{\mathbf{L}}
 \newcommand{\OperationChargeBound}{\bar{c}}
@@ -3901,7 +3872,6 @@ $$
 \newcommand{\PathDelayAsymmetry}{\Delta t_{\text{asym}}}
 \newcommand{\PathGridPointCount}{N_{\text{grid}}}
 \newcommand{\PathVelocity}{\dot{s}}
-\newcommand{\PathVelocityField}{v}
 \newcommand{\PathVelocitySquaredTorqueCoefficient}{\mathbf{b}_{\tau}}
 \newcommand{\PayloadGravityTorque}{\tau_{g}}
 \newcommand{\PayloadLeverArm}{r}
@@ -4005,7 +3975,6 @@ $$
 \newcommand{\PixelRowCoordinate}{v}
 \newcommand{\PixelRowStandardDeviation}{\sigma_v}
 \newcommand{\PixelStandardDeviation}{\sigma_u}
-\newcommand{\PlacementChoiceCount}{n}
 \newcommand{\PlaintextInput}{m}
 \newcommand{\PlanAction}{a}
 \newcommand{\PlanarHomographyMatrix}{\mathbf{H}}
@@ -4026,7 +3995,6 @@ $$
 \newcommand{\PlantStateSpace}{\mathcal{X}}
 \newcommand{\PlantTransitionDensity}{p_m}
 \newcommand{\PlantTransitionKernel}{\mathcal{T}}
-\newcommand{\PlatformAnnualOperationsCost}{C_{\text{after}}}
 \newcommand{\PlatformResourceCapacity}{\text{Cap}}
 \newcommand{\PlatformResourceIndex}{i}
 \newcommand{\PlatformTotalCost}{C_{\text{platform}}}
@@ -4199,7 +4167,6 @@ $$
 \newcommand{\ProcessNoiseIntensity}{\mathbf{Q}}
 \newcommand{\ProcessNoiseVector}{\mathbf{w}}
 \newcommand{\ProcessedDataVolume}{D_{\text{vol,processed}}}
-\newcommand{\ProcessedKeyTileIndex}{t}
 \newcommand{\ProcessedSampleCount}{N_{\text{samples}}}
 \newcommand{\ProcessingBufferCount}{N_{\text{processing}}}
 \newcommand{\ProcessingPrice}{R_{\text{process/GB}}}
@@ -4556,7 +4523,6 @@ $$
 \newcommand{\ResidualGate}{g}
 \newcommand{\ResidualPolicyTorque}{\boldsymbol{\tau}_{\text{res},\theta}}
 \newcommand{\ResidualSamplingDistribution}{p_{\text{res}}}
-\newcommand{\ResizedWorkerCount}{N_{\text{new}}}
 \newcommand{\ResolutionScalingRatio}{\gamma}
 \newcommand{\ResourceChangeRate}{r_{\text{chg}}}
 \newcommand{\ResourceCostBudget}{C_{\text{max}}}
@@ -4657,8 +4623,6 @@ $$
 \newcommand{\RolloutTurnIndex}{k}
 \newcommand{\RooflineRidgePoint}{I_{\text{ridge}}}
 \newcommand{\RotaryRotationMatrix}{\mathbf{R}}
-\newcommand{\RotatedActivationMatrix}{\mathbf{X}'}
-\newcommand{\RotatedWeightMatrix}{\mathbf{W}'}
 \newcommand{\RotatingBodyAngularSpeed}{\omega}
 \newcommand{\RotatingBodyInertia}{J}
 \newcommand{\RotationOriginAcceleration}{\mathbf{a}_O}
@@ -4780,7 +4744,6 @@ $$
 \newcommand{\SecondAdjacentCheckIndex}{b}
 \newcommand{\SecondAdjacentCheckPassProbability}{p_{b}}
 \newcommand{\SecondAdjacentCheckSlotTime}{T_{b}}
-\newcommand{\SecondAtomicGradientUpdate}{B}
 \newcommand{\SecondCatalogDefinitionCount}{n_{\text{def},B}}
 \newcommand{\SecondCatalogDefinitionSize}{S_{B}}
 \newcommand{\SecondClassCoverageFloor}{b}
@@ -4839,7 +4802,6 @@ $$
 \newcommand{\SequentialCandidateCount}{M}
 \newcommand{\SequentialCostPerAcceptedTask}{C_{\text{eff,seq}}}
 \newcommand{\SequentialExecutionTime}{T_{\text{sequential}}}
-\newcommand{\SequentialLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialLogLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialTestObservation}{X}
 \newcommand{\SequentialTrialCount}{m}
@@ -4925,7 +4887,6 @@ $$
 \newcommand{\SingleJointInertia}{M}
 \newcommand{\SingleJointVelocityLimit}{\dot{q}_{i,\max}}
 \newcommand{\SingleLinkBandwidth}{\text{BW}_{\text{link}}}
-\newcommand{\SinglePrecisionGemvIntensity}{I_{\text{GEMV, 32-bit}}}
 \newcommand{\SingleStepImitationError}{\epsilon}
 \newcommand{\SingularSpectrumMatrix}{\mathbf{\Sigma}}
 \newcommand{\SisaShardCount}{K}
@@ -4953,7 +4914,6 @@ $$
 \newcommand{\SmoothnessConstant}{L_s}
 \newcommand{\SnapshotReadTime}{t_{\text{own}}}
 \newcommand{\SnapshotResetCycleTime}{T_{\text{cycle,snap}}}
-\newcommand{\SnapshotStepIndex}{s}
 \newcommand{\SoftExpectedActionReturn}{Q}
 \newcommand{\SoftExpectedRemainingReturn}{V}
 \newcommand{\SoftenedStudentProbabilityVector}{\mathbf{p}_{\text{student}}^{(T_{\text{distill}})}}
@@ -4964,7 +4924,6 @@ $$
 \newcommand{\SoftmaxNormalizer}{z}
 \newcommand{\SoftmaxOutputProbability}{p}
 \newcommand{\SoftmaxRowMaximum}{m}
-\newcommand{\SoftmaxRowScore}{s}
 \newcommand{\SoftmaxRunningMaximum}{m}
 \newcommand{\SoftmaxVectorLength}{n}
 \newcommand{\SontagStabilizingControl}{\mathbf{u}_{\text{Sontag}}}
@@ -5123,7 +5082,6 @@ $$
 \newcommand{\StorageAccessFactor}{F_{\text{access}}}
 \newcommand{\StorageBandwidth}{\text{BW}_{\text{storage}}}
 \newcommand{\StorageCapacityPrice}{C_{\text{storage/byte-time}}}
-\newcommand{\StorageEquipmentPower}{P_{\text{storage}}}
 \newcommand{\StorageFunction}{V}
 \newcommand{\StorageFunctionDerivative}{\dot{V}}
 \newcommand{\StorageIngestBandwidth}{\text{BW}_{\text{ingest}}}
@@ -5314,7 +5272,6 @@ $$
 \newcommand{\TaskTurnCost}{C_{\text{call}}}
 \newcommand{\TaskWeight}{w}
 \newcommand{\TasksPerComparisonArm}{N_{\text{arm}}}
-\newcommand{\TeacherProbabilityVector}{\mathbf{p}_{\text{teacher}}}
 \newcommand{\TeamQuotaCap}{Q_{\text{team}}}
 \newcommand{\TelemetryFlushTime}{t_{\text{telemetry\_flush}}}
 \newcommand{\TelemetryFreshnessBound}{\Delta t_{\text{fresh}}}
@@ -5365,7 +5322,6 @@ $$
 \newcommand{\ThermalPowerLimit}{P_{\text{thermal}}}
 \newcommand{\ThermalResistance}{R_{\text{th}}}
 \newcommand{\ThermalTimeConstant}{\tau_{\text{th}}}
-\newcommand{\ThirdAtomicGradientUpdate}{C}
 \newcommand{\ThirdFloatingPointAddend}{c}
 \newcommand{\ThirdRingTraceElement}{c}
 \newcommand{\ThresholdExceedanceCount}{N_u}
@@ -5686,7 +5642,6 @@ $$
 \newcommand{\UnprojectionJacobian}{\mathbf{J}_{\text{unproj}}}
 \newcommand{\UnrecoverableDamageCost}{C_{\text{blast}}}
 \newcommand{\UnreservedStopDelay}{\delta}
-\newcommand{\UnscaledAttentionScoreMatrix}{\mathbf{A}}
 \newcommand{\UnshardedLocalExecutionTime}{T_{\text{compute}}}
 \newcommand{\UnsquashedLatentAction}{\mathbf{u}}
 \newcommand{\UntilPrefixTime}{t''}
@@ -5790,7 +5745,6 @@ $$
 \newcommand{\WeightPenaltyStrength}{\lambda_{\text{reg}}}
 \newcommand{\WeightQuantizationScale}{s_W}
 \newcommand{\WeightRangeBound}{W_{\text{max}}}
-\newcommand{\WeightStreamingDecodeTime}{T_{\text{decode}}}
 \newcommand{\WeightVector}{\mathbf{w}}
 \newcommand{\WeightedNormArgument}{\mathbf{z}}
 \newcommand{\WheelAngularSpeed}{\omega}
@@ -5829,9 +5783,7 @@ $$
 \newcommand{\WorkerCompletionDistribution}{F}
 \newcommand{\WorkerCompletionTime}{T}
 \newcommand{\WorkerCount}{N_{\text{workers}}}
-\newcommand{\WorkerDelayProbability}{p}
 \newcommand{\WorkerIndex}{k}
-\newcommand{\WorkerMinibatch}{B}
 \newcommand{\WorkerOverheadSlope}{\gamma}
 \newcommand{\WorkerTransformTime}{T_{\text{transform}}}
 \newcommand{\WorkerWrittenFileCount}{w}
@@ -6078,50 +6030,23 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-notebook {
-  --color1: #F4F7FA;
-  --color2: #3F6077;
-  --border-color: #3F6077;
-  --background-color: rgba(63, 96, 119, 0.04);
-  --title-background-color: rgba(63, 96, 119, 0.04);
-  --dark-background-color: rgba(63, 96, 119, 0.12);
-  --dark-title-background-color: rgba(63, 96, 119, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-caution {
-  --color1: #FFFBEB;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 .callout-resource-videos {
   --color1: #E0F2F1;
@@ -6132,41 +6057,23 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #F1F5F9;
-  --color2: #64748B;
-  --border-color: #64748B;
-  --background-color: rgba(100, 116, 139, 0.04);
-  --title-background-color: rgba(100, 116, 139, 0.04);
-  --dark-background-color: rgba(100, 116, 139, 0.12);
-  --dark-title-background-color: rgba(100, 116, 139, 0.12);
-}
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
 }
 .callout-perspective {
   --color1: #F7F8FA;
@@ -6186,32 +6093,14 @@ $$
   --dark-background-color: rgba(220, 38, 38, 0.12);
   --dark-title-background-color: rgba(220, 38, 38, 0.12);
 }
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
 }
 .callout-quiz-question {
   --color1: #F0F0F8;
@@ -6222,6 +6111,51 @@ $$
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
 .callout-takeaways {
   --color1: #FCF4F8;
   --color2: #9D3C72;
@@ -6230,6 +6164,51 @@ $$
   --title-background-color: rgba(157, 60, 114, 0.04);
   --dark-background-color: rgba(157, 60, 114, 0.12);
   --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-caution {
+  --color1: #FFFBEB;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-case-study {
   --color1: #FEF2F2;
@@ -6249,113 +6228,44 @@ $$
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-code {
+  details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-code code {
+  details.callout-colab code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-caution code {
+  details.callout-theorem code {
     color: #e6e6e6 !important;
   }
   details.callout-resource-videos {
@@ -6372,60 +6282,32 @@ $$
   details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-notebook {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-notebook code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-research-questions code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-perspective {
@@ -6456,46 +6338,18 @@ $$
   details.callout-warning code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
+  details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
   }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
+  details.callout-code code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-question {
@@ -6512,6 +6366,76 @@ $$
   details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
   details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(157, 60, 114, 0.12);
@@ -6524,6 +6448,76 @@ $$
     color: #f0f0f0 !important;
   }
   details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
   details.callout-case-study {
@@ -6554,131 +6548,47 @@ $$
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-}
-body.quarto-dark details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-answer {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
     --title-background-color: rgba(74, 124, 89, 0.12);
     border-color: #4A7C59;
   }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-quiz-answer code {
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-principle {
+}
+body.quarto-dark details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-body.quarto-dark details.callout-principle summary,
-body.quarto-dark details.callout-principle summary strong,
-body.quarto-dark details.callout-principle > summary {
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-principle code {
+body.quarto-dark details.callout-colab code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-caution {
+body.quarto-dark details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-caution code {
+body.quarto-dark details.callout-theorem code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-resource-videos {
@@ -6695,60 +6605,32 @@ body.quarto-dark details.callout-resource-videos > summary {
 body.quarto-dark details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-colab {
+body.quarto-dark details.callout-notebook {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
   }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-colab code {
+body.quarto-dark details.callout-notebook code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-learning-objectives {
+body.quarto-dark details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-body.quarto-dark details.callout-chapter-connection summary,
-body.quarto-dark details.callout-chapter-connection summary strong,
-body.quarto-dark details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-research-questions code {
+body.quarto-dark details.callout-definition code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-perspective {
@@ -6779,46 +6661,18 @@ body.quarto-dark details.callout-warning > summary {
 body.quarto-dark details.callout-warning code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-checkpoint {
+body.quarto-dark details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
   }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-slides code {
+body.quarto-dark details.callout-code code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-quiz-question {
@@ -6835,6 +6689,76 @@ body.quarto-dark details.callout-quiz-question > summary {
 body.quarto-dark details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-principle {
+    --text-color: #e6e6e6;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
+  }
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
 body.quarto-dark details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(157, 60, 114, 0.12);
@@ -6847,6 +6771,76 @@ body.quarto-dark details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
 body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-case-study {
@@ -6877,93 +6871,36 @@ body.quarto-dark details.callout-war-story > summary {
 body.quarto-dark details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-example {
+body.quarto-dark details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-body.quarto-dark details.callout-example summary,
-body.quarto-dark details.callout-example summary strong,
-body.quarto-dark details.callout-example > summary {
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-exercises code {
+body.quarto-dark details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
 </style>
 <style>
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
-}
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
 }
 details.callout-resource-videos > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-perspective > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
@@ -6971,20 +6908,44 @@ details.callout-perspective > summary::before {
 details.callout-warning > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
 }
 details.callout-quiz-question > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
 details.callout-takeaways > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
 details.callout-case-study > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
@@ -6992,17 +6953,8 @@ details.callout-case-study > summary::before {
 details.callout-war-story > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 </style>
     <style type="text/css">
@@ -7081,71 +7033,36 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">Concept Explorer</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
     <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume I: Foundations</span></a>
+ <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume II: Scaling</span></a>
+ <span class="dropdown-text">Volume II: Scaling Machine Learning Systems (preview)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol3/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+ <span class="dropdown-text">Volume III: Agentic Machine Learning Systems (in preparation)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+ <span class="dropdown-text">Volume IV: Physical AI (in preparation)</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume I PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume I EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume II PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume II EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume III PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume III EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume IV PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume IV EPUB</span></a>
   </li>  
     </ul>
   </li>
@@ -7187,24 +7104,19 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
-</i> 
- <span class="dropdown-text">CS249r Course Map</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
-</i> 
- <span class="dropdown-text">Lecture Slides</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/community/courses.html"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="https://mlsysbook.ai/courses/"><i class="bi bi-mortarboard" role="img">
 </i> 
- <span class="dropdown-text">Courses Using the Book</span></a>
+ <span class="dropdown-text">Courses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
     </ul>
   </li>
@@ -7360,9 +7272,9 @@ window.Quarto = {
         </a>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="2bc758b427909bb9600f57b376922af7" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">aaa7266e</code> • 2026-10-16 16:04 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>PREVIEW — Volume II: Scaling.</strong> Distributed training, fleet operations, and responsible deployment.<br> 📗 <strong>First time here?</strong> Start with <a href="../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="9c145efac03bb5424d6029abc27a61ba" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p><span class="mls-ann-line"><strong>Scaling Machine Learning Systems (Volume II), preview edition.</strong> Distributed training, fleet operations, and responsible deployment.</span> <span class="mls-ann-line"><strong>Companion volume:</strong> <a href="../../vol1/">Introduction to Machine Learning Systems (Volume I)</a>, on machine learning systems on a single machine. Both volumes are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -7665,6 +7577,9 @@ window.Quarto = {
 
 <section id="sec-conclusion" class="level1 page-columns page-full" data-number="17">
 <h1 data-number="17"><span class="header-section-number">17</span> Conclusion</h1>
+<div class="chapter-slides text-muted small">
+<p><a href="https://mlsysbook.ai/slides/vol2.html#ch-17">Lecture slides</a> for this chapter</p>
+</div>
 <div class="{layout-narrow} page-columns page-full">
 
 <div class="no-row-height column-margin column-container"><div class="">
@@ -7678,11 +7593,11 @@ window.Quarto = {
 <p><a href="images/svg/margin_stack.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="images/svg/margin_stack.svg" class="img-fluid" style="width:100.0%" alt="Fleet Machine Learning Systems Stack"></a></p>
 <p><em>Fleet stack focus for this chapter.</em></p>
 </div></div><p><em>Why must the unit of machine learning systems design become the fleet rather than the model?</em></p>
-<p>Machine learning at fleet scale is judged by the whole system, and a local improvement can move cost into a layer that its designer did not measure. Faster computation can expose a network bottleneck; larger jobs can lose more work to failure; a service that meets latency targets can still lack evidence required for deployment. The model remains central, but its accuracy and execution speed do not determine whether the complete system delivers useful work. Adding accelerators is therefore a design decision about shared resources and obligations, not simply a purchase of more arithmetic. If communication and recovery consume the saved execution time, the expansion can increase cost without improving progress. If the resulting service cannot preserve availability or account for its effects on users, successful training does not establish readiness for deployment. Single-node reasoning remains necessary because every participant still has local limits, but it cannot settle decisions whose consequences cross machines, teams, and operating boundaries. The engineering responsibility is to connect those consequences before accepting the design. That requires evidence about what improves, what becomes more constrained, and who owns the costs transferred elsewhere. A defensible decision may expand the fleet, change how work is distributed, or postpone release until the operating requirements can be met. In C³ terms, the task is to follow the binding compute, communication, or coordination constraint across layers and keep its displaced costs visible.</p>
+<p>Machine learning at fleet scale is judged by the whole system, and a local improvement can move cost into a layer that its designer did not measure. Faster computation can expose a network bottleneck; larger jobs can lose more work to failure; a service that meets latency targets can still lack evidence required for deployment. The model remains central, but its accuracy and execution speed do not determine whether the complete system delivers useful work. Adding accelerators is therefore a design decision about shared resources and obligations, rather than a purchase of more arithmetic. If communication and recovery consume the saved execution time, the expansion can increase cost without improving progress. If the resulting service cannot preserve availability or account for its effects on users, successful training does not establish readiness for deployment. Single-node reasoning remains necessary because every participant still has local limits, but it cannot settle decisions whose consequences cross machines, teams, and operating boundaries. The engineering responsibility is to connect those consequences before accepting the design. That requires evidence about what improves, what becomes more constrained, and who owns the costs transferred elsewhere. A defensible decision may expand the fleet, change how work is distributed, or postpone release until the operating requirements can be met. In C³ terms, the task is to follow the binding compute, communication, or coordination constraint across layers and keep its displaced costs visible.</p>
 <div id="callout-learning-objectives*-17.1" class="callout callout-learning-objectives">
 <details class="callout-learning-objectives fbx-simplebox fbx-default" open=""><summary><strong>Learning Objectives</strong></summary><div>
 <ul>
-<li>Distill the volume into the six principles and a constraint map for distributed ML systems</li>
+<li>Distill this book into the six principles and a constraint map for distributed ML systems</li>
 <li>Diagnose a fleet design’s binding C³ term using measured execution costs and failure exposure</li>
 <li>Analyze how infrastructure, distributed training, inference, operations, and governance interact across the fleet stack</li>
 <li>Translate security, fairness, privacy, carbon, and reliability obligations into measurable design constraints</li>
@@ -7697,7 +7612,7 @@ window.Quarto = {
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The scale moment and the qualitative shift to fleet-scale systems are established in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-scale-moment">The Scale Moment</a></strong>.</p>
-</div></div><p>A frontier-model production system can span thousands of accelerators, with fabric links, storage tiers, schedulers, serving replicas, security controls, and governance checks supporting the same workload, and any one layer can bind the entire system: a slow checkpoint in the storage tier can waste an entire training window, a congested fabric across the interconnect can erase scaling gains from added compute, underprovisioned capacity in the serving pool can turn model quality into user-visible latency, and an unmeasured responsibility constraint can block deployment even after the technical system works. That coupling across the stack is what separates foundational ML engineering from distributed ML engineering. The single-node foundation, organized by the D·A·M lens of data, algorithm, and machine, already couples models, data pipelines, execution, and deployment constraints. Distributed ML engineering extends that reasoning to shared infrastructure, distributed protocols, and governance across a fleet.</p>
+</div></div><p>A frontier-model production system can span thousands of accelerators, with fabric links, storage tiers, schedulers, serving replicas, security controls, and governance checks supporting the same workload. Any one layer can bind the entire system. A slow checkpoint in the storage tier can waste an entire training window. A congested fabric across the interconnect can erase scaling gains from added compute. Underprovisioned capacity in the serving pool can turn model quality into user-visible latency. An unmeasured responsibility constraint can block deployment even after the technical system works. That coupling across the stack is what separates foundational ML engineering from distributed ML engineering. The single-node foundation, organized by the D·A·M lens of data, algorithm, and machine, already couples models, data pipelines, execution, and deployment constraints. Distributed ML engineering extends that reasoning to shared infrastructure, distributed protocols, and governance across a fleet.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↪ The single-machine foundation of data, algorithm, and machine is collected for reference in <strong><a href="../vol1/backmatter/appendix_dam.html#sec-appdx-dam-taxonomy">The D·A·M Taxonomy</a></strong>.</p>
@@ -7730,18 +7645,18 @@ window.Quarto = {
 </section>
 <section id="sec-conclusion-six-principles-distributed-ml-systems-746a" class="level2 page-columns page-full" data-number="17.2">
 <h2 data-number="17.2" class="anchored" data-anchor-id="sec-conclusion-six-principles-distributed-ml-systems-746a"><span class="header-section-number">17.2</span> Six Principles of Distributed ML Systems</h2>
-<p>When a 16,384-GPU training job suffers an unexpected interruption every three hours or a 100-server fan-out query hits a 99th-percentile tail delay on the majority of requests, the failure comes from the fleet’s physical and institutional structure rather than an operator mistake. The six engineering practices introduced with the fleet stack describe how a fleet engineer responds to those realities; the six principles of distributed ML systems describe what the fleet’s physical and institutional constraints make true, whatever the practice. Each condenses the part-level principles stated at the opening of its part. Part I’s fleet principles condense into the first, Part II’s distributed ML principles into the second and third (its empirical scaling law instead supplies the demand side of the growth decision weighed below), Part III’s fleet-in-production principles into the fourth, and Part IV’s responsible fleet principles into the fifth and sixth; the paragraphs below cite the part-level principles each one draws on. Each also explains why one of the practices is necessary rather than merely prudent. A fleet that loses training progress to routine interruptions must budget recovery as part of normal operation, which is why treating failure as steady state is a practice. A bottleneck that migrates whenever one term shrinks is why the engineer must expect it to move and measure the layers it moves into.</p>
+<p>When those inherited constraints surface in production, as a training run that stalls every few hours on a failed component or a serving pool whose tail latency spikes across a fan-out query, the failure comes from the fleet’s physical and institutional structure rather than an operator mistake. The six engineering practices introduced with the fleet stack describe how a fleet engineer responds to those realities, whereas the six principles of distributed ML systems describe what the fleet’s physical and institutional constraints make true, whatever the practice. Each condenses the part-level principles stated at the opening of its part: Part I’s fleet principles condense into the first, Part II’s distributed ML principles into the second and third (while its empirical scaling law supplies the demand side of the growth decision in <a href="#sec-conclusion-complete-production-system-3885" class="quarto-xref">section&nbsp;17.3</a>), Part III’s fleet-in-production principles into the fourth, and Part IV’s responsible fleet principles into the fifth and sixth. Each principle also explains why one of the practices is necessary rather than merely prudent. A fleet that loses training progress to routine interruptions must budget recovery as part of normal operation, which is why treating failure as steady state is a practice. A bottleneck that migrates whenever one term shrinks is why the engineer must expect it to move and measure the layers it moves into.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The six engineering practices, from instrument first to co-design hardware with algorithms, are established with the fleet stack in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-foundational-concepts">The Fleet Stack and the Lighthouse Archetypes</a></strong>.</p>
 </div></div><p>The Fleet Law, the distributed counterpart of the single-machine iron law, connects these principles to execution costs. It is the step-time equation of <strong><a href="../01_introduction/01_introduction.html#eq-fleet-law">equation 1.3</a></strong>, unchanged:</p>
 <p><span id="eq-conclusion-fleet-law"><span class="math display">\[ \DistributedStepTime(\DeviceCount) = \frac{\IronLawComputeTime}{\DeviceCount} + \CommunicationTime(\DeviceCount) + \SynchronizationTime(\DeviceCount) - \OverlappedTime  \tag{1}\]</span></span></p>
-<p>Infrastructure sets the per-device rates behind <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> and the link bandwidths behind <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span>. Communication and waiting contribute to <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span> and <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span>; neither is guaranteed to shrink as <span class="math inline">\(\DeviceCount\)</span> rises. Failure lands in the same terms. Checkpoint pauses, detection timeouts, and restarts add to <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span> averaged over the run, asynchronous checkpointing and warm restart move part of that cost into <span class="math inline">\(\OverlappedTime\)</span>, and a rollback adds the lost steps back to the work the run must still complete. Serving applies the same accounting discipline to requests, including queueing and routing delay. Responsibility and sustainability add no new term, but they spend the existing ones. Verification work occupies compute, approval gates add coordination that no replica count removes, and every second of step time costs joules at the fleet’s average power. Their acceptance also requires evidence that execution time cannot supply, such as subgroup error rates, privacy accounting, and energy measured over a stated boundary.</p>
+<p>Infrastructure sets the per-device rates behind <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> and the link bandwidths behind <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span>. Communication and waiting contribute to <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span> and <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span>; neither is guaranteed to shrink as <span class="math inline">\(\DeviceCount\)</span> rises. Failure lands in the same terms. Checkpoint pauses, detection timeouts, and restarts add to <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span> averaged over the run. Asynchronous checkpointing and warm restart move part of that cost into <span class="math inline">\(\OverlappedTime\)</span>, and a rollback adds the lost steps back to the work the run must still complete. Serving applies the same accounting discipline to requests, including queueing and routing delay. Responsibility and sustainability add no new term, but they spend the existing ones. Verification work occupies compute, approval gates add coordination that no replica count removes, and every second of step time costs joules at the fleet’s average power. Their acceptance also requires evidence that execution time cannot supply, such as subgroup error rates, privacy accounting, and energy measured over a stated boundary.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↪ The term-by-term decomposition of the Fleet Law is developed in <strong><a href="../backmatter/appendix_c3.html#sec-appdx-c3-taxonomy-component-decomposition">Component decomposition</a></strong>.</p>
-</div></div><p>Placed on the fleet stack, the six principles follow its four bands (<a href="#fig-fleet-stack-conclusion" class="quarto-xref">figure&nbsp;1</a>). While the Infrastructure band determines physical capability, the Distribution band partitions execution and therefore carries both communication and failure recovery, one principle per row, whereas the Serving band bounds runtime delivery by its contract. The uppermost Governance band carries two principles that divide it by obligation rather than strictly by row: Responsibility, placed beside the Assurance row, covers every obligation owed to the people the system affects, including both the security and robustness of the Assurance row and the fairness and accountability work that <strong><a href="../16_responsible_ai/16_responsible_ai.html#sec-responsible-ai">Responsible AI</a></strong> develops in the band’s top row, whereas Sustainability, placed beside that top row, covers the resource obligation alone. The arrow that runs the length of the stack marks the scale moment. Rather than acting as a seventh principle, it is the premise on which the volume opened, and crossing it is what turns each of the six from a local concern into a fleet-wide constraint.</p>
-<div id="fig-fleet-stack-conclusion" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" alt="Stack of eight rows in four bands labeled Part I Infrastructure, Part II Distribution, Part III Serving, and Part IV Governance, drawn as outlined territories. Infrastructure is one outlined region holding Facility and Accelerators and Fabric and Storage, labeled 1 infrastructure determines capability with FLOP/s, bandwidth, rack power. Distribution has two separate regions: Distributed Execution labeled 2 communication can dominate with exposed communication time, and Reliability and Control labeled 3 failure is routine with MTBF, checkpoint overhead. Serving is one region holding Runtime and Serving and Operations, labeled 4 serving is bounded by its contract with p99 latency within the SLO. In Governance the top row is split into a Governance half and a Sustainability half; an L-shaped region joins the Governance half with the Assurance row, labeled 5 responsibility constrains design with privacy budget, subgroup error, and the Sustainability half is its own region, labeled 6 sustainability is a first-order cost with energy per query, carbon. An upward arrow on the left is labeled scale creates qualitative change." data-fig-env="figure">
+</div></div><p>Placed on the fleet stack, the six principles follow its four bands (<a href="#fig-fleet-stack-conclusion" class="quarto-xref">figure&nbsp;1</a>). The Infrastructure band determines physical capability. The Distribution band partitions execution and therefore carries both communication and failure recovery, one principle per row. The Serving band bounds runtime delivery by its contract. The uppermost Governance band carries two principles that divide it by obligation rather than strictly by row. Responsibility, placed beside the Assurance row, covers every obligation owed to the people the system affects, including both the security and robustness of the Assurance row and the fairness and accountability work that <strong><a href="../16_responsible_ai/16_responsible_ai.html#sec-responsible-ai">Responsible AI</a></strong> develops in the band’s top row. Sustainability, placed beside that top row, covers the resource obligation alone. The arrow that runs the length of the stack marks the scale moment. Rather than acting as a seventh principle, it is the premise on which this book opened, and crossing it is what turns each of the six from a local concern into a fleet-wide constraint.</p>
+<div id="fig-fleet-stack-conclusion" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure" alt="Stack of eight rows in four bands labeled Part I Infrastructure, Part II Distribution, Part III Serving, and Part IV Governance, drawn as outlined territories. Infrastructure is one outlined region holding Facility and Accelerators and Fabric and Storage, labeled 1 infrastructure determines capability with FLOP/s, bandwidth, rack power. Distribution has two separate regions: Distributed Execution labeled 2 communication can dominate with exposed communication time, and Reliability and Control labeled 3 failure is routine with MTBF, checkpoint overhead. Serving is one region holding Runtime and Serving and Operations, labeled 4 serving is bounded by its contract with p99 latency within the SLO. In Governance the top row is split into a Governance half and a Sustainability half; an L-shaped region joins the Governance half with the Assurance row, labeled 5 responsibility constrains design with privacy budget, subgroup error, and the Sustainability half is its own region, labeled 6 sustainability is a first-order cost with energy per query, carbon. An upward arrow on the left is labeled scale creates qualitative change.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fleet-stack-conclusion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/fleet-stack-conclusion.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;1: The Fleet Stack Revisited: The eight rows and four bands of <a href="../01_introduction/01_introduction.html#fig-fleet-stack">The Fleet Stack</a>, redrawn as the territory each of the six principles governs, with its key metric from table&nbsp;1. The Infrastructure and Serving principles each own a whole band, and the Distribution band carries one principle per row. The Governance band divides by obligation rather than by row: Responsibility covers the Assurance row and the governance half of the top row, while Sustainability covers the resource half. The arrow runs the length of the stack because scale changes the behavior of every band."><img src="images/svg/fleet-stack-conclusion.svg" class="img-fluid figure-img" style="width:100.0%"></a>
@@ -7751,7 +7666,7 @@ Figure&nbsp;1: <strong>The Fleet Stack Revisited</strong>: The eight rows and fo
 </figcaption>
 </figure>
 </div>
-<p>The six principles therefore work as a decision map rather than a glossary (<a href="#tbl-vol2-principles" class="quarto-xref">table&nbsp;1</a>). Each row links a principle to the question, metric, and practice an engineer uses when diagnosing a fleet-scale design, and to the part and chapters that develop it. The part order is an order of dependency, not a ranking of bottlenecks; the workload and its measurements determine which constraint binds, while the layered tiers in <a href="#fig-fleet-stack-conclusion" class="quarto-xref">figure&nbsp;1</a> locate the governing architectural band.</p>
+<p>The six principles therefore work as a decision map rather than a glossary (<a href="#tbl-vol2-principles" class="quarto-xref">table&nbsp;1</a>). Each row links a principle to the question, metric, and practice an engineer uses when diagnosing a fleet-scale design, and to the part and chapters that develop it. The part order is an order of dependency, not a ranking of bottlenecks. The workload and its measurements determine which constraint binds, while the layered tiers in <a href="#fig-fleet-stack-conclusion" class="quarto-xref">figure&nbsp;1</a> locate the governing architectural band.</p>
 <div id="tbl-vol2-principles" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[20,15,20,17,28]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vol2-principles-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7838,8 +7753,8 @@ Sergeev, Alexander, and Mike Del Balso. 2018. <span>“Horovod: Fast and Easy Di
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ Ring collectives, communication overlap, and gradient compression are established in <strong><a href="../05_collective_communication/05_collective_communication.html#sec-collective-communication">Collective Communication</a></strong>.</p>
-</div></div><p>The third principle is that failure is routine. A job that needs many components at once can encounter interruptions frequently enough that recovery becomes normal operation. The reliability gap in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-reliability-gap">The reliability gap</a></strong> follows from <strong><a href="../01_introduction/01_introduction.html#eq-reliability-gap">equation 1.2</a></strong>, under which a job that needs every one of its components at once, each independently available with probability <span class="math inline">\(\ComponentAvailability\)</span>, sees its availability decay exponentially in the number of components it requires. Meta’s experience training Llama 3 on 16,384 GPUs, 16 times the Archetype A reference cluster, documented 419 unexpected interruptions over 54 days, averaging one unexpected interruption every 3.1 hours <span class="citation" data-cites="dubey2024llama">(<a href="#ref-dubey2024llama" role="doc-biblioref"><span class="nocase">Dubey et al.</span> 2024</a>)</span>. A failed rank can stall every other rank in its collective. Under full-job checkpoint recovery, the affected job rolls back to its last checkpoint; other jobs in the fleet need not roll back. For a fixed amount of lost wall-clock progress, wasted accelerator-time grows with the size of the affected job, which is why checkpoint cadence and recovery architecture are first-order design dimensions.</p>
-<p>Architects must embed failure handling from the beginning. Checkpointing strategies balance write overhead against expected lost work, and the Young-Daly interval (principle <a href="../parts/distributed_ml_principles.html#pri-young-daly">13</a>) estimates that balance under its failure and checkpoint-cost assumptions. Elastic training supports changing cluster membership, while graceful degradation preserves a defined level of service as capacity diminishes. Each mechanism needs a tested recovery contract; its name alone does not establish that progress or service quality survives a failure. Recovery should automate known failure paths and escalate cases whose safe response requires investigation. Recovery also needs capacity. A restarted synchronous job makes progress only when the scheduler can again grant it an atomic, topology-feasible gang allocation (principle <a href="../parts/distributed_ml_principles.html#pri-feasibility-before-fairness">15</a>), which is why fleet orchestration keeps spare capacity, preempts lower-priority work, and admits only allocations a job can actually use. Coordination, the third C³ axis, is not confined to this principle. It is paid in recovery and gang scheduling here, in request routing for serving, and in the approval gates of governance.</p>
+</div></div><p>The third principle is that failure is routine. A job that needs many components at once can encounter interruptions frequently enough that recovery becomes normal operation. The reliability gap in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-reliability-gap">The reliability gap</a></strong> follows from <strong><a href="../01_introduction/01_introduction.html#eq-reliability-gap">equation 1.2</a></strong>. Under it, a job that needs every one of its components at once, each independently available with probability <span class="math inline">\(\ComponentAvailability\)</span>, sees its availability decay exponentially in the number of components it requires. Meta’s experience training Llama 3 on 16,384 GPUs, 16 times the Archetype A reference cluster, documented 419 unexpected interruptions over 54 days, averaging one unexpected interruption every 3.1 hours <span class="citation" data-cites="dubey2024llama">(<a href="#ref-dubey2024llama" role="doc-biblioref"><span class="nocase">Dubey et al.</span> 2024</a>)</span>. A failed rank can stall every other rank in its collective. Under full-job checkpoint recovery, the affected job rolls back to its last checkpoint; other jobs in the fleet need not roll back. For a fixed amount of lost wall-clock progress, wasted accelerator-time grows with the size of the affected job, which is why checkpoint cadence and recovery architecture are first-order design dimensions.</p>
+<p>Architects must embed failure handling from the beginning. Checkpointing strategies balance write overhead against expected lost work, and the Young-Daly interval (principle <a href="../parts/distributed_ml_principles.html#pri-young-daly">13</a>) estimates that balance under its failure and checkpoint-cost assumptions. Elastic training supports changing cluster membership, while graceful degradation preserves a defined level of service as capacity diminishes. Each mechanism needs a tested recovery contract; its name alone does not establish that progress or service quality survives a failure. Recovery should automate known failure paths and escalate cases whose safe response requires investigation. Recovery also needs capacity. A restarted synchronous job makes progress only when the scheduler can again grant it an atomic, topology-feasible gang allocation (principle <a href="../parts/distributed_ml_principles.html#pri-feasibility-before-fairness">15</a>). That is why fleet orchestration keeps spare capacity, preempts lower-priority work, and admits only allocations a job can actually use. Coordination, the third C³ axis, is not confined to this principle. It is paid in recovery and gang scheduling here, in request routing for serving, and in the approval gates of governance.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ Checkpoint cadence, mean time between failures (MTBF) analysis, and elastic recovery protocols are established in <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong>.</p>
@@ -7849,7 +7764,7 @@ Dean, Jeffrey, and Luiz André Barroso. 2013. <span>“The Tail at Scale.”</sp
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The power of two choices and the queue-length bounds behind it are established in <strong><a href="../10_inference/10_inference.html#sec-inference-scale-power-two-choices-ffdd">The power of two choices</a></strong>.</p>
-</div></div><p>Inside each replica, the memory wall returns as a serving constraint. Compute (TFLOP/s) can be abundant while memory bandwidth (GB/s) gates small-batch autoregressive decode (principle <a href="../parts/deployment_principles.html#pri-autoregressive-bottleneck">18</a>), because weight and KV-cache traffic from high-bandwidth memory (HBM) leaves compute units underused. Batching amortizes weight reads across output tokens, so the binding constraint can shift toward compute, KV traffic, or the latency budget; a replica’s execution envelope must therefore be measured before any fleet-level policy is chosen. The contract also has a lifetime. A heavily used model can spend more on inference than it did on training (principle <a href="../parts/deployment_principles.html#pri-serving-cost-dominance">17</a>), so the cost per request, not the one-time training bill, eventually dominates what the model costs to own.</p>
+</div></div><p>Inside each replica, the memory wall returns as a serving constraint. Compute (TFLOP/s) can be abundant while memory bandwidth (GB/s) gates small-batch autoregressive decode (principle <a href="../parts/deployment_principles.html#pri-autoregressive-bottleneck">18</a>), because weight and KV-cache traffic from high-bandwidth memory (HBM) leaves compute units underused. Batching amortizes weight reads across output tokens, so the binding constraint can shift toward compute, KV traffic, or the latency budget. A replica’s execution envelope must therefore be measured before any fleet-level policy is chosen. The contract also has a lifetime. A heavily used model can spend more on inference than it did on training (principle <a href="../parts/deployment_principles.html#pri-serving-cost-dominance">17</a>), so the cost per request, not the one-time training bill, eventually dominates what the model costs to own.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><a href="images/svg/vol2_conclusion_margin_001.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="images/svg/vol2_conclusion_margin_001.svg" class="img-fluid" style="width:100.0%" alt="Schematic roofline with a small-batch decode point on the memory-bandwidth slope below the compute ceiling."></a></p>
@@ -7862,8 +7777,8 @@ Dean, Jeffrey, and Luiz André Barroso. 2013. <span>“The Tail at Scale.”</sp
 Tabassi, Elham. 2023. <em>Artificial Intelligence Risk Management Framework (<span>AI RMF</span> 1.0)</em>. NIST AI 100-1. National Institute of Standards; Technology. https://doi.org/10.6028/NIST.AI.100-1.
 </div><div id="ref-amodei2016concrete" class="csl-entry" role="listitem">
 Amodei, D., C. Olah, J. Steinhardt, P. Christiano, J. Schulman, and D. Mané. 2016. <span>“Concrete Problems in <span>AI</span> Safety.”</span> <em>arXiv Preprint arXiv:1606.06565</em>, ahead of print. https://doi.org/10.48550/arXiv.1606.06565.
-</div></div><p>The fifth principle is that responsibility constrains design. Responsible AI translates risk-management frameworks into engineering constraints <span class="citation" data-cites="nist2023airmf">(<a href="#ref-nist2023airmf" role="doc-biblioref">Tabassi 2023</a>)</span>. Safety-specific risks such as reward hacking, distribution shift, and scalable oversight show why those constraints need implementation mechanisms <span class="citation" data-cites="amodei2016concrete">(<a href="#ref-amodei2016concrete" role="doc-biblioref">Amodei et al. 2016</a>)</span>. Fairness, transparency, accountability, privacy, and safety are first-class requirements that shape system architecture throughout the ML lifecycle. The part-level principles behind this one span provenance, because a model can be trusted only as far as the verified record of its data, code, and weights reaches (principle <a href="../parts/responsible_fleet_principles.html#pri-provenance-bounds-trust">22</a>); privacy, because released outputs can disclose what a model learned (principle <a href="../parts/responsible_fleet_principles.html#pri-information-leakage">23</a>); robustness, whose evaluation and defenses require mechanism-specific resource budgets (principle <a href="../parts/responsible_fleet_principles.html#pri-robustness-compute-penalty">24</a>); and feedback, because deployed decisions can shape future training observations (principle <a href="../parts/responsible_fleet_principles.html#pri-sociotechnical-feedback">27</a>).</p>
-<p>The fairness impossibility theorem (principle <a href="../parts/responsible_fleet_principles.html#pri-fairness-impossibility">26</a>) shows why some requirements cannot be satisfied by tuning alone. With unequal base rates and imperfect prediction, a risk score cannot be both calibrated within each group and balanced across groups within each outcome class <span class="citation" data-cites="kleinberg2016inherent">(<a href="#ref-kleinberg2016inherent" role="doc-biblioref">Kleinberg et al. 2017</a>)</span>, the score-level counterpart of the conflict between equal opportunity and demographic parity in the admissions example of <strong><a href="../16_responsible_ai/16_responsible_ai.html#sec-responsible-ai-fairness-criteria-conflict">Why the fairness criteria conflict</a></strong>. The deployment therefore needs justified criteria, evidence that they hold, and an owner authorized to respond when they fail. Monitoring exposes supported disparities but cannot choose the criterion or provide a remedy by itself. These obligations belong in the design alongside performance requirements, which is why the practice this principle demands is to instrument first. Subgroup error rates, privacy accounting, and audit trails must be collected before the decision they are meant to justify, because a disparity that was never measured cannot be detected, attributed, or remedied after deployment. Environmental responsibility extends the Governance band into the physical resource budget.</p>
+</div></div><p>The fifth principle is that responsibility constrains design. Responsible AI translates risk-management frameworks into engineering constraints <span class="citation" data-cites="nist2023airmf">(<a href="#ref-nist2023airmf" role="doc-biblioref">Tabassi 2023</a>)</span>. Safety-specific risks such as reward hacking, distribution shift, and scalable oversight show why those constraints need implementation mechanisms <span class="citation" data-cites="amodei2016concrete">(<a href="#ref-amodei2016concrete" role="doc-biblioref">Amodei et al. 2016</a>)</span>. Fairness, transparency, accountability, privacy, and safety are first-class requirements that shape system architecture throughout the ML lifecycle. The part-level principles behind this one span provenance, privacy, robustness, and feedback. A model can be trusted only as far as the verified record of its data, code, and weights reaches (principle <a href="../parts/responsible_fleet_principles.html#pri-provenance-bounds-trust">22</a>). Released outputs can disclose what a model learned (principle <a href="../parts/responsible_fleet_principles.html#pri-information-leakage">23</a>). Robustness evaluation and defenses require mechanism-specific resource budgets (principle <a href="../parts/responsible_fleet_principles.html#pri-robustness-compute-penalty">24</a>). Deployed decisions can shape future training observations (principle <a href="../parts/responsible_fleet_principles.html#pri-sociotechnical-feedback">27</a>).</p>
+<p>The fairness impossibility theorem (principle <a href="../parts/responsible_fleet_principles.html#pri-fairness-impossibility">26</a>) shows why some requirements cannot be satisfied by tuning alone. With unequal base rates and imperfect prediction, a risk score cannot be both calibrated within each group and balanced across groups within each outcome class <span class="citation" data-cites="kleinberg2016inherent">(<a href="#ref-kleinberg2016inherent" role="doc-biblioref">Kleinberg et al. 2017</a>)</span>. This is the score-level counterpart of the conflict between equal opportunity and demographic parity in the admissions example of <strong><a href="../16_responsible_ai/16_responsible_ai.html#sec-responsible-ai-fairness-criteria-conflict">Why the fairness criteria conflict</a></strong>. The deployment therefore needs justified criteria, evidence that they hold, and an owner authorized to respond when they fail. Monitoring exposes supported disparities but cannot choose the criterion or provide a remedy by itself. These obligations belong in the design alongside performance requirements, which is why the practice this principle demands is to instrument first. Subgroup error rates, privacy accounting, and audit trails must be collected before the decision they are meant to justify, because a disparity that was never measured cannot be detected, attributed, or remedied after deployment. Environmental responsibility extends the Governance band into the physical resource budget.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-kleinberg2016inherent" class="csl-entry" role="listitem">
 Kleinberg, Jon, Sendhil Mullainathan, and Manish Raghavan. 2017. <span>“Inherent Trade-Offs in the Fair Determination of Risk Scores.”</span> <em>8th Innovations in Theoretical Computer Science Conference (<span>ITCS</span> 2017)</em>, Leibniz international proceedings in informatics (<span>LIPIcs</span>), vol. 67: 43:1–23. https://doi.org/10.4230/LIPIcs.ITCS.2017.43.
 </div><div class="margin-pointer">
@@ -7875,7 +7790,7 @@ Patterson, David, Joseph Gonzalez, Quoc Le, Chen Liang, Lluis-Miquel Munguia, Da
 </div><div id="ref-jevons1865coal" class="csl-entry" role="listitem">
 Jevons, William Stanley. 1865. <em>The Coal Question: <span>An</span> Inquiry Concerning the Progress of the Nation, and the Probable Exhaustion of Our Coal Mines</em>. Macmillan; Co.
 </div></div>
-<p>The sixth principle is that sustainability is a first-order cost. Environmental impact of large-scale ML elevates resource efficiency to a primary engineering constraint <span class="citation" data-cites="strubell2019 patterson2021carbon">(<a href="#ref-strubell2019" role="doc-biblioref">Strubell et al. 2019</a>; <a href="#ref-patterson2021carbon" role="doc-biblioref">Patterson et al. 2021</a>)</span>. The energy-scale invariant of <strong><a href="../01_introduction/01_introduction.html#sec-introduction-energyscale-invariant-a0d6">The energy accounting boundary</a></strong> supplies the accounting discipline, a fixed boundary for useful work and for the energy it consumes, and the Fleet Law explains why exposed communication and synchronization cost joules as well as seconds, since a step’s energy is approximately its average power times <span class="math inline">\(\DistributedStepTime(\DeviceCount)\)</span>. The Jevons paradox of AI adapts Jevons’s resource-efficiency argument <span class="citation" data-cites="jevons1865coal">(<a href="#ref-jevons1865coal" role="doc-biblioref">Jevons 1865</a>)</span> to explain why hardware efficiency gains alone do not eliminate power and carbon costs (principle <a href="../parts/responsible_fleet_principles.html#pri-jevons-paradox">25</a>). Cheaper computation can expand deployment, so usage growth can offset per-query savings. An absolute carbon budget bounds emissions only when accounting and admission decisions enforce it over the stated lifecycle and time horizon.</p>
+<p>The sixth principle is that sustainability is a first-order cost. Environmental impact of large-scale ML elevates resource efficiency to a primary engineering constraint <span class="citation" data-cites="strubell2019 patterson2021carbon">(<a href="#ref-strubell2019" role="doc-biblioref">Strubell et al. 2019</a>; <a href="#ref-patterson2021carbon" role="doc-biblioref">Patterson et al. 2021</a>)</span>. The energy-scale invariant of <strong><a href="../01_introduction/01_introduction.html#sec-introduction-energyscale-invariant-a0d6">The energy accounting boundary</a></strong> supplies the accounting discipline, a fixed boundary for useful work and for the energy it consumes. The Fleet Law explains why exposed communication and synchronization cost joules as well as seconds, since a step’s energy is approximately its average power times <span class="math inline">\(\DistributedStepTime(\DeviceCount)\)</span>. The Jevons paradox of AI adapts Jevons’s resource-efficiency argument <span class="citation" data-cites="jevons1865coal">(<a href="#ref-jevons1865coal" role="doc-biblioref">Jevons 1865</a>)</span> to explain why hardware efficiency gains alone do not eliminate power and carbon costs (principle <a href="../parts/responsible_fleet_principles.html#pri-jevons-paradox">25</a>). Cheaper computation can expand deployment, so usage growth can offset per-query savings. An absolute carbon budget bounds emissions only when accounting and admission decisions enforce it over the stated lifecycle and time horizon.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ Carbon accounting, energy metrics, and Jevons rebound effects are established in <strong><a href="../15_sustainable_ai/15_sustainable_ai.html#sec-sustainable-ai">Sustainable AI</a></strong>.</p>
@@ -7885,7 +7800,7 @@ Li, Chengwei. 2020. <em>Estimating the Training Cost of <span>GPT</span>-3</em>.
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The operational and embodied carbon calculation is established in <strong><a href="../15_sustainable_ai/15_sustainable_ai.html#sec-sustainable-ai-carbon-footprint-calculation-c2fe">Carbon Footprint Calculation</a></strong>.</p>
-</div></div><p>The six principles describe the qualitative change that scale can produce, and the scaling laws (principle <a href="../parts/distributed_ml_principles.html#pri-universal-scaling">9</a>) keep carrying a team that pursues lower loss into regimes its previous fleet never exercised. Each new regime brings behavior that emerges from familiar mechanisms, as the scale moment first showed. A training job that scales from 8 GPUs to 8,000 can meet communication bottlenecks, load imbalance, or synchronization overhead that were negligible at 8. Serving shows the same shift in its event rates. At a million requests a day, a one-in-a-million per-request failure is expected about once a day, so an event that never appears in testing becomes a routine operating condition. At that scale, stragglers that bottleneck clusters, network partitions that split training, and heterogeneity across hardware generations that complicates load balancing become design inputs rather than anomalies.</p>
+</div></div><p>Taken together, the six principles describe the qualitative change that scale produces across a fleet. Each larger regime brings behavior that emerges from familiar mechanisms, as the scale moment first showed. A training job that scales from 8 GPUs to 8,000 can meet communication bottlenecks, load imbalance, or synchronization overhead that were negligible at 8, and a serving fleet handling a million requests a day expects a one-in-a-million per-request failure about once a day. Stragglers that bottleneck clusters, network partitions that split training, and heterogeneity across hardware generations that complicates load balancing therefore become routine design inputs rather than anomalies. Because empirical scaling laws (principle <a href="../parts/distributed_ml_principles.html#pri-universal-scaling">9</a>) keep carrying teams that pursue lower loss into larger regimes, a production design must weigh the quality gain those laws predict against the full-stack costs the six principles govern.</p>
 <div id="quiz-question-sec-conclusion-six-principles-distributed-ml-systems-746a" class="callout callout-quiz-question">
 <details class="callout-quiz-question fbx-simplebox fbx-default"><summary><strong>Self-Check: Question</strong></summary><div>
 <ol type="1">
@@ -7924,25 +7839,25 @@ Li, Chengwei. 2020. <em>Estimating the Training Cost of <span>GPT</span>-3</em>.
 </section>
 <section id="sec-conclusion-complete-production-system-3885" class="level2 page-columns page-full" data-number="17.3">
 <h2 data-number="17.3" class="anchored" data-anchor-id="sec-conclusion-complete-production-system-3885"><span class="header-section-number">17.3</span> The Complete Production System</h2>
-<p>Doubling a 1,024-GPU frontier training cluster to 2,048 GPUs halves the ideal arithmetic time per step, but it also halves the expected interval between GPU interruptions and increases both exposed collective communication and checkpoint overhead. Scaling laws set the demand for that fleet growth and the Fleet Law (<a href="#eq-conclusion-fleet-law" class="quarto-xref">equation&nbsp;1</a>) sets its price, so together they say when growth pays and where it breaks. The laws estimate what growth buys; they do not oblige an organization to buy it. Scaling pays while the quality gain a fitted curve predicts justifies what the fleet charges to deliver it, and that charge moves with <span class="math inline">\(\DeviceCount\)</span> on several fronts at once. Increasing <span class="math inline">\(\DeviceCount\)</span> reduces the ideal compute term <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> for fixed work and unchanged per-device rates, while <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span> and <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span> depend on the resulting partition and schedule and carry no such guarantee. Interruption exposure also grows with <span class="math inline">\(\DeviceCount\)</span>, as the expansion estimate below quantifies. Within a fixed facility, the power and cooling envelope does not grow with the job, and a successful model then pays its serving cost for as long as it runs. Growth therefore breaks on either side. On the model side, the breakdown conditions of <strong><a href="../01_introduction/01_introduction.html#tbl-scaling-breakdown">Possible Scaling Breakdowns</a></strong> mark where extrapolating a fitted quality curve becomes unreliable, for example when model capacity outgrows the available tokens or added data stops supplying new information. On the systems side, the scaling wall of <strong><a href="../06_distributed_training/06_distributed_training.html#sec-distributed-training-scaling-math">The mathematics of scaling efficiency</a></strong> marks where added communication and coordination consume the compute time that added accelerators save (principle <a href="../parts/distributed_ml_principles.html#pri-scaling-efficiency">12</a>), and a site’s deliverable power caps the configuration regardless of how the work is partitioned. A complete production design has to evaluate both sides together.</p>
+<p>A team that doubles its training cluster to chase the next point on a scaling curve halves the ideal arithmetic time per step, yet the added accelerators also increase collective traffic, shorten the interval between hardware interruptions, and draw against a fixed facility power budget. Empirical scaling laws set the demand for that fleet growth and the Fleet Law (<a href="#eq-conclusion-fleet-law" class="quarto-xref">equation&nbsp;1</a>) sets its price, so together they say when growth pays and where it breaks. The scaling curve estimates what growth buys; it does not oblige an organization to buy it. Scaling pays only while the predicted quality gain justifies what the fleet charges across every term that moves with <span class="math inline">\(\DeviceCount\)</span>. Increasing <span class="math inline">\(\DeviceCount\)</span> reduces the ideal compute term <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> for fixed work and unchanged per-device rates, whereas <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span>, <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span>, and interruption exposure depend on the partition, schedule, and component count and carry no such guarantee. Within a fixed facility, the power and cooling envelope does not grow with the job, and a successful model then pays its serving cost for as long as it runs. Growth can therefore break on either side. On the model side, the breakdown conditions of <strong><a href="../01_introduction/01_introduction.html#tbl-scaling-breakdown">Possible Scaling Breakdowns</a></strong> mark where extrapolating a fitted quality curve becomes unreliable, for example when model capacity outgrows the available tokens or added data stops supplying new information. On the systems side, the scaling wall of <strong><a href="../06_distributed_training/06_distributed_training.html#sec-distributed-training-scaling-math">The mathematics of scaling efficiency</a></strong> marks where added communication and coordination consume the compute time that added accelerators save (principle <a href="../parts/distributed_ml_principles.html#pri-scaling-efficiency">12</a>), while deliverable site power caps the configuration regardless of how work is partitioned. A complete production design has to evaluate both sides together.</p>
 <p>Consider Archetype A (GPT-4/Llama-3), whose running instance in this book is a GPT-3-class dense transformer trained with mixed precision on a reference cluster of 1,024 GPUs and then shipped into a global serving fleet. Checkpoint bursts must land without starving the data loaders, while collective results must arrive before the computations that depend on them. Communication can overlap independent work, but its exposed remainder delays progress. At that scale, recovery planning uses observed write costs and failure rates, with the Young-Daly interval supplying an approximation where its assumptions hold <span class="citation" data-cites="young1974 daly2006">(<a href="#ref-young1974" role="doc-biblioref">Young 1974</a>; <a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>. Serving SLOs require headroom for rollback and fallback, while governance controls enforce approved conditions on which data, models, and outputs may reach users. These are coupled rates, budgets, failure exposures, and policy constraints that must be designed before deployment.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-young1974" class="csl-entry" role="listitem">
 Young, John W. 1974. <span>“A First Order Approximation to the Optimum Checkpoint Interval.”</span> <em>Communications of the ACM</em> 17 (9): 530–31. https://doi.org/10.1145/361147.361115.
 </div><div id="ref-daly2006" class="csl-entry" role="listitem">
 Daly, J. T. 2006. <span>“A Higher Order Estimate of the Optimum Checkpoint Interval for Restart Dumps.”</span> <em>Future Generation Computer Systems</em> 22 (3): 303–12. https://doi.org/10.1016/j.future.2004.11.016.
-</div></div><p>The production system begins with physical capacity, but capacity matters only when the rates line up. Physical compute infrastructure supplies accelerators, power, cooling, and fabric; the data tier determines whether data can arrive fast enough; and collective communication determines whether workers can synchronize without turning the network into the bottleneck. These subsystems must be co-designed: data ingestion must meet accelerator consumption, checkpoint writes must fit the recovery budget, and the fabric must carry the actual collective traffic. These are distinct rates; matching them to workload demand matters more than making their raw bandwidths equal.</p>
+</div></div><p>The production system begins with physical capacity, but capacity matters only when the rates line up. Physical compute infrastructure supplies accelerators, power, cooling, and fabric. The data tier determines whether data can arrive fast enough. Collective communication determines whether workers can synchronize without turning the network into the bottleneck. These subsystems must be co-designed: data ingestion must meet accelerator consumption, checkpoint writes must fit the recovery budget, and the fabric must carry the actual collective traffic. These are distinct rates; matching them to workload demand matters more than making their raw bandwidths equal.</p>
 <p>Parallelization strategies must fit those physical rates and the expected failure pattern. Data parallelism, tensor parallelism, and pipeline parallelism are not interchangeable templates; each changes memory pressure, communication volume, checkpointing behavior, and scheduler complexity. Hybrid strategies become useful only when the surrounding storage, fabric, and recovery design can support the shape of the partition.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ How data, tensor, pipeline, and hybrid partitioning each move memory pressure, communication volume, and the pipeline bubble is established in <strong><a href="../06_distributed_training/06_distributed_training.html#sec-distributed-training-systems-systems-parallelism-strategy-comparison-d92a">Parallelism Strategy Comparison</a></strong>.</p>
 </div></div><p>Serving adds a separate acceptance boundary. The contract of the fourth principle judges the model by its latency, availability, and cost on live traffic, whether it runs in a data center replica or on a phone-class device. Some security and robustness controls execute on the request path; others operate during training, release review, or asynchronous monitoring. Each needs an evidence and response path suited to its obligation. Training throughput therefore does not establish that a model will meet live latency, recovery, security, subgroup, and carbon requirements. A fleet expansion raises two linked decisions, whether to accept the larger training job and whether to release the model it produces, and each needs its own evidence.</p>
-<p>For our frontier-model case, suppose a proposed expansion doubles the reference cluster to 2,048 GPUs while retaining the fabric and checkpoint tier. Doubling <span class="math inline">\(\DeviceCount\)</span> halves the ideal <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> term for fixed work at unchanged per-device rates, so the first measurement is whether that saving survives the changes in <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span> and <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span> and their overlap. The recovery side can be estimated before any measurement. Assume independent GPU failures at an identical constant rate, with each failure interrupting the job. Counting those failures alone at the registry mean time to failure (MTTF) of 50,000 hours per GPU, the job’s mean time between interruptions is that MTTF divided by <span class="math inline">\(\DeviceCount\)</span>, so it falls from 48.8 hours to 24.4 hours. At the Young-Daly interval of <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#eq-ft-young-daly-interval">equation 7.7</a></strong>, the checkpoint-and-rework overhead is about <span class="math inline">\(\sqrt{2\CheckpointWriteTime/\SystemMtbf}\)</span> of wall-clock time, and <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-young-daly">The Young-Daly checkpoint interval</a></strong> shows that it therefore grows as <span class="math inline">\(\sqrt{\DeviceCount}\)</span>, so doubling the cluster multiplies it by about 1.41×. The model’s 2.45 TB checkpoint takes about 24.5 seconds to write at the registry checkpoint bandwidth, which puts the overhead at about 1.7 percent of wall-clock time on the reference cluster and about 2.4 percent on the expanded one. These figures are optimistic. They count GPU failures alone, while switches, network interface cards, and software add interruptions of their own. The full-system analysis in <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability-reliability-checkpoint-interval-failure-analysis-c28d">Checkpoint interval from failure analysis</a></strong>, which adds PCIe-switch and network-interface failures for a cluster of 10,000 GPUs, arrives at a correspondingly larger overhead from the same formula. Write contention with data loading or a changed checkpoint size would also require revising them.</p>
-<p>These estimates still yield a decision rule. In this example, measured step time covers uninterrupted execution and excludes the checkpoint-and-rework overhead estimated separately. The retained-progress factor, the checkpoint-and-rework share of what <strong><a href="../09_performance_engineering/09_performance_engineering.html#sec-performance-engineering-runtime-goodput">Runtime Goodput</a></strong> calls runtime goodput, accounts for that excluded cost once; a whole-run measurement that already includes it must not receive the factor again. For fixed work, run time is proportional to <span class="math inline">\(\DistributedStepTime(\DeviceCount)/(1 - \text{overhead})\)</span>, so the larger cluster shortens the run only when its measured step-time speedup exceeds the ratio of the two retained fractions, one minus the reference overhead divided by one minus the expanded overhead. Here that break-even speedup is about 1.01×, so recovery alone does not block the expansion. Short of a superlinear speedup, however, it cannot save accelerator-hours. Accelerator-hours are the GPU count times run time, so doubling the GPUs multiplies them by twice that same ratio divided by the achieved speedup. Even at the ideal 2<span class="math inline">\(\times\)</span> speedup they rise by about 0.7 percent, and every point of scaling efficiency lost to exposed communication raises them further. The expansion therefore buys calendar time with accelerator-hours and energy, and the communication measurement, not the recovery estimate, sets that price.</p>
+<p>To evaluate the first of those decisions on the Archetype A baseline, suppose a proposed expansion doubles the reference cluster to 2,048 GPUs while retaining the fabric and checkpoint tier. Because doubling <span class="math inline">\(\DeviceCount\)</span> halves the ideal <span class="math inline">\(\IronLawComputeTime/\DeviceCount\)</span> term, the first measurement is whether that saving survives the resulting changes in <span class="math inline">\(\CommunicationTime(\DeviceCount)\)</span> and <span class="math inline">\(\SynchronizationTime(\DeviceCount)\)</span> and their overlap. The recovery side can be estimated before any measurement. Assume independent GPU failures at an identical constant rate, with each failure interrupting the job. Counting those failures alone at the registry mean time to failure (MTTF) of 50,000 hours per GPU, the job’s mean time between interruptions is that MTTF divided by <span class="math inline">\(\DeviceCount\)</span>, so it falls from 48.8 hours to 24.4 hours. At the Young-Daly interval of <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#eq-ft-young-daly-interval">equation 7.7</a></strong>, the checkpoint-and-rework overhead is about <span class="math inline">\(\sqrt{2\CheckpointWriteTime/\SystemMtbf}\)</span> of wall-clock time. <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-young-daly">The Young-Daly checkpoint interval</a></strong> shows that it therefore grows as <span class="math inline">\(\sqrt{\DeviceCount}\)</span>, so doubling the cluster multiplies it by about 1.41×. The model’s 2.45 TB checkpoint takes about 24.5 seconds to write at the registry checkpoint bandwidth, which puts the overhead at about 1.7 percent of wall-clock time on the reference cluster and about 2.4 percent on the expanded one. These figures are optimistic. They count GPU failures alone, while switches, network interface cards, and software add interruptions of their own. The full-system analysis in <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability-reliability-checkpoint-interval-failure-analysis-c28d">Checkpoint interval from failure analysis</a></strong>, which adds PCIe-switch and network-interface failures for a cluster of 10,000 GPUs, arrives at a correspondingly larger overhead from the same formula. Write contention with data loading or a changed checkpoint size would also require revising them.</p>
+<p>These estimates still yield a decision rule. In this example, measured step time covers uninterrupted execution and excludes the checkpoint-and-rework overhead estimated separately. The retained-progress factor, the checkpoint-and-rework share of what <strong><a href="../09_performance_engineering/09_performance_engineering.html#sec-performance-engineering-runtime-goodput">Runtime Goodput</a></strong> calls runtime goodput, accounts for that excluded cost once, so a whole-run measurement that already includes recovery pauses must not be penalized a second time. Because only the fraction <span class="math inline">\(1 - \text{overhead}\)</span> of each wall-clock hour produces retained training progress, total run time for fixed work is proportional to <span class="math inline">\(\DistributedStepTime(\DeviceCount)/(1 - \text{overhead})\)</span>. Doubling the cluster raises the checkpoint-and-rework overhead from 1.7 percent to 2.4 percent, which leaves a slightly smaller productive fraction of each hour on the expanded cluster. To finish in less wall-clock time, the expanded cluster’s uninterrupted step-time speedup must therefore exceed the ratio of the reference productive fraction to the expanded productive fraction, <span class="math inline">\((1 - \text{overhead}_{\text{ref}})/(1 - \text{overhead}_{\text{exp}})\)</span>. Here that break-even step speedup is about 1.01×, so recovery overhead alone does not block the expansion. Short of a superlinear step speedup, however, the expansion cannot save accelerator-hours. Total accelerator-hours equal the GPU count times wall-clock run time. Even if uninterrupted step time halves at the ideal 2<span class="math inline">\(\times\)</span> speedup, the higher checkpoint-and-rework overhead keeps the expanded cluster running for slightly more than half the original wall-clock duration, so doubling the GPUs increases total accelerator-hours by that same ratio, or about 0.7 percent. Every point of scaling efficiency lost to exposed communication raises that bill further. The expansion therefore buys calendar time with accelerator-hours and energy, and the communication measurement, not the recovery estimate, sets that price.</p>
 <p>That price buys time, not quality, because the work is fixed. Quality enters the comparison only if the doubled cluster spends twice the compute instead of finishing sooner, and there the fitted scaling curve prices the gain. In the compute power law that <span class="citation" data-cites="kaplan2020scaling">Kaplan et al. (<a href="#ref-kaplan2020scaling" role="doc-biblioref">2020</a>)</span> fitted (charted in the scaling laws of <strong><a href="../01_introduction/01_introduction.html#sec-vol2-intro-ai-scaling-laws-a043">AI Scaling Laws</a></strong>, <strong><a href="../01_introduction/01_introduction.html#fig-kaplan-scaling">Scaling Laws and Compute Optimality</a></strong>), loss falls as compute raised to the power <span class="math inline">\(-0.050\)</span>, so doubling compute multiplies loss by <span class="math inline">\(2^{-0.050} \approx 0.966\)</span>, a reduction of about 3.4 percent. A frontier run lies beyond the range that fit studied, so the figure shows the shape of the trade rather than this run’s gain. Each doubling buys the same fractional reduction, and therefore a smaller absolute one than the doubling before it, while its price, twice the accelerator-hours plus the recovery and communication overhead above, is paid in full every time.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-kaplan2020scaling" class="csl-entry" role="listitem">
 Kaplan, Jared, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. 2020. <span>“Scaling Laws for Neural Language Models.”</span> <em>ArXiv Preprint</em> abs/2001.08361.
 </div></div><p>The release decision then applies its own test. If the resulting model fails a release gate, the affected partition, placement, capacity allocation, or release plan must be revised before the release proceeds. The constraints behind those choices can conflict. A communication optimization may increase failure exposure, sustainability requirements may restrict infrastructure choices, and governance controls may consume serving latency or capacity. The displacement of overhead requires measuring those transferred costs before accepting a local speedup.</p>
-<p>The three workloads introduced as lighthouse archetypes show that no single corner of the C<span class="math inline">\(^3\)</span> taxonomy dominates. Each workload was first characterized by a representative binding term, and following each one up the fleet stack shows what each band, and the part of the book that develops it, added to that first characterization (<a href="#tbl-conclusion-archetype-binding-terms" class="quarto-xref">table&nbsp;2</a>).</p>
+<p>Archetype A traces only one path through these cross-layer trade-offs; taken together, the three lighthouse archetypes show that no single corner of the C<span class="math inline">\(^3\)</span> taxonomy dominates. Each workload was first characterized by a representative binding term, and following each one up the fleet stack shows what each band, and the part of the book that develops it, added to that first characterization (<a href="#tbl-conclusion-archetype-binding-terms" class="quarto-xref">table&nbsp;2</a>).</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The three lighthouse archetypes, and whether each stresses compute, communication, or coordination, are established in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-archetypes">Three systems archetypes</a></strong>.</p>
@@ -8003,7 +7918,7 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 </div>
 </figure>
 </div>
-<p>Read down a column to trace the constraints one workload encounters across the bands; read across a row to compare how a band constrains different workloads. These constraints need not all bind at once. The representative terms describe operating regimes, not permanent assignments of archetypes to C<span class="math inline">\(^3\)</span> terms. Federated MobileNet can be device-compute-bound during local training yet communication- or coordination-bound during a global round with intermittent clients. The same six principles apply to all three; the engineer must measure the workload at the relevant boundary before choosing which term to reduce. Because the binding term must be found rather than assumed, the book’s method reduces to a diagnostic procedure, a sequence of steps that is distinct from the principles it applies.</p>
+<p>Each column traces the constraints one workload encounters across the bands, while each row compares how a single band constrains different workloads. These constraints need not all bind at once. The representative terms describe operating regimes, not permanent assignments of archetypes to C<span class="math inline">\(^3\)</span> terms. Federated MobileNet can be device-compute-bound during local training yet communication- or coordination-bound during a global round with intermittent clients. The same six principles apply to all three; the engineer must measure the workload at the relevant boundary before choosing which term to reduce. Because the binding term must be found rather than assumed, the book’s method reduces to a diagnostic procedure, a sequence of steps that is distinct from the principles it applies:</p>
 <ol type="1">
 <li>Start with the observed symptom, the user-visible or operator-visible failure.</li>
 <li>Attach the metric that makes the symptom falsifiable.</li>
@@ -8012,7 +7927,7 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 <li>State the cost that the proposed fix displaces elsewhere.</li>
 <li>Preserve the audit, safety, security, or responsibility evidence needed to justify the decision.</li>
 </ol>
-<p>On the expanded cluster, a training run that falls behind its schedule exercises every step of that procedure: the schedule lag is the symptom, and the falsifiable metric is model FLOPs utilization measured per step, the measure of program goodput in <strong><a href="../09_performance_engineering/09_performance_engineering.html#sec-performance-engineering-fleet-efficiency-metric-dff4">Program goodput and its measure</a></strong>, which has dropped since the expansion. A step profile shows accelerators idle at gradient-synchronization barriers, but that wait alone does not distinguish slow collective transfer from ranks arriving late after computation, data loading, or scheduling delays, so aligned per-rank traces must separate arrival skew from exposed collective completion time. When those traces show little arrival skew and increased exposed transfer time, they point to communication as the binding term and to the distributed-execution row, where the collective and its overlap are scheduled, as the owner of the intervention. A proposed fix such as gradient compression shrinks the exchanged bytes while displacing cost into convergence and accuracy risk, which means the evidence to preserve is the convergence and evaluation record showing that the compressed run still reaches its quality target. The same procedure redirects other symptoms: a fairness alert may point to missing labels, insufficient review capacity, or a serving-path threshold policy rather than model weights alone, and a security incident may point to artifact provenance, access permissions, or rollback evidence rather than network perimeter failure. The discipline is to follow the constraint until the row that owns it and the trade-off it carries are visible. When the fix changes what ships, the evidence from the final step enters the end-to-end evaluation contract (principle <a href="../parts/deployment_principles.html#pri-evaluation-contract">21</a>), one versioned release record that binds the candidate to production-equivalent measurements, accountable acceptance authority, tested recovery, and explicit conditions that invalidate the evidence.</p>
+<p>On the expanded cluster, a training run that falls behind its schedule exercises every step of that procedure. The schedule lag is the symptom, and the falsifiable metric is model FLOPs utilization measured per step, the measure of program goodput in <strong><a href="../09_performance_engineering/09_performance_engineering.html#sec-performance-engineering-fleet-efficiency-metric-dff4">Program goodput and its measure</a></strong>, which has dropped since the expansion. A step profile shows accelerators idle at gradient-synchronization barriers, but that wait alone does not distinguish slow collective transfer from ranks arriving late after computation, data loading, or scheduling delays. Aligned per-rank traces must therefore separate arrival skew from exposed collective completion time. When those traces show little arrival skew and increased exposed transfer time, they point to communication as the binding term and to the distributed-execution row, where the collective and its overlap are scheduled, as the owner of the intervention. A proposed fix such as gradient compression shrinks the exchanged bytes while displacing cost into convergence and accuracy risk, which means the evidence to preserve is the convergence and evaluation record showing that the compressed run still reaches its quality target. The same procedure redirects other symptoms. A fairness alert may point to missing labels, insufficient review capacity, or a serving-path threshold policy rather than model weights alone. A security incident may point to artifact provenance, access permissions, or rollback evidence rather than network perimeter failure. The discipline is to follow the constraint until the row that owns it and the trade-off it carries are visible. When the fix changes what ships, the evidence from the final step enters the end-to-end evaluation contract (principle <a href="../parts/deployment_principles.html#pri-evaluation-contract">21</a>), one versioned release record that binds the candidate to production-equivalent measurements, accountable acceptance authority, tested recovery, and explicit conditions that invalidate the evidence.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ The end-to-end evaluation contract and its versioned release record are established in <strong><a href="../12_ops_scale/12_ops_scale.html#sec-ops-scale-end-to-end-evaluation-contract">The end-to-end evaluation contract</a></strong>.</p>
@@ -8055,7 +7970,7 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 <h2 data-number="17.4" class="anchored" data-anchor-id="sec-conclusion-mastered-da67"><span class="header-section-number">17.4</span> Competencies Mastered</h2>
 <p>The proposed cluster expansion tests competence across the whole stack. Accepting it requires evidence that reduced compute time survives communication and recovery costs, while releasing its model requires a separate serving and governance judgment. Mastery means identifying those dependencies, choosing the measurements that test them, and defending the decision within the stated assumptions. Each band of the stack contributes one checkable part of that defense.</p>
 <p>In the Infrastructure band, the governing question is which infrastructure limit binds the workload. An engineer who has mastered this material can match accelerator memory and compute to the model, provision storage and network bandwidth for the required rates, and account for power and cooling as capacity constraints rather than facilities details. In the expansion, that skill decides whether the retained fabric, checkpoint tier, and site power can carry 2,048 GPUs at all.</p>
-<p>In the Distribution band, the governing question is how to make a workload larger than any single machine behave as one coordinated system. An engineer can analyze communication patterns, select a parallelization strategy, and estimate failure cadence from component MTTF, fleet size, and the failure-dependence model. Given a collective’s cost model, such as the Ring AllReduce cost recalled under the second principle, the engineer can also predict which of its terms grows with <span class="math inline">\(\DeviceCount\)</span>. In the expansion, this band produced the recovery estimate and the break-even speedup, and it identified exposed communication as the measurement that sets the price.</p>
+<p>In the Distribution band, the governing question is how to make a workload larger than any single machine behave as one coordinated system. An engineer can analyze communication patterns, select a parallelization strategy, and estimate failure cadence from component MTTF, fleet size, and the failure-dependence model. Given a collective’s cost model, such as the Ring AllReduce cost recalled in <a href="#sec-conclusion-six-principles-distributed-ml-systems-746a" class="quarto-xref">section&nbsp;17.2</a>, the engineer can also predict which of its terms grows with <span class="math inline">\(\DeviceCount\)</span>. In the expansion, this band produced the recovery estimate and the break-even speedup, and it identified exposed communication as the measurement that sets the price.</p>
 <p>In the Serving band, the governing question is how a trained model keeps serving value under live traffic. An engineer can budget the serving tax, select batching and placement policies, and monitor system performance and input distributions in production so that a working model does not become an inefficient or stale service. In the expansion, this band decides whether the released model meets its latency contract with headroom left for recovery.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
@@ -8092,13 +8007,13 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 </section>
 <section id="sec-conclusion-path-forward-caa2" class="level2 page-columns page-full" data-number="17.5">
 <h2 data-number="17.5" class="anchored" data-anchor-id="sec-conclusion-path-forward-caa2"><span class="header-section-number">17.5</span> Where the Binding Constraint Moves Next</h2>
-<p>When a reasoning model spends seconds of test-time compute on a single user prompt or thousands of accelerators burn link power on every Mixture-of-Experts AllToAll dispatch, the binding constraint shifts again without leaving the Fleet Law behind. The same six principles apply to workloads and substrates that are only now emerging. Test-time compute, introduced among the scaling regimes in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-intro-resourceconstrained-scaling-regimes-062d">Resource-constrained scaling regimes</a></strong>, already moves part of the scaling curve from the training cluster into the serving path, where <strong><a href="../10_inference/10_inference.html#sec-inference-logic-wall">Test-time compute and the per-request budget</a></strong> prices it as a per-request compute budget. Beneath the fleet, new interconnect and packaging substrates change the rates that every Fleet Law term inherits. Each shift relocates cost without exempting it from the Fleet Law.</p>
+<p>When a reasoning model spends seconds of test-time compute on a single user prompt or an optical interconnect replaces copper across a switching tier, that test of transfer applies directly: the binding constraint shifts again without leaving the Fleet Law behind. The same six principles govern workloads and substrates that are only now emerging. Test-time compute, introduced among the scaling regimes in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-intro-resourceconstrained-scaling-regimes-062d">Resource-constrained scaling regimes</a></strong>, already moves part of the scaling curve from the training cluster into the serving path, where <strong><a href="../10_inference/10_inference.html#sec-inference-logic-wall">Test-time compute and the per-request budget</a></strong> prices it as a per-request compute budget. Beneath the fleet, new interconnect and packaging substrates change the rates that every Fleet Law term inherits. Each shift relocates cost without exempting it from the Fleet Law.</p>
 <p>Gains from scheduling, placement, and overlap depend on a physical fabric, so software and substrate choices must be evaluated together. Once software has removed avoidable coordination, the remaining frontier is the substrate that moves tokens, activations, and power through the fleet. For Archetype A, the pressure on that substrate comes from specific collective patterns rather than from scale in general. Tensor parallelism issues frequent collectives across partitioned tensors, and mixture-of-experts (MoE) routing issues an AllToAll dispatch at each expert layer. Across thousands of accelerators, link energy accumulates with the volume of that collective traffic, which makes lower-energy interconnects a plausible fabric-efficiency lever.</p>
-<p>The candidates are substrates the book has already met. Optical I/O and co-packaged optics entered with the network fabric as ways to lower energy per bit, 3D integration extends the stacking that HBM and advanced packaging already use to shorten connections, and neuromorphic event-driven substrates appeared among the research directions for sustainable fleets as a way to organize computation around sparse events such as spikes and keep state beside the compute that uses it. Each attacks a different factor of the same account: energy per bit, path length, bandwidth density, or the distance between memory and compute. Automated architecture search and AI-for-systems optimization offer ways to explore candidate designs, but each proposal still needs a workload-specific comparison of useful work, data movement, power, and implementation cost. A lower energy per bit also reaches the fleet only in proportion to the links’ share of fleet power, the affected-share arithmetic of Amdahl’s law applied to energy, so its value is measured as that share, as the optical dividend of <strong><a href="../03_network_fabrics/03_network_fabrics.html#sec-network-fabrics-optical">Optical interconnects</a></strong> does for a switch and a cluster. A lower link-energy measurement alone therefore does not establish a better fleet, and a new substrate still needs fault tolerance and responsible governance.</p>
+<p>Candidate substrates attack different factors of that physical account: energy per bit, path length, bandwidth density, or the distance between memory and compute. Optical I/O and co-packaged optics lower the energy required to move each bit across the fabric, while 3D integration extends the vertical stacking of HBM and advanced packaging to shorten interconnect paths. Neuromorphic event-driven substrates instead organize computation around sparse events such as spikes and keep state beside the compute units that use it. Automated architecture search and AI-for-systems optimization offer ways to explore candidate designs, but each proposal still needs a workload-specific comparison of useful work, data movement, power, and implementation cost. A lower energy per bit also reaches the fleet only in proportion to the links’ share of fleet power, the affected-share arithmetic of Amdahl’s law applied to energy. Its value is measured as that share, as the optical dividend of <strong><a href="../03_network_fabrics/03_network_fabrics.html#sec-network-fabrics-optical">Optical interconnects</a></strong> does for a switch and a cluster. A lower link-energy measurement alone therefore does not establish a better fleet, and a new substrate still needs fault tolerance and responsible governance.</p>
 
 <div class="no-row-height column-margin column-container"><div class="margin-pointer">
 <p>↩︎ Neuromorphic and other non-von Neumann directions are established in <strong><a href="../15_sustainable_ai/15_sustainable_ai.html#sec-sustainable-ai-future-challenges-58e2">Future research directions</a></strong>.</p>
-</div></div><p>Whatever the substrate, the discipline stays the same. An engineer chooses the unit of useful work, accounts for its full resource cost, and states which comparisons the evidence supports.</p>
+</div></div><p>Whatever the substrate, the discipline stays the same. An engineer chooses the unit of useful work, accounts for its full resource cost, and states which comparisons the evidence supports. Narrowing that boundary to a single component, layer, or benchmark in isolation produces the recurring failure modes of fleet design.</p>
 <div id="quiz-question-sec-conclusion-path-forward-caa2" class="callout callout-quiz-question">
 <details class="callout-quiz-question fbx-simplebox fbx-default"><summary><strong>Self-Check: Question</strong></summary><div>
 <ol type="1">
@@ -8133,11 +8048,11 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 </div>
 <div class="fallacy-pitfall">
 <p><strong>Pitfall</strong>: <em>Optimizing one layer while hiding the constraint it creates in another.</em></p>
-<p>A local improvement becomes dangerous when it moves cost to a layer that no one is measuring: larger batches may raise accelerator utilization while worsening tail latency, aggressive compression may reduce communication while increasing accuracy risk, and carbon-aware scheduling may lower emissions while requiring more slack in the service budget. Good engineering respects the displacement of overhead, keeping the transferred constraint visible so the system can choose deliberately rather than inheriting a hidden bottleneck.</p>
+<p>A local improvement becomes dangerous when it moves cost to a layer that no one is measuring. Larger batches may raise accelerator utilization while worsening tail latency, aggressive compression may reduce communication while increasing accuracy risk, and carbon-aware scheduling may lower emissions while requiring more slack in the service budget. Good engineering respects the displacement of overhead, keeping the transferred constraint visible so the system can choose deliberately rather than inheriting a hidden bottleneck.</p>
 </div>
 <div class="fallacy-pitfall">
 <p><strong>Fallacy</strong>: <em>Fleet-scale lessons are tied to today’s hardware and software stack.</em></p>
-<p>Specific processors, frameworks, and serving engines will change, but the durable relationships remain: data must reach compute at the required rate, workers must communicate before synchronization stalls the job, failures must be expected at large component counts, serving systems must meet tail-latency budgets, and governance constraints must be engineered into the operating path. The technology names are examples; the rate, failure, and accountability relationships are the lesson.</p>
+<p>Specific processors, frameworks, and serving engines will change, but the durable relationships remain. Data must reach compute at the required rate. Workers must communicate before synchronization stalls the job. Failures must be expected at large component counts. Serving systems must meet tail-latency budgets. Governance constraints must be engineered into the operating path. The technology names are examples; the rate, failure, and accountability relationships are the lesson.</p>
 </div>
 <div class="fallacy-pitfall">
 <p><strong>Pitfall</strong>: <em>Treating governance and sustainability as external reviews rather than system constraints.</em></p>
@@ -8177,7 +8092,7 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 <div id="callout-takeaways*-17.8" class="callout callout-takeaways" title="The fleet is the unit of design">
 <details class="callout-takeaways fbx-simplebox fbx-default" open=""><summary><strong>Key Takeaways: The fleet is the unit of design</strong></summary><div>
 <ul>
-<li><strong>The fleet is the object</strong>: The volume’s six principles reduce to one habit, following the binding constraint across infrastructure, communication, coordination, serving, and governance. The fleet, not any single model or component, is the unit to build, measure, and optimize.</li>
+<li><strong>The fleet is the object</strong>: The six principles reduce to one habit, following the binding constraint across infrastructure, communication, coordination, serving, and governance. The fleet, not any single model or component, is the unit to build, measure, and optimize.</li>
 <li><strong>Growth must earn its price</strong>: Within a fitted regime, each doubling of compute buys a smaller absolute loss reduction, while interruption exposure and checkpoint overhead grow with the fleet and exposed communication can grow with it. Expansion is a decision justified by measurements and release evidence, not a default.</li>
 <li><strong>Scale changes the probability model</strong>: When server delays are independent, a request that touches 100 servers has a 63.4 percent chance that at least one responds beyond its 99th-percentile latency, and a job that needs every one of <span class="math inline">\(\RequiredComponentCount\)</span> independent components sees its interval between interruptions shrink as <span class="math inline">\(1/\RequiredComponentCount\)</span>. Fleet behavior is not single-node behavior repeated.</li>
 <li><strong>Orchestration gains require system measurements</strong>: Scheduling, placement, and communication overlap improve useful throughput only when their gains survive recovery costs, serving deadlines, and resource budgets. Measure the complete operating path before accepting a local improvement as a fleet-wide gain.</li>
@@ -8186,8 +8101,8 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 </div></details>
 </div>
 <div id="callout-chapter-connection*-17.9" class="callout callout-chapter-connection" data-label="Closing Distillation" title="The discipline of ML systems">
-<p></p><details class="callout-chapter-connection fbx-simplebox fbx-default" open=""><summary><strong>Closing Distillation: The discipline of ML systems</strong></summary><div><strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-scale-moment">The Scale Moment</a></strong> traced the scale moment through a training run that stopped every few hours. Meta’s Llama 3 cluster of 16,384 GPUs recorded 419 unexpected interruptions in 54 days and still kept more than 90 percent of elapsed time as useful training <span class="citation" data-cites="dubey2024llama">(<a href="#ref-dubey2024llama" role="doc-biblioref"><span class="nocase">Dubey et al.</span> 2024</a>)</span>. Those numbers now read as engineering. An unexpected interruption every 3.1 hours is the reliability gap of a job that needs every one of its accelerators at once, and it measures the run’s recovery exposure; the effective training fraction, the run’s runtime goodput, measures how much progress the recovery machinery retained across elapsed time. The report credits faster startup, checkpointing, and diagnosis, including communication traces that made stalled collectives inspectable, for that retained fraction, so the fraction summarizes all of them together rather than measuring any single Fleet Law term. Each worker still computed, exchanged, and waited, as in the synchronous step with which the book began; Compute, Communication, and Coordination are those three activities, measured.<p></p>
-<p>A proposed larger run can now be judged rather than presumed necessary. Under the expansion example’s independent, identical constant-rate failure model and unchanged checkpoint write time, doubling the fleet halves the expected interruption interval and raises optimized checkpoint-and-rework overhead by about 1.41×, and it buys calendar time only by spending more accelerator-hours on the same work. Whether that run should be built depends on the shrinking quality gain its fitted scaling curve predicts for the doubling, the measured time and energy required to deliver it, and the evidence its release requires. The engineering achievement is a justified decision, including the decision to retain the current fleet when expansion cannot meet those conditions. The same discipline applies whether the work scales training compute across thousands of accelerators or serves a model to millions of users under a latency contract. The engineer follows the binding constraint across the fleet, accounts for every displaced cost, and accepts a design only when the evidence supports it.</p>
+<p></p><details class="callout-chapter-connection fbx-simplebox fbx-default" open=""><summary><strong>Closing Distillation: The discipline of ML systems</strong></summary><div><strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-scale-moment">The Scale Moment</a></strong> traced the scale moment through a training run that stopped every few hours. Meta’s Llama 3 cluster of 16,384 GPUs recorded 419 unexpected interruptions in 54 days and still kept more than 90 percent of elapsed time as useful training <span class="citation" data-cites="dubey2024llama">(<a href="#ref-dubey2024llama" role="doc-biblioref"><span class="nocase">Dubey et al.</span> 2024</a>)</span>. Those numbers now read as engineering. An unexpected interruption every 3.1 hours is the reliability gap of a job that needs every one of its accelerators at once, and it measures the run’s recovery exposure. The effective training fraction, the run’s runtime goodput, measures how much progress the recovery machinery retained across elapsed time. The report credits faster startup, checkpointing, and diagnosis, including communication traces that made stalled collectives inspectable, for that retained fraction, so the fraction summarizes all of them together rather than measuring any single Fleet Law term. Each worker still computed, exchanged, and waited, as in the synchronous step with which the book began; Compute, Communication, and Coordination are those three activities, measured.<p></p>
+<p>A proposed larger run can now be judged rather than presumed necessary. Under the expansion example’s independent, identical constant-rate failure model and unchanged checkpoint write time, doubling the fleet halves the expected interruption interval and raises optimized checkpoint-and-rework overhead by about 1.41×. It buys calendar time only by spending more accelerator-hours on the same work. Whether that run should be built depends on the shrinking quality gain its fitted scaling curve predicts for the doubling, the measured time and energy required to deliver it, and the evidence its release requires. The engineering achievement is a justified decision, including the decision to retain the current fleet when expansion cannot meet those conditions. The same discipline applies whether the work scales training compute across thousands of accelerators or serves a model to millions of users under a latency contract. The engineer follows the binding constraint across the fleet, accounts for every displaced cost, and accepts a design only when the evidence supports it.</p>
 </div></details>
 </div>
 <div class="no-row-height column-margin column-container"><div id="ref-dubey2024llama" class="csl-entry" role="listitem">
@@ -8829,10 +8744,10 @@ Table&nbsp;2: <strong>Archetypes across the Fleet Stack</strong>: The book’s t
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
 </div>   
     <div class="nav-footer-center">
-<p><a href="../vol1/">← Volume I: Foundations</a> · <a href="../vol3/">Volume III: Agentic (Draft) →</a></p>
+<p><a href="../vol1/">← Volume I: Introduction to Machine Learning Systems</a><span class="mls-unreleased"> · <a href="../vol3/">Volume III: Agentic Machine Learning Systems (in preparation) →</a></span></p>
 </div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">

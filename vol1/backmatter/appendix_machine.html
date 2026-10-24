@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ae0ae246ad73b89f412bc1116d59ce33.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-9c5e6300bc4ffb4257557316b1c925cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1fc984199c7792565922e1cb01b0bd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-30840f939543363d7a43265c18226f3d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1fc984199c7792565922e1cb01b0bd3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -120,6 +120,37 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   });
 </script>
 <!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  release-gate (inline, sync) — the live site (mlsysbook.ai) shows only the
+  released volumes; every other host (the dev preview at
+  harvard-edge.github.io/cs249r_book_dev, local previews) shows the whole
+  series. Unreleased content is hidden by default and revealed by the
+  `mls-staging` class, so a page without JavaScript still hides it.
+  To release a volume, drop its `.mls-unreleased` markers and its href rule
+  below. Added 2026-10-23: Volumes III and IV stay staging-only until their
+  public preview.
+-->
+<script>
+(function () {
+  var host = window.location.hostname;
+  if (!/(^|\.)mlsysbook\.ai$/.test(host)) {
+    document.documentElement.classList.add('mls-staging');
+  }
+})();
+</script>
+<style>
+  html:not(.mls-staging) .mls-unreleased,
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol3/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol4/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html.mls-staging .mls-live-only {
+    display: none !important;
+  }
+</style>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -289,7 +320,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       "@id": "https://mlsysbook.ai/#website",
       "url": "https://mlsysbook.ai/",
       "name": "Machine Learning Systems",
-      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "description": "An open textbook series on machine learning systems.",
       "publisher": {
         "@type": "Organization",
         "name": "Harvard Edge Computing Lab",
@@ -335,20 +366,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
           "url": "../../vol2/",
           "bookFormat": "https://schema.org/EBook",
           "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume III: Agentic Machine Learning Systems",
-          "url": "../../vol3/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume IV: Physical AI Systems",
-          "url": "../../vol4/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
         }
       ]
     },
@@ -803,9 +820,7 @@ $$
 \newcommand{\AdaptationWindowEnergy}{E_{\text{update}}}
 \newcommand{\AdaptedHiddenActivation}{\mathbf{h}'}
 \newcommand{\AdaptedTaskCost}{C_{\text{task, adapt}}}
-\newcommand{\AdaptedWeightMatrix}{\mathbf{W}_{\text{adapted}}}
 \newcommand{\AdapterActivationFunction}{\sigma}
-\newcommand{\AdapterAssignmentVector}{\mathbf{m}}
 \newcommand{\AdapterDownProjectionMatrix}{\mathbf{A}}
 \newcommand{\AdapterIndex}{k}
 \newcommand{\AdapterInitializationStandardDeviation}{\sigma}
@@ -814,7 +829,6 @@ $$
 \newcommand{\AdapterUpProjectionMatrix}{\mathbf{B}}
 \newcommand{\AdjacentNeighboringDataset}{X'}
 \newcommand{\AdjacentQueryResult}{v'}
-\newcommand{\AdminLeaseTime}{T_{\text{admin}}}
 \newcommand{\AdmissibleBacklogCount}{n}
 \newcommand{\AdmissibleControlSet}{\mathcal{U}_{\text{adm}}}
 \newcommand{\AdmissibleDisturbanceSet}{\mathcal{W}}
@@ -842,7 +856,6 @@ $$
 \newcommand{\AffordanceSuccessEstimate}{V_{\text{policy}}}
 \newcommand{\AgeBlindTravel}{\Delta x_{\text{blind}}}
 \newcommand{\AgeCheckInstant}{t_{\text{curr}}}
-\newcommand{\AggregateServerPower}{P_{\text{servers}}}
 \newcommand{\AggregateSlotWork}{W}
 \newcommand{\AggregatedRecoveryDataset}{\mathcal{D}}
 \newcommand{\AggregatedSurrogateLoss}{\epsilon_N}
@@ -869,7 +882,6 @@ $$
 \newcommand{\AllocatedBlockCount}{N_{\text{blocks}}}
 \newcommand{\AllocatedHazardRate}{\lambda_{\text{alloc}}}
 \newcommand{\AllocatedWallTime}{T_{\text{wall}}}
-\newcommand{\AllowableCollisionEnergy}{E_{k, \text{allow}}}
 \newcommand{\AllowableRailDroop}{\Delta V_{\text{droop, max}}}
 \newcommand{\AllowableRailExcursion}{\Delta V_{\max}}
 \newcommand{\AllowableWindingTemperatureRise}{\Delta T_{\max}}
@@ -939,7 +951,6 @@ $$
 \newcommand{\AttemptVerificationCost}{C_{\text{verify}}}
 \newcommand{\AttentionHeadCount}{N_{\text{heads}}}
 \newcommand{\AttentionHeadDimension}{d_{\text{head}}}
-\newcommand{\AttentionHeadIndex}{i}
 \newcommand{\AttentionHeadOutput}{\mathbf{O}}
 \newcommand{\AttentionKeyMatrix}{\mathbf{K}}
 \newcommand{\AttentionOutputMatrix}{\mathbf{O}}
@@ -1031,11 +1042,9 @@ $$
 \newcommand{\BaseTravelDistance}{d}
 \newcommand{\BaseTravelSpeed}{v_{\text{base}}}
 \newcommand{\BaseWidthMultiplier}{w_{\text{mult},0}}
-\newcommand{\BaseWorkerCount}{N_{\text{base}}}
 \newcommand{\BaseWristTransform}{\mathbf{T}_{\text{base} \leftarrow \text{wrist}}}
 \newcommand{\BaseYawRateBias}{\omega_{\text{bias}}}
 \newcommand{\BaselineAcceptanceEstimate}{\hat{p}_{\text{base}}}
-\newcommand{\BaselineAnnualOperationsCost}{C_{\text{current}}}
 \newcommand{\BaselineControllerAction}{\mathbf{a}_t^{\text{base}}}
 \newcommand{\BaselineConversionRate}{p_0}
 \newcommand{\BaselineFeatureMean}{\mu_{\text{base}}}
@@ -1378,7 +1387,6 @@ $$
 \newcommand{\CentroidalMomentumRate}{\dot{\mathbf{h}}_G}
 \newcommand{\CertifiedCommandWindow}{\mathbf{u}^*_{t:t+H-1}}
 \newcommand{\CertifiedControlAction}{\mathbf{u}^*}
-\newcommand{\CertifiedJointTorque}{u^*}
 \newcommand{\CertifiedRadius}{R}
 \newcommand{\ChainRuleInput}{x}
 \newcommand{\ChainRuleIntermediate}{u}
@@ -1396,7 +1404,6 @@ $$
 \newcommand{\CheckIntervalStepCount}{m}
 \newcommand{\CheckPassProbability}{p^{\text{chk}}}
 \newcommand{\CheckSlotTime}{T}
-\newcommand{\CheckWindowTurnCount}{w}
 \newcommand{\CheckedSignal}{x}
 \newcommand{\CheckedSignalLimit}{L_{\text{limit}}}
 \newcommand{\CheckpointAttemptDuration}{T_{\text{att}}}
@@ -1431,7 +1438,6 @@ $$
 \newcommand{\ChunkExecutionHorizon}{H_{\text{exec}}}
 \newcommand{\ChunkImitationLoss}{\mathcal{L}_{\text{chunk}}}
 \newcommand{\ChunkLease}{T_{\text{lease}}}
-\newcommand{\ChunkLeaseTime}{T_{\text{lease}}}
 \newcommand{\ChunkReactionLatency}{T_{\text{reaction}}}
 \newcommand{\ChunkRenewalPeriod}{T_{\text{chunk}}}
 \newcommand{\ChunkRenewalRate}{f_{\text{replan}}}
@@ -1458,11 +1464,9 @@ $$
 \newcommand{\ClearanceTimeBudget}{T_{\text{total}}}
 \newcommand{\ClfClassKFunction}{\alpha_V}
 \newcommand{\ClfDescentControlSet}{\mathcal{U}_{\text{CLF}}}
-\newcommand{\ClientGradientVector}{\mathbf{g}}
 \newcommand{\ClientIndex}{k}
 \newcommand{\ClientLocalDataset}{\mathcal{D}}
 \newcommand{\ClientLocalTrainingEnergy}{E_{\text{client}}}
-\newcommand{\ClientMaskVector}{\mathbf{r}}
 \newcommand{\ClientObjectiveWeight}{w}
 \newcommand{\ClientSampleCount}{n}
 \newcommand{\ClientUpdateUploadEnergy}{E_{\text{upload}}}
@@ -1481,7 +1485,6 @@ $$
 \newcommand{\CloudInferenceEnergy}{E_{\text{cloud}}}
 \newcommand{\CloudOffloadEnergy}{E_{\text{transmit}}}
 \newcommand{\CloudTrainingRunEnergy}{E_{\text{cloud,train}}}
-\newcommand{\ClusterAvailability}{A_{\text{cluster}}}
 \newcommand{\ClusterCount}{k}
 \newcommand{\ClusterHeadroom}{N}
 \newcommand{\ClusterNodeCount}{N_{\text{nodes}}}
@@ -1499,7 +1502,6 @@ $$
 \newcommand{\CollectionCohortCost}{C_{\text{cohort}}}
 \newcommand{\CollectionStateVisitationDistribution}{p^{\pi_{\text{col}}}}
 \newcommand{\CollectiveCallStartupLatency}{\alpha_{\text{eff}}}
-\newcommand{\CollectiveInputTensor}{\mathbf{X}}
 \newcommand{\CollectivePayloadSize}{M}
 \newcommand{\CollectiveTensorSize}{M_{\text{coll}}}
 \newcommand{\CollisionHullCount}{N_{\text{hulls}}}
@@ -1584,7 +1586,6 @@ $$
 \newcommand{\CompressedGradientUpdateElement}{v}
 \newcommand{\CompressedOnlyCorrectCount}{n_{\text{comp}}}
 \newcommand{\CompressionRatio}{r_{\text{comp}}}
-\newcommand{\ComputationalDimensionCount}{N_{\text{comp}}}
 \newcommand{\ComputationalGraph}{G}
 \newcommand{\ComputeBudgetConstraint}{g}
 \newcommand{\ComputeChipPower}{P_{\text{chip}}}
@@ -1703,7 +1704,6 @@ $$
 \newcommand{\ControlAffineDriftField}{\mathbf{f}}
 \newcommand{\ControlAffineInputField}{\mathbf{g}}
 \newcommand{\ControlCommand}{\mathbf{u}}
-\newcommand{\ControlCommandDerivative}{\dot{\mathbf{u}}}
 \newcommand{\ControlCommandSpace}{\mathcal{U}}
 \newcommand{\ControlConversionRate}{\hat{p}_A}
 \newcommand{\ControlCycleIndex}{i}
@@ -1715,7 +1715,6 @@ $$
 \newcommand{\ControlInputWindow}{\mathbf{u}_{[t, t+\Delta t]}}
 \newcommand{\ControlSampleIndex}{k}
 \newcommand{\ControlSampleSize}{m_A}
-\newcommand{\ControlSetpointJerk}{\mathbf{j}}
 \newcommand{\ControlSetpointPeriod}{\Delta t_{\text{ctrl}}}
 \newcommand{\ControlStepIndex}{t}
 \newcommand{\ControlTaskIndex}{i}
@@ -2028,8 +2027,6 @@ $$
 \newcommand{\DivergenceInstant}{t_{\text{div}}}
 \newcommand{\DivergenceMeasure}{\mathcal{D}}
 \newcommand{\DivergenceTolerance}{\delta_{\text{tol}}}
-\newcommand{\DmaBurstPeriod}{T_{\text{dma}}}
-\newcommand{\DmaBurstStallTime}{C_{\text{dma}}}
 \newcommand{\DmaQueueTime}{t_{\text{DMA}}}
 \newcommand{\DocumentPayloadFraction}{q}
 \newcommand{\DomainRandomizationDistribution}{\mathcal{D}_{\text{DR}}}
@@ -2048,7 +2045,6 @@ $$
 \newcommand{\DraftCandidateToken}{\tilde{x}}
 \newcommand{\DraftModelDistribution}{q_{\phi}}
 \newcommand{\DraftPositionAcceptanceProbability}{\alpha_{\text{spec}, j}}
-\newcommand{\DraftPositionIndex}{i}
 \newcommand{\DraftSamplingDistribution}{q}
 \newcommand{\DraftTokenAcceptanceProbability}{\alpha_{\text{acc}}}
 \newcommand{\DraftTokenCostRatio}{\beta}
@@ -2181,14 +2177,12 @@ $$
 \newcommand{\EnforcerComputeTime}{T_{\text{comp}}}
 \newcommand{\EnforcerDeadline}{T_{\text{deadline,enf}}}
 \newcommand{\EngineerHourlyCost}{C_{\text{engineer}}}
-\newcommand{\EngineeringTeamSize}{n}
 \newcommand{\EngineeringTemperatureCeiling}{T_{\text{ceil}}}
 \newcommand{\EnsembleSpreadThreshold}{\sigma_{\text{thresh}}}
 \newcommand{\EnsemblingDecayRate}{m}
 \newcommand{\EnsemblingWindowLength}{K}
 \newcommand{\EntityCount}{N_{\text{entities}}}
 \newcommand{\EntityEmbedding}{\mathbf{e}}
-\newcommand{\EntityIndex}{j}
 \newcommand{\EntropyTemperature}{\alpha}
 \newcommand{\EnvelopeCallCount}{N}
 \newcommand{\EnvelopeSetupTime}{T_{\text{setup}}}
@@ -2440,7 +2434,6 @@ $$
 \newcommand{\FirstAdjacentCheckIndex}{a}
 \newcommand{\FirstAdjacentCheckPassProbability}{p_{a}}
 \newcommand{\FirstAdjacentCheckSlotTime}{T_{a}}
-\newcommand{\FirstAtomicGradientUpdate}{A}
 \newcommand{\FirstCatalogDefinitionCount}{n_{\text{def},A}}
 \newcommand{\FirstCatalogDefinitionSize}{S_{A}}
 \newcommand{\FirstClassCoverageFloor}{a}
@@ -2472,7 +2465,6 @@ $$
 \newcommand{\FlangeReferenceFrame}{\mathcal{F}_{\text{flange}}}
 \newcommand{\FlangeTargetTransform}{\mathbf{T}_{\text{flange}}^{\text{target}}}
 \newcommand{\FlattenedFilterWeights}{\mathbf{w}_{\text{col}}}
-\newcommand{\FleetAcceleratorCount}{N_{\text{fleet}}}
 \newcommand{\FleetCommunicationTaxonomyAxis}{C_2}
 \newcommand{\FleetComputeTaxonomyAxis}{C_1}
 \newcommand{\FleetCoordinationTaxonomyAxis}{C_3}
@@ -2546,7 +2538,6 @@ $$
 \newcommand{\FrobeniusNorm}{F}
 \newcommand{\FrozenBackboneFunction}{f}
 \newcommand{\FrozenFeatureEncoder}{f}
-\newcommand{\FrozenWeightMatrix}{\mathbf{W}_{\text{frozen}}}
 \newcommand{\FrustumFeature}{\mathbf{c}_{u, v, k}}
 \newcommand{\FullBatchLoss}{\mathcal{L}_B}
 \newcommand{\FullDatasetSize}{D_{\text{total}}}
@@ -2572,9 +2563,6 @@ $$
 \newcommand{\FusionCandidate}{x_{\text{cand}}}
 \newcommand{\FusionInputList}{\mathcal{L}}
 \newcommand{\FusionInputRank}{r}
-\newcommand{\FusionInputTensor}{\mathbf{X}}
-\newcommand{\FusionIntermediateTensor}{\mathbf{Z}}
-\newcommand{\FusionOutputTensor}{\mathbf{Y}}
 \newcommand{\FutureControlTrajectory}{\mathbf{u}_{[t, \infty)}}
 \newcommand{\FutureTimeInstant}{t'}
 \newcommand{\GaeAdvantageEstimate}{\widehat{A}^{\text{GAE}}}
@@ -2709,7 +2697,6 @@ $$
 \newcommand{\GuardedContactPredicate}{P_{\text{contact}}}
 \newcommand{\GuestImageMemory}{M_{\text{guest}}}
 \newcommand{\GuestKernelBootTime}{T_{\text{kernel}}}
-\newcommand{\HadamardRotationMatrix}{\mathbf{H}}
 \newcommand{\HalfPrecisionGemvIntensity}{I_{\text{GEMV, 16-bit}}}
 \newcommand{\HammingDataBitCount}{n}
 \newcommand{\HandForceCriterion}{F_h}
@@ -2829,7 +2816,6 @@ $$
 \newcommand{\ImageColumnIndex}{w}
 \newcommand{\ImageEpipole}{\mathbf{e}}
 \newcommand{\ImageHeight}{H}
-\newcommand{\ImagePlanePixelCoordinates}{\mathbf{u}_{\text{px}}}
 \newcommand{\ImageRowIndex}{h}
 \newcommand{\ImageTensorElement}{X}
 \newcommand{\ImageWidth}{W}
@@ -3184,7 +3170,6 @@ $$
 \newcommand{\LaterRolloutTurnIndex}{j}
 \newcommand{\LaterStepIndex}{j}
 \newcommand{\LateralClearance}{W_{\text{clear}}}
-\newcommand{\LatestSequentialObservation}{X_m}
 \newcommand{\LayerAllReduceTime}{T_{\text{layer comm}}}
 \newcommand{\LayerBackwardTime}{T_{\text{layer backward}}}
 \newcommand{\LayerCount}{N_L}
@@ -3311,7 +3296,6 @@ $$
 \newcommand{\LoopOrderCount}{N_{\text{order}}}
 \newcommand{\LoopParallelizationChoiceCount}{\mathcal{P}_{\text{parallel}}}
 \newcommand{\LoopTurnCost}{C}
-\newcommand{\Loss}{L}
 \newcommand{\LossAdjointSeed}{\bar{\mathcal{L}}}
 \newcommand{\LossFunction}{\mathcal{L}}
 \newcommand{\LossGradient}{g}
@@ -3358,7 +3342,6 @@ $$
 \newcommand{\MapPoseCovariance}{\boldsymbol{\Sigma}_{\text{map}}}
 \newcommand{\MapReferenceFrame}{\mathcal{F}_{\text{map}}}
 \newcommand{\MappedCommandTap}{a_{\text{cmd}}}
-\newcommand{\MappingSearchSpaceSize}{\mathcal{S}_{\text{mapping}}}
 \newcommand{\MarginalFalseApprovalProbability}{p}
 \newcommand{\MarginalRequestServiceTime}{t_{\text{req}}}
 \newcommand{\MarginalStoppingThreshold}{\epsilon_{\text{stop}}}
@@ -3366,7 +3349,6 @@ $$
 \newcommand{\MarginalizedModelParameters}{\theta'}
 \newcommand{\MarkovDecisionProcess}{\mathcal{M}}
 \newcommand{\MaskTokenIndex}{i}
-\newcommand{\MaskedClientUpdate}{\mathbf{y}}
 \newcommand{\MaskedFinetuningLoss}{\mathcal{L}_{\text{SFT}}}
 \newcommand{\MaskedImitationDataset}{\mathcal{D}_{\text{train}}}
 \newcommand{\MaskedImitationLoss}{\mathcal{L}_{\text{imitation}}}
@@ -3460,12 +3442,10 @@ $$
 \newcommand{\MemoryEntryDeathGeneration}{g_{\text{death}}}
 \newcommand{\MemoryHierarchyLevelCount}{N_{\text{mem}}}
 \newcommand{\MemoryHoldDuringWait}{O_{\text{mem}}}
-\newcommand{\MemoryPlacementCount}{\mathcal{M}_{\text{placement}}}
 \newcommand{\MemorySubsystemEnergy}{E_{\text{memory}}}
 \newcommand{\MergedAttentionOutput}{\mathbf{O}^{\text{new}}}
 \newcommand{\MergedSoftmaxMaximum}{m^{\text{new}}}
 \newcommand{\MergedSoftmaxNormalizer}{z^{\text{new}}}
-\newcommand{\MergedWeightMatrix}{\mathbf{W}_{\text{final}}}
 \newcommand{\MessageInjectionGap}{g}
 \newcommand{\MessageQueueDelay}{T_q}
 \newcommand{\MessageStartupLatency}{\alpha}
@@ -3519,8 +3499,6 @@ $$
 \newcommand{\MlProductivityGoodput}{\text{MPG}}
 \newcommand{\MlpWeightArithmeticIntensity}{I_{\text{MLP}}}
 \newcommand{\MobileBaseBarrierFunction}{h_{\text{base}}}
-\newcommand{\MobilenetWidthMultiplier}{\alpha_{\text{width}}}
-\newcommand{\ModelBandwidthUtilization}{\text{MBU}}
 \newcommand{\ModelCallIndex}{i}
 \newcommand{\ModelCallRequest}{\mathcal{R}}
 \newcommand{\ModelDownloadEnergy}{E_{\text{download}}}
@@ -3593,7 +3571,6 @@ $$
 \newcommand{\NetworkBandwidth}{\text{BW}_{\text{network}}}
 \newcommand{\NetworkDelayStandardDeviation}{\sigma_d}
 \newcommand{\NetworkEnergy}{E_{\text{network}}}
-\newcommand{\NetworkEquipmentPower}{P_{\text{network}}}
 \newcommand{\NetworkFunction}{f_{\text{net}}}
 \newcommand{\NetworkLatency}{L_{\text{lat,network}}}
 \newcommand{\NetworkOutput}{y}
@@ -3604,10 +3581,8 @@ $$
 \newcommand{\NeuronConnectionWeight}{w_{ij}}
 \newcommand{\NeuronIndex}{j}
 \newcommand{\NeuronPreactivation}{z}
-\newcommand{\NewSoftmaxRunningMaximum}{m_{\text{new}}}
 \newcommand{\NextDecisionProcessState}{s'}
 \newcommand{\NextFailureTime}{F}
-\newcommand{\NextLayerActivationMemory}{M_{\text{activations}}^{(\ell+1)}}
 \newcommand{\NextProprioceptiveObservation}{\mathbf{o}_{\text{proprio}, t+1}}
 \newcommand{\NextRobotAction}{\mathbf{a}'}
 \newcommand{\NextTokenDistribution}{p}
@@ -3748,11 +3723,7 @@ $$
 \newcommand{\OffloadTransactionWindow}{W}
 \newcommand{\OhmUnit}{\Omega}
 \newcommand{\OilBulkModulus}{\beta}
-\newcommand{\OldSoftmaxRunningMaximum}{m_{\text{old}}}
 \newcommand{\OnDieDecouplingCapacitance}{C_{\text{die}}}
-\newcommand{\OnlineSoftmaxKeyTile}{\mathbf{K}_{\text{tile}}}
-\newcommand{\OnlineSoftmaxQueryBlock}{\mathbf{Q}_{\text{block}}}
-\newcommand{\OnlineSoftmaxScoreBlock}{\mathbf{A}_{\text{block}}}
 \newcommand{\OpenLoopTransferFunction}{L}
 \newcommand{\OpenLoopTransferMatrix}{\mathbf{L}}
 \newcommand{\OperationChargeBound}{\bar{c}}
@@ -3904,7 +3875,6 @@ $$
 \newcommand{\PathDelayAsymmetry}{\Delta t_{\text{asym}}}
 \newcommand{\PathGridPointCount}{N_{\text{grid}}}
 \newcommand{\PathVelocity}{\dot{s}}
-\newcommand{\PathVelocityField}{v}
 \newcommand{\PathVelocitySquaredTorqueCoefficient}{\mathbf{b}_{\tau}}
 \newcommand{\PayloadGravityTorque}{\tau_{g}}
 \newcommand{\PayloadLeverArm}{r}
@@ -4008,7 +3978,6 @@ $$
 \newcommand{\PixelRowCoordinate}{v}
 \newcommand{\PixelRowStandardDeviation}{\sigma_v}
 \newcommand{\PixelStandardDeviation}{\sigma_u}
-\newcommand{\PlacementChoiceCount}{n}
 \newcommand{\PlaintextInput}{m}
 \newcommand{\PlanAction}{a}
 \newcommand{\PlanarHomographyMatrix}{\mathbf{H}}
@@ -4029,7 +3998,6 @@ $$
 \newcommand{\PlantStateSpace}{\mathcal{X}}
 \newcommand{\PlantTransitionDensity}{p_m}
 \newcommand{\PlantTransitionKernel}{\mathcal{T}}
-\newcommand{\PlatformAnnualOperationsCost}{C_{\text{after}}}
 \newcommand{\PlatformResourceCapacity}{\text{Cap}}
 \newcommand{\PlatformResourceIndex}{i}
 \newcommand{\PlatformTotalCost}{C_{\text{platform}}}
@@ -4202,7 +4170,6 @@ $$
 \newcommand{\ProcessNoiseIntensity}{\mathbf{Q}}
 \newcommand{\ProcessNoiseVector}{\mathbf{w}}
 \newcommand{\ProcessedDataVolume}{D_{\text{vol,processed}}}
-\newcommand{\ProcessedKeyTileIndex}{t}
 \newcommand{\ProcessedSampleCount}{N_{\text{samples}}}
 \newcommand{\ProcessingBufferCount}{N_{\text{processing}}}
 \newcommand{\ProcessingPrice}{R_{\text{process/GB}}}
@@ -4559,7 +4526,6 @@ $$
 \newcommand{\ResidualGate}{g}
 \newcommand{\ResidualPolicyTorque}{\boldsymbol{\tau}_{\text{res},\theta}}
 \newcommand{\ResidualSamplingDistribution}{p_{\text{res}}}
-\newcommand{\ResizedWorkerCount}{N_{\text{new}}}
 \newcommand{\ResolutionScalingRatio}{\gamma}
 \newcommand{\ResourceChangeRate}{r_{\text{chg}}}
 \newcommand{\ResourceCostBudget}{C_{\text{max}}}
@@ -4660,8 +4626,6 @@ $$
 \newcommand{\RolloutTurnIndex}{k}
 \newcommand{\RooflineRidgePoint}{I_{\text{ridge}}}
 \newcommand{\RotaryRotationMatrix}{\mathbf{R}}
-\newcommand{\RotatedActivationMatrix}{\mathbf{X}'}
-\newcommand{\RotatedWeightMatrix}{\mathbf{W}'}
 \newcommand{\RotatingBodyAngularSpeed}{\omega}
 \newcommand{\RotatingBodyInertia}{J}
 \newcommand{\RotationOriginAcceleration}{\mathbf{a}_O}
@@ -4783,7 +4747,6 @@ $$
 \newcommand{\SecondAdjacentCheckIndex}{b}
 \newcommand{\SecondAdjacentCheckPassProbability}{p_{b}}
 \newcommand{\SecondAdjacentCheckSlotTime}{T_{b}}
-\newcommand{\SecondAtomicGradientUpdate}{B}
 \newcommand{\SecondCatalogDefinitionCount}{n_{\text{def},B}}
 \newcommand{\SecondCatalogDefinitionSize}{S_{B}}
 \newcommand{\SecondClassCoverageFloor}{b}
@@ -4842,7 +4805,6 @@ $$
 \newcommand{\SequentialCandidateCount}{M}
 \newcommand{\SequentialCostPerAcceptedTask}{C_{\text{eff,seq}}}
 \newcommand{\SequentialExecutionTime}{T_{\text{sequential}}}
-\newcommand{\SequentialLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialLogLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialTestObservation}{X}
 \newcommand{\SequentialTrialCount}{m}
@@ -4928,7 +4890,6 @@ $$
 \newcommand{\SingleJointInertia}{M}
 \newcommand{\SingleJointVelocityLimit}{\dot{q}_{i,\max}}
 \newcommand{\SingleLinkBandwidth}{\text{BW}_{\text{link}}}
-\newcommand{\SinglePrecisionGemvIntensity}{I_{\text{GEMV, 32-bit}}}
 \newcommand{\SingleStepImitationError}{\epsilon}
 \newcommand{\SingularSpectrumMatrix}{\mathbf{\Sigma}}
 \newcommand{\SisaShardCount}{K}
@@ -4956,7 +4917,6 @@ $$
 \newcommand{\SmoothnessConstant}{L_s}
 \newcommand{\SnapshotReadTime}{t_{\text{own}}}
 \newcommand{\SnapshotResetCycleTime}{T_{\text{cycle,snap}}}
-\newcommand{\SnapshotStepIndex}{s}
 \newcommand{\SoftExpectedActionReturn}{Q}
 \newcommand{\SoftExpectedRemainingReturn}{V}
 \newcommand{\SoftenedStudentProbabilityVector}{\mathbf{p}_{\text{student}}^{(T_{\text{distill}})}}
@@ -4967,7 +4927,6 @@ $$
 \newcommand{\SoftmaxNormalizer}{z}
 \newcommand{\SoftmaxOutputProbability}{p}
 \newcommand{\SoftmaxRowMaximum}{m}
-\newcommand{\SoftmaxRowScore}{s}
 \newcommand{\SoftmaxRunningMaximum}{m}
 \newcommand{\SoftmaxVectorLength}{n}
 \newcommand{\SontagStabilizingControl}{\mathbf{u}_{\text{Sontag}}}
@@ -5126,7 +5085,6 @@ $$
 \newcommand{\StorageAccessFactor}{F_{\text{access}}}
 \newcommand{\StorageBandwidth}{\text{BW}_{\text{storage}}}
 \newcommand{\StorageCapacityPrice}{C_{\text{storage/byte-time}}}
-\newcommand{\StorageEquipmentPower}{P_{\text{storage}}}
 \newcommand{\StorageFunction}{V}
 \newcommand{\StorageFunctionDerivative}{\dot{V}}
 \newcommand{\StorageIngestBandwidth}{\text{BW}_{\text{ingest}}}
@@ -5317,7 +5275,6 @@ $$
 \newcommand{\TaskTurnCost}{C_{\text{call}}}
 \newcommand{\TaskWeight}{w}
 \newcommand{\TasksPerComparisonArm}{N_{\text{arm}}}
-\newcommand{\TeacherProbabilityVector}{\mathbf{p}_{\text{teacher}}}
 \newcommand{\TeamQuotaCap}{Q_{\text{team}}}
 \newcommand{\TelemetryFlushTime}{t_{\text{telemetry\_flush}}}
 \newcommand{\TelemetryFreshnessBound}{\Delta t_{\text{fresh}}}
@@ -5368,7 +5325,6 @@ $$
 \newcommand{\ThermalPowerLimit}{P_{\text{thermal}}}
 \newcommand{\ThermalResistance}{R_{\text{th}}}
 \newcommand{\ThermalTimeConstant}{\tau_{\text{th}}}
-\newcommand{\ThirdAtomicGradientUpdate}{C}
 \newcommand{\ThirdFloatingPointAddend}{c}
 \newcommand{\ThirdRingTraceElement}{c}
 \newcommand{\ThresholdExceedanceCount}{N_u}
@@ -5689,7 +5645,6 @@ $$
 \newcommand{\UnprojectionJacobian}{\mathbf{J}_{\text{unproj}}}
 \newcommand{\UnrecoverableDamageCost}{C_{\text{blast}}}
 \newcommand{\UnreservedStopDelay}{\delta}
-\newcommand{\UnscaledAttentionScoreMatrix}{\mathbf{A}}
 \newcommand{\UnshardedLocalExecutionTime}{T_{\text{compute}}}
 \newcommand{\UnsquashedLatentAction}{\mathbf{u}}
 \newcommand{\UntilPrefixTime}{t''}
@@ -5793,7 +5748,6 @@ $$
 \newcommand{\WeightPenaltyStrength}{\lambda_{\text{reg}}}
 \newcommand{\WeightQuantizationScale}{s_W}
 \newcommand{\WeightRangeBound}{W_{\text{max}}}
-\newcommand{\WeightStreamingDecodeTime}{T_{\text{decode}}}
 \newcommand{\WeightVector}{\mathbf{w}}
 \newcommand{\WeightedNormArgument}{\mathbf{z}}
 \newcommand{\WheelAngularSpeed}{\omega}
@@ -5832,9 +5786,7 @@ $$
 \newcommand{\WorkerCompletionDistribution}{F}
 \newcommand{\WorkerCompletionTime}{T}
 \newcommand{\WorkerCount}{N_{\text{workers}}}
-\newcommand{\WorkerDelayProbability}{p}
 \newcommand{\WorkerIndex}{k}
-\newcommand{\WorkerMinibatch}{B}
 \newcommand{\WorkerOverheadSlope}{\gamma}
 \newcommand{\WorkerTransformTime}{T_{\text{transform}}}
 \newcommand{\WorkerWrittenFileCount}{w}
@@ -6081,14 +6033,68 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-warning {
+  --color1: #FEF2F2;
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
+}
+.callout-caution {
+  --color1: #FFFBEB;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
 }
 .callout-learning-objectives {
   --color1: #E8F2EA;
@@ -6108,176 +6114,14 @@ $$
   --dark-background-color: rgba(184, 134, 11, 0.12);
   --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
-.callout-case-study {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-caution {
-  --color1: #FFFBEB;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
-}
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-notebook {
-  --color1: #F4F7FA;
-  --color2: #3F6077;
-  --border-color: #3F6077;
-  --background-color: rgba(63, 96, 119, 0.04);
-  --title-background-color: rgba(63, 96, 119, 0.04);
-  --dark-background-color: rgba(63, 96, 119, 0.12);
-  --dark-title-background-color: rgba(63, 96, 119, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
-}
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #F1F5F9;
-  --color2: #64748B;
-  --border-color: #64748B;
-  --background-color: rgba(100, 116, 139, 0.04);
-  --title-background-color: rgba(100, 116, 139, 0.04);
-  --dark-background-color: rgba(100, 116, 139, 0.12);
-  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
 .callout-takeaways {
   --color1: #FCF4F8;
@@ -6288,21 +6132,213 @@ $$
   --dark-background-color: rgba(157, 60, 114, 0.12);
   --dark-title-background-color: rgba(157, 60, 114, 0.12);
 }
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-principle {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
   }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-principle code {
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+  details.callout-warning summary,
+  details.callout-warning summary strong,
+  details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-learning-objectives {
@@ -6333,270 +6369,18 @@ $$
   details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-  details.callout-case-study {
+  details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-  details.callout-case-study summary,
-  details.callout-case-study summary strong,
-  details.callout-case-study > summary {
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-  details.callout-warning summary,
-  details.callout-warning summary strong,
-  details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
+  details.callout-principle code {
     color: #e6e6e6 !important;
   }
   details.callout-takeaways {
@@ -6613,19 +6397,271 @@ $$
   details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
-}
-body.quarto-dark details.callout-principle {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-body.quarto-dark details.callout-principle summary,
-body.quarto-dark details.callout-principle summary strong,
-body.quarto-dark details.callout-principle > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-principle code {
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+}
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+body.quarto-dark details.callout-warning summary,
+body.quarto-dark details.callout-warning summary strong,
+body.quarto-dark details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-learning-objectives {
@@ -6656,270 +6692,18 @@ body.quarto-dark details.callout-lighthouse > summary {
 body.quarto-dark details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-case-study {
+body.quarto-dark details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-body.quarto-dark details.callout-case-study summary,
-body.quarto-dark details.callout-case-study summary strong,
-body.quarto-dark details.callout-case-study > summary {
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-body.quarto-dark details.callout-warning summary,
-body.quarto-dark details.callout-warning summary strong,
-body.quarto-dark details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-quiz-question summary,
-body.quarto-dark details.callout-quiz-question summary strong,
-body.quarto-dark details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-slides {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-body.quarto-dark details.callout-example summary,
-body.quarto-dark details.callout-example summary strong,
-body.quarto-dark details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-example code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-colab code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-body.quarto-dark details.callout-chapter-connection summary,
-body.quarto-dark details.callout-chapter-connection summary strong,
-body.quarto-dark details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-chapter-connection code {
+body.quarto-dark details.callout-principle code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-takeaways {
@@ -6936,10 +6720,196 @@ body.quarto-dark details.callout-takeaways > summary {
 body.quarto-dark details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
 </style>
 <style>
-details.callout-principle > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-warning > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
+}
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-learning-objectives > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
@@ -6947,65 +6917,47 @@ details.callout-learning-objectives > summary::before {
 details.callout-lighthouse > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
-details.callout-case-study > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
-}
-details.callout-warning > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 details.callout-quiz-answer > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-example > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
 details.callout-colab > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
 }
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
-details.callout-chapter-connection > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-takeaways > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
 </style>
     <style type="text/css">
@@ -7084,71 +7036,36 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">Concept Explorer</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
     <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume I: Foundations</span></a>
+ <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol2/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume II: Scaling</span></a>
+ <span class="dropdown-text">Volume II: Scaling Machine Learning Systems (preview)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol3/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+ <span class="dropdown-text">Volume III: Agentic Machine Learning Systems (in preparation)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+ <span class="dropdown-text">Volume IV: Physical AI (in preparation)</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume I PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume I EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume II PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol2/assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume II EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume III PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume III EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume IV PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume IV EPUB</span></a>
   </li>  
     </ul>
   </li>
@@ -7190,24 +7107,19 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
-</i> 
- <span class="dropdown-text">CS249r Course Map</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
-</i> 
- <span class="dropdown-text">Lecture Slides</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/community/courses.html"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="https://mlsysbook.ai/courses/"><i class="bi bi-mortarboard" role="img">
 </i> 
- <span class="dropdown-text">Courses Using the Book</span></a>
+ <span class="dropdown-text">Courses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
     </ul>
   </li>
@@ -7363,9 +7275,9 @@ window.Quarto = {
         </a>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="d3cc121d05ef1a79684f139997959c79" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">aaa7266e</code> • 2026-10-16 16:04 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>Volume I: Foundations.</strong> Single-machine ML systems — data, algorithms, and machines.<br> 🚀 <strong>Ready for scale?</strong> <a href="../../vol2/">Volume II: Scaling</a> — distributed training, fleet operations, responsible deployment.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="f0c3970f5a74731b7e527935f58bea3b" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p><span class="mls-ann-line"><strong>Introduction to Machine Learning Systems (Volume I).</strong> Machine learning systems on a single machine: data, algorithms, and machines.</span> <span class="mls-ann-line"><strong>Next volume:</strong> <a href="../../vol2/">Scaling Machine Learning Systems (Volume II)</a> (preview), on distributed training, fleet operations, and responsible deployment.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -7687,7 +7599,7 @@ window.Quarto = {
 
 <section id="sec-appdx-machine-foundations" class="level1 page-columns page-full" data-dropcap="chapter-opening">
 <h1 data-dropcap="chapter-opening">Machine Foundations</h1>
-<p>A datasheet reports peak throughput; a workload almost never reaches it. Closing that gap requires knowing which physical limit binds execution first: memory bandwidth, arithmetic throughput, fixed overhead, or energy. This appendix collects the hardware models, ratios, and order-of-magnitude values used for single-node estimates in the book, so that chapter estimates can be checked against them. Architecture essentials support readers encountering memory hierarchies and hardware cost models for the first time; familiarity with undergraduate computer architecture is helpful but not required.</p>
+<p>A datasheet reports peak throughput, and a workload almost never reaches it. Closing that gap requires knowing which physical limit binds execution first: memory bandwidth, arithmetic throughput, fixed overhead, or energy. This appendix collects the hardware models, ratios, and order-of-magnitude values used for single-node estimates in the book, so that chapter estimates can be checked against them. Architecture essentials support readers encountering memory hierarchies and hardware cost models for the first time. Familiarity with undergraduate computer architecture is helpful but not required.</p>
 <section id="how-to-use-this-appendix" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="how-to-use-this-appendix">How to Use This Appendix</h2>
 <p>This appendix is designed as a reference. When diagnosing performance issues, use it to translate a vague symptom (“it is slow”) into a specific constraint (“bandwidth bound at batch size one”) and then choose the lever that addresses it. Each need in <a href="#tbl-appdx-machine-lookup" class="quarto-xref">table&nbsp;1</a> leads to the section that carries the model or worked template and to the chapter that applies it to the book’s workloads.</p>
@@ -7776,18 +7688,18 @@ Table&nbsp;1: <strong>Where to Look</strong>: Each need maps to the section of t
 </div>
 </figure>
 </div>
-<p>Conventions used here follow the book-wide notation (for example, <span class="math inline">\(\BatchSize\)</span> is reserved for batch size and <span class="math inline">\(\Bandwidth\)</span> for bandwidth). The values in this appendix are ratios and orders of magnitude, which change slowly because they follow from physics and circuit design. The dated specifications of particular accelerators, links, and storage devices change with every product generation; <strong><a href="appendix_assumptions.html#sec-appdx-system-assumptions">System Assumptions</a></strong> tabulates them so a reader can substitute current values without disturbing the relationships here.</p>
+<p>Conventions used here follow the book-wide notation (for example, <span class="math inline">\(\BatchSize\)</span> is reserved for batch size and <span class="math inline">\(\Bandwidth\)</span> for bandwidth). The values in this appendix are ratios and orders of magnitude, which change slowly because they follow from physics and circuit design. The dated specifications of particular accelerators, links, and storage devices change with every product generation. <strong><a href="appendix_assumptions.html#sec-appdx-system-assumptions">System Assumptions</a></strong> tabulates them so a reader can substitute current values without disturbing the relationships here.</p>
 </section>
 <section id="sec-appdx-machine-foundations-numbers-know-b531" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-machine-foundations-numbers-know-b531">Numbers to Know</h2>
-<p>Fetching a 32-bit weight from off-chip DRAM costs hundreds of times more energy and roughly a thousand times more latency than reading it from a register, a gap that no compiler flag can erase. Like Jeff Dean’s “Latency Numbers Every Programmer Should Know,”<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> the reference numbers below give the order-of-magnitude intuition that ML systems design requires. Although absolute values and ratios vary by technology and workload, the hierarchy is more durable; memorize the relationships and use the specific values as sanity checks.</p>
+<p>In general systems engineering, Jeff Dean’s “Latency Numbers Every Programmer Should Know”<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> gave developers a shared set of order-of-magnitude anchors for reasoning about cache misses, disk seeks, and network round trips before writing code. Machine learning systems rest on a parallel hierarchy of physical ratios: fetching a 32-bit weight from off-chip DRAM costs hundreds of times more energy and roughly a thousand times more latency than reading it from a register, a gap that no compiler flag can erase. Although absolute timings and wattages shift with every process node and workload, the relative gaps across memory tiers, precision widths, and fiber links remain stable across hardware generations. Memorizing those relationships turns back-of-envelope sizing into a fast sanity check on any design.</p>
 <div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup>&nbsp;<strong>Jeff Dean</strong>: A Google Senior Fellow and one of the architects of MapReduce, BigTable, and TensorFlow. His latency numbers, originally presented with Peter Norvig around 2010, became a canonical reference for systems engineers; Colin Scott’s interactive visualization shows that the <em>hierarchy</em> of latencies has stayed stable across hardware generations <span class="citation" data-cites="scott2012latency">(<a href="#ref-scott2012latency" role="doc-biblioref">Scott 2012</a>)</span>.</p><div id="ref-scott2012latency" class="csl-entry" role="listitem">
 Scott, Colin. 2012. <span>“Numbers Every Programmer Should Know by Year.”</span>
 </div></div></div><div id="psp-appendix-machine-three-numbers" class="callout callout-perspective" title="Three numbers that matter most">
 <details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: Three numbers that matter most</strong></summary><div>
 <ul>
 <li><strong>Energy ratio</strong>: In the cited 45 nm reference, a 32-bit DRAM read uses ~581× the energy of one FP16 multiply.</li>
-<li><strong>Training-state footprint</strong>: Model weights (2 bytes FP16) + gradients (2 bytes FP16) + master weights (4 bytes FP32) + optimizer states for Adaptive Moment Estimation (Adam) at 8 bytes. That totals 16 bytes per parameter, so Llama 3 8B (8.03B parameters) needs 128.5 GB just to start full training, more than one accelerator’s memory.</li>
+<li><strong>Training-state footprint</strong>: Model weights (2 bytes FP16) + gradients (2 bytes FP16) + master weights (4 bytes FP32) + optimizer states for Adaptive Moment Estimation (Adam) at 8 bytes. That totals 16 bytes per parameter, so Llama 3 8B (8.03B parameters) needs 128.5 GB to start full training, more than one accelerator’s memory.</li>
 <li><strong>Fiber propagation limit</strong>: Light travels about 200 km/ms in fiber, so propagation sets a floor on every round trip.</li>
 </ul>
 </div></details>
@@ -7952,7 +7864,7 @@ Table&nbsp;4: <strong>Scaling Rules</strong>: These are arithmetic, not hardware
 </section>
 <section id="sec-appdx-machine-foundations-latencies-every-programmer-know-e89f" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-latencies-every-programmer-know-e89f">The latency hierarchy</h3>
-<p>Distance costs time. Each step away from the arithmetic units, from registers through on-chip cache, off-chip memory, device and host links, the network, and storage, multiplies the wait for the first byte, and the largest jumps come from crossing a physical boundary (<a href="#tbl-memory-ratios-ref" class="quarto-xref">table&nbsp;5</a>). If a register access took ten seconds, a read from accelerator memory would take hours and a read from local flash storage would take weeks.</p>
+<p>Distance costs time. Each step away from the arithmetic units, from registers through on-chip cache, off-chip memory, device and host links, the network, and storage, multiplies the wait for the first byte. The largest jumps come from crossing a physical boundary (<a href="#tbl-memory-ratios-ref" class="quarto-xref">table&nbsp;5</a>). If a register access took ten seconds, a read from accelerator memory would take hours and a read from local flash storage would take weeks.</p>
 <div id="tbl-memory-ratios-ref" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[30,22,22,26]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-memory-ratios-ref-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7996,8 +7908,8 @@ Table&nbsp;5: <strong>The Latency Hierarchy</strong>: Access latency by tier, as
 <tr class="even">
 <td style="text-align: left;"><strong>Accelerator memory (HBM)</strong></td>
 <td style="text-align: center;">100–1,000 ns</td>
-<td style="text-align: center;">1,000×</td>
-<td style="text-align: center;">2.8 hours</td>
+<td style="text-align: center;">900×</td>
+<td style="text-align: center;">2.5 hours</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Accelerator-to-accelerator link</strong></td>
@@ -8028,11 +7940,11 @@ Table&nbsp;5: <strong>The Latency Hierarchy</strong>: Access latency by tier, as
 </div>
 </figure>
 </div>
-<p>Bandwidth falls along the same path. On the reference accelerator, high-bandwidth memory delivers about 52× the bandwidth of the host link, and a network access costs about 16× the latency of an accelerator-memory access. Data that must cross the host link or the network should cross it once and be reused many times on the device.</p>
+<p>Bandwidth falls along the same path. On the reference accelerator, high-bandwidth memory delivers about 52× the bandwidth of the host link, and a network access costs about 18× the latency of an accelerator-memory access. Data that must cross the host link or the network should cross it once and be reused many times on the device.</p>
 </section>
 <section id="illustrative-latency-budgets" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="illustrative-latency-budgets">Illustrative latency budgets</h3>
-<p>Latency budgets depend on application-specific safety requirements, user expectations, and service-level objectives. <a href="#tbl-latency-targets-ref" class="quarto-xref">Table&nbsp;6</a> lists illustrative targets rather than universal limits; <strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-latency-budget-ef40">The latency budget</a></strong> shows how a serving system divides such a budget among its stages.</p>
+<p>Hardware access latencies span nanoseconds to milliseconds, but the application decides how much total delay a response can tolerate: an autonomous braking controller must act within milliseconds while a batch training job can run for days (<a href="#tbl-latency-targets-ref" class="quarto-xref">table&nbsp;6</a>). These targets reflect safety envelopes, human perception thresholds, and service-level objectives rather than universal hardware limits. <strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-latency-budget-ef40">The latency budget</a></strong> shows how a serving system divides such an end-to-end budget among its stages.</p>
 <div id="tbl-latency-targets-ref" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[34,33,33]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-latency-targets-ref-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8087,12 +7999,12 @@ Table&nbsp;6: <strong>Illustrative Latency Targets</strong>: Production requirem
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.2: A note on terminology: GPUs and accelerators</strong></summary><div>Throughout this book, “accelerator” is the general term for hardware acceleration. The principles of roofline analysis, memory hierarchies, numerical precision, and performance modeling apply to GPUs, Tensor Processing Units (TPUs), NPUs, application-specific integrated circuits, and other specialized AI accelerators. Vendor-specific features such as CUDA and NVLink are identified explicitly.<p></p>
 </div></details>
 </div>
-<p><strong><a href="appendix_assumptions.html#sec-appdx-system-assumptions">System Assumptions</a></strong> tabulates the dated accelerator specifications, including the NVIDIA H100 that serves as the book’s reference machine. Next, the roofline model shows which of those specifications limits a given workload by turning compute throughput and memory bandwidth into performance ceilings.</p>
+<p><strong><a href="appendix_assumptions.html#sec-appdx-assumptions-accelerator-specifications-7a21">Accelerator Specifications</a></strong> tabulates the dated specifications for these accelerators, including the NVIDIA H100 that serves as the book’s reference machine. Those device peaks, together with the reference latencies, energy ratios, and application budgets in this section, supply the raw inputs for back-of-envelope checks, but raw specifications alone do not reveal which resource binds a workload. Turning hardware numbers into a bottleneck diagnosis requires compact analytical models that relate workload demand to machine ceilings.</p>
 </section>
 </section>
 <section id="sec-appdx-machine-foundations-physics-computing-c77f" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-machine-foundations-physics-computing-c77f">Physics of Computing</h2>
-<p>Raw hardware specifications (FLOP/s, bytes per second, watts) are necessary but insufficient for performance reasoning. Without compact analytical models, an engineer cannot distinguish a compute-bound workload from a bandwidth-bound one, or predict whether doubling the accelerator count will halve training time. The models in this section turn those distinctions into quantitative checks.</p>
+<p>An accelerator rated at hundreds of teraflops can still spend most of a training step waiting on memory reads, serial host dispatch, or in-flight request state. Raw hardware specifications (FLOP/s, bytes per second, watts) bound each resource in isolation, yet without analytical models an engineer cannot tell whether a slow kernel is compute-bound or bandwidth-bound, verify that a time equation is dimensionally consistent, predict whether doubling the accelerator count will halve training time, or size serving concurrency from arrival rate and latency. Four foundational models turn those hardware limits into quantitative checks.</p>
 <section id="sec-appdx-machine-foundations-roofline-model-2529" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-roofline-model-2529">The Roofline model</h3>
 <p>A kernel that achieves 1 percent of an accelerator’s peak FLOP/s may be poorly written, or it may already be saturating the memory bus at the physical limit of the chip. The Roofline Model <span class="citation" data-cites="williams2009">(<a href="#ref-williams2009" role="doc-biblioref">Williams et al. 2009</a>)</span> separates those two cases by bounding how fast a workload can run on a given hardware target according to whether it runs out of compute or memory bandwidth first.</p>
@@ -8109,26 +8021,26 @@ Figure&nbsp;1: <strong>The Roofline Model</strong>: The sloped memory-bandwidth 
 </figcaption>
 </figure>
 </div>
-<p>The <strong>ridge point</strong> determines the hardware’s balance. Formally, when computation and data movement overlap completely (the overlapped form of the iron law), idealized wall-clock time is bounded below by the critical path: <span class="math display">\[ \Time\geq \max\left( \frac{\Operations}{\PeakRate}, \frac{\DataVolume}{\Bandwidth} \right) \]</span> Attainable throughput <span class="math inline">\(\AttainableComputeRate = \Operations/ \Time\)</span> is therefore bounded by: <span class="math display">\[ \AttainableComputeRate \leq \frac{\Operations}{\max\left( \frac{\Operations}{\PeakRate}, \frac{\DataVolume}{\Bandwidth} \right)} = \min\left( \PeakRate, \frac{\Operations}{\DataVolume} \times \Bandwidth \right) = \min(\PeakRate, \ArithmeticIntensity\times \Bandwidth) \]</span> where <span class="math inline">\(\ArithmeticIntensity= \Operations/ \DataVolume\)</span> is the arithmetic intensity measured at the DRAM interface. The ridge point <span class="math inline">\(\RooflineRidgePoint\)</span> is the transition intensity where the compute and bandwidth ceilings meet: <span class="math display">\[ \PeakRate = \RooflineRidgePoint \times \Bandwidth \implies \RooflineRidgePoint = \frac{\PeakRate}{\Bandwidth} \]</span> If a workload’s arithmetic intensity falls below <span class="math inline">\(\RooflineRidgePoint\)</span>, it is bandwidth-bound (the roofline literature says memory-bound); if above, it is compute bound. The memory-bound regime is the bandwidth-bound archetype of <strong><a href="../02_system_paradigms/02_system_paradigms.html#sec-ml-systems-workload-archetypes-fd10">Workload archetypes</a></strong>, whose lighthouse is GPT-2 decode; the compute-bound regime is the compute-bound archetype, whose lighthouse is ResNet-50. <strong><a href="../11_hw_acceleration/11_hw_acceleration.html#sec-hardware-acceleration-roofline-model-42ff">Performance Bounds</a></strong> develops both regimes and the levers that move a workload between them.</p>
+<p>The <strong>ridge point</strong> determines the hardware’s balance. Formally, when computation and data movement overlap completely (the overlapped form of the iron law), idealized wall-clock time is bounded below by the critical path: <span class="math display">\[ \Time\geq \max\left( \frac{\Operations}{\PeakRate}, \frac{\DataVolume}{\Bandwidth} \right) \]</span> Attainable throughput <span class="math inline">\(\AttainableComputeRate = \Operations/ \Time\)</span> is therefore bounded by: <span class="math display">\[ \AttainableComputeRate \leq \frac{\Operations}{\max\left( \frac{\Operations}{\PeakRate}, \frac{\DataVolume}{\Bandwidth} \right)} = \min\left( \PeakRate, \frac{\Operations}{\DataVolume} \times \Bandwidth \right) = \min(\PeakRate, \ArithmeticIntensity\times \Bandwidth) \]</span> where <span class="math inline">\(\ArithmeticIntensity= \Operations/ \DataVolume\)</span> is the arithmetic intensity measured at the DRAM interface. The ridge point <span class="math inline">\(\RooflineRidgePoint\)</span> is the transition intensity where the compute and bandwidth ceilings meet: <span class="math display">\[ \PeakRate = \RooflineRidgePoint \times \Bandwidth \implies \RooflineRidgePoint = \frac{\PeakRate}{\Bandwidth} \]</span> If a workload’s arithmetic intensity falls below <span class="math inline">\(\RooflineRidgePoint\)</span>, it is bandwidth-bound (the roofline literature says memory-bound). Above that value, it is compute bound. The memory-bound regime is the bandwidth-bound archetype of <strong><a href="../02_system_paradigms/02_system_paradigms.html#sec-ml-systems-workload-archetypes-fd10">Workload archetypes</a></strong>, whose lighthouse is GPT-2 decode. The compute-bound regime is the compute-bound archetype, whose lighthouse is ResNet-50. <strong><a href="../11_hw_acceleration/11_hw_acceleration.html#sec-hardware-acceleration-roofline-model-42ff">Performance Bounds</a></strong> develops both regimes and the levers that move a workload between them.</p>
 <div id="psp-appendix-machine-batch-size-arithmetic-intensity" class="callout callout-perspective" title="Batch size controls arithmetic intensity">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.3: Batch size controls arithmetic intensity</strong></summary><div>For matrix multiplications, arithmetic intensity scales with the batch dimension. For <span class="math inline">\(\LayerOutputMatrix= \LayerInputMatrix\WeightMatrix\)</span>, where <span class="math inline">\(\LayerInputMatrix\)</span> is <span class="math inline">\((\BatchSize\times \LayerInputWidth)\)</span> and <span class="math inline">\(\WeightMatrix\)</span> is <span class="math inline">\((\LayerInputWidth\times \LayerOutputWidth)\)</span>:<p></p>
 <ul>
 <li><strong>FLOPs</strong>: <span class="math inline">\(2 \times \BatchSize\times \LayerInputWidth \times \LayerOutputWidth\)</span> (multiply-adds).</li>
 <li><strong>Bytes</strong>: Moving <span class="math inline">\(\LayerInputMatrix\)</span>, <span class="math inline">\(\WeightMatrix\)</span>, and <span class="math inline">\(\LayerOutputMatrix\)</span> costs approximately <span class="math inline">\(\ElementStorageSize(\BatchSize\LayerInputWidth + \LayerInputWidth\LayerOutputWidth + \BatchSize\LayerOutputWidth)\)</span> bytes.</li>
 </ul>
-<p>Doubling <span class="math inline">\(\BatchSize\)</span> doubles FLOPs while weight traffic stays nearly constant when weights dominate, increasing arithmetic intensity. This is why batching often helps inference serving (<strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-batching-helps-f1dc">Why batching helps</a></strong> develops the serving side, including the latency it adds), although activation traffic, cache behavior, shape, precision, and the ridge point determine whether it reaches the compute ceiling.</p>
+<p>Doubling <span class="math inline">\(\BatchSize\)</span> doubles FLOPs while weight traffic stays nearly constant when weights dominate, increasing arithmetic intensity. This is why batching often helps inference serving (<strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-batching-helps-f1dc">Why batching helps</a></strong> develops the serving side, including the latency it adds). Activation traffic, cache behavior, shape, precision, and the ridge point still determine whether it reaches the compute ceiling.</p>
 </div></details>
 </div>
 <section id="sec-appdx-machine-foundations-concrete-example-a100-analysis-5b30" class="level4">
 <h4 class="anchored" data-anchor-id="sec-appdx-machine-foundations-concrete-example-a100-analysis-5b30">A concrete example: The H100 analysis</h4>
 <p>Consider an NVIDIA H100, the book’s reference machine, with dense FP16 Tensor Core performance of 989 TFLOP/s and HBM3 bandwidth of 3.35 TB/s. The ridge point is 989 TFLOP/s/3.35 TB/s = 295.2 FLOP/byte (the Tera prefixes cancel, yielding FLOP/byte).</p>
-<p>Two common operations fall on opposite sides of that ridge. General matrix multiply (GEMM) on two square matrices of size 4096 by 4096 has arithmetic intensity of approximately 1,365 FLOP/byte, so 1,365 FLOP/byte &gt; 295.2 FLOP/byte and the operation is compute bound. An element-wise ReLU on an FP16 tensor performs 1 comparison while reading 2 bytes and writing 2 bytes (4 bytes total), yielding an arithmetic intensity of only <span class="math inline">\(1/4 =\)</span> 0.25 FLOP/byte. Because 0.25 FLOP/byte <span class="math inline">\(\ll\)</span> 295.2 FLOP/byte, the operation is severely bandwidth-bound, achieving only about 0.08 percent of peak FLOP/s. This contrast is why frameworks fuse an element-wise operation into the preceding matrix multiply, so the intermediate result never makes a round trip through memory; <strong><a href="../07_frameworks/07_frameworks.html#sec-ml-frameworks-execution-strategy-matters-memory-wall-1ce8">The memory wall and kernel fusion</a></strong> develops fusion and the launch overhead it removes.</p>
+<p>Two common operations fall on opposite sides of that ridge. General matrix multiply (GEMM) on two square matrices of size 4096 by 4096 has arithmetic intensity of approximately 1,365 FLOP/byte, so 1,365 FLOP/byte &gt; 295.2 FLOP/byte and the operation is compute bound. An element-wise ReLU on an FP16 tensor performs 1 comparison while reading 2 bytes and writing 2 bytes (4 bytes total), yielding an arithmetic intensity of only <span class="math inline">\(1/4 =\)</span> 0.25 FLOP/byte. Because 0.25 FLOP/byte <span class="math inline">\(\ll\)</span> 295.2 FLOP/byte, the operation is severely bandwidth-bound, achieving only about 0.08 percent of peak FLOP/s. This contrast is why frameworks fuse an element-wise operation into the preceding matrix multiply, so the intermediate result never makes a round trip through memory. <strong><a href="../07_frameworks/07_frameworks.html#sec-ml-frameworks-execution-strategy-matters-memory-wall-1ce8">The memory wall and kernel fusion</a></strong> develops fusion and the launch overhead it removes.</p>
 <p>Precision moves the ridge. At INT8 the H100’s peak rate doubles to 1,979 TOPS while its memory bandwidth stays fixed, so the ridge rises to about 591 operations per byte. A convolution layer that sits above the FP16 ridge can fall below the INT8 ridge, which is why quantized ResNet-50 inference can turn bandwidth bound on the same chip (<strong><a href="../11_hw_acceleration/11_hw_acceleration.html#sec-hardware-acceleration-hardware-balance">Hardware ridge points</a></strong>).</p>
 </section>
 </section>
 <section id="sec-appdx-machine-foundations-dimensional-analysis-76b3" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-dimensional-analysis-76b3">Dimensional analysis</h3>
-<p>The roofline model helps diagnose <em>where</em> a bottleneck lies. Before applying any performance equation, however, it must be verified as physically meaningful. Dimensional analysis provides this sanity check: any valid equation must be <strong>dimensionally homogeneous</strong>, meaning every term must resolve to the same units. If they do not, the equation contains an error.</p>
+<p>In the roofline calculation, dividing peak throughput (<span class="math inline">\(\text{FLOP/s}\)</span>) by memory bandwidth (<span class="math inline">\(\text{bytes/s}\)</span>) cancels seconds and leaves <span class="math inline">\(\text{FLOP/byte}\)</span>. Dividing byte volume directly by <span class="math inline">\(\text{FLOP/s}\)</span> or adding milliseconds of network delay to seconds of compute, by contrast, produces a quantity whose units do not reduce to time, turning a back-of-envelope estimate into a silent category error. Before plugging numbers into any performance equation, <strong>dimensional analysis</strong> verifies that the equation is <strong>dimensionally homogeneous</strong>, meaning every additive or equated term resolves to the same units.</p>
 <p>Consider both levels of the iron law of ML systems (principle <a href="../parts/build_principles.html#pri-iron-law">3</a>) introduced in <strong><a href="../01_introduction/01_introduction.html#sec-introduction-iron-law-ml-systems-c32a">Iron Law of ML Systems</a></strong>. First, in the multiplicative D·A·M form (<strong><a href="../01_introduction/01_introduction.html#eq-intro-dam-iron-law">equation 1.2</a></strong>), intermediate units cancel across the three factors to leave seconds per task: <span class="math display">\[ \Time[\text{s}] = \frac{\text{Samples}}{\text{Task}} \times \frac{\text{FLOPs}}{\text{Sample}} \times \frac{\text{s}}{\text{FLOP}} = \frac{\text{s}}{\text{Task}} \]</span></p>
 <p>Second, for serialized execution phases (<strong><a href="../01_introduction/01_introduction.html#eq-intro-iron-law">equation 1.3</a></strong>), every additive term must resolve to time (seconds): <span class="math display">\[ \Time[\text{s}] = \underbrace{ \frac{\DataVolume [\text{bytes}]}{\Bandwidth [\text{bytes/s}]} }_{\text{seconds}} + \underbrace{ \frac{\Operations[\text{FLOPs}]}{\PeakRate [\text{FLOP/s}] \cdot \EfficiencyHw [1]} }_{\text{seconds}} + \underbrace{ \Latency [\text{s}] }_{\text{seconds}} \]</span></p>
 <ul>
@@ -8137,15 +8049,14 @@ Figure&nbsp;1: <strong>The Roofline Model</strong>: The sloped memory-bandwidth 
 <li><strong>Latency term</strong>: Already in seconds.</li>
 </ul>
 <p>The equation is physically consistent. Apply this technique to any systems equation: if the dimensions do not match, the formula is wrong. “FLOPs” and “Bandwidth” cannot be traded directly because they have different units. Any such trade-off must convert through time, as the iron law does.</p>
-<p>Once an equation is dimensionally sound, the next question is how its time terms scale across devices. <a href="#sec-appdx-machine-foundations-amdahls-law-gustafsons-law-b741" class="quarto-xref">Section&nbsp;1.2.3</a> answers that question with two complementary bounds.</p>
+<p>Once a single-device time equation is dimensionally sound, the next question is how its terms behave when work is partitioned across multiple processors.</p>
 </section>
 <section id="sec-appdx-machine-foundations-amdahls-law-gustafsons-law-b741" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-amdahls-law-gustafsons-law-b741">Amdahl’s law and Gustafson’s law</h3>
-<p>Parallelization is the primary tool for scaling ML, but its limits depend on <em>how</em> the workload scales. The two laws differ in what they hold fixed. <strong>Amdahl’s law</strong> governs how much faster a <em>fixed</em> task can run (optimizing latency). <strong>Gustafson’s law</strong> governs how much <em>more</em> work can be done in the same time (optimizing throughput).</p>
+<p>Doubling the number of accelerators on a training job can either shorten the wall-clock time of a fixed batch or process twice as many tokens in the same time window, and serial overhead limits those two choices very differently. <strong>Amdahl’s law</strong> and <strong>Gustafson’s law</strong> formalize the two regimes according to what they hold fixed: Amdahl’s law bounds how much faster a <em>fixed</em> task can run (optimizing latency), whereas Gustafson’s law bounds how much <em>more</em> work can be completed in a fixed time budget (optimizing throughput).</p>
 <section id="sec-appdx-machine-foundations-strong-scaling-amdahls-law-c6c2" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-appdx-machine-foundations-strong-scaling-amdahls-law-c6c2">Strong scaling (Amdahl’s Law)</h4>
-<p>Adding a thousand accelerators to a fixed training batch cannot shorten the step by more than <span class="math inline">\(20\times\)</span> if 5 percent of each step is serial host dispatch or synchronization. <strong>Strong scaling</strong> measures how much faster a fixed-size problem runs as processors are added.</p>
-<p>Amdahl’s law <span class="citation" data-cites="amdahl1967">(<a href="#ref-amdahl1967" role="doc-biblioref">Amdahl 1967</a>)</span> states that speedup is limited by the serial fraction of the task.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> Let <span class="math inline">\(\Time(1) = 1\)</span> be normalized single-processor execution time, composed of serial fraction <span class="math inline">\(1-\ParallelFraction\)</span> and parallelizable fraction <span class="math inline">\(\ParallelFraction\)</span>. If <span class="math inline">\(\WorkerCount\)</span> processors execute the parallel fraction with linear scaling and zero communication overhead, execution time on <span class="math inline">\(\WorkerCount\)</span> processors is: <span class="math display">\[ \Time(\WorkerCount) = (1-\ParallelFraction) + \frac{\ParallelFraction}{\WorkerCount} \]</span> The resulting theoretical speedup is: <span class="math display">\[ \text{Speedup}(\WorkerCount) = \frac{\Time(1)}{\Time(\WorkerCount)} = \frac{1}{(1-\ParallelFraction) + \frac{\ParallelFraction}{\WorkerCount}} \]</span></p>
+<p>When an engineer splits a fixed training batch or a single inference query across more accelerators to reduce step latency, only the parallelizable matrix math shrinks; host dispatch, barrier synchronization, and sequential aggregation remain fixed. <strong>Strong scaling</strong> measures how much faster such a fixed-size problem runs as processors are added, and Amdahl’s law <span class="citation" data-cites="amdahl1967">(<a href="#ref-amdahl1967" role="doc-biblioref">Amdahl 1967</a>)</span> states that the serial fraction of the task sets a hard ceiling on the resulting speedup.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> Let <span class="math inline">\(\Time(1) = 1\)</span> be normalized single-processor execution time, composed of serial fraction <span class="math inline">\(1-\ParallelFraction\)</span> and parallelizable fraction <span class="math inline">\(\ParallelFraction\)</span>. If <span class="math inline">\(\WorkerCount\)</span> processors execute the parallel fraction with linear scaling and zero communication overhead, execution time on <span class="math inline">\(\WorkerCount\)</span> processors is: <span class="math display">\[ \Time(\WorkerCount) = (1-\ParallelFraction) + \frac{\ParallelFraction}{\WorkerCount} \]</span> The resulting theoretical speedup is: <span class="math display">\[ \text{Speedup}(\WorkerCount) = \frac{\Time(1)}{\Time(\WorkerCount)} = \frac{1}{(1-\ParallelFraction) + \frac{\ParallelFraction}{\WorkerCount}} \]</span></p>
 <div class="no-row-height column-margin column-container"><div id="ref-amdahl1967" class="csl-entry" role="listitem">
 Amdahl, Gene M. 1967. <span>“Validity of the Single Processor Approach to Achieving Large Scale Computing Capabilities.”</span> <em>Proceedings of the April 18-20, 1967, Spring Joint Computer Conference on - <span>AFIPS</span> ’67 (Spring)</em>, AFIPS ’67 (spring), 483–85. https://doi.org/10.1145/1465482.1465560.
 </div><div id="fn4"><p><sup>4</sup>&nbsp;<strong>Gene Amdahl (1922–2015)</strong>: A legendary computer architect at IBM, where he was the chief architect of the System/360. He later founded Amdahl Corporation to compete with IBM in the mainframe market.</p></div></div><p>As <span class="math inline">\(\WorkerCount \to \infty\)</span>, the term <span class="math inline">\(\frac{\ParallelFraction}{\WorkerCount} \to 0\)</span>, and the speedup converges to <span class="math inline">\(1/(1-\ParallelFraction)\)</span>. To see Amdahl’s Law in action, suppose 5 percent of a training step is serial overhead (for example, Python global interpreter lock (GIL), kernel launch latency) and 95 percent is parallelizable matrix math:</p>
@@ -8154,15 +8065,14 @@ Amdahl, Gene M. 1967. <span>“Validity of the Single Processor Approach to Achi
 <li>With <span class="math inline">\(\WorkerCount=\)</span> 8, speedup is 1/(0.05 + 0.95/8) ≈ 5.9×.</li>
 <li>With <span class="math inline">\(\WorkerCount \to \infty\)</span>, speedup is capped at 1/0.05 = 20×.</li>
 </ul>
-<p>No matter how many accelerators are added, this fixed workload cannot run faster than 20×. The same ceiling limits a single-node optimization: <strong><a href="../12_benchmarking/12_benchmarking.html#sec-benchmarking-endtoend-vs-component-latency-9952">End-to-end vs. component latency</a></strong> applies it to a measured pipeline, where an unchanged preprocessing stage caps the gain from a faster model.</p>
+<p>No matter how many accelerators are added, this fixed workload cannot run faster than 20×. The same ceiling limits a single-node optimization. <strong><a href="../12_benchmarking/12_benchmarking.html#sec-benchmarking-endtoend-vs-component-latency-9952">End-to-end vs. component latency</a></strong> applies it to a measured pipeline, where an unchanged preprocessing stage caps the gain from a faster model.</p>
 </section>
 <section id="sec-appdx-machine-foundations-weak-scaling-gustafsons-law-eb7e" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="sec-appdx-machine-foundations-weak-scaling-gustafsons-law-eb7e">Weak scaling (Gustafson’s Law)</h4>
-<p>Instead of using 1,000 accelerators to finish a small training dataset in milliseconds, large-model training uses them to process a dataset 1,000<span class="math inline">\(\times\)</span> larger in the same wall-clock time. <strong>Weak scaling</strong> measures how much larger a problem can become while holding runtime fixed as processors are added.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a></p>
+<p>Rather than adding accelerators to finish a small, fixed dataset in milliseconds, large-model training grows the dataset and global batch size alongside the cluster so that more work completes in the same wall-clock window. <strong>Weak scaling</strong> measures how much larger a problem can become while holding runtime fixed as processors are added.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> For <span class="math inline">\(\WorkerCount\)</span> processors, let <span class="math inline">\(1-\ParallelFraction\)</span> be the serial fraction of execution time measured on those processors for the scaled workload, and <span class="math inline">\(\ParallelFraction\)</span> the parallel fraction. Gustafson’s law <span class="citation" data-cites="gustafson1988">(<a href="#ref-gustafson1988" role="doc-biblioref">Gustafson 1988</a>)</span> derives “scaled speedup” by asking how long that scaled problem would take on a single processor. On <span class="math inline">\(\WorkerCount\)</span> processors, normalized runtime is <span class="math inline">\(\Time(\WorkerCount) = (1-\ParallelFraction) + \ParallelFraction = 1\)</span>. Executing the same total work on a single processor requires running the parallel fraction sequentially, taking <span class="math inline">\(\Time(1) = (1-\ParallelFraction) + \WorkerCount \cdot \ParallelFraction = \WorkerCount - (1-\ParallelFraction)(\WorkerCount-1)\)</span>. The resulting scaled speedup is: <span class="math display">\[ \text{Scaled Speedup}(\WorkerCount) = \frac{\Time(1)}{\Time(\WorkerCount)} = \WorkerCount - (1-\ParallelFraction)(\WorkerCount - 1) \]</span></p>
 <div class="no-row-height column-margin column-container"><div id="fn5"><p><sup>5</sup>&nbsp;<strong>John Gustafson</strong>: A computer scientist known for his work in parallel computing and for introducing the Unum (universal number) format. His law was a direct response to the perceived “limits” of Amdahl’s Law when applied to massive scale.</p></div><div id="ref-gustafson1988" class="csl-entry" role="listitem">
 Gustafson, John L. 1988. <span>“Reevaluating Amdahl’s Law.”</span> <em>Communications of the ACM</em> 31 (5): 532–33. https://doi.org/10.1145/42411.42415.
-</div></div><p>For <span class="math inline">\(\WorkerCount\)</span> processors, let <span class="math inline">\(1-\ParallelFraction\)</span> be the serial fraction of execution time measured on those processors for the scaled workload, and <span class="math inline">\(\ParallelFraction\)</span> the parallel fraction. Gustafson’s law <span class="citation" data-cites="gustafson1988">(<a href="#ref-gustafson1988" role="doc-biblioref">Gustafson 1988</a>)</span> derives “scaled speedup” by asking how long that scaled problem would take on a single processor. On <span class="math inline">\(\WorkerCount\)</span> processors, normalized runtime is <span class="math inline">\(\Time(\WorkerCount) = (1-\ParallelFraction) + \ParallelFraction = 1\)</span>. Executing the same total work on a single processor requires running the parallel fraction sequentially, taking <span class="math inline">\(\Time(1) = (1-\ParallelFraction) + \WorkerCount \cdot \ParallelFraction = \WorkerCount - (1-\ParallelFraction)(\WorkerCount-1)\)</span>. The resulting scaled speedup is: <span class="math display">\[ \text{Scaled Speedup}(\WorkerCount) = \frac{\Time(1)}{\Time(\WorkerCount)} = \WorkerCount - (1-\ParallelFraction)(\WorkerCount - 1) \]</span></p>
-<p>Because the parallel part grows linearly with <span class="math inline">\(\WorkerCount\)</span> while the serial fraction <span class="math inline">\(1-\ParallelFraction\)</span> remains fixed, weak scaling can keep efficiency high as the problem grows. Using the same 5 percent serial overhead (<span class="math inline">\(1-\ParallelFraction\)</span> = 0.05), Gustafson’s Law tells a very different story:</p>
+</div></div><p>Because the parallel part grows linearly with <span class="math inline">\(\WorkerCount\)</span> while the serial fraction <span class="math inline">\(1-\ParallelFraction\)</span> remains fixed, weak scaling can keep efficiency high as the problem grows. Using the same 5 percent serial overhead (<span class="math inline">\(1-\ParallelFraction\)</span> = 0.05), Gustafson’s Law tells a different story:</p>
 <ul>
 <li>With <span class="math inline">\(\WorkerCount=1\)</span>, speedup is 1.</li>
 <li>With <span class="math inline">\(\WorkerCount=\)</span> 8, Scaled Speedup is 8 − 0.05 <span class="math inline">\(\times\)</span> (7) = 8 − 0.35 = 7.65×.</li>
@@ -8173,7 +8083,7 @@ Gustafson, John L. 1988. <span>“Reevaluating Amdahl’s Law.”</span> <em>Com
 </section>
 <section id="sec-appdx-machine-foundations-training-time-equation-7c3e" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-training-time-equation-7c3e">The training-time equation</h3>
-<p>Weak scaling explains why large training runs grow the dataset rather than shrink the wall-clock time. The training-time equation turns model size, data size, accelerator count, peak rate, and utilization into a single estimate of that wall-clock time. <strong><a href="../08_training/08_training.html#sec-model-training-iron-law-training-performance-a53f">Training-Time Law</a></strong> applies it to the book’s training workloads; the template below is its reference form.</p>
+<p>Weak scaling explains why large training runs grow the dataset rather than shrink the wall-clock time, but budgeting a run still requires translating billions of parameters and tokens into days on a specific cluster. The <strong>training-time equation</strong> combines model size, token count, accelerator count, peak rate, and sustained hardware utilization into that wall-clock estimate, which <strong><a href="../08_training/08_training.html#sec-model-training-iron-law-training-performance-a53f">Training-Time Law</a></strong> applies to the book’s training workloads.</p>
 <div id="nbk-appendix-machine-training-time-equation" class="callout callout-notebook" title="The training time equation">
 <p></p><details class="callout-notebook fbx-simplebox fbx-default" open=""><summary><strong>Napkin Math 1.1: The training time equation</strong></summary><div><strong>Problem</strong>: How long does dense-transformer training take for a stated model size, token count, accelerator count, peak rate, and utilization?<p></p>
 <p><strong>Math</strong>: <span class="math display">\[ \Time\approx \frac{6 \cdot \Parameters\cdot \DatasetSize}{\AcceleratorCount \cdot \PeakRate \cdot \EfficiencyHw} \]</span></p>
@@ -8187,34 +8097,34 @@ Gustafson, John L. 1988. <span>“Reevaluating Amdahl’s Law.”</span> <em>Com
 <li><strong><span class="math inline">\(\EfficiencyHw\)</span></strong>: Hardware utilization, typically 30 percent–50 percent in this training estimate.</li>
 </ul>
 <p><strong>Example</strong>: Training a 1B parameter model on 20B tokens using 1 H100 (989 TFLOP/s) at 40 percent utilization. <span class="math inline">\(\text{Total FLOPs} = 6 \times 1 \times 10^{9} \times 2 \times 10^{10} = 1.2 \times 10^{20} \text{ FLOPs}\)</span>. <span class="math inline">\(\text{Throughput} = 1 \times (9.89 \times 10^{14}) \times 0.40 \approx 3.956 \times 10^{14} \text{ FLOP/s}\)</span>. <span class="math inline">\(\Time = \frac{1.2 \times 10^{20}}{3.956 \times 10^{14}} \approx 303,336.7 \text{ seconds} \approx 5,055.6 \text{ minutes}\)</span>.</p>
-<p><strong>Systems insight</strong>: Under these assumptions, training takes about 3.5 days. In D·A·M terms, this equation is the macroscopic product of Data (<span class="math inline">\(\DatasetSize\)</span> tokens), Algorithm (<span class="math inline">\(6\Parameters\text{ FLOPs/token}\)</span>), and Machine (<span class="math inline">\((\AcceleratorCount \cdot \PeakRate \cdot \EfficiencyHw)^{-1}\text{ s/FLOP}\)</span>): doubling the token count doubles the time, while doubling the accelerator count or the utilization halves it.</p>
+<p><strong>Systems insight</strong>: Under these assumptions, training takes about 3.5 days. In D·A·M terms, this equation is the macroscopic product of Data (<span class="math inline">\(\DatasetSize\)</span> tokens), Algorithm (<span class="math inline">\(6\Parameters\text{ FLOPs/token}\)</span>), and Machine (<span class="math inline">\((\AcceleratorCount \cdot \PeakRate \cdot \EfficiencyHw)^{-1}\text{ s/FLOP}\)</span>). Doubling the token count doubles the time, while doubling the accelerator count or the utilization halves it.</p>
 </div></details>
 </div>
 </section>
 <section id="sec-appdx-machine-foundations-littles-law-21a3" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-littles-law-21a3">Little’s Law</h3>
-<p>An inference server receiving 1,000 queries per second at a 50 ms average response time holds 50 requests in flight on average, and if each request occupies 1 GB of KV-cache state, a 24 GB accelerator runs out of memory before compute saturates. For capacity planning in stable inference systems, <strong>Little’s law</strong> <span class="citation" data-cites="little1961">(<a href="#ref-little1961" role="doc-biblioref">Little 1961</a>)</span> relates long-run mean concurrency (<span class="math inline">\(\RequestConcurrency\)</span>), mean arrival rate (<span class="math inline">\(\ArrivalRate\)</span>), and mean time in system (<span class="math inline">\(\RequestTimeInSystem\)</span>):<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> <span class="math display">\[ \RequestConcurrency = \ArrivalRate \times \RequestTimeInSystem \]</span></p>
+<p>Whereas the training-time equation sizes a batch job whose total token volume is known up front, an online inference server receives a continuous stream of queries, and every in-flight request holds working state in memory until its response completes. An accelerator can therefore exhaust its memory capacity from concurrent request state before its arithmetic units saturate. For capacity planning in stable inference systems, <strong>Little’s law</strong> <span class="citation" data-cites="little1961">(<a href="#ref-little1961" role="doc-biblioref">Little 1961</a>)</span> relates long-run mean concurrency (<span class="math inline">\(\RequestConcurrency\)</span>), mean arrival rate (<span class="math inline">\(\ArrivalRate\)</span>), and mean time in system (<span class="math inline">\(\RequestTimeInSystem\)</span>):<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> <span class="math display">\[ \RequestConcurrency = \ArrivalRate \times \RequestTimeInSystem \]</span></p>
 <div class="no-row-height column-margin column-container"><div id="ref-little1961" class="csl-entry" role="listitem">
 Little, John D. C. 1961. <span>“A Proof for the Queuing Formula: <span><span class="math inline">\(L = \lambda W\)</span></span>.”</span> <em>Operations Research</em> 9 (3): 383–87. https://doi.org/10.1287/opre.9.3.383.
-</div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>John Little</strong>: An Institute Professor at MIT and a pioneer in the field of operations research. His law, proved in 1961, is fundamental to queuing theory and is used across fields from manufacturing to computer network analysis.</p></div></div><p>The law follows from operational conservation of requests over any observation interval <span class="math inline">\([0, \ObservationIntervalLength]\)</span>. Let <span class="math inline">\(\CumulativeArrivals(\TimeInstant)\)</span> denote cumulative arrivals and <span class="math inline">\(\CumulativeCompletions(\TimeInstant)\)</span> cumulative completions, so the instantaneous in-flight queue occupancy is <span class="math inline">\(\InstantaneousRequestOccupancy(\TimeInstant) = \CumulativeArrivals(\TimeInstant) - \CumulativeCompletions(\TimeInstant)\)</span>. The average number of requests in the system over <span class="math inline">\([0, \ObservationIntervalLength]\)</span> is <span class="math inline">\(\IntervalMeanOccupancy= \frac{1}{\ObservationIntervalLength}\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant\)</span>. The total accumulated request-time <span class="math inline">\(\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant\)</span> equals the sum of residence times <span class="math inline">\(\sum_{i=1}^{\CompletedRequestCount(\ObservationIntervalLength)} \RequestResidenceTime_i\)</span> of all <span class="math inline">\(\CompletedRequestCount(\ObservationIntervalLength)\)</span> requests completed by time <span class="math inline">\(\ObservationIntervalLength\)</span> (plus boundary terms that vanish as <span class="math inline">\(\ObservationIntervalLength\to \infty\)</span>). Dividing both sides by <span class="math inline">\(\ObservationIntervalLength\)</span>: <span class="math display">\[ \IntervalMeanOccupancy= \frac{1}{\ObservationIntervalLength}\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant= \frac{\CompletedRequestCount(\ObservationIntervalLength)}{\ObservationIntervalLength} \cdot \frac{1}{\CompletedRequestCount(\ObservationIntervalLength)}\sum_{i=1}^{\CompletedRequestCount(\ObservationIntervalLength)} \RequestResidenceTime_i \]</span> In the limit as <span class="math inline">\(\ObservationIntervalLength\to \infty\)</span> for a stable queue, <span class="math inline">\(\lim_{\ObservationIntervalLength\to\infty} \frac{\CompletedRequestCount(\ObservationIntervalLength)}{\ObservationIntervalLength} = \ArrivalRate\)</span> and <span class="math inline">\(\lim_{\CompletedRequestCount\to\infty} \frac{1}{\CompletedRequestCount}\sum_{i=1}^\CompletedRequestCount \RequestResidenceTime_i = \RequestTimeInSystem\)</span>, yielding <span class="math inline">\(\RequestConcurrency = \ArrivalRate \times \RequestTimeInSystem\)</span> regardless of arrival distribution or service-time distribution. Because the identity requires no Poisson-arrival or exponential-service assumption, it applies directly to heavy-tailed large language model (LLM) generation workloads so long as the queue is stationary.</p>
+</div><div id="fn6"><p><sup>6</sup>&nbsp;<strong>John Little</strong>: An Institute Professor at MIT and a pioneer in the field of operations research. His law, proved in 1961, is fundamental to queuing theory and is used across fields from manufacturing to computer network analysis.</p></div></div><p>The law follows from operational conservation of requests over any observation interval <span class="math inline">\([0, \ObservationIntervalLength]\)</span>. Let <span class="math inline">\(\CumulativeArrivals(\TimeInstant)\)</span> denote cumulative arrivals and <span class="math inline">\(\CumulativeCompletions(\TimeInstant)\)</span> cumulative completions, so the instantaneous in-flight queue occupancy is <span class="math inline">\(\InstantaneousRequestOccupancy(\TimeInstant) = \CumulativeArrivals(\TimeInstant) - \CumulativeCompletions(\TimeInstant)\)</span>. The average number of requests in the system over <span class="math inline">\([0, \ObservationIntervalLength]\)</span> is <span class="math inline">\(\IntervalMeanOccupancy= \frac{1}{\ObservationIntervalLength}\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant\)</span>. The total accumulated request-time <span class="math inline">\(\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant\)</span> equals the sum of residence times <span class="math inline">\(\sum_{i=1}^{\CompletedRequestCount(\ObservationIntervalLength)} \RequestResidenceTime_i\)</span> of all <span class="math inline">\(\CompletedRequestCount(\ObservationIntervalLength)\)</span> requests completed by time <span class="math inline">\(\ObservationIntervalLength\)</span> (plus boundary terms that vanish as <span class="math inline">\(\ObservationIntervalLength\to \infty\)</span>). Dividing both sides by <span class="math inline">\(\ObservationIntervalLength\)</span>: <span class="math display">\[ \IntervalMeanOccupancy= \frac{1}{\ObservationIntervalLength}\int_0^{\ObservationIntervalLength} \InstantaneousRequestOccupancy(\TimeInstant)\,d\TimeInstant= \frac{\CompletedRequestCount(\ObservationIntervalLength)}{\ObservationIntervalLength} \cdot \frac{1}{\CompletedRequestCount(\ObservationIntervalLength)}\sum_{i=1}^{\CompletedRequestCount(\ObservationIntervalLength)} \RequestResidenceTime_i \]</span> In the limit as <span class="math inline">\(\ObservationIntervalLength\to \infty\)</span> for a stable queue, <span class="math inline">\(\lim_{\ObservationIntervalLength\to\infty} \frac{\CompletedRequestCount(\ObservationIntervalLength)}{\ObservationIntervalLength} = \ArrivalRate\)</span> and <span class="math inline">\(\lim_{\CompletedRequestCount\to\infty} \frac{1}{\CompletedRequestCount}\sum_{i=1}^\CompletedRequestCount \RequestResidenceTime_i = \RequestTimeInSystem\)</span>. These limits yield <span class="math inline">\(\RequestConcurrency = \ArrivalRate \times \RequestTimeInSystem\)</span> regardless of arrival distribution or service-time distribution. Because the identity requires no Poisson-arrival or exponential-service assumption, it applies directly to heavy-tailed large language model (LLM) generation workloads so long as the queue is stationary.</p>
 <p>To see this in practice, consider sustaining 1,000 QPS with 50 ms average latency. The law dictates that the system must support 1000 <span class="math inline">\(\times\)</span> 0.05 s = 50 concurrent requests.</p>
-<p>This sizes worker pools, but memory needs another assumption. If every in-system request simultaneously holds 1 GB of device state, the average population implies 50 GB; queued requests may instead stay in host memory or share batched state. If 24 device slots (<span class="math inline">\(\DeviceRequestCapacity\)</span>, the most requests the device can hold at once) each remain occupied for 50 ms, their throughput proxy is <span class="math inline">\(\DeviceRequestCapacity/\RequestTimeInSystem = 24/0.05 = 480 \text{ QPS}\)</span>; Little’s law alone does not fix a maximum; device capacity does.</p>
-<p>Serving systems use this relation to size request concurrency, and <strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-littles-law-9352">Little's Law</a></strong> pairs it with a queueing model to show how latency degrades as utilization nears saturation. Together, these physics-based models (roofline, Amdahl, Gustafson, and Little) locate <em>where</em> a bottleneck lies; acting on that diagnosis requires the hardware structures that impose the bounds: the memory hierarchy, the links that move data between tiers, and the classes of hardware that package them.</p>
+<p>This sizes worker pools, but memory needs another assumption. If every in-system request simultaneously holds 1 GB of device state, the average population implies 50 GB; queued requests may instead stay in host memory or share batched state. If 24 device slots (<span class="math inline">\(\DeviceRequestCapacity\)</span>, the most requests the device can hold at once) each remain occupied for 50 ms, their throughput proxy is <span class="math inline">\(\DeviceRequestCapacity/\RequestTimeInSystem = 24/0.05 = 480 \text{ QPS}\)</span>. Little’s law alone does not fix a maximum. Device capacity does.</p>
+<p>Serving systems use this relation to size request concurrency, and <strong><a href="../13_model_serving/13_model_serving.html#sec-model-serving-littles-law-9352">Little's Law</a></strong> pairs it with a queueing model to show how latency degrades as utilization nears saturation. Together, these physics-based models (roofline, Amdahl, Gustafson, and Little) locate <em>where</em> a bottleneck lies. Acting on that diagnosis requires the hardware structures that impose the bounds: the memory hierarchy, the links that move data between tiers, and the classes of hardware that package them.</p>
 </section>
 </section>
 <section id="sec-appdx-machine-foundations-computer-architecture-essentials-10c2" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-machine-foundations-computer-architecture-essentials-10c2">Computer Architecture Essentials</h2>
-<p>A kernel can run at a small fraction of an accelerator’s advertised peak when data movement, insufficient parallelism, synchronization, launch overhead, or software inefficiency stands in the way. Whereas physics sets the theoretical ceilings, computer architecture defines the machinery that determines how close a real workload can get to them across three structures: the memory hierarchy and its energy cost, the paths that move data between tiers, and the class of hardware that packages both.</p>
+<p>A kernel can run at a small fraction of an accelerator’s advertised peak when data movement, insufficient parallelism, synchronization, launch overhead, or software inefficiency stands in the way. Physics sets the theoretical ceilings. Computer architecture defines the machinery that determines how close a real workload can get to them, across three structures: the memory hierarchy and its energy cost, the paths that move data between tiers, and the class of hardware that packages both.</p>
 <section id="sec-appdx-machine-foundations-memory-hierarchy-2278" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-memory-hierarchy-2278">The memory hierarchy</h3>
-<p>Computer systems rely on tiered storage architectures because no single physical medium simultaneously provides massive storage capacity and the lowest access latency. Faster, smaller, and costlier tiers sit close to the arithmetic units; larger and cheaper tiers sit farther away (<a href="#fig-memory-hierarchy" class="quarto-xref">figure&nbsp;2</a>). When data movement sits on the critical execution path, staging tensors into the upper tiers avoids the orders-of-magnitude latency penalties of off-chip DRAM and persistent storage that <a href="#tbl-memory-ratios-ref" class="quarto-xref">table&nbsp;5</a> quantifies.</p>
+<p>Computer systems rely on tiered storage architectures because no single physical medium simultaneously provides large storage capacity and the lowest access latency. Faster, smaller, and costlier tiers sit close to the arithmetic units; larger and cheaper tiers sit farther away (<a href="#fig-memory-hierarchy" class="quarto-xref">figure&nbsp;2</a>). When data movement sits on the critical execution path, staging tensors into the upper tiers avoids the orders-of-magnitude latency penalties of off-chip DRAM and persistent storage that <a href="#tbl-memory-ratios-ref" class="quarto-xref">table&nbsp;5</a> quantifies.</p>
 <div id="fig-memory-hierarchy" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Pyramid with four tiers, from top to bottom: registers, L1/L2/L3 cache, HBM/DRAM, and storage (SSD/disk). An upward arrow reads “Faster Speed, Lower Latency,” and a downward arrow reads “Larger Capacity, Lower Cost.”" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-memory-hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="appendix_machine_files/mediabag/1ffee53fa0368d9271c089e2bfcab8e5d48f22fe.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The Memory Hierarchy: Performance depends on data proximity. Accessing HBM is roughly 1,000\times slower than registers; accessing SSD is roughly 300,000\times slower."><img src="appendix_machine_files/mediabag/1ffee53fa0368d9271c089e2bfcab8e5d48f22fe.svg" class="img-fluid figure-img"></a>
+<a href="appendix_machine_files/mediabag/1ffee53fa0368d9271c089e2bfcab8e5d48f22fe.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The Memory Hierarchy: Performance depends on data proximity. Accessing HBM is roughly 900× slower than registers; accessing SSD is roughly 300,000× slower."><img src="appendix_machine_files/mediabag/1ffee53fa0368d9271c089e2bfcab8e5d48f22fe.svg" class="img-fluid figure-img"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-memory-hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: <strong>The Memory Hierarchy</strong>: Performance depends on data proximity. Accessing HBM is roughly 1,000<span class="math inline">\(\times\)</span> slower than registers; accessing SSD is roughly 300,000<span class="math inline">\(\times\)</span> slower.
+Figure&nbsp;2: <strong>The Memory Hierarchy</strong>: Performance depends on data proximity. Accessing HBM is roughly 900× slower than registers; accessing SSD is roughly 300,000× slower.
 </figcaption>
 </figure>
 </div>
@@ -8274,7 +8184,7 @@ Table&nbsp;7: <strong>Energy Across the Memory Hierarchy</strong>: Energy per 32
 </section>
 <section id="sec-appdx-machine-foundations-bandwidth-vs-latency-5320" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-bandwidth-vs-latency-5320">Bandwidth versus latency</h3>
-<p>Upgrading a 10 Gbps network link to 100 Gbps barely changes the delivery time of a 1 KB inference request, yet it cuts the transfer of a 1 GB checkpoint tenfold. Bandwidth (throughput) and latency (delay) govern those two regimes as distinct constraints. For data volume <span class="math inline">\(\DataVolume\)</span> sent over effective bandwidth <span class="math inline">\(\Bandwidth\)</span> with fixed path latency <span class="math inline">\(\Latency\)</span>, and assuming the latency and serialization costs do not overlap, total transfer time is: <span class="math display">\[ \Time= \Latency + \frac{\DataVolume}{\Bandwidth} \]</span></p>
+<p>Widening a data link tenfold barely changes the delivery time of a small inference request or control message, yet it cuts the transfer time of a multi-gigabyte model checkpoint nearly tenfold. Bandwidth (throughput once bytes are flowing) and latency (the fixed delay before the first byte arrives) govern those two regimes as distinct constraints. For data volume <span class="math inline">\(\DataVolume\)</span> sent over effective bandwidth <span class="math inline">\(\Bandwidth\)</span> with fixed path latency <span class="math inline">\(\Latency\)</span>, and assuming the latency and serialization costs do not overlap, total transfer time is: <span class="math display">\[ \Time= \Latency + \frac{\DataVolume}{\Bandwidth} \]</span></p>
 <p>The crossover point is the transfer size where the two terms are equal: <span class="math display">\[ \LatencyBandwidthCrossoverSize = \Latency \times \Bandwidth \]</span></p>
 <p>For transfers below <span class="math inline">\(\LatencyBandwidthCrossoverSize\)</span> (for example, small request or control messages), latency dominates. For transfers above it (for example, loading weights), bandwidth dominates.</p>
 <p>Consider sending data over a 10 Gb/s link with 10 ms base request/response latency. The crossover size is 12.5 MB, so the dominant term depends on which side of that threshold the transfer falls.</p>
@@ -8282,11 +8192,11 @@ Table&nbsp;7: <strong>Energy Across the Memory Hierarchy</strong>: Energy per 32
 <li><strong>Latency-dominated packet (1 KB)</strong>: Transmission time is 1 KB <span class="math inline">\(\times\)</span> 8/10 Gb/s ≈ 0.8 μs. Total time is approximately 10 ms + 0.8 μs ≈ 10 ms. <strong>Result</strong>: Fixed path and protocol latency dominates; propagation is one component.</li>
 <li><strong>Bandwidth-dominated checkpoint (1 GB)</strong>: Transmission time is <span class="math inline">\(1\text{ GB} \times 8/10\text{ Gbps} \approx 800\text{ ms}\)</span>. Total time is <span class="math inline">\(\approx 10\text{ ms} + 800\text{ ms} = 810\text{ ms}\)</span>. <strong>Result</strong>: Base latency is negligible; bandwidth is the bottleneck.</li>
 </ul>
-<p>The classes of hardware that ML systems deploy on differ sharply in these properties. A data center accelerator and a microcontroller differ by orders of magnitude in memory bandwidth, compute, and power, and those differences decide which workloads each class can run.</p>
+<p>How much bandwidth, compute, and memory capacity sit on either side of those links depends on the target form factor, which ranges from liquid-cooled data center racks to milliwatt sensor boards.</p>
 </section>
 <section id="sec-appdx-machine-foundations-ai-hardware-cheat-sheet-modern-reference-4dc1" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-ai-hardware-cheat-sheet-modern-reference-4dc1">Accelerator classes</h3>
-<p>The deployment paradigms of <strong><a href="../02_system_paradigms/02_system_paradigms.html#sec-ml-systems-deployment-paradigm-framework-0d25">Four Deployment Regimes Across Nine Orders of Magnitude</a></strong> run on four classes of hardware that differ by orders of magnitude in peak rate, memory bandwidth, memory capacity, and power (<a href="#tbl-accelerator-classes-ref" class="quarto-xref">table&nbsp;8</a>). Each range spans representative devices in its class rather than any single product; <strong><a href="appendix_assumptions.html#sec-appdx-assumptions-accelerator-matrix-c4d0">Master accelerator matrix</a></strong> tabulates the products themselves.</p>
+<p>A model trained on a 700 W data center accelerator cannot be dropped onto a battery-powered phone or a microcontroller with a few hundred kilobytes of SRAM without redesigning the workload around the target’s physical envelope. The deployment paradigms of <strong><a href="../02_system_paradigms/02_system_paradigms.html#sec-ml-systems-deployment-paradigm-framework-0d25">Four Deployment Regimes Across Nine Orders of Magnitude</a></strong> run on four hardware classes whose peak throughput, memory bandwidth, memory capacity, and power budgets span orders of magnitude (<a href="#tbl-accelerator-classes-ref" class="quarto-xref">table&nbsp;8</a>). Each range covers representative devices in its class rather than any single product; <strong><a href="appendix_assumptions.html#sec-appdx-assumptions-accelerator-matrix-c4d0">Master accelerator matrix</a></strong> tabulates the individual chips.</p>
 <div id="tbl-accelerator-classes-ref" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[20,16,16,16,14,18]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-accelerator-classes-ref-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8350,15 +8260,15 @@ Table&nbsp;8: <strong>Accelerator Classes</strong>: Order-of-magnitude ranges ac
 </div>
 </figure>
 </div>
-<p>Two patterns stand out across these classes: first, they span roughly 7 orders of magnitude in peak rate and 5 in power, so a model sized for one class rarely runs unchanged on another; second, whereas ridge points sit in the hundreds of FLOP per byte from data center to mobile, leaving the same low-intensity operations bandwidth bound on all three, a microcontroller’s ridge sits within a few FLOP per byte, making nearly every layer of a keyword-spotting model compute bound and shifting the binding constraint to the power budget. <strong><a href="../11_hw_acceleration/11_hw_acceleration.html#sec-hardware-acceleration-choosing-accelerator-6b2d">Choosing an Accelerator</a></strong> applies these classes to the choice of accelerator, while moving between classes also changes which numerical formats the hardware supports natively, and numerical precision directly controls <em>how much</em> data must move.</p>
+<p>Two patterns stand out across these classes. First, they span roughly 7 orders of magnitude in peak rate and 5 in power, so a model sized for one class rarely runs unchanged on another. Second, ridge points sit in the hundreds of FLOP per byte from data center to mobile, which leaves the same low-intensity operations bandwidth bound on all three. A microcontroller’s ridge, by contrast, sits within a few FLOP per byte, which makes nearly every layer of a keyword-spotting model compute bound and shifts the binding constraint to the power budget. <strong><a href="../11_hw_acceleration/11_hw_acceleration.html#sec-hardware-acceleration-choosing-accelerator-6b2d">Choosing an Accelerator</a></strong> applies these classes to the choice of accelerator. Moving between classes also changes which numerical formats the hardware supports natively, and numerical precision directly controls <em>how much</em> data must move.</p>
 </section>
 </section>
 <section id="sec-appdx-machine-foundations-numerical-representations-c889" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-machine-foundations-numerical-representations-c889">Numerical Representations</h2>
-<p>The numerical format decides how many bytes each value occupies and how much energy each operation costs. In ML systems, the choice of precision (FP32 vs.&nbsp;BF16 vs.&nbsp;INT8) is a direct trade-off between statistical fidelity and hardware throughput.</p>
+<p>Halving a tensor’s representation from 32 bits to 16 bits cuts its memory footprint and bandwidth traffic in half and doubles peak Tensor Core throughput on the same silicon, yet choosing the wrong 16-bit layout can cause small gradients to underflow to zero during training. Because the numerical format fixes both how many bytes each value occupies and how much energy each arithmetic operation costs, choosing among FP32, BF16, FP16, FP8, and INT8 is a direct trade-off between statistical fidelity and hardware throughput.</p>
 <section id="sec-appdx-machine-foundations-floatingpoint-format-comparison-1836" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-machine-foundations-floatingpoint-format-comparison-1836">Floating-point formats</h3>
-<p>IEEE 754 standards and AI-specific numerical representations trade dynamic range (the span of representable values) against precision (the granularity of values within that range). Operational ranges and typical uses differ by format (<a href="#tbl-numerical-formats" class="quarto-xref">table&nbsp;9</a>), and the bit partitions of FP32, BF16, FP16, and INT8 show where each format spends its bits (<a href="#fig-float-formats" class="quarto-xref">figure&nbsp;3</a>). BF16 retains FP32’s full 8-bit exponent field, preserving the same dynamic range while truncating the mantissa to 7 bits, whereas FP16 widens the mantissa to 10 bits at the cost of a narrower 5-bit exponent.</p>
+<p>A gradient of magnitude <span class="math inline">\(10^{-6}\)</span> survives in 16-bit brain floating point (BF16) but flushes to zero in standard 16-bit IEEE floating point (FP16), even though both formats occupy two bytes. IEEE 754 standards and AI-specific floating-point representations divide a fixed bit budget between a sign bit, an exponent field that sets <strong>dynamic range</strong> (the span of representable magnitudes), and a mantissa field that sets <strong>precision</strong> (the granularity of values within that range). Operational ranges and typical uses differ by format (<a href="#tbl-numerical-formats" class="quarto-xref">table&nbsp;9</a>), and the bit partitions of FP32, BF16, FP16, and INT8 show where each format spends its bits (<a href="#fig-float-formats" class="quarto-xref">figure&nbsp;3</a>). BF16 retains FP32’s full 8-bit exponent field, preserving the same dynamic range while truncating the mantissa to 7 bits, whereas FP16 widens the mantissa to 10 bits at the cost of a narrower 5-bit exponent.</p>
 <div id="tbl-numerical-formats" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[8,8,11,9,20,44]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-numerical-formats-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8441,15 +8351,15 @@ Figure&nbsp;3: <strong>Numerical Format Bit Layouts</strong>: A visual compariso
 </figure>
 </div>
 <p>BF16<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> <span class="citation" data-cites="google_bfloat16 kalamkar2019">(<a href="#ref-google_bfloat16" role="doc-biblioref">Wang and Kanwar 2019</a>; <a href="#ref-kalamkar2019" role="doc-biblioref">Kalamkar et al. 2019</a>)</span> occupies the same 16-bit storage class as FP16, yet the two formats behave very differently during training. Because BF16 allocates three more bits to the exponent than FP16, nominal bit width alone does not predict whether a training run will need gradient scaling.</p>
-<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>BF16 (brain floating point 16)</strong>: Originally introduced with Google TPUv2 and later adopted by Intel, Arm, and NVIDIA, BF16 became a common training format across accelerator ecosystems. Its adoption made format support in hardware, kernels, and distributed-training libraries a portability concern rather than a vendor-specific feature.</p></div><div id="ref-google_bfloat16" class="csl-entry" role="listitem">
+<div class="no-row-height column-margin column-container"><div id="fn7"><p><sup>7</sup>&nbsp;<strong>BF16 (brain floating point 16)</strong>: Originally introduced with Google TPU v2 and later adopted by Intel, Arm, and NVIDIA, BF16 became a common training format across accelerator ecosystems. Its adoption made format support in hardware, kernels, and distributed-training libraries a portability concern rather than a vendor-specific feature.</p></div><div id="ref-google_bfloat16" class="csl-entry" role="listitem">
 Wang, Shibo, and Pankaj Kanwar. 2019. <em><span>BFloat16</span>: The Secret to High Performance on Cloud <span>TPUs</span></em>.
 </div></div><div id="psp-appendix-machine-dynamic-range-wall" class="callout callout-perspective" title="The dynamic range wall">
 <details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.4: The dynamic range wall</strong></summary><div>
 <p>The choice of numerical format is a direct application of the iron law of ML systems (principle <a href="../parts/build_principles.html#pri-iron-law">3</a>). Reducing precision from FP32 to BF16 or FP16 halves the data volume term, potentially doubling throughput on memory-bound workloads. However, the <em>type</em> of 16-bit format determines the engineering complexity:</p>
 <ul>
 <li><strong>Dynamic range (the exponent)</strong>: BF16 preserves the eight-bit exponent of FP32 and therefore the same normal exponent range <span class="citation" data-cites="kalamkar2019">(<a href="#ref-kalamkar2019" role="doc-biblioref">Kalamkar et al. 2019</a>)</span>.</li>
-<li><strong>Precision (the mantissa)</strong>: FP16 has a larger 10-bit mantissa than BF16 (7 bits), offering higher precision for values within its range. Its five-bit exponent, however, raises underflow risk. FP16 training therefore often uses <strong>loss scaling</strong>, an operational step that multiplies gradients by a large constant to keep more values representable <span class="citation" data-cites="micikevicius2017mixed">(<a href="#ref-micikevicius2017mixed" role="doc-biblioref">Micikevicius et al. 2018</a>)</span>; <strong><a href="../08_training/08_training.html#sec-model-training-mixedprecision-training-9218">Mixed-precision training</a></strong> develops the full mixed-precision recipe.</li>
-<li><strong>Energy efficiency</strong>: INT8 operations can be substantially more efficient than floating-point equivalents because they move less data and use simpler integer arithmetic paths. Moving to INT8 for inference is a primary lever for deploying neural networks under tight memory, latency, or power budgets <span class="citation" data-cites="jacob2018 krishnamoorthi2018quantizing">(<a href="#ref-jacob2018" role="doc-biblioref">Jacob et al. 2018</a>; <a href="#ref-krishnamoorthi2018quantizing" role="doc-biblioref">Krishnamoorthi 2018</a>)</span>; <strong><a href="../10_model_compression/10_model_compression.html#sec-model-compression-numerical-format-comparison-8fa2">Numerical formats</a></strong> compares the formats on accuracy cost and hardware support.</li>
+<li><strong>Precision (the mantissa)</strong>: FP16 has a larger 10-bit mantissa than BF16 (7 bits), offering higher precision for values within its range. Its five-bit exponent, however, raises underflow risk. FP16 training therefore often uses <strong>loss scaling</strong>, an operational step that multiplies gradients by a large constant to keep more values representable <span class="citation" data-cites="micikevicius2017mixed">(<a href="#ref-micikevicius2017mixed" role="doc-biblioref">Micikevicius et al. 2018</a>)</span>. <strong><a href="../08_training/08_training.html#sec-model-training-mixedprecision-training-9218">Mixed-precision training</a></strong> develops the full mixed-precision recipe.</li>
+<li><strong>Energy efficiency</strong>: INT8 operations can be substantially more efficient than floating-point equivalents because they move less data and use simpler integer arithmetic paths. Moving to INT8 for inference is a primary lever for deploying neural networks under tight memory, latency, or power budgets <span class="citation" data-cites="jacob2018 krishnamoorthi2018quantizing">(<a href="#ref-jacob2018" role="doc-biblioref">Jacob et al. 2018</a>; <a href="#ref-krishnamoorthi2018quantizing" role="doc-biblioref">Krishnamoorthi 2018</a>)</span>. <strong><a href="../10_model_compression/10_model_compression.html#sec-model-compression-numerical-format-comparison-8fa2">Numerical formats</a></strong> compares the formats on accuracy cost and hardware support.</li>
 </ul>
 </div></details>
 </div>
@@ -8467,7 +8377,7 @@ Kalamkar, Dhiraj, Dheevatsa Mudigere, Naveen Mellempudi, Dipankar Das, Kunal Ban
 <p>Storing weights and activations in 32-bit floating point spends four bytes per value and drives wide floating-point multipliers when 256 discrete levels often suffice for inference accuracy. Quantization cuts that cost by mapping continuous floating-point values to discrete integers, typically INT8, using either a symmetric or an asymmetric mapping to assign the floating-point range to 256 integer codes.</p>
 <p>For symmetric quantization, let <span class="math inline">\(\SymmetricClippingThreshold= \max |\QuantizerInput|\)</span> over the calibrated range, assume <span class="math inline">\(\QuantizerInput\)</span> is clipped to <span class="math inline">\([-\SymmetricClippingThreshold, \SymmetricClippingThreshold]\)</span>, and set the scale <span class="math inline">\(\QuantizationScale= \SymmetricClippingThreshold/127\)</span>. The signed INT8 code is: <span class="math display">\[ \QuantizedIntegerCode = \text{round}\left(\frac{\QuantizerInput}{\QuantizationScale}\right) \]</span></p>
 <p>This symmetric mapping works well for weight distributions centered around zero, whereas asymmetric quantization handles distributions that are not centered (common after ReLU, which produces only nonnegative values) by shifting the range before scaling. Let <span class="math inline">\(\ClippingRangeLowerBound\)</span> and <span class="math inline">\(\ClippingRangeUpperBound\)</span> bound the calibrated range, clip <span class="math inline">\(\QuantizerInput\)</span> to <span class="math inline">\([\ClippingRangeLowerBound, \ClippingRangeUpperBound]\)</span>, and set the scale <span class="math inline">\(\QuantizationScale= (\ClippingRangeUpperBound- \ClippingRangeLowerBound)/255\)</span>. A common unsigned 8-bit mapping is: <span class="math display">\[ \QuantizedIntegerCode = \text{round}\left(\frac{\QuantizerInput- \ClippingRangeLowerBound}{\QuantizationScale}\right) \]</span></p>
-<p>The choice between symmetric and asymmetric quantization depends on the tensor’s distribution and has measurable accuracy implications. <strong><a href="../10_model_compression/10_model_compression.html#sec-model-compression-quantization-precision-cd46">Numerical Precision: Changing How Values Are Stored</a></strong> develops calibration, granularity, and the accuracy cost of each mapping on the book’s workloads.</p>
+<p>The choice between symmetric and asymmetric quantization depends on the tensor’s distribution and has measurable accuracy implications. <strong><a href="../10_model_compression/10_model_compression.html#sec-model-compression-quantization-precision-cd46">Numerical Precision: Changing How Values Are Stored</a></strong> develops calibration, granularity, and the accuracy cost of each mapping on the book’s workloads. Together with the floating-point formats, integer quantization completes the machine-level levers that determine how many bytes each operation moves and how much energy each arithmetic step consumes.</p>
 </section>
 </section>
 <section id="summary" class="level2 unnumbered">
@@ -8863,10 +8773,10 @@ Kalamkar, Dhiraj, Dheevatsa Mudigere, Naveen Mellempudi, Dipankar Das, Kunal Ban
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
 </div>   
     <div class="nav-footer-center">
-<p><a href="../vol2/">Volume II: Scaling →</a></p>
+<p><a href="../vol2/">Volume II: Scaling Machine Learning Systems →</a></p>
 </div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">

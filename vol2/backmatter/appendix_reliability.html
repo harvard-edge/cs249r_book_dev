@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-36b07967708498ecd461e0ea002a939c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-bb57b4d25002181ffbc35f1a773f7fa2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -117,6 +117,37 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   });
 </script>
 <!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  release-gate (inline, sync) — the live site (mlsysbook.ai) shows only the
+  released volumes; every other host (the dev preview at
+  harvard-edge.github.io/cs249r_book_dev, local previews) shows the whole
+  series. Unreleased content is hidden by default and revealed by the
+  `mls-staging` class, so a page without JavaScript still hides it.
+  To release a volume, drop its `.mls-unreleased` markers and its href rule
+  below. Added 2026-10-23: Volumes III and IV stay staging-only until their
+  public preview.
+-->
+<script>
+(function () {
+  var host = window.location.hostname;
+  if (!/(^|\.)mlsysbook\.ai$/.test(host)) {
+    document.documentElement.classList.add('mls-staging');
+  }
+})();
+</script>
+<style>
+  html:not(.mls-staging) .mls-unreleased,
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol3/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol4/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html.mls-staging .mls-live-only {
+    display: none !important;
+  }
+</style>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -286,7 +317,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       "@id": "https://mlsysbook.ai/#website",
       "url": "https://mlsysbook.ai/",
       "name": "Machine Learning Systems",
-      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "description": "An open textbook series on machine learning systems.",
       "publisher": {
         "@type": "Organization",
         "name": "Harvard Edge Computing Lab",
@@ -332,20 +363,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
           "url": "../",
           "bookFormat": "https://schema.org/EBook",
           "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume III: Agentic Machine Learning Systems",
-          "url": "../../vol3/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume IV: Physical AI Systems",
-          "url": "../../vol4/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
         }
       ]
     },
@@ -800,9 +817,7 @@ $$
 \newcommand{\AdaptationWindowEnergy}{E_{\text{update}}}
 \newcommand{\AdaptedHiddenActivation}{\mathbf{h}'}
 \newcommand{\AdaptedTaskCost}{C_{\text{task, adapt}}}
-\newcommand{\AdaptedWeightMatrix}{\mathbf{W}_{\text{adapted}}}
 \newcommand{\AdapterActivationFunction}{\sigma}
-\newcommand{\AdapterAssignmentVector}{\mathbf{m}}
 \newcommand{\AdapterDownProjectionMatrix}{\mathbf{A}}
 \newcommand{\AdapterIndex}{k}
 \newcommand{\AdapterInitializationStandardDeviation}{\sigma}
@@ -811,7 +826,6 @@ $$
 \newcommand{\AdapterUpProjectionMatrix}{\mathbf{B}}
 \newcommand{\AdjacentNeighboringDataset}{X'}
 \newcommand{\AdjacentQueryResult}{v'}
-\newcommand{\AdminLeaseTime}{T_{\text{admin}}}
 \newcommand{\AdmissibleBacklogCount}{n}
 \newcommand{\AdmissibleControlSet}{\mathcal{U}_{\text{adm}}}
 \newcommand{\AdmissibleDisturbanceSet}{\mathcal{W}}
@@ -839,7 +853,6 @@ $$
 \newcommand{\AffordanceSuccessEstimate}{V_{\text{policy}}}
 \newcommand{\AgeBlindTravel}{\Delta x_{\text{blind}}}
 \newcommand{\AgeCheckInstant}{t_{\text{curr}}}
-\newcommand{\AggregateServerPower}{P_{\text{servers}}}
 \newcommand{\AggregateSlotWork}{W}
 \newcommand{\AggregatedRecoveryDataset}{\mathcal{D}}
 \newcommand{\AggregatedSurrogateLoss}{\epsilon_N}
@@ -866,7 +879,6 @@ $$
 \newcommand{\AllocatedBlockCount}{N_{\text{blocks}}}
 \newcommand{\AllocatedHazardRate}{\lambda_{\text{alloc}}}
 \newcommand{\AllocatedWallTime}{T_{\text{wall}}}
-\newcommand{\AllowableCollisionEnergy}{E_{k, \text{allow}}}
 \newcommand{\AllowableRailDroop}{\Delta V_{\text{droop, max}}}
 \newcommand{\AllowableRailExcursion}{\Delta V_{\max}}
 \newcommand{\AllowableWindingTemperatureRise}{\Delta T_{\max}}
@@ -936,7 +948,6 @@ $$
 \newcommand{\AttemptVerificationCost}{C_{\text{verify}}}
 \newcommand{\AttentionHeadCount}{N_{\text{heads}}}
 \newcommand{\AttentionHeadDimension}{d_{\text{head}}}
-\newcommand{\AttentionHeadIndex}{i}
 \newcommand{\AttentionHeadOutput}{\mathbf{O}}
 \newcommand{\AttentionKeyMatrix}{\mathbf{K}}
 \newcommand{\AttentionOutputMatrix}{\mathbf{O}}
@@ -1028,11 +1039,9 @@ $$
 \newcommand{\BaseTravelDistance}{d}
 \newcommand{\BaseTravelSpeed}{v_{\text{base}}}
 \newcommand{\BaseWidthMultiplier}{w_{\text{mult},0}}
-\newcommand{\BaseWorkerCount}{N_{\text{base}}}
 \newcommand{\BaseWristTransform}{\mathbf{T}_{\text{base} \leftarrow \text{wrist}}}
 \newcommand{\BaseYawRateBias}{\omega_{\text{bias}}}
 \newcommand{\BaselineAcceptanceEstimate}{\hat{p}_{\text{base}}}
-\newcommand{\BaselineAnnualOperationsCost}{C_{\text{current}}}
 \newcommand{\BaselineControllerAction}{\mathbf{a}_t^{\text{base}}}
 \newcommand{\BaselineConversionRate}{p_0}
 \newcommand{\BaselineFeatureMean}{\mu_{\text{base}}}
@@ -1375,7 +1384,6 @@ $$
 \newcommand{\CentroidalMomentumRate}{\dot{\mathbf{h}}_G}
 \newcommand{\CertifiedCommandWindow}{\mathbf{u}^*_{t:t+H-1}}
 \newcommand{\CertifiedControlAction}{\mathbf{u}^*}
-\newcommand{\CertifiedJointTorque}{u^*}
 \newcommand{\CertifiedRadius}{R}
 \newcommand{\ChainRuleInput}{x}
 \newcommand{\ChainRuleIntermediate}{u}
@@ -1393,7 +1401,6 @@ $$
 \newcommand{\CheckIntervalStepCount}{m}
 \newcommand{\CheckPassProbability}{p^{\text{chk}}}
 \newcommand{\CheckSlotTime}{T}
-\newcommand{\CheckWindowTurnCount}{w}
 \newcommand{\CheckedSignal}{x}
 \newcommand{\CheckedSignalLimit}{L_{\text{limit}}}
 \newcommand{\CheckpointAttemptDuration}{T_{\text{att}}}
@@ -1428,7 +1435,6 @@ $$
 \newcommand{\ChunkExecutionHorizon}{H_{\text{exec}}}
 \newcommand{\ChunkImitationLoss}{\mathcal{L}_{\text{chunk}}}
 \newcommand{\ChunkLease}{T_{\text{lease}}}
-\newcommand{\ChunkLeaseTime}{T_{\text{lease}}}
 \newcommand{\ChunkReactionLatency}{T_{\text{reaction}}}
 \newcommand{\ChunkRenewalPeriod}{T_{\text{chunk}}}
 \newcommand{\ChunkRenewalRate}{f_{\text{replan}}}
@@ -1455,11 +1461,9 @@ $$
 \newcommand{\ClearanceTimeBudget}{T_{\text{total}}}
 \newcommand{\ClfClassKFunction}{\alpha_V}
 \newcommand{\ClfDescentControlSet}{\mathcal{U}_{\text{CLF}}}
-\newcommand{\ClientGradientVector}{\mathbf{g}}
 \newcommand{\ClientIndex}{k}
 \newcommand{\ClientLocalDataset}{\mathcal{D}}
 \newcommand{\ClientLocalTrainingEnergy}{E_{\text{client}}}
-\newcommand{\ClientMaskVector}{\mathbf{r}}
 \newcommand{\ClientObjectiveWeight}{w}
 \newcommand{\ClientSampleCount}{n}
 \newcommand{\ClientUpdateUploadEnergy}{E_{\text{upload}}}
@@ -1478,7 +1482,6 @@ $$
 \newcommand{\CloudInferenceEnergy}{E_{\text{cloud}}}
 \newcommand{\CloudOffloadEnergy}{E_{\text{transmit}}}
 \newcommand{\CloudTrainingRunEnergy}{E_{\text{cloud,train}}}
-\newcommand{\ClusterAvailability}{A_{\text{cluster}}}
 \newcommand{\ClusterCount}{k}
 \newcommand{\ClusterHeadroom}{N}
 \newcommand{\ClusterNodeCount}{N_{\text{nodes}}}
@@ -1496,7 +1499,6 @@ $$
 \newcommand{\CollectionCohortCost}{C_{\text{cohort}}}
 \newcommand{\CollectionStateVisitationDistribution}{p^{\pi_{\text{col}}}}
 \newcommand{\CollectiveCallStartupLatency}{\alpha_{\text{eff}}}
-\newcommand{\CollectiveInputTensor}{\mathbf{X}}
 \newcommand{\CollectivePayloadSize}{M}
 \newcommand{\CollectiveTensorSize}{M_{\text{coll}}}
 \newcommand{\CollisionHullCount}{N_{\text{hulls}}}
@@ -1581,7 +1583,6 @@ $$
 \newcommand{\CompressedGradientUpdateElement}{v}
 \newcommand{\CompressedOnlyCorrectCount}{n_{\text{comp}}}
 \newcommand{\CompressionRatio}{r_{\text{comp}}}
-\newcommand{\ComputationalDimensionCount}{N_{\text{comp}}}
 \newcommand{\ComputationalGraph}{G}
 \newcommand{\ComputeBudgetConstraint}{g}
 \newcommand{\ComputeChipPower}{P_{\text{chip}}}
@@ -1700,7 +1701,6 @@ $$
 \newcommand{\ControlAffineDriftField}{\mathbf{f}}
 \newcommand{\ControlAffineInputField}{\mathbf{g}}
 \newcommand{\ControlCommand}{\mathbf{u}}
-\newcommand{\ControlCommandDerivative}{\dot{\mathbf{u}}}
 \newcommand{\ControlCommandSpace}{\mathcal{U}}
 \newcommand{\ControlConversionRate}{\hat{p}_A}
 \newcommand{\ControlCycleIndex}{i}
@@ -1712,7 +1712,6 @@ $$
 \newcommand{\ControlInputWindow}{\mathbf{u}_{[t, t+\Delta t]}}
 \newcommand{\ControlSampleIndex}{k}
 \newcommand{\ControlSampleSize}{m_A}
-\newcommand{\ControlSetpointJerk}{\mathbf{j}}
 \newcommand{\ControlSetpointPeriod}{\Delta t_{\text{ctrl}}}
 \newcommand{\ControlStepIndex}{t}
 \newcommand{\ControlTaskIndex}{i}
@@ -2025,8 +2024,6 @@ $$
 \newcommand{\DivergenceInstant}{t_{\text{div}}}
 \newcommand{\DivergenceMeasure}{\mathcal{D}}
 \newcommand{\DivergenceTolerance}{\delta_{\text{tol}}}
-\newcommand{\DmaBurstPeriod}{T_{\text{dma}}}
-\newcommand{\DmaBurstStallTime}{C_{\text{dma}}}
 \newcommand{\DmaQueueTime}{t_{\text{DMA}}}
 \newcommand{\DocumentPayloadFraction}{q}
 \newcommand{\DomainRandomizationDistribution}{\mathcal{D}_{\text{DR}}}
@@ -2045,7 +2042,6 @@ $$
 \newcommand{\DraftCandidateToken}{\tilde{x}}
 \newcommand{\DraftModelDistribution}{q_{\phi}}
 \newcommand{\DraftPositionAcceptanceProbability}{\alpha_{\text{spec}, j}}
-\newcommand{\DraftPositionIndex}{i}
 \newcommand{\DraftSamplingDistribution}{q}
 \newcommand{\DraftTokenAcceptanceProbability}{\alpha_{\text{acc}}}
 \newcommand{\DraftTokenCostRatio}{\beta}
@@ -2178,14 +2174,12 @@ $$
 \newcommand{\EnforcerComputeTime}{T_{\text{comp}}}
 \newcommand{\EnforcerDeadline}{T_{\text{deadline,enf}}}
 \newcommand{\EngineerHourlyCost}{C_{\text{engineer}}}
-\newcommand{\EngineeringTeamSize}{n}
 \newcommand{\EngineeringTemperatureCeiling}{T_{\text{ceil}}}
 \newcommand{\EnsembleSpreadThreshold}{\sigma_{\text{thresh}}}
 \newcommand{\EnsemblingDecayRate}{m}
 \newcommand{\EnsemblingWindowLength}{K}
 \newcommand{\EntityCount}{N_{\text{entities}}}
 \newcommand{\EntityEmbedding}{\mathbf{e}}
-\newcommand{\EntityIndex}{j}
 \newcommand{\EntropyTemperature}{\alpha}
 \newcommand{\EnvelopeCallCount}{N}
 \newcommand{\EnvelopeSetupTime}{T_{\text{setup}}}
@@ -2437,7 +2431,6 @@ $$
 \newcommand{\FirstAdjacentCheckIndex}{a}
 \newcommand{\FirstAdjacentCheckPassProbability}{p_{a}}
 \newcommand{\FirstAdjacentCheckSlotTime}{T_{a}}
-\newcommand{\FirstAtomicGradientUpdate}{A}
 \newcommand{\FirstCatalogDefinitionCount}{n_{\text{def},A}}
 \newcommand{\FirstCatalogDefinitionSize}{S_{A}}
 \newcommand{\FirstClassCoverageFloor}{a}
@@ -2469,7 +2462,6 @@ $$
 \newcommand{\FlangeReferenceFrame}{\mathcal{F}_{\text{flange}}}
 \newcommand{\FlangeTargetTransform}{\mathbf{T}_{\text{flange}}^{\text{target}}}
 \newcommand{\FlattenedFilterWeights}{\mathbf{w}_{\text{col}}}
-\newcommand{\FleetAcceleratorCount}{N_{\text{fleet}}}
 \newcommand{\FleetCommunicationTaxonomyAxis}{C_2}
 \newcommand{\FleetComputeTaxonomyAxis}{C_1}
 \newcommand{\FleetCoordinationTaxonomyAxis}{C_3}
@@ -2543,7 +2535,6 @@ $$
 \newcommand{\FrobeniusNorm}{F}
 \newcommand{\FrozenBackboneFunction}{f}
 \newcommand{\FrozenFeatureEncoder}{f}
-\newcommand{\FrozenWeightMatrix}{\mathbf{W}_{\text{frozen}}}
 \newcommand{\FrustumFeature}{\mathbf{c}_{u, v, k}}
 \newcommand{\FullBatchLoss}{\mathcal{L}_B}
 \newcommand{\FullDatasetSize}{D_{\text{total}}}
@@ -2569,9 +2560,6 @@ $$
 \newcommand{\FusionCandidate}{x_{\text{cand}}}
 \newcommand{\FusionInputList}{\mathcal{L}}
 \newcommand{\FusionInputRank}{r}
-\newcommand{\FusionInputTensor}{\mathbf{X}}
-\newcommand{\FusionIntermediateTensor}{\mathbf{Z}}
-\newcommand{\FusionOutputTensor}{\mathbf{Y}}
 \newcommand{\FutureControlTrajectory}{\mathbf{u}_{[t, \infty)}}
 \newcommand{\FutureTimeInstant}{t'}
 \newcommand{\GaeAdvantageEstimate}{\widehat{A}^{\text{GAE}}}
@@ -2706,7 +2694,6 @@ $$
 \newcommand{\GuardedContactPredicate}{P_{\text{contact}}}
 \newcommand{\GuestImageMemory}{M_{\text{guest}}}
 \newcommand{\GuestKernelBootTime}{T_{\text{kernel}}}
-\newcommand{\HadamardRotationMatrix}{\mathbf{H}}
 \newcommand{\HalfPrecisionGemvIntensity}{I_{\text{GEMV, 16-bit}}}
 \newcommand{\HammingDataBitCount}{n}
 \newcommand{\HandForceCriterion}{F_h}
@@ -2826,7 +2813,6 @@ $$
 \newcommand{\ImageColumnIndex}{w}
 \newcommand{\ImageEpipole}{\mathbf{e}}
 \newcommand{\ImageHeight}{H}
-\newcommand{\ImagePlanePixelCoordinates}{\mathbf{u}_{\text{px}}}
 \newcommand{\ImageRowIndex}{h}
 \newcommand{\ImageTensorElement}{X}
 \newcommand{\ImageWidth}{W}
@@ -3181,7 +3167,6 @@ $$
 \newcommand{\LaterRolloutTurnIndex}{j}
 \newcommand{\LaterStepIndex}{j}
 \newcommand{\LateralClearance}{W_{\text{clear}}}
-\newcommand{\LatestSequentialObservation}{X_m}
 \newcommand{\LayerAllReduceTime}{T_{\text{layer comm}}}
 \newcommand{\LayerBackwardTime}{T_{\text{layer backward}}}
 \newcommand{\LayerCount}{N_L}
@@ -3308,7 +3293,6 @@ $$
 \newcommand{\LoopOrderCount}{N_{\text{order}}}
 \newcommand{\LoopParallelizationChoiceCount}{\mathcal{P}_{\text{parallel}}}
 \newcommand{\LoopTurnCost}{C}
-\newcommand{\Loss}{L}
 \newcommand{\LossAdjointSeed}{\bar{\mathcal{L}}}
 \newcommand{\LossFunction}{\mathcal{L}}
 \newcommand{\LossGradient}{g}
@@ -3355,7 +3339,6 @@ $$
 \newcommand{\MapPoseCovariance}{\boldsymbol{\Sigma}_{\text{map}}}
 \newcommand{\MapReferenceFrame}{\mathcal{F}_{\text{map}}}
 \newcommand{\MappedCommandTap}{a_{\text{cmd}}}
-\newcommand{\MappingSearchSpaceSize}{\mathcal{S}_{\text{mapping}}}
 \newcommand{\MarginalFalseApprovalProbability}{p}
 \newcommand{\MarginalRequestServiceTime}{t_{\text{req}}}
 \newcommand{\MarginalStoppingThreshold}{\epsilon_{\text{stop}}}
@@ -3363,7 +3346,6 @@ $$
 \newcommand{\MarginalizedModelParameters}{\theta'}
 \newcommand{\MarkovDecisionProcess}{\mathcal{M}}
 \newcommand{\MaskTokenIndex}{i}
-\newcommand{\MaskedClientUpdate}{\mathbf{y}}
 \newcommand{\MaskedFinetuningLoss}{\mathcal{L}_{\text{SFT}}}
 \newcommand{\MaskedImitationDataset}{\mathcal{D}_{\text{train}}}
 \newcommand{\MaskedImitationLoss}{\mathcal{L}_{\text{imitation}}}
@@ -3457,12 +3439,10 @@ $$
 \newcommand{\MemoryEntryDeathGeneration}{g_{\text{death}}}
 \newcommand{\MemoryHierarchyLevelCount}{N_{\text{mem}}}
 \newcommand{\MemoryHoldDuringWait}{O_{\text{mem}}}
-\newcommand{\MemoryPlacementCount}{\mathcal{M}_{\text{placement}}}
 \newcommand{\MemorySubsystemEnergy}{E_{\text{memory}}}
 \newcommand{\MergedAttentionOutput}{\mathbf{O}^{\text{new}}}
 \newcommand{\MergedSoftmaxMaximum}{m^{\text{new}}}
 \newcommand{\MergedSoftmaxNormalizer}{z^{\text{new}}}
-\newcommand{\MergedWeightMatrix}{\mathbf{W}_{\text{final}}}
 \newcommand{\MessageInjectionGap}{g}
 \newcommand{\MessageQueueDelay}{T_q}
 \newcommand{\MessageStartupLatency}{\alpha}
@@ -3516,8 +3496,6 @@ $$
 \newcommand{\MlProductivityGoodput}{\text{MPG}}
 \newcommand{\MlpWeightArithmeticIntensity}{I_{\text{MLP}}}
 \newcommand{\MobileBaseBarrierFunction}{h_{\text{base}}}
-\newcommand{\MobilenetWidthMultiplier}{\alpha_{\text{width}}}
-\newcommand{\ModelBandwidthUtilization}{\text{MBU}}
 \newcommand{\ModelCallIndex}{i}
 \newcommand{\ModelCallRequest}{\mathcal{R}}
 \newcommand{\ModelDownloadEnergy}{E_{\text{download}}}
@@ -3590,7 +3568,6 @@ $$
 \newcommand{\NetworkBandwidth}{\text{BW}_{\text{network}}}
 \newcommand{\NetworkDelayStandardDeviation}{\sigma_d}
 \newcommand{\NetworkEnergy}{E_{\text{network}}}
-\newcommand{\NetworkEquipmentPower}{P_{\text{network}}}
 \newcommand{\NetworkFunction}{f_{\text{net}}}
 \newcommand{\NetworkLatency}{L_{\text{lat,network}}}
 \newcommand{\NetworkOutput}{y}
@@ -3601,10 +3578,8 @@ $$
 \newcommand{\NeuronConnectionWeight}{w_{ij}}
 \newcommand{\NeuronIndex}{j}
 \newcommand{\NeuronPreactivation}{z}
-\newcommand{\NewSoftmaxRunningMaximum}{m_{\text{new}}}
 \newcommand{\NextDecisionProcessState}{s'}
 \newcommand{\NextFailureTime}{F}
-\newcommand{\NextLayerActivationMemory}{M_{\text{activations}}^{(\ell+1)}}
 \newcommand{\NextProprioceptiveObservation}{\mathbf{o}_{\text{proprio}, t+1}}
 \newcommand{\NextRobotAction}{\mathbf{a}'}
 \newcommand{\NextTokenDistribution}{p}
@@ -3745,11 +3720,7 @@ $$
 \newcommand{\OffloadTransactionWindow}{W}
 \newcommand{\OhmUnit}{\Omega}
 \newcommand{\OilBulkModulus}{\beta}
-\newcommand{\OldSoftmaxRunningMaximum}{m_{\text{old}}}
 \newcommand{\OnDieDecouplingCapacitance}{C_{\text{die}}}
-\newcommand{\OnlineSoftmaxKeyTile}{\mathbf{K}_{\text{tile}}}
-\newcommand{\OnlineSoftmaxQueryBlock}{\mathbf{Q}_{\text{block}}}
-\newcommand{\OnlineSoftmaxScoreBlock}{\mathbf{A}_{\text{block}}}
 \newcommand{\OpenLoopTransferFunction}{L}
 \newcommand{\OpenLoopTransferMatrix}{\mathbf{L}}
 \newcommand{\OperationChargeBound}{\bar{c}}
@@ -3901,7 +3872,6 @@ $$
 \newcommand{\PathDelayAsymmetry}{\Delta t_{\text{asym}}}
 \newcommand{\PathGridPointCount}{N_{\text{grid}}}
 \newcommand{\PathVelocity}{\dot{s}}
-\newcommand{\PathVelocityField}{v}
 \newcommand{\PathVelocitySquaredTorqueCoefficient}{\mathbf{b}_{\tau}}
 \newcommand{\PayloadGravityTorque}{\tau_{g}}
 \newcommand{\PayloadLeverArm}{r}
@@ -4005,7 +3975,6 @@ $$
 \newcommand{\PixelRowCoordinate}{v}
 \newcommand{\PixelRowStandardDeviation}{\sigma_v}
 \newcommand{\PixelStandardDeviation}{\sigma_u}
-\newcommand{\PlacementChoiceCount}{n}
 \newcommand{\PlaintextInput}{m}
 \newcommand{\PlanAction}{a}
 \newcommand{\PlanarHomographyMatrix}{\mathbf{H}}
@@ -4026,7 +3995,6 @@ $$
 \newcommand{\PlantStateSpace}{\mathcal{X}}
 \newcommand{\PlantTransitionDensity}{p_m}
 \newcommand{\PlantTransitionKernel}{\mathcal{T}}
-\newcommand{\PlatformAnnualOperationsCost}{C_{\text{after}}}
 \newcommand{\PlatformResourceCapacity}{\text{Cap}}
 \newcommand{\PlatformResourceIndex}{i}
 \newcommand{\PlatformTotalCost}{C_{\text{platform}}}
@@ -4199,7 +4167,6 @@ $$
 \newcommand{\ProcessNoiseIntensity}{\mathbf{Q}}
 \newcommand{\ProcessNoiseVector}{\mathbf{w}}
 \newcommand{\ProcessedDataVolume}{D_{\text{vol,processed}}}
-\newcommand{\ProcessedKeyTileIndex}{t}
 \newcommand{\ProcessedSampleCount}{N_{\text{samples}}}
 \newcommand{\ProcessingBufferCount}{N_{\text{processing}}}
 \newcommand{\ProcessingPrice}{R_{\text{process/GB}}}
@@ -4556,7 +4523,6 @@ $$
 \newcommand{\ResidualGate}{g}
 \newcommand{\ResidualPolicyTorque}{\boldsymbol{\tau}_{\text{res},\theta}}
 \newcommand{\ResidualSamplingDistribution}{p_{\text{res}}}
-\newcommand{\ResizedWorkerCount}{N_{\text{new}}}
 \newcommand{\ResolutionScalingRatio}{\gamma}
 \newcommand{\ResourceChangeRate}{r_{\text{chg}}}
 \newcommand{\ResourceCostBudget}{C_{\text{max}}}
@@ -4657,8 +4623,6 @@ $$
 \newcommand{\RolloutTurnIndex}{k}
 \newcommand{\RooflineRidgePoint}{I_{\text{ridge}}}
 \newcommand{\RotaryRotationMatrix}{\mathbf{R}}
-\newcommand{\RotatedActivationMatrix}{\mathbf{X}'}
-\newcommand{\RotatedWeightMatrix}{\mathbf{W}'}
 \newcommand{\RotatingBodyAngularSpeed}{\omega}
 \newcommand{\RotatingBodyInertia}{J}
 \newcommand{\RotationOriginAcceleration}{\mathbf{a}_O}
@@ -4780,7 +4744,6 @@ $$
 \newcommand{\SecondAdjacentCheckIndex}{b}
 \newcommand{\SecondAdjacentCheckPassProbability}{p_{b}}
 \newcommand{\SecondAdjacentCheckSlotTime}{T_{b}}
-\newcommand{\SecondAtomicGradientUpdate}{B}
 \newcommand{\SecondCatalogDefinitionCount}{n_{\text{def},B}}
 \newcommand{\SecondCatalogDefinitionSize}{S_{B}}
 \newcommand{\SecondClassCoverageFloor}{b}
@@ -4839,7 +4802,6 @@ $$
 \newcommand{\SequentialCandidateCount}{M}
 \newcommand{\SequentialCostPerAcceptedTask}{C_{\text{eff,seq}}}
 \newcommand{\SequentialExecutionTime}{T_{\text{sequential}}}
-\newcommand{\SequentialLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialLogLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialTestObservation}{X}
 \newcommand{\SequentialTrialCount}{m}
@@ -4925,7 +4887,6 @@ $$
 \newcommand{\SingleJointInertia}{M}
 \newcommand{\SingleJointVelocityLimit}{\dot{q}_{i,\max}}
 \newcommand{\SingleLinkBandwidth}{\text{BW}_{\text{link}}}
-\newcommand{\SinglePrecisionGemvIntensity}{I_{\text{GEMV, 32-bit}}}
 \newcommand{\SingleStepImitationError}{\epsilon}
 \newcommand{\SingularSpectrumMatrix}{\mathbf{\Sigma}}
 \newcommand{\SisaShardCount}{K}
@@ -4953,7 +4914,6 @@ $$
 \newcommand{\SmoothnessConstant}{L_s}
 \newcommand{\SnapshotReadTime}{t_{\text{own}}}
 \newcommand{\SnapshotResetCycleTime}{T_{\text{cycle,snap}}}
-\newcommand{\SnapshotStepIndex}{s}
 \newcommand{\SoftExpectedActionReturn}{Q}
 \newcommand{\SoftExpectedRemainingReturn}{V}
 \newcommand{\SoftenedStudentProbabilityVector}{\mathbf{p}_{\text{student}}^{(T_{\text{distill}})}}
@@ -4964,7 +4924,6 @@ $$
 \newcommand{\SoftmaxNormalizer}{z}
 \newcommand{\SoftmaxOutputProbability}{p}
 \newcommand{\SoftmaxRowMaximum}{m}
-\newcommand{\SoftmaxRowScore}{s}
 \newcommand{\SoftmaxRunningMaximum}{m}
 \newcommand{\SoftmaxVectorLength}{n}
 \newcommand{\SontagStabilizingControl}{\mathbf{u}_{\text{Sontag}}}
@@ -5123,7 +5082,6 @@ $$
 \newcommand{\StorageAccessFactor}{F_{\text{access}}}
 \newcommand{\StorageBandwidth}{\text{BW}_{\text{storage}}}
 \newcommand{\StorageCapacityPrice}{C_{\text{storage/byte-time}}}
-\newcommand{\StorageEquipmentPower}{P_{\text{storage}}}
 \newcommand{\StorageFunction}{V}
 \newcommand{\StorageFunctionDerivative}{\dot{V}}
 \newcommand{\StorageIngestBandwidth}{\text{BW}_{\text{ingest}}}
@@ -5314,7 +5272,6 @@ $$
 \newcommand{\TaskTurnCost}{C_{\text{call}}}
 \newcommand{\TaskWeight}{w}
 \newcommand{\TasksPerComparisonArm}{N_{\text{arm}}}
-\newcommand{\TeacherProbabilityVector}{\mathbf{p}_{\text{teacher}}}
 \newcommand{\TeamQuotaCap}{Q_{\text{team}}}
 \newcommand{\TelemetryFlushTime}{t_{\text{telemetry\_flush}}}
 \newcommand{\TelemetryFreshnessBound}{\Delta t_{\text{fresh}}}
@@ -5365,7 +5322,6 @@ $$
 \newcommand{\ThermalPowerLimit}{P_{\text{thermal}}}
 \newcommand{\ThermalResistance}{R_{\text{th}}}
 \newcommand{\ThermalTimeConstant}{\tau_{\text{th}}}
-\newcommand{\ThirdAtomicGradientUpdate}{C}
 \newcommand{\ThirdFloatingPointAddend}{c}
 \newcommand{\ThirdRingTraceElement}{c}
 \newcommand{\ThresholdExceedanceCount}{N_u}
@@ -5686,7 +5642,6 @@ $$
 \newcommand{\UnprojectionJacobian}{\mathbf{J}_{\text{unproj}}}
 \newcommand{\UnrecoverableDamageCost}{C_{\text{blast}}}
 \newcommand{\UnreservedStopDelay}{\delta}
-\newcommand{\UnscaledAttentionScoreMatrix}{\mathbf{A}}
 \newcommand{\UnshardedLocalExecutionTime}{T_{\text{compute}}}
 \newcommand{\UnsquashedLatentAction}{\mathbf{u}}
 \newcommand{\UntilPrefixTime}{t''}
@@ -5790,7 +5745,6 @@ $$
 \newcommand{\WeightPenaltyStrength}{\lambda_{\text{reg}}}
 \newcommand{\WeightQuantizationScale}{s_W}
 \newcommand{\WeightRangeBound}{W_{\text{max}}}
-\newcommand{\WeightStreamingDecodeTime}{T_{\text{decode}}}
 \newcommand{\WeightVector}{\mathbf{w}}
 \newcommand{\WeightedNormArgument}{\mathbf{z}}
 \newcommand{\WheelAngularSpeed}{\omega}
@@ -5829,9 +5783,7 @@ $$
 \newcommand{\WorkerCompletionDistribution}{F}
 \newcommand{\WorkerCompletionTime}{T}
 \newcommand{\WorkerCount}{N_{\text{workers}}}
-\newcommand{\WorkerDelayProbability}{p}
 \newcommand{\WorkerIndex}{k}
-\newcommand{\WorkerMinibatch}{B}
 \newcommand{\WorkerOverheadSlope}{\gamma}
 \newcommand{\WorkerTransformTime}{T_{\text{transform}}}
 \newcommand{\WorkerWrittenFileCount}{w}
@@ -6078,23 +6030,32 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-caution {
-  --color1: #FFFBEB;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
 }
 .callout-perspective {
   --color1: #F7F8FA;
@@ -6105,14 +6066,23 @@ $$
   --dark-background-color: rgba(74, 85, 104, 0.12);
   --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-warning {
+  --color1: #FEF2F2;
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
 }
 .callout-case-study {
   --color1: #FEF2F2;
@@ -6132,68 +6102,23 @@ $$
   --dark-background-color: rgba(197, 48, 48, 0.12);
   --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
 }
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
-}
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
 }
 .callout-quiz-question {
   --color1: #F0F0F8;
@@ -6204,32 +6129,23 @@ $$
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-chapter-connection {
-  --color1: #F1F5F9;
-  --color2: #64748B;
-  --border-color: #64748B;
-  --background-color: rgba(100, 116, 139, 0.04);
-  --title-background-color: rgba(100, 116, 139, 0.04);
-  --dark-background-color: rgba(100, 116, 139, 0.12);
-  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+.callout-caution {
+  --color1: #FFFBEB;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
 .callout-learning-objectives {
   --color1: #E8F2EA;
@@ -6240,23 +6156,50 @@ $$
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-notebook {
-  --color1: #F4F7FA;
-  --color2: #3F6077;
-  --border-color: #3F6077;
-  --background-color: rgba(63, 96, 119, 0.04);
-  --title-background-color: rgba(63, 96, 119, 0.04);
-  --dark-background-color: rgba(63, 96, 119, 0.12);
-  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
 .callout-takeaways {
   --color1: #FCF4F8;
@@ -6267,6 +6210,15 @@ $$
   --dark-background-color: rgba(157, 60, 114, 0.12);
   --dark-title-background-color: rgba(157, 60, 114, 0.12);
 }
+.callout-resource-exercises {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
 .callout-example {
   --color1: #F0F8F6;
   --color2: #148F77;
@@ -6276,44 +6228,58 @@ $$
   --dark-background-color: rgba(20, 143, 119, 0.12);
   --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-caution {
+  details.callout-resource-videos {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-caution code {
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
+  details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
   details.callout-perspective {
@@ -6330,18 +6296,32 @@ $$
   details.callout-perspective code {
     color: #e6e6e6 !important;
   }
-  details.callout-code {
+  details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
+  details.callout-principle summary,
+  details.callout-principle summary strong,
+  details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-code code {
+  details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+  details.callout-warning summary,
+  details.callout-warning summary strong,
+  details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-warning code {
     color: #e6e6e6 !important;
   }
   details.callout-case-study {
@@ -6372,102 +6352,32 @@ $$
   details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-slides {
+  details.callout-notebook {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
   }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-slides code {
+  details.callout-notebook code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-exercises {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-  details.callout-warning summary,
-  details.callout-warning summary strong,
-  details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-  details.callout-principle summary,
-  details.callout-principle summary strong,
-  details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-principle code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
   details.callout-quiz-question {
@@ -6484,46 +6394,32 @@ $$
   details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
-  details.callout-research-questions {
+  details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-research-questions code {
+  details.callout-colab code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-videos {
+  details.callout-caution {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
+  details.callout-caution code {
     color: #e6e6e6 !important;
   }
   details.callout-learning-objectives {
@@ -6540,32 +6436,74 @@ $$
   details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
+  details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-theorem code {
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-  details.callout-notebook {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
   }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-notebook code {
+  details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
     color: #e6e6e6 !important;
   }
   details.callout-takeaways {
@@ -6582,6 +6520,20 @@ $$
   details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
   details.callout-example {
     --text-color: #e6e6e6;
     --background-color: rgba(20, 143, 119, 0.12);
@@ -6596,47 +6548,61 @@ $$
   details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-theorem code {
     color: #e6e6e6 !important;
   }
 }
-body.quarto-dark details.callout-caution {
+body.quarto-dark details.callout-resource-videos {
     --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-caution code {
+body.quarto-dark details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-definition {
+body.quarto-dark details.callout-code {
     --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
   }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-definition code {
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-perspective {
@@ -6653,18 +6619,32 @@ body.quarto-dark details.callout-perspective > summary {
 body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-code {
+body.quarto-dark details.callout-principle {
     --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
+    --background-color: rgba(61, 59, 142, 0.12);
+    --title-background-color: rgba(61, 59, 142, 0.12);
+    border-color: #3D3B8E;
   }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
+body.quarto-dark details.callout-principle summary,
+body.quarto-dark details.callout-principle summary strong,
+body.quarto-dark details.callout-principle > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-code code {
+body.quarto-dark details.callout-principle code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+body.quarto-dark details.callout-warning summary,
+body.quarto-dark details.callout-warning summary strong,
+body.quarto-dark details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-warning code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-case-study {
@@ -6695,102 +6675,32 @@ body.quarto-dark details.callout-war-story > summary {
 body.quarto-dark details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-slides {
+body.quarto-dark details.callout-notebook {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
   }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-slides code {
+body.quarto-dark details.callout-notebook code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-exercises {
+body.quarto-dark details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-body.quarto-dark details.callout-warning summary,
-body.quarto-dark details.callout-warning summary strong,
-body.quarto-dark details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-checkpoint {
-    --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
-  }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-principle {
-    --text-color: #e6e6e6;
-    --background-color: rgba(61, 59, 142, 0.12);
-    --title-background-color: rgba(61, 59, 142, 0.12);
-    border-color: #3D3B8E;
-  }
-body.quarto-dark details.callout-principle summary,
-body.quarto-dark details.callout-principle summary strong,
-body.quarto-dark details.callout-principle > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-principle code {
+body.quarto-dark details.callout-definition code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-quiz-question {
@@ -6807,46 +6717,32 @@ body.quarto-dark details.callout-quiz-question > summary {
 body.quarto-dark details.callout-quiz-question code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-research-questions {
+body.quarto-dark details.callout-colab {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
   }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-research-questions code {
+body.quarto-dark details.callout-colab code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-videos {
+body.quarto-dark details.callout-caution {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
   }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-body.quarto-dark details.callout-chapter-connection summary,
-body.quarto-dark details.callout-chapter-connection summary strong,
-body.quarto-dark details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-chapter-connection code {
+body.quarto-dark details.callout-caution code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-learning-objectives {
@@ -6863,32 +6759,74 @@ body.quarto-dark details.callout-learning-objectives > summary {
 body.quarto-dark details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-theorem {
+body.quarto-dark details.callout-quiz-answer {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
   }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-theorem code {
+body.quarto-dark details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-notebook {
+body.quarto-dark details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
   }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-notebook code {
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-takeaways {
@@ -6905,6 +6843,20 @@ body.quarto-dark details.callout-takeaways > summary {
 body.quarto-dark details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
 body.quarto-dark details.callout-example {
     --text-color: #e6e6e6;
     --background-color: rgba(20, 143, 119, 0.12);
@@ -6919,33 +6871,39 @@ body.quarto-dark details.callout-example > summary {
 body.quarto-dark details.callout-example code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-colab {
+body.quarto-dark details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-colab code {
+body.quarto-dark details.callout-theorem code {
     color: #e6e6e6 !important;
   }
 </style>
 <style>
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 details.callout-perspective > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+details.callout-principle > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+}
+details.callout-warning > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
 details.callout-case-study > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
@@ -6953,56 +6911,50 @@ details.callout-case-study > summary::before {
 details.callout-war-story > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
 }
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-warning > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
-}
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-principle > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
 }
 details.callout-quiz-question > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
 }
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-chapter-connection > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
 }
 details.callout-learning-objectives > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
 }
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
 }
 details.callout-takeaways > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
 }
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
 details.callout-example > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
 }
 </style>
     <style type="text/css">
@@ -7081,71 +7033,36 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">Concept Explorer</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
     <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume I: Foundations</span></a>
+ <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume II: Scaling</span></a>
+ <span class="dropdown-text">Volume II: Scaling Machine Learning Systems (preview)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol3/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+ <span class="dropdown-text">Volume III: Agentic Machine Learning Systems (in preparation)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+ <span class="dropdown-text">Volume IV: Physical AI (in preparation)</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume I PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume I EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume II PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume II EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume III PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume III EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume IV PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume IV EPUB</span></a>
   </li>  
     </ul>
   </li>
@@ -7187,24 +7104,19 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
-</i> 
- <span class="dropdown-text">CS249r Course Map</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
-</i> 
- <span class="dropdown-text">Lecture Slides</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/community/courses.html"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="https://mlsysbook.ai/courses/"><i class="bi bi-mortarboard" role="img">
 </i> 
- <span class="dropdown-text">Courses Using the Book</span></a>
+ <span class="dropdown-text">Courses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
     </ul>
   </li>
@@ -7360,9 +7272,9 @@ window.Quarto = {
         </a>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="2bc758b427909bb9600f57b376922af7" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">aaa7266e</code> • 2026-10-16 16:04 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>PREVIEW — Volume II: Scaling.</strong> Distributed training, fleet operations, and responsible deployment.<br> 📗 <strong>First time here?</strong> Start with <a href="../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="9c145efac03bb5424d6029abc27a61ba" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p><span class="mls-ann-line"><strong>Scaling Machine Learning Systems (Volume II), preview edition.</strong> Distributed training, fleet operations, and responsible deployment.</span> <span class="mls-ann-line"><strong>Companion volume:</strong> <a href="../../vol1/">Introduction to Machine Learning Systems (Volume I)</a>, on machine learning systems on a single machine. Both volumes are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -7697,7 +7609,7 @@ window.Quarto = {
 <p>Individual accelerators fail rarely, but scaling to thousands of nodes multiplies component failure rates until interruption becomes a continuous operating condition. At cluster scale, mean time between failures (MTBF) drops from years to hours, turning failure recovery into a core execution path. This appendix collects the quantitative reliability calculations behind the book’s fault-tolerance chapters, deriving failure probabilities, Young-Daly optimal checkpoint intervals, and availability stacking models. In C<span class="math inline">\(^3\)</span> terms, it develops the coordination axis, where checkpointing, recovery, and availability determine how much of the fleet’s compute and communication becomes useful work.</p>
 <section id="how-to-use-this-appendix" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="how-to-use-this-appendix">How to Use This Appendix</h2>
-<p>This appendix is designed as a reference, intended for moving from intuition (“failures happen more often at scale”) to quantitative engineering decisions (“how often should one checkpoint?” or “how many spare nodes are needed?”). It translates component-level reliability metrics into cluster-wide checkpoint cadences and availability bounds.</p>
+<p>This appendix serves as a reference for moving from intuition (“failures happen more often at scale”) to quantitative engineering decisions (“how often should one checkpoint?” or “how many spare nodes are needed?”). It translates component-level reliability metrics into cluster-wide checkpoint cadences and availability bounds.</p>
 <p>The worked examples in this appendix use a 10,000-GPU training fleet, a larger variation on the 1,024-GPU Archetype A reference cluster, unless noted otherwise. The questions below map common operational problems to the sections that develop their analytical models:</p>
 <ul>
 <li><strong>“How often will something fail?”</strong> Start with <a href="#sec-appdx-reliability-foundations-failure-probability" class="quarto-xref">section&nbsp;1.1</a> and the MTBF cascade in <a href="#sec-appdx-reliability-foundations-mtbf-cascade" class="quarto-xref">section&nbsp;1.1.3</a>.</li>
@@ -7711,23 +7623,23 @@ window.Quarto = {
 </section>
 <section id="sec-appdx-reliability-foundations-failure-probability" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-failure-probability">Failure Probability at Scale</h2>
-<p>Consider a training run on a 10,000-GPU cluster running for 30 days. The probability that at least one modeled node component fails during that time is effectively 100 percent, and that answer determines whether the system needs fault tolerance as a core design requirement or as an optional feature.</p>
-<p>Individual hardware components are remarkably reliable. A data center-grade GPU operates for tens of thousands of hours before failing. The physics of large-scale systems, however, works against reliability: every additional component is another opportunity for failure, and the aggregate failure rate scales linearly with component count. Component-level failure rates aggregate systematically into cluster-wide failure predictions.</p>
+<p>Consider a training run on a 10,000-GPU cluster running for 30 days. The probability that at least one modeled node component fails during that time is effectively 100 percent. That answer determines whether the system needs fault tolerance as a core design requirement or as an optional feature.</p>
+<p>Individual hardware components are reliable. A data center-grade GPU operates for tens of thousands of hours before failing. The physics of large-scale systems, however, works against reliability: every additional component is another opportunity for failure, and the aggregate failure rate scales linearly with component count. Component-level failure rates aggregate systematically into cluster-wide failure predictions.</p>
 <section id="sec-appdx-reliability-foundations-probability-tools" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-probability-tools">Probability tools for failure analysis</h3>
-<p>When a 10,000-GPU training job requires every accelerator and network card to stay healthy at the same time, a 99.99 percent per-device daily survival rate still leaves the job with less than a 40 percent chance of finishing a single day uninterrupted. Four results from elementary probability carry that failure arithmetic throughout this book. Each assumes that components fail independently; correlated failures, such as a shared power feed or a common software bug, violate that assumption and must be modeled separately.</p>
+<p>A 10,000-GPU training job requires every accelerator and network card to stay healthy at the same time. At a 99.99 percent per-device daily survival rate, the job still has less than a 40 percent chance of finishing a single day uninterrupted. Four results from elementary probability carry that failure arithmetic throughout this book. Each assumes that components fail independently; correlated failures, such as a shared power feed or a common software bug, violate that assumption and must be modeled separately.</p>
 <p>The first is the product rule for independent events. If a job needs all <span class="math inline">\(\RequiredComponentCount\)</span> of its components and each is available with probability <span class="math inline">\(\ComponentAvailability\)</span>, the job’s components are all available with probability</p>
 <p><span id="eq-reliability-all-available"><span class="math display">\[ \JobAvailability= \ComponentAvailability^{\RequiredComponentCount} \approx e^{-\RequiredComponentCount(1-\ComponentAvailability)} \quad \text{for } \ComponentAvailability \text{ close to } 1  \tag{1}\]</span></span></p>
 <p><a href="#eq-reliability-all-available" class="quarto-xref">Equation&nbsp;1</a> is the <strong>reliability collapse</strong> behind the reliability gap in <strong><a href="../01_introduction/01_introduction.html#sec-vol2-introduction-reliability-gap">The reliability gap</a></strong>. A per-component availability that looks excellent in isolation decays exponentially in <span class="math inline">\(\RequiredComponentCount\)</span>.</p>
 <p>The second is its complement, the probability that at least one of <span class="math inline">\(\RequiredComponentCount\)</span> independent events occurs when each has probability <span class="math inline">\(\IndependentEventProbability\)</span>:</p>
 <p><span id="eq-reliability-at-least-one"><span class="math display">\[ \Pr(\text{at least one}) = 1-(1-\IndependentEventProbability)^{\RequiredComponentCount} \approx \RequiredComponentCount \IndependentEventProbability\quad \text{when } \RequiredComponentCount \IndependentEventProbability\ll 1  \tag{2}\]</span></span></p>
-<p>The linear approximation in <a href="#eq-reliability-at-least-one" class="quarto-xref">equation&nbsp;2</a> holds only while <span class="math inline">\(\RequiredComponentCount \IndependentEventProbability\)</span> is small; as <span class="math inline">\(\RequiredComponentCount\)</span> grows, the probability approaches 1. This arithmetic is why one slow worker paces a large synchronous job. A delay that strikes any one worker rarely strikes some worker of a large synchronous job on almost every step.</p>
+<p>The linear approximation in <a href="#eq-reliability-at-least-one" class="quarto-xref">equation&nbsp;2</a> holds only while <span class="math inline">\(\RequiredComponentCount \IndependentEventProbability\)</span> is small; as <span class="math inline">\(\RequiredComponentCount\)</span> grows, the probability approaches 1. This arithmetic is why one slow worker paces a large synchronous job. A delay that rarely strikes any one worker strikes some worker of a large synchronous job on almost every step.</p>
 <p>The third is the exponential lifetime model. A component with constant failure rate <span class="math inline">\(\ComponentFailureRate\)</span> survives to time <span class="math inline">\(\TimeInstant\)</span> with probability <span class="math inline">\(e^{-\ComponentFailureRate \TimeInstant}\)</span> and has mean time to failure <span class="math inline">\(1/\ComponentFailureRate\)</span>. The model is memoryless. A component that has run for a year is no more likely to fail in the next hour than a new one, which is why it describes the useful-life phase and not burn-in or wear-out. The earliest of <span class="math inline">\(\RequiredComponentCount\)</span> independent exponential failures is itself exponential with rate <span class="math inline">\(\RequiredComponentCount\ComponentFailureRate\)</span>, so the time to the first failure among <span class="math inline">\(\RequiredComponentCount\)</span> identical components has mean <span class="math inline">\(1/(\RequiredComponentCount\ComponentFailureRate)\)</span>. That single fact is the origin of the <span class="math inline">\(1/\RequiredComponentCount\)</span> scaling of system MTBF in <a href="#eq-mtbf-cluster" class="quarto-xref">equation&nbsp;5</a>.</p>
 <p>The fourth is the Poisson count. Under the same model, the number of failures in an interval <span class="math inline">\(\FailureObservationInterval\)</span> is Poisson distributed with mean <span class="math inline">\(\FailureObservationInterval/\MeanTimeBetweenFailures\)</span>, so the probability of no failure is <span class="math inline">\(e^{-\FailureObservationInterval/\MeanTimeBetweenFailures}\)</span>. <a href="#eq-failure-probability" class="quarto-xref">Equation&nbsp;6</a> below is the complement of that event, and the expected number of failures per day in <a href="#tbl-mtbf-cluster" class="quarto-xref">table&nbsp;2</a> is the Poisson mean.</p>
 </section>
 <section id="sec-appdx-reliability-foundations-component-rates" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-component-rates">Component failure rates</h3>
-<p>A single data center GPU fails roughly once every 5.7 years of continuous operation—a rate of about 0.00002 failures per hour that is too small to write conveniently in engineering tables. Reliability engineers therefore characterize components using two complementary metrics. The <strong>failure in time (FIT)</strong> rate counts failures per <span class="math inline">\(10^9\)</span> device-hours of operation, a unit chosen because individual components fail so rarely that failures-per-hour would produce inconveniently small numbers. The reciprocal quantity, <strong>mean time to failure (MTTF)</strong>, calculates average lifetime in hours (<a href="#eq-mttf-from-fit" class="quarto-xref">equation&nbsp;3</a>):</p>
+<p>A single data center GPU fails roughly once every 5.7 years of continuous operation, a rate of about 0.00002 failures per hour that is too small to write conveniently in engineering tables. Reliability engineers therefore characterize components using two complementary metrics. The <strong>failure in time (FIT)</strong> rate counts failures per <span class="math inline">\(10^9\)</span> device-hours of operation, a unit chosen because individual components fail so rarely that failures-per-hour would produce inconveniently small numbers. The reciprocal quantity, <strong>mean time to failure (MTTF)</strong>, calculates average lifetime in hours (<a href="#eq-mttf-from-fit" class="quarto-xref">equation&nbsp;3</a>):</p>
 <p><span id="eq-mttf-from-fit"><span class="math display">\[ \MeanTimeToFailure = \frac{10^9}{\text{FIT}}  \tag{3}\]</span></span></p>
 <p>Reference FIT rates and MTTF values (<a href="#tbl-component-fit" class="quarto-xref">table&nbsp;1</a>) characterize component reliability in typical GPU training nodes, grounded in large-fleet and warehouse-scale experience <span class="citation" data-cites="kokolis2025 zu2024tpuv4 barroso2019">(<a href="#ref-kokolis2025" role="doc-biblioref">Kokolis et al. 2025</a>; <a href="#ref-zu2024tpuv4" role="doc-biblioref">Zu et al. 2024</a>; <a href="#ref-barroso2019" role="doc-biblioref">Barroso et al. 2019</a>)</span>. These values assume the steady-state “useful life” phase of the bathtub curve, where the failure rate is approximately constant, dominated neither by infant mortality (early life) nor by wear-out (end of life) <span class="citation" data-cites="klutke2003">(<a href="#ref-klutke2003" role="doc-biblioref">Klutke et al. 2003</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-klutke2003" class="csl-entry" role="listitem">
@@ -7825,7 +7737,7 @@ Barroso, Luiz André, Urs Hölzle, and Parthasarathy Ranganathan. 2019. <em>The 
 <p>Think of each component as a ticking clock counting down to failure. A DGX H100 node with 8 GPUs and 8 network interface cards (NICs) has 16 independent clocks, and the node fails when the first clock reaches zero. More clocks mean a shorter expected wait. The node’s 6 power supply units (PSUs) add no clocks. They run as a 4+2 redundant set, so the node keeps full performance with 2 of them failed, and a failed unit is normally replaced long before enough others fail to stop the node.</p>
 <p>For a cluster of <span class="math inline">\(\ClusterNodeCount\)</span> identical nodes, the same series-system logic applies one level up. As <a href="#eq-mtbf-cluster" class="quarto-xref">equation&nbsp;5</a> shows, cluster MTBF divides the single-node MTBF by the number of nodes:</p>
 <p><span id="eq-mtbf-cluster"><span class="math display">\[ \SystemMtbf = \frac{\NodeMtbf}{\ClusterNodeCount}  \tag{5}\]</span></span></p>
-<p>Reliability degrades linearly with component count at each level, and the levels compound, which is the <strong>MTBF cascade</strong>. A node with 4,687.5 hours MTBF sounds reliable. A cluster of 1,250 such nodes has an MTBF of just 3.75 hours, so a failure every few hours is the expected steady state. <a href="#tbl-mtbf-cluster" class="quarto-xref">Table&nbsp;2</a> carries that arithmetic across fleet sizes, with aggregate MTBF falling in inverse proportion to GPU count.</p>
+<p>Reliability degrades linearly with component count at each level, and the levels compound, which is the <strong>MTBF cascade</strong>. A node with 4,687.5 hours MTBF sounds reliable. A cluster of 1,250 such nodes has an MTBF of 3.75 hours, so a failure every few hours is the expected steady state. <a href="#tbl-mtbf-cluster" class="quarto-xref">Table&nbsp;2</a> carries that arithmetic across fleet sizes, with aggregate MTBF falling in inverse proportion to GPU count.</p>
 <div id="tbl-mtbf-cluster" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mtbf-cluster-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7889,12 +7801,11 @@ Table&nbsp;2: <strong>Cluster MTBF by Scale</strong>: As cluster size grows, the
 </div>
 </figure>
 </div>
-<p>The transition from hundreds of GPUs to tens of thousands is a qualitative regime shift. While about 6.1 days pass between failures at 256 GPUs, a 10,000-GPU cluster expects multiple failures per shift, and at 100,000 GPUs failures become a continuous background condition in which the system is never fully healthy.</p>
+<p>The transition from hundreds of GPUs to tens of thousands is a qualitative regime shift. About 6.1 days pass between failures at 256 GPUs. A 10,000-GPU cluster, in contrast, expects multiple failures per shift. At 100,000 GPUs, failures become a continuous background condition in which the system is never fully healthy.</p>
 </section>
 <section id="sec-appdx-reliability-foundations-job-failure" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-job-failure">Probability of failure during a job</h3>
-<p>The MTBF determines the average time between failures, but training jobs have fixed durations. Practitioners ask for the probability that their job will be interrupted at least once.</p>
-<p>Under the exponential failure model (constant failure rate), <a href="#eq-failure-probability" class="quarto-xref">equation&nbsp;6</a> gives the probability of at least one failure during a job of duration <span class="math inline">\(\JobDuration\)</span>. The expression is the complement of the Poisson zero-failure probability over that window:</p>
+<p>A cluster MTBF of a few hours tells an operator how often nodes drop out on average, but a training team scheduling a 7-day or 30-day run needs the probability that at least one failure will interrupt that fixed window. Under the exponential failure model (constant failure rate), <a href="#eq-failure-probability" class="quarto-xref">equation&nbsp;6</a> gives the probability of at least one failure during a job of duration <span class="math inline">\(\JobDuration\)</span> as the complement of the Poisson zero-failure probability over that window:</p>
 <p><span id="eq-failure-probability"><span class="math display">\[ \Pr(\geq 1\ \text{failure}) = 1 - e^{-\JobDuration/\MeanTimeBetweenFailures}  \tag{6}\]</span></span></p>
 <p>When <span class="math inline">\(\JobDuration\gg \MeanTimeBetweenFailures\)</span>, this probability approaches 1 rapidly, and it does so sooner on a larger cluster, whose MTBF is shorter (<a href="#tbl-failure-prob" class="quarto-xref">table&nbsp;3</a>).</p>
 <div id="tbl-failure-prob" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -7960,27 +7871,27 @@ Table&nbsp;3: <strong>Probability of at Least One Failure</strong>: For large cl
 </div>
 </figure>
 </div>
-<p>For any cluster above a few thousand GPUs running jobs longer than a day, the probability of experiencing at least one failure is effectively 100 percent. This is why <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong> treats fault tolerance not as a defensive measure but as a fundamental architectural requirement.</p>
-<p>The exponential failure model assumes a constant failure rate, which holds during the steady-state useful-life phase. During burn-in (first few hundred hours) and wear-out (approaching end-of-life), failure rates are higher. In practice, fleet operators observe that newly deployed nodes show 2–3<span class="math inline">\(\times\)</span> higher failure rates in their first week, making burn-in testing essential before admitting nodes to production clusters. That inevitability of failure during long training jobs raises a practical question: given that failures will interrupt execution, how is the lost progress minimized?</p>
+<p>For any cluster above a few thousand GPUs running jobs longer than a day, the probability of experiencing at least one failure is effectively 100 percent. This is why <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong> treats fault tolerance as an architectural requirement rather than a defensive measure.</p>
+<p>The exponential failure model assumes a constant failure rate, which holds during the steady-state useful-life phase. During burn-in (first few hundred hours) and wear-out (approaching end-of-life), failure rates are higher. In practice, fleet operators observe that newly deployed nodes show 2–3<span class="math inline">\(\times\)</span> higher failure rates in their first week, making burn-in testing essential before admitting nodes to production clusters. Because failures will interrupt long training jobs, the practical question is how to minimize the lost progress.</p>
 <hr>
 </section>
 </section>
 <section id="sec-appdx-reliability-foundations-checkpoint-optimization" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-checkpoint-optimization">Checkpoint Optimization</h2>
-<p>Every checkpoint saves progress at the cost of execution time: checkpointing too rarely lets a single failure destroy hours of training, whereas checkpointing too frequently turns checkpoint writing itself into the bottleneck. The Young-Daly formula gives the first-order optimal balance point between those two losses, and it depends on just two measurable quantities: how long a checkpoint takes to write and how often failures occur <span class="citation" data-cites="young1974 daly2006">(<a href="#ref-young1974" role="doc-biblioref">Young 1974</a>; <a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>.</p>
+<p>On a 10,000-GPU cluster that fails every few hours, pausing all 10,000 accelerators to flush a multi-terabyte state snapshot to shared storage stalls training, yet spacing snapshots hours apart sacrifices thousands of GPU-hours of progress whenever a node drops out. Choosing a checkpoint cadence therefore trades guaranteed write overhead against expected rework after a crash <span class="citation" data-cites="young1974 daly2006">(<a href="#ref-young1974" role="doc-biblioref">Young 1974</a>; <a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-young1974" class="csl-entry" role="listitem">
 Young, John W. 1974. <span>“A First Order Approximation to the Optimum Checkpoint Interval.”</span> <em>Communications of the ACM</em> 17 (9): 530–31. https://doi.org/10.1145/361147.361115.
 </div></div><section id="sec-appdx-reliability-foundations-young-daly" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-young-daly">The Young-Daly model</h3>
-<p>The optimal checkpoint interval balances two competing costs. Writing a checkpoint takes time <span class="math inline">\(\CheckpointWriteTime\)</span> (the <strong>checkpoint cost</strong>), during which no useful training occurs. The longer the interval between checkpoints, however, the more work is lost when a failure strikes, on average half the interval. <a href="#eq-young-daly" class="quarto-xref">Equation&nbsp;7</a> states the <strong>Young-Daly formula</strong> that minimizes the expected total overhead:</p>
+<p>During a synchronous checkpoint, writing state to storage takes time <span class="math inline">\(\CheckpointWriteTime\)</span> (the <strong>checkpoint cost</strong>), during which no useful training occurs. Extending the interval between checkpoints amortizes that pause, but a failure that arrives at a random point inside the interval destroys on average half the interval’s work. <a href="#eq-young-daly" class="quarto-xref">Equation&nbsp;7</a> states the <strong>Young-Daly formula</strong> that minimizes the sum of those two expected losses:</p>
 <p><span id="eq-young-daly"><span class="math display">\[ \OptimalCheckpointInterval = \sqrt{2 \times \CheckpointWriteTime \times \SystemMtbf}  \tag{7}\]</span></span></p>
 <p>where <span class="math inline">\(\CheckpointWriteTime\)</span> is the checkpoint write time in seconds and <span class="math inline">\(\SystemMtbf\)</span> is the cluster or job-level system MTBF in seconds.</p>
-<p>The intuition behind <a href="#eq-young-daly" class="quarto-xref">equation&nbsp;7</a> is geometric-mean-like. When checkpoints are cheap relative to the MTBF (<span class="math inline">\(\CheckpointWriteTime \ll \SystemMtbf\)</span>, the common case), the optimal interval sits between the two time scales: if checkpoints took zero time, the optimal cadence would be every step, whereas if the system never failed, no checkpoints would be required, and the square root interpolates between those extremes.</p>
-<p>The formula assumes that failures follow an exponential distribution (memoryless property) and that checkpoint cost <span class="math inline">\(\CheckpointWriteTime\)</span> is small compared to <span class="math inline">\(\SystemMtbf\)</span>. The examples below adopt these assumptions. Correlated outages, changing hazard rates, long writes, and asynchronous persistence can require a more detailed model.</p>
+<p>The intuition behind <a href="#eq-young-daly" class="quarto-xref">equation&nbsp;7</a> is geometric-mean-like. When checkpoints are cheap relative to the MTBF (<span class="math inline">\(\CheckpointWriteTime \ll \SystemMtbf\)</span>, the common case), the optimal interval sits between the two time scales. If checkpoints took zero time, the optimal cadence would be every step. If the system never failed, no checkpoints would be required. The square root interpolates between those extremes.</p>
+<p>The formula assumes that failures follow an exponential distribution (memoryless property) and that checkpoint cost <span class="math inline">\(\CheckpointWriteTime\)</span> is small compared to <span class="math inline">\(\SystemMtbf\)</span>. Correlated outages, changing hazard rates, long writes, and asynchronous persistence can require a more detailed model. Under the first-order assumptions, evaluating <a href="#eq-young-daly" class="quarto-xref">equation&nbsp;7</a> for a concrete model requires only the cluster MTBF and the write duration <span class="math inline">\(\CheckpointWriteTime\)</span>, which is set by the serialized state volume and storage bandwidth.</p>
 </section>
 <section id="sec-appdx-reliability-foundations-checkpoint-sizing" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-checkpoint-sizing">Checkpoint sizing</h3>
-<p>Checkpoint size determines the write time <span class="math inline">\(\CheckpointWriteTime\)</span> that feeds into the Young-Daly formula. For common mixed-precision training checkpoints with the adaptive moment estimation (Adam) optimizer, each parameter requires approximately 14 bytes of persistent state:</p>
+<p>Resuming a mixed-precision training run after a node failure requires restoring not only the low-precision weights used in the forward pass, but also the full-precision master weights and optimizer moments accumulated across prior steps, which multiplies the serialized footprint and sets the write time <span class="math inline">\(\CheckpointWriteTime\)</span> in <a href="#eq-young-daly" class="quarto-xref">equation&nbsp;7</a>. For common mixed-precision training checkpoints with the adaptive moment estimation (Adam) optimizer, each parameter requires approximately 14 bytes of persistent state:</p>
 <ul>
 <li>2 bytes for BF16 model weights</li>
 <li>4 bytes for FP32 master weights</li>
@@ -8051,22 +7962,22 @@ Table&nbsp;4: <strong>Checkpoint Sizes for Mixed-Precision Adam Training</strong
 <p><strong>Step 1</strong>: Checkpoint write time (<span class="math inline">\(\CheckpointWriteTime\)</span>). <span class="math display">\[T_{\text{write}} = \frac{\text{Checkpoint Size}}{\text{Write Bandwidth}} = \frac{2,450 \text{ GB}}{100 \text{ GB/s}} = 24.5 \text{ s}\]</span></p>
 <p><strong>Step 2</strong>: Apply the Young-Daly formula (<a href="#eq-young-daly" class="quarto-xref">equation&nbsp;7</a>). <span class="math display">\[T^\ast_{\text{ckpt}} = \sqrt{2 \times T_{\text{write}} \times \text{MTBF}_{\text{system}}} = \sqrt{2 \times 24.5 \text{ s} \times 3.75 \text{ h} \times 3{,}600 \text{ s/h}} = 13.6 \text{ min}\]</span></p>
 <p><strong>Interpretation</strong>: The optimal checkpoint interval is approximately 14 minutes. The overhead from checkpointing alone is <span class="math inline">\(\CheckpointWriteTime/\OptimalCheckpointInterval \approx\)</span> 3.0 percent of training time.</p>
-<p><strong>Systems insight</strong>: If the cluster were doubled to 20,000 GPUs, the MTBF would halve, and the optimal interval would shrink to 9.6 minutes, so the system checkpoints more frequently because failures happen more often. Larger clusters are faster but must interrupt themselves more often to protect progress, the fundamental tension at scale.</p>
+<p><strong>Systems insight</strong>: If the cluster were doubled to 20,000 GPUs, the MTBF would halve and the optimal interval would shrink to 9.6 minutes. The system therefore checkpoints more frequently because failures happen more often. Larger clusters are faster but must interrupt themselves more often to protect progress, which is the tension at scale.</p>
 </div></details>
 </div>
-<p>The boundary conditions of the Young-Daly formula merit attention. When <span class="math inline">\(\CheckpointWriteTime\)</span> approaches <span class="math inline">\(\SystemMtbf\)</span> (checkpoint cost approaches MTBF), checkpoint and rework overheads become so large that checkpoint/restart alone may fail to maintain useful forward progress. In such cases, redundancy or elastic training becomes necessary, as discussed in <a href="#sec-appdx-reliability-foundations-strategies" class="quarto-xref">section&nbsp;1.4.1</a>.</p>
+<p>When <span class="math inline">\(\CheckpointWriteTime\)</span> approaches <span class="math inline">\(\SystemMtbf\)</span> (checkpoint cost approaches MTBF), checkpoint and rework overheads become so large that checkpoint/restart alone may fail to maintain useful forward progress, requiring the alternative strategies in <a href="#sec-appdx-reliability-foundations-strategies" class="quarto-xref">section&nbsp;1.4.1</a>. Even when <span class="math inline">\(\CheckpointWriteTime \ll \SystemMtbf\)</span>, the Young-Daly cadence prices only the periodic write pause and the average step replay after a fault; a real cluster outage also stalls on failure detection, node replacement, and checkpoint reload before replay can begin.</p>
 <hr>
 </section>
 </section>
 <section id="sec-appdx-reliability-foundations-recovery-budgets" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-recovery-budgets">Recovery Budgets</h2>
-<p>When a failure occurs, the system does not instantly resume training. Detection, rescheduling, reloading state, and replaying lost work each consume time. Understanding this recovery anatomy reveals which phase dominates and where to invest engineering effort.</p>
+<p>When a node drops out of a 10,000-GPU training step, every surviving accelerator idles while the control plane times out the dead heartbeat, allocates a replacement node, streams terabytes of checkpoint state back into GPU memory, and recomputes the steps lost since the last snapshot. Pricing how much wall-clock capacity those interruptions consume requires decomposing the outage into its constituent phases and translating the total stall time into runtime goodput.</p>
 <section id="sec-appdx-reliability-foundations-recovery-anatomy" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-recovery-anatomy">The anatomy of recovery time</h3>
-<p>Recovery is not a single event but a pipeline of phases, each with its own time budget. <a href="#eq-reliability-recovery-time" class="quarto-xref">Equation&nbsp;9</a> sums them into total recovery time:</p>
+<p>A single hardware fault triggers four sequential recovery phases between the instant a worker stalls and the moment the job returns to new training steps. <a href="#eq-reliability-recovery-time" class="quarto-xref">Equation&nbsp;9</a> sums them into total recovery time:</p>
 <p><span id="eq-reliability-recovery-time"><span class="math display">\[ \TotalFailureRecoveryTime= \FailureDetectionTime+ \JobRestartTime + \CheckpointLoadTime + \LostWorkReplayTime \tag{9}\]</span></span></p>
 <p>The terms are all durations: failure detection, replacement scheduling, checkpoint reload, and replay of lost training work since the last checkpoint. Their sum is the wall-clock time before the job returns to productive training.</p>
-<p><a href="#tbl-recovery-anatomy" class="quarto-xref">Table&nbsp;5</a> breaks recovery into the phases that determine how long the cluster remains below full productivity after a failure. Separating detection, rescheduling, checkpoint reload, and replay highlights which operational bottlenecks dominate total downtime.</p>
+<p><a href="#tbl-recovery-anatomy" class="quarto-xref">Table&nbsp;5</a> breaks recovery into the phases that determine how long the cluster remains below full productivity after a failure. Because detection, rescheduling, checkpoint reload, and replay appear as separate rows, the table shows which operational bottlenecks dominate total downtime.</p>
 <div id="tbl-recovery-anatomy" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-recovery-anatomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8117,18 +8028,18 @@ Table&nbsp;5: <strong>Recovery Time Breakdown</strong>: Each phase contributes t
 </div>
 </figure>
 </div>
-<p>Decomposing this sequence shows that replay time <span class="math inline">\(\LostWorkReplayTime\)</span> typically dominates, controlled directly by the checkpoint interval: on average, half the interval must be replayed. This creates a reinforcing loop with the Young-Daly formula. Shorter intervals mean less replay but more checkpoint overhead, and the formula finds the minimum of this sum. The other phases offer distinct engineering levers: more aggressive heartbeat intervals shorten <span class="math inline">\(\FailureDetectionTime\)</span> (at the cost of false positives), preallocated hot spare nodes shorten <span class="math inline">\(\JobRestartTime\)</span> through the fleet orchestration policies covered in <strong><a href="../08_fleet_orchestration/08_fleet_orchestration.html#sec-fleet-orchestration">Fleet Orchestration</a></strong>, and higher storage bandwidth or smaller checkpoints shorten <span class="math inline">\(\CheckpointLoadTime\)</span>, motivating the compression and sharding techniques discussed in <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong>.</p>
+<p>In this sequence, replay time <span class="math inline">\(\LostWorkReplayTime\)</span> typically dominates and is controlled directly by the checkpoint interval, since on average half the interval must be replayed. This creates a reinforcing loop with the Young-Daly formula. Shorter intervals mean less replay but more checkpoint overhead, and the formula finds the minimum of this sum. The other phases offer distinct engineering levers. More aggressive heartbeat intervals shorten <span class="math inline">\(\FailureDetectionTime\)</span>, at the cost of false positives. Preallocated hot spare nodes shorten <span class="math inline">\(\JobRestartTime\)</span> through the fleet orchestration policies covered in <strong><a href="../08_fleet_orchestration/08_fleet_orchestration.html#sec-fleet-orchestration">Fleet Orchestration</a></strong>. Higher storage bandwidth or smaller checkpoints shorten <span class="math inline">\(\CheckpointLoadTime\)</span>, which motivates the compression and sharding techniques discussed in <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong>.</p>
 </section>
 <section id="sec-appdx-reliability-foundations-goodput" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-goodput">Runtime goodput under failures</h3>
-<p>Not all time spent on a training cluster produces useful progress. The fault-free step rate is the rate the configured cluster could sustain without checkpoint or recovery interruptions, and the committed step rate counts only the steps a checkpoint retains for the final model. Their ratio is the runtime goodput of a job whose only losses are checkpoints and failures:</p>
+<p>Every minute a cluster spends writing a periodic snapshot or executing the four-phase recovery pipeline of <a href="#tbl-recovery-anatomy" class="quarto-xref">table&nbsp;5</a> is billed wall-clock allocation that advances the final model by zero training steps. Comparing the <strong>committed step rate</strong> (the steps a checkpoint retains for the final model) against the <strong>fault-free step rate</strong> (the rate the configured cluster could sustain without checkpoint or recovery interruptions) defines the runtime goodput of a job whose only losses are checkpoints and failures:</p>
 <p><span class="math display">\[ \RuntimeGoodput \approx \frac{\text{Committed Useful-Step Rate}}{\text{Fault-Free Step Rate}} \approx \frac{\UsefulTrainingTime}{\AllocatedWallTime} \]</span></p>
 <p><strong><a href="../09_performance_engineering/09_performance_engineering.html#sec-performance-engineering-runtime-goodput">Runtime Goodput</a></strong> defines runtime goodput as one factor of ML goodput and also charges startup and input stalls to it, which this appendix does not model. The modeled gap between the two rates comes from two sources:</p>
 <ol type="1">
 <li><strong>Checkpoint overhead</strong> (<span class="math inline">\(\sim\)</span> 3.0 percent): Training pauses during each checkpoint write.</li>
 <li><strong>Recovery and rework overhead</strong> (<span class="math inline">\(\sim\)</span> 3.9 percent): Time lost to detection, rescheduling, reloading, and replaying work discarded after each failure.</li>
 </ol>
-<p>At 10,000-GPU scale, failures and checkpointing together can consume a substantial fraction of wall time. If they consume a fraction <span class="math inline">\(\OperationalOverheadFraction\)</span>, a fixed amount of useful work takes <span class="math inline">\(1/(1-\OperationalOverheadFraction)\)</span> times its fault-free duration, not merely that duration plus <span class="math inline">\(\OperationalOverheadFraction\)</span> of it. The fleet orchestration strategies in <strong><a href="../08_fleet_orchestration/08_fleet_orchestration.html#sec-fleet-orchestration">Fleet Orchestration</a></strong> and <strong><a href="../12_ops_scale/12_ops_scale.html#sec-ops-scale">ML Operations at Scale</a></strong> focus on narrowing this gap, because every percentage point of overhead recovered translates directly to dollars saved and training time shortened.</p>
+<p>At 10,000-GPU scale, failures and checkpointing together can consume a substantial fraction of wall time. If they consume a fraction <span class="math inline">\(\OperationalOverheadFraction\)</span>, a fixed amount of useful work takes <span class="math inline">\(1/(1-\OperationalOverheadFraction)\)</span> times its fault-free duration, not merely that duration plus <span class="math inline">\(\OperationalOverheadFraction\)</span> of it. The fleet orchestration strategies in <strong><a href="../08_fleet_orchestration/08_fleet_orchestration.html#sec-fleet-orchestration">Fleet Orchestration</a></strong> and <strong><a href="../12_ops_scale/12_ops_scale.html#sec-ops-scale">ML Operations at Scale</a></strong> focus on narrowing this gap, because every percentage point of overhead recovered saves dollars and shortens training time.</p>
 <div id="psp-appendix-reliability-hidden-cost-scale" class="callout callout-perspective" title="The hidden cost of scale">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: The hidden cost of scale</strong></summary><div>A common misconception is that doubling cluster size halves training time. In practice, doubling from 5,000 to 10,000 GPUs halves the MTBF and increases failure-related overhead. The effective speedup is less than 2<span class="math inline">\(\times\)</span>, and at extreme scale, adding more GPUs can actually increase wall-clock time if the fault tolerance mechanisms cannot keep pace. The serial overhead of recovery bounds the benefit of parallelism, a reliability analogue of Amdahl’s Law.<p></p>
 </div></details>
@@ -8138,10 +8049,10 @@ Table&nbsp;5: <strong>Recovery Time Breakdown</strong>: Each phase contributes t
 </section>
 <section id="sec-appdx-reliability-foundations-strategy-selection" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-strategy-selection">Strategy Selection</h2>
-<p>Checkpoint/restart is not the only fault tolerance strategy. For serving workloads where downtime is measured in lost revenue, redundancy provides a different structural trade-off. Elastic training can resume on a smaller allocation when valid state and a feasible parallel decomposition remain available. Choosing the right strategy depends on the workload’s tolerance for latency, cost, and complexity.</p>
+<p>Pausing a 10,000-GPU batch training job for several minutes to reload a checkpoint and replay lost steps is an acceptable throughput tax, whereas stalling a live inference service for even a few seconds violates user-facing latency contracts and drops production traffic. Because batch training and online serving tolerate interruption on completely different time scales, fleet architectures choose among checkpoint/restart, active redundancy, and elastic resizing according to the recovery latency, spare capacity, and state-management complexity each workload can afford.</p>
 <section id="sec-appdx-reliability-foundations-strategies" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-strategies">Checkpoint/restart vs.&nbsp;redundancy vs.&nbsp;elastic training</h3>
-<p>The three canonical strategies represent different points in the trade-off space between cost, complexity, and recovery speed. <strong>Checkpoint/restart</strong> periodically saves full system state and rolls back to the last checkpoint after failure. It is the workhorse of large-scale training: conceptually simple, well-understood, and effective when MTBF is much larger than checkpoint cost. The weakness is that recovery requires stopping all workers and replaying lost computation.</p>
+<p>Whether a fault-tolerance mechanism can pause the entire job to replay work, must fail over within milliseconds, or must continue on a shrunk allocation when replacement nodes are unavailable separates the three primary recovery architectures. <strong>Checkpoint/restart</strong> periodically saves full system state and rolls back to the last checkpoint after failure. It is the workhorse of large-scale training: conceptually simple, well-understood, and effective when MTBF is much larger than checkpoint cost. The weakness is that recovery requires stopping all workers and replaying lost computation.</p>
 <p><strong>Redundancy</strong> maintains alternate copies of state or computation. A surviving serving replica can take over only when routing, readiness, capacity, and the required request state meet the latency budget. Dedicated duplicate or triplicate execution costs 2–3<span class="math inline">\(\times\)</span> the compute resources; active-active serving instead shares normal traffic across replicas while reserving failover headroom. The justified overhead depends on the workload and recovery contract.</p>
 <p><strong>Elastic training</strong> allows a job to resume with fewer workers when the smaller allocation can hold its state and support its parallel decomposition. Membership changes can still require a coordinated restart and checkpoint reload; TorchElastic restarts the worker group. Workers may be added back when capacity becomes available. The recovery path must restore missing shards, preserve data coverage, and either preserve the effective batch size or validate a changed optimization policy. Elasticity can reduce waiting for replacement capacity, but does not guarantee a shorter interruption. The three strategies trade recovery latency against resource overhead and implementation complexity, and each fits a different workload (<a href="#tbl-strategy-comparison" class="quarto-xref">table&nbsp;6</a>).</p>
 <div id="tbl-strategy-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -8210,7 +8121,7 @@ Table&nbsp;6: <strong>Fault Tolerance Strategy Comparison</strong>: The latency 
 </section>
 <section id="sec-appdx-reliability-foundations-availability" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-foundations-availability">The availability stacking formula</h3>
-<p>For serving workloads, availability is typically expressed as a percentage: 99 percent (“two nines”), 99.9 percent (“three nines”), and so on. Redundancy improves availability by running <span class="math inline">\(\RedundantReplicaCount\)</span> independent replicas. Under an idealized model with reliable routing and enough capacity on any surviving replica, the system is unavailable only when all replicas are simultaneously down, which <a href="#eq-availability-stacked" class="quarto-xref">equation&nbsp;10</a> captures with <span class="math inline">\(\ReplicaAvailability\)</span> denoting the availability of a single replica and <span class="math inline">\(\RedundantReplicaCount\)</span> the number of replicas:</p>
+<p>A single serving replica with 99 percent availability (“two nines”) still accumulates more than 87 hours of downtime per year, far exceeding the outage budget of production inference endpoints that target 99.9 percent (“three nines”) or 99.99 percent (“four nines”) uptime. Redundancy closes that gap by running <span class="math inline">\(\RedundantReplicaCount\)</span> independent replicas so that surviving instances absorb traffic when one replica fails. Under an idealized model with reliable routing and enough capacity on any surviving replica, the system is unavailable only when all replicas are simultaneously down. <a href="#eq-availability-stacked" class="quarto-xref">Equation&nbsp;10</a> captures this, with <span class="math inline">\(\ReplicaAvailability\)</span> denoting the availability of a single replica and <span class="math inline">\(\RedundantReplicaCount\)</span> the number of replicas:</p>
 <p><span id="eq-availability-stacked"><span class="math display">\[ \RedundantServiceAvailability= 1 - (1 - \ReplicaAvailability)^\RedundantReplicaCount  \tag{10}\]</span></span></p>
 <p>Evaluating availability stacking with independent replicas (<a href="#tbl-availability-stacking" class="quarto-xref">table&nbsp;7</a>) quantifies the gain from adding serving capacity. Each additional independent replica multiplies the outage probabilities together, cutting expected annual downtime by two orders of magnitude per replica at a 99 percent baseline.</p>
 <div id="tbl-availability-stacking" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -8259,13 +8170,13 @@ Table&nbsp;7: <strong>Availability Stacking with Independent Replicas</strong>: 
 </figure>
 </div>
 <p>Stacking independent redundant replicas achieves large availability gains. Two replicas that are each available 99 percent of the time yield 99.99 percent availability, reducing annual downtime from 87.6 hours to 52.6 minutes. This is why inference serving systems almost universally deploy multiple replicas behind a load balancer. The cost of an extra replica is small compared to the business value of four-nines availability.</p>
-<p>The independence assumption is critical, however. Correlated failures, such as power outages affecting an entire rack, software bugs triggered by a specific input, or network partitions isolating a failure domain, defeat availability stacking. This is why <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong> emphasizes failure domain isolation: replicas must be placed in different racks, different power zones, and ideally different data centers to reduce shared failure modes. Placement alone does not eliminate common software, control-plane, or regional dependencies.</p>
+<p>The result, however, depends on the independence assumption. Correlated failures, such as power outages affecting an entire rack, software bugs triggered by a specific input, or network partitions isolating a failure domain, defeat availability stacking. This is why <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong> emphasizes failure domain isolation: replicas must be placed in different racks, different power zones, and ideally different data centers to reduce shared failure modes. Placement alone does not eliminate common software, control-plane, or regional dependencies.</p>
 <hr>
 </section>
 </section>
 <section id="sec-appdx-reliability-daly-2nd-order" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="sec-appdx-reliability-daly-2nd-order">Checkpoint Intervals Beyond the First-Order Approximation</h2>
-<p>When a multi-terabyte checkpoint takes several minutes to flush to shared storage and a 100,000-GPU cluster fails every half hour, the checkpoint write is no longer negligible next to the failure interval, and the cluster can suffer a second crash while still writing the snapshot. Young’s first-order approximation is most accurate when checkpoint time is small relative to the failure interval; Daly’s analysis develops higher-order checkpoint models for regimes where write time is a substantial fraction of MTBF <span class="citation" data-cites="daly2006">(<a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>. The simplified renewal model below shows why finite checkpoint time changes the optimum without claiming to reproduce Daly’s full recovery model.</p>
+<p>When a multi-terabyte checkpoint takes several minutes to flush to shared storage and a 100,000-GPU cluster fails every half hour, the checkpoint write is no longer negligible next to the failure interval. The cluster can then suffer a second crash while still writing the snapshot. Young’s first-order approximation is most accurate when checkpoint time is small relative to the failure interval; Daly’s analysis develops higher-order checkpoint models for regimes where write time is a substantial fraction of MTBF <span class="citation" data-cites="daly2006">(<a href="#ref-daly2006" role="doc-biblioref">Daly 2006</a>)</span>. The simplified renewal model below shows why finite checkpoint time changes the optimum without claiming to reproduce Daly’s full recovery model.</p>
 <div class="no-row-height column-margin column-container"><div id="ref-daly2006" class="csl-entry" role="listitem">
 Daly, J. T. 2006. <span>“A Higher Order Estimate of the Optimum Checkpoint Interval for Restart Dumps.”</span> <em>Future Generation Computer Systems</em> 22 (3): 303–12. https://doi.org/10.1016/j.future.2004.11.016.
 </div></div><section id="sec-appdx-reliability-daly-proof" class="level3">
@@ -8279,7 +8190,7 @@ Daly, J. T. 2006. <span>“A Higher Order Estimate of the Optimum Checkpoint Int
 <p>For positive checkpoint cost, the equivalent derivative numerator <span class="math inline">\(e^{(\CheckpointInterval + \CheckpointWriteTime)/\SystemMtbf}(\CheckpointInterval/\SystemMtbf - 1) + 1\)</span> increases from a negative value at zero to a positive value at <span class="math inline">\(\SystemMtbf\)</span>. A one-dimensional root search on <a href="#eq-daly-2nd-order-tau" class="quarto-xref">equation&nbsp;13</a> therefore finds the unique optimum of this simplified model.</p>
 <section id="choosing-the-appropriate-approximation" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="choosing-the-appropriate-approximation">Choosing the appropriate approximation</h4>
-<p>The first-order formula is a useful planning estimate when writes are short compared with MTBF. When that condition fails, use a model that includes the deployment’s checkpoint semantics, recovery delays, and failure exposure. The numerical condition above covers only the stated zero-restart-delay renewal model; asynchronous writes and correlated failures require different assumptions.</p>
+<p>The first-order formula is a useful planning estimate when writes are short compared with MTBF. When that condition fails, use a model that includes the deployment’s checkpoint semantics, recovery delays, and failure exposure. The numerical condition in <a href="#eq-daly-2nd-order-tau" class="quarto-xref">equation&nbsp;13</a> covers only the stated zero-restart-delay renewal model; asynchronous writes and correlated failures require different assumptions. All of these checkpoint and redundancy models assume that a hardware fault announces itself by stopping a worker or failing a health check, yet some of the most damaging faults at fleet scale corrupt tensor values silently without halting execution.</p>
 <hr>
 </section>
 </section>
@@ -8299,20 +8210,20 @@ Dixit, H. D., S. Pendharkar, M. Beadon, C. Mason, T. Chakravarthy, B. Muthiah, a
 </section>
 <section id="sec-appdx-reliability-sdc-softmax-explosion" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-reliability-sdc-softmax-explosion">Softmax saturation and error propagation</h3>
-<p>For one attention head, let <span class="math inline">\(\AttentionScoreMatrix = \AttentionQueryMatrix\AttentionKeyMatrix^T/\sqrt{\AttentionHeadDimension} \in \mathbb{R}^{\SequenceLength\times \SequenceLength}\)</span> be the pre-softmax score matrix for sequence length <span class="math inline">\(\SequenceLength\)</span> and head dimension <span class="math inline">\(\AttentionHeadDimension\)</span>. Suppose an SDC event corrupts one element of token row <span class="math inline">\(\MatrixRowIndex\)</span> of the query matrix <span class="math inline">\(\AttentionQueryMatrix\)</span>, and write the resulting perturbation as <span class="math inline">\(\FiniteChange\AttentionQueryMatrix\)</span>, with only that element nonzero:</p>
+<p>When a single-bit exponent flip inflates one query entry by a factor of <span class="math inline">\(65{,}536\)</span>, the dot products in that token’s attention row can jump by orders of magnitude and collapse its softmax distribution onto a single key. To trace how that perturbation propagates through one attention head, let <span class="math inline">\(\AttentionScoreMatrix = \AttentionQueryMatrix\AttentionKeyMatrix^T/\sqrt{\AttentionHeadDimension} \in \mathbb{R}^{\SequenceLength\times \SequenceLength}\)</span> be the pre-softmax score matrix for sequence length <span class="math inline">\(\SequenceLength\)</span> and head dimension <span class="math inline">\(\AttentionHeadDimension\)</span>. Suppose an SDC event corrupts one element of token row <span class="math inline">\(\MatrixRowIndex\)</span> of the query matrix <span class="math inline">\(\AttentionQueryMatrix\)</span>, and write the resulting perturbation as <span class="math inline">\(\FiniteChange\AttentionQueryMatrix\)</span>, with only that element nonzero:</p>
 <p><span class="math display">\[ \CorruptedAttentionScoreMatrix = \frac{(\AttentionQueryMatrix+ \FiniteChange\AttentionQueryMatrix) \AttentionKeyMatrix^T}{\sqrt{\AttentionHeadDimension}} = \AttentionScoreMatrix + \FiniteChange\AttentionScoreMatrix \]</span></p>
-<p>where <span class="math inline">\(\FiniteChange\AttentionScoreMatrix\)</span> is nonzero only in row <span class="math inline">\(\MatrixRowIndex\)</span>, with entries <span class="math inline">\(\FiniteChange \AttentionScoreEntry = \FiniteChange\QueryVector_i \cdot \KeyVector_j/\sqrt{\AttentionHeadDimension}\)</span> for the corrupted query row <span class="math inline">\(\FiniteChange\QueryVector_i\)</span> and key row <span class="math inline">\(\KeyVector_j\)</span>. Passing the perturbed score row through the normalization step shifts the entire row’s attention weights, so the attention probability perturbation for token row <span class="math inline">\(\MatrixRowIndex\)</span> is:</p>
+<p>where <span class="math inline">\(\FiniteChange\AttentionScoreMatrix\)</span> is nonzero only in row <span class="math inline">\(\MatrixRowIndex\)</span>, with entries <span class="math inline">\(\FiniteChange \AttentionScoreEntry = \FiniteChange\QueryVector_i \cdot \KeyVector_j/\sqrt{\AttentionHeadDimension}\)</span> for the corrupted query row <span class="math inline">\(\FiniteChange\QueryVector_i\)</span> and key row <span class="math inline">\(\KeyVector_j\)</span>. Passing the perturbed score row through the normalization step shifts the entire row’s attention weights. The attention probability perturbation for token row <span class="math inline">\(\MatrixRowIndex\)</span> is therefore:</p>
 <p><span class="math display">\[ \FiniteChange\AttentionWeightVector_i = \operatorname{softmax}\left( \AttentionScoreRow + \FiniteChange\AttentionScoreRow \right) - \operatorname{softmax}\left( \AttentionScoreRow \right) \]</span></p>
 <p>A large corrupted query component can strongly change several attention logits, with the signs and magnitudes determined by the corresponding key components. If one resulting logit exceeds every other logit by an increasingly large margin, the attention distribution approaches a one-hot vector:</p>
 <p><span class="math display">\[ \operatorname{softmax}(\AttentionScoreRow + \FiniteChange\AttentionScoreRow)_j \to 1, \qquad \operatorname{softmax}(\AttentionScoreRow + \FiniteChange\AttentionScoreRow)_{k \neq j} \to 0 \]</span></p>
-<p>This is a conditional saturation limit, not an inevitable consequence of a bit flip. The selected key depends on the corrupted logits; a corrupted query element does not identify one corrupted key. The softmax derivative is <span class="math inline">\(\partial \SoftmaxOutputProbability_j/\partial \AttentionScoreSummand = \SoftmaxOutputProbability_j(\KroneckerIndicator_{jk}-\SoftmaxOutputProbability_k)\)</span>, which tends toward zero under saturation rather than diverging. Other paths through the computation can still produce large or nonfinite activations and gradients. If invalid state enters the optimizer or a collective, it can propagate across ranks; detection and recovery must therefore verify state before resuming from a clean checkpoint.</p>
+<p>This is a conditional saturation limit, not an inevitable consequence of a bit flip. The selected key depends on the corrupted logits; a corrupted query element does not identify one corrupted key. The softmax derivative is <span class="math inline">\(\partial \SoftmaxOutputProbability_j/\partial \AttentionScoreSummand = \SoftmaxOutputProbability_j(\KroneckerIndicator_{jk}-\SoftmaxOutputProbability_k)\)</span>, which tends toward zero under saturation rather than diverging. Other paths through the computation can still produce large or nonfinite activations and gradients. If invalid state enters the optimizer or a collective, it can propagate across ranks. Detection and recovery must therefore verify state before resuming from a clean checkpoint.</p>
 <hr>
 </section>
 </section>
 <section id="summary" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="summary">Summary</h2>
-<p>Failure is a physical constraint of scale. Under independent, constant component failure rates, a single GPU’s mean lifetime is 5.7 years, yet the modeled 10,000-GPU cluster fails on average every 3.75 hours, because node failure rates sum across components and cluster MTBF divides by node count. The probability that a job is interrupted grows with its duration relative to that interval, so long runs on large clusters must plan for recovery rather than hope to avoid it.</p>
-<p>Recovery has four modeled phases (detection, rescheduling, reloading, and replay), and replay is controlled by the checkpoint interval. The Young-Daly formula <span class="math inline">\(\OptimalCheckpointInterval = \sqrt{2 \CheckpointWriteTime \, \SystemMtbf}\)</span> (principle <a href="../parts/distributed_ml_principles.html#pri-young-daly">13</a>) balances write overhead against expected rework when writes are short compared with the MTBF, and <a href="#sec-appdx-reliability-daly-2nd-order" class="quarto-xref">section&nbsp;1.5</a> examines finite-cost effects under a simplified renewal model. Checkpoint/restart suits batch training, redundancy suits latency-sensitive serving, and elastic training sits between them. Independent replicas reduce unavailability multiplicatively, to <span class="math inline">\((1-\ReplicaAvailability)^\RedundantReplicaCount\)</span> for <span class="math inline">\(\RedundantReplicaCount\)</span> replicas, but only to the extent that failure-domain isolation keeps their failures independent.</p>
+<p>Failure is a physical constraint of scale. Under independent, constant component failure rates, a single GPU’s mean lifetime is 5.7 years. Yet the modeled 10,000-GPU cluster fails on average every 3.75 hours, because node failure rates sum across components and cluster MTBF divides by node count. The probability that a job is interrupted grows with its duration relative to that interval, so long runs on large clusters must plan for recovery rather than hope to avoid it.</p>
+<p>Recovery has four modeled phases (detection, rescheduling, reloading, and replay), and replay is controlled by the checkpoint interval. The Young-Daly formula <span class="math inline">\(\OptimalCheckpointInterval = \sqrt{2 \CheckpointWriteTime \, \SystemMtbf}\)</span> (principle <a href="../parts/distributed_ml_principles.html#pri-young-daly">13</a>) balances write overhead against expected rework when writes are short compared with the MTBF. <a href="#sec-appdx-reliability-daly-2nd-order" class="quarto-xref">Section&nbsp;1.5</a> examines finite-cost effects under a simplified renewal model. Checkpoint/restart suits batch training, redundancy suits latency-sensitive serving, and elastic training sits between them. Independent replicas reduce unavailability multiplicatively, to <span class="math inline">\((1-\ReplicaAvailability)^\RedundantReplicaCount\)</span> for <span class="math inline">\(\RedundantReplicaCount\)</span> replicas, but only to the extent that failure-domain isolation keeps their failures independent.</p>
 
 
 
@@ -8701,10 +8612,10 @@ Dixit, H. D., S. Pendharkar, M. Beadon, C. Mason, T. Chakravarthy, B. Muthiah, a
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
 </div>   
     <div class="nav-footer-center">
-<p><a href="../vol1/">← Volume I: Foundations</a> · <a href="../vol3/">Volume III: Agentic (Draft) →</a></p>
+<p><a href="../vol1/">← Volume I: Introduction to Machine Learning Systems</a><span class="mls-unreleased"> · <a href="../vol3/">Volume III: Agentic Machine Learning Systems (in preparation) →</a></span></p>
 </div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">

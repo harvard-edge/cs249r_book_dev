@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-36b07967708498ecd461e0ea002a939c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-9136001351aceaf8df3a8c9a8c540947.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-bb57b4d25002181ffbc35f1a773f7fa2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-c1f038bad5a3dfaf0fec45d7b353e160.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -120,6 +120,37 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
   });
 </script>
 <!-- Shared head includes — MLSysBook ecosystem -->
+
+<!--
+  release-gate (inline, sync) — the live site (mlsysbook.ai) shows only the
+  released volumes; every other host (the dev preview at
+  harvard-edge.github.io/cs249r_book_dev, local previews) shows the whole
+  series. Unreleased content is hidden by default and revealed by the
+  `mls-staging` class, so a page without JavaScript still hides it.
+  To release a volume, drop its `.mls-unreleased` markers and its href rule
+  below. Added 2026-10-23: Volumes III and IV stay staging-only until their
+  public preview.
+-->
+<script>
+(function () {
+  var host = window.location.hostname;
+  if (!/(^|\.)mlsysbook\.ai$/.test(host)) {
+    document.documentElement.classList.add('mls-staging');
+  }
+})();
+</script>
+<style>
+  html:not(.mls-staging) .mls-unreleased,
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol3/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href*="/vol4/"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
+  html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html.mls-staging .mls-live-only {
+    display: none !important;
+  }
+</style>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -289,7 +320,7 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
       "@id": "https://mlsysbook.ai/#website",
       "url": "https://mlsysbook.ai/",
       "name": "Machine Learning Systems",
-      "description": "The AI Engineering Textbook Series: Foundations, Scaling, Agentic AI, and Physical AI.",
+      "description": "An open textbook series on machine learning systems.",
       "publisher": {
         "@type": "Organization",
         "name": "Harvard Edge Computing Lab",
@@ -335,20 +366,6 @@ gtag('config', 'G-M21L0CBCVN', { 'anonymize_ip': true});
           "url": "../",
           "bookFormat": "https://schema.org/EBook",
           "about": "Distributed Training, Accelerator Architecture, Parallelism, Memory Systems, and Serving"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume III: Agentic Machine Learning Systems",
-          "url": "../../vol3/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Autonomous Agents, Deliberation, Working Sets, Virtual Memory, RAG, RLVR, and Multi-Agent Systems"
-        },
-        {
-          "@type": "Book",
-          "name": "Volume IV: Physical AI Systems",
-          "url": "../../vol4/",
-          "bookFormat": "https://schema.org/EBook",
-          "about": "Physical AI, Embodied AI, Closed-Loop Dynamics, Actuation, Control Barrier Functions, and Robotics"
         }
       ]
     },
@@ -803,9 +820,7 @@ $$
 \newcommand{\AdaptationWindowEnergy}{E_{\text{update}}}
 \newcommand{\AdaptedHiddenActivation}{\mathbf{h}'}
 \newcommand{\AdaptedTaskCost}{C_{\text{task, adapt}}}
-\newcommand{\AdaptedWeightMatrix}{\mathbf{W}_{\text{adapted}}}
 \newcommand{\AdapterActivationFunction}{\sigma}
-\newcommand{\AdapterAssignmentVector}{\mathbf{m}}
 \newcommand{\AdapterDownProjectionMatrix}{\mathbf{A}}
 \newcommand{\AdapterIndex}{k}
 \newcommand{\AdapterInitializationStandardDeviation}{\sigma}
@@ -814,7 +829,6 @@ $$
 \newcommand{\AdapterUpProjectionMatrix}{\mathbf{B}}
 \newcommand{\AdjacentNeighboringDataset}{X'}
 \newcommand{\AdjacentQueryResult}{v'}
-\newcommand{\AdminLeaseTime}{T_{\text{admin}}}
 \newcommand{\AdmissibleBacklogCount}{n}
 \newcommand{\AdmissibleControlSet}{\mathcal{U}_{\text{adm}}}
 \newcommand{\AdmissibleDisturbanceSet}{\mathcal{W}}
@@ -842,7 +856,6 @@ $$
 \newcommand{\AffordanceSuccessEstimate}{V_{\text{policy}}}
 \newcommand{\AgeBlindTravel}{\Delta x_{\text{blind}}}
 \newcommand{\AgeCheckInstant}{t_{\text{curr}}}
-\newcommand{\AggregateServerPower}{P_{\text{servers}}}
 \newcommand{\AggregateSlotWork}{W}
 \newcommand{\AggregatedRecoveryDataset}{\mathcal{D}}
 \newcommand{\AggregatedSurrogateLoss}{\epsilon_N}
@@ -869,7 +882,6 @@ $$
 \newcommand{\AllocatedBlockCount}{N_{\text{blocks}}}
 \newcommand{\AllocatedHazardRate}{\lambda_{\text{alloc}}}
 \newcommand{\AllocatedWallTime}{T_{\text{wall}}}
-\newcommand{\AllowableCollisionEnergy}{E_{k, \text{allow}}}
 \newcommand{\AllowableRailDroop}{\Delta V_{\text{droop, max}}}
 \newcommand{\AllowableRailExcursion}{\Delta V_{\max}}
 \newcommand{\AllowableWindingTemperatureRise}{\Delta T_{\max}}
@@ -939,7 +951,6 @@ $$
 \newcommand{\AttemptVerificationCost}{C_{\text{verify}}}
 \newcommand{\AttentionHeadCount}{N_{\text{heads}}}
 \newcommand{\AttentionHeadDimension}{d_{\text{head}}}
-\newcommand{\AttentionHeadIndex}{i}
 \newcommand{\AttentionHeadOutput}{\mathbf{O}}
 \newcommand{\AttentionKeyMatrix}{\mathbf{K}}
 \newcommand{\AttentionOutputMatrix}{\mathbf{O}}
@@ -1031,11 +1042,9 @@ $$
 \newcommand{\BaseTravelDistance}{d}
 \newcommand{\BaseTravelSpeed}{v_{\text{base}}}
 \newcommand{\BaseWidthMultiplier}{w_{\text{mult},0}}
-\newcommand{\BaseWorkerCount}{N_{\text{base}}}
 \newcommand{\BaseWristTransform}{\mathbf{T}_{\text{base} \leftarrow \text{wrist}}}
 \newcommand{\BaseYawRateBias}{\omega_{\text{bias}}}
 \newcommand{\BaselineAcceptanceEstimate}{\hat{p}_{\text{base}}}
-\newcommand{\BaselineAnnualOperationsCost}{C_{\text{current}}}
 \newcommand{\BaselineControllerAction}{\mathbf{a}_t^{\text{base}}}
 \newcommand{\BaselineConversionRate}{p_0}
 \newcommand{\BaselineFeatureMean}{\mu_{\text{base}}}
@@ -1378,7 +1387,6 @@ $$
 \newcommand{\CentroidalMomentumRate}{\dot{\mathbf{h}}_G}
 \newcommand{\CertifiedCommandWindow}{\mathbf{u}^*_{t:t+H-1}}
 \newcommand{\CertifiedControlAction}{\mathbf{u}^*}
-\newcommand{\CertifiedJointTorque}{u^*}
 \newcommand{\CertifiedRadius}{R}
 \newcommand{\ChainRuleInput}{x}
 \newcommand{\ChainRuleIntermediate}{u}
@@ -1396,7 +1404,6 @@ $$
 \newcommand{\CheckIntervalStepCount}{m}
 \newcommand{\CheckPassProbability}{p^{\text{chk}}}
 \newcommand{\CheckSlotTime}{T}
-\newcommand{\CheckWindowTurnCount}{w}
 \newcommand{\CheckedSignal}{x}
 \newcommand{\CheckedSignalLimit}{L_{\text{limit}}}
 \newcommand{\CheckpointAttemptDuration}{T_{\text{att}}}
@@ -1431,7 +1438,6 @@ $$
 \newcommand{\ChunkExecutionHorizon}{H_{\text{exec}}}
 \newcommand{\ChunkImitationLoss}{\mathcal{L}_{\text{chunk}}}
 \newcommand{\ChunkLease}{T_{\text{lease}}}
-\newcommand{\ChunkLeaseTime}{T_{\text{lease}}}
 \newcommand{\ChunkReactionLatency}{T_{\text{reaction}}}
 \newcommand{\ChunkRenewalPeriod}{T_{\text{chunk}}}
 \newcommand{\ChunkRenewalRate}{f_{\text{replan}}}
@@ -1458,11 +1464,9 @@ $$
 \newcommand{\ClearanceTimeBudget}{T_{\text{total}}}
 \newcommand{\ClfClassKFunction}{\alpha_V}
 \newcommand{\ClfDescentControlSet}{\mathcal{U}_{\text{CLF}}}
-\newcommand{\ClientGradientVector}{\mathbf{g}}
 \newcommand{\ClientIndex}{k}
 \newcommand{\ClientLocalDataset}{\mathcal{D}}
 \newcommand{\ClientLocalTrainingEnergy}{E_{\text{client}}}
-\newcommand{\ClientMaskVector}{\mathbf{r}}
 \newcommand{\ClientObjectiveWeight}{w}
 \newcommand{\ClientSampleCount}{n}
 \newcommand{\ClientUpdateUploadEnergy}{E_{\text{upload}}}
@@ -1481,7 +1485,6 @@ $$
 \newcommand{\CloudInferenceEnergy}{E_{\text{cloud}}}
 \newcommand{\CloudOffloadEnergy}{E_{\text{transmit}}}
 \newcommand{\CloudTrainingRunEnergy}{E_{\text{cloud,train}}}
-\newcommand{\ClusterAvailability}{A_{\text{cluster}}}
 \newcommand{\ClusterCount}{k}
 \newcommand{\ClusterHeadroom}{N}
 \newcommand{\ClusterNodeCount}{N_{\text{nodes}}}
@@ -1499,7 +1502,6 @@ $$
 \newcommand{\CollectionCohortCost}{C_{\text{cohort}}}
 \newcommand{\CollectionStateVisitationDistribution}{p^{\pi_{\text{col}}}}
 \newcommand{\CollectiveCallStartupLatency}{\alpha_{\text{eff}}}
-\newcommand{\CollectiveInputTensor}{\mathbf{X}}
 \newcommand{\CollectivePayloadSize}{M}
 \newcommand{\CollectiveTensorSize}{M_{\text{coll}}}
 \newcommand{\CollisionHullCount}{N_{\text{hulls}}}
@@ -1584,7 +1586,6 @@ $$
 \newcommand{\CompressedGradientUpdateElement}{v}
 \newcommand{\CompressedOnlyCorrectCount}{n_{\text{comp}}}
 \newcommand{\CompressionRatio}{r_{\text{comp}}}
-\newcommand{\ComputationalDimensionCount}{N_{\text{comp}}}
 \newcommand{\ComputationalGraph}{G}
 \newcommand{\ComputeBudgetConstraint}{g}
 \newcommand{\ComputeChipPower}{P_{\text{chip}}}
@@ -1703,7 +1704,6 @@ $$
 \newcommand{\ControlAffineDriftField}{\mathbf{f}}
 \newcommand{\ControlAffineInputField}{\mathbf{g}}
 \newcommand{\ControlCommand}{\mathbf{u}}
-\newcommand{\ControlCommandDerivative}{\dot{\mathbf{u}}}
 \newcommand{\ControlCommandSpace}{\mathcal{U}}
 \newcommand{\ControlConversionRate}{\hat{p}_A}
 \newcommand{\ControlCycleIndex}{i}
@@ -1715,7 +1715,6 @@ $$
 \newcommand{\ControlInputWindow}{\mathbf{u}_{[t, t+\Delta t]}}
 \newcommand{\ControlSampleIndex}{k}
 \newcommand{\ControlSampleSize}{m_A}
-\newcommand{\ControlSetpointJerk}{\mathbf{j}}
 \newcommand{\ControlSetpointPeriod}{\Delta t_{\text{ctrl}}}
 \newcommand{\ControlStepIndex}{t}
 \newcommand{\ControlTaskIndex}{i}
@@ -2028,8 +2027,6 @@ $$
 \newcommand{\DivergenceInstant}{t_{\text{div}}}
 \newcommand{\DivergenceMeasure}{\mathcal{D}}
 \newcommand{\DivergenceTolerance}{\delta_{\text{tol}}}
-\newcommand{\DmaBurstPeriod}{T_{\text{dma}}}
-\newcommand{\DmaBurstStallTime}{C_{\text{dma}}}
 \newcommand{\DmaQueueTime}{t_{\text{DMA}}}
 \newcommand{\DocumentPayloadFraction}{q}
 \newcommand{\DomainRandomizationDistribution}{\mathcal{D}_{\text{DR}}}
@@ -2048,7 +2045,6 @@ $$
 \newcommand{\DraftCandidateToken}{\tilde{x}}
 \newcommand{\DraftModelDistribution}{q_{\phi}}
 \newcommand{\DraftPositionAcceptanceProbability}{\alpha_{\text{spec}, j}}
-\newcommand{\DraftPositionIndex}{i}
 \newcommand{\DraftSamplingDistribution}{q}
 \newcommand{\DraftTokenAcceptanceProbability}{\alpha_{\text{acc}}}
 \newcommand{\DraftTokenCostRatio}{\beta}
@@ -2181,14 +2177,12 @@ $$
 \newcommand{\EnforcerComputeTime}{T_{\text{comp}}}
 \newcommand{\EnforcerDeadline}{T_{\text{deadline,enf}}}
 \newcommand{\EngineerHourlyCost}{C_{\text{engineer}}}
-\newcommand{\EngineeringTeamSize}{n}
 \newcommand{\EngineeringTemperatureCeiling}{T_{\text{ceil}}}
 \newcommand{\EnsembleSpreadThreshold}{\sigma_{\text{thresh}}}
 \newcommand{\EnsemblingDecayRate}{m}
 \newcommand{\EnsemblingWindowLength}{K}
 \newcommand{\EntityCount}{N_{\text{entities}}}
 \newcommand{\EntityEmbedding}{\mathbf{e}}
-\newcommand{\EntityIndex}{j}
 \newcommand{\EntropyTemperature}{\alpha}
 \newcommand{\EnvelopeCallCount}{N}
 \newcommand{\EnvelopeSetupTime}{T_{\text{setup}}}
@@ -2440,7 +2434,6 @@ $$
 \newcommand{\FirstAdjacentCheckIndex}{a}
 \newcommand{\FirstAdjacentCheckPassProbability}{p_{a}}
 \newcommand{\FirstAdjacentCheckSlotTime}{T_{a}}
-\newcommand{\FirstAtomicGradientUpdate}{A}
 \newcommand{\FirstCatalogDefinitionCount}{n_{\text{def},A}}
 \newcommand{\FirstCatalogDefinitionSize}{S_{A}}
 \newcommand{\FirstClassCoverageFloor}{a}
@@ -2472,7 +2465,6 @@ $$
 \newcommand{\FlangeReferenceFrame}{\mathcal{F}_{\text{flange}}}
 \newcommand{\FlangeTargetTransform}{\mathbf{T}_{\text{flange}}^{\text{target}}}
 \newcommand{\FlattenedFilterWeights}{\mathbf{w}_{\text{col}}}
-\newcommand{\FleetAcceleratorCount}{N_{\text{fleet}}}
 \newcommand{\FleetCommunicationTaxonomyAxis}{C_2}
 \newcommand{\FleetComputeTaxonomyAxis}{C_1}
 \newcommand{\FleetCoordinationTaxonomyAxis}{C_3}
@@ -2546,7 +2538,6 @@ $$
 \newcommand{\FrobeniusNorm}{F}
 \newcommand{\FrozenBackboneFunction}{f}
 \newcommand{\FrozenFeatureEncoder}{f}
-\newcommand{\FrozenWeightMatrix}{\mathbf{W}_{\text{frozen}}}
 \newcommand{\FrustumFeature}{\mathbf{c}_{u, v, k}}
 \newcommand{\FullBatchLoss}{\mathcal{L}_B}
 \newcommand{\FullDatasetSize}{D_{\text{total}}}
@@ -2572,9 +2563,6 @@ $$
 \newcommand{\FusionCandidate}{x_{\text{cand}}}
 \newcommand{\FusionInputList}{\mathcal{L}}
 \newcommand{\FusionInputRank}{r}
-\newcommand{\FusionInputTensor}{\mathbf{X}}
-\newcommand{\FusionIntermediateTensor}{\mathbf{Z}}
-\newcommand{\FusionOutputTensor}{\mathbf{Y}}
 \newcommand{\FutureControlTrajectory}{\mathbf{u}_{[t, \infty)}}
 \newcommand{\FutureTimeInstant}{t'}
 \newcommand{\GaeAdvantageEstimate}{\widehat{A}^{\text{GAE}}}
@@ -2709,7 +2697,6 @@ $$
 \newcommand{\GuardedContactPredicate}{P_{\text{contact}}}
 \newcommand{\GuestImageMemory}{M_{\text{guest}}}
 \newcommand{\GuestKernelBootTime}{T_{\text{kernel}}}
-\newcommand{\HadamardRotationMatrix}{\mathbf{H}}
 \newcommand{\HalfPrecisionGemvIntensity}{I_{\text{GEMV, 16-bit}}}
 \newcommand{\HammingDataBitCount}{n}
 \newcommand{\HandForceCriterion}{F_h}
@@ -2829,7 +2816,6 @@ $$
 \newcommand{\ImageColumnIndex}{w}
 \newcommand{\ImageEpipole}{\mathbf{e}}
 \newcommand{\ImageHeight}{H}
-\newcommand{\ImagePlanePixelCoordinates}{\mathbf{u}_{\text{px}}}
 \newcommand{\ImageRowIndex}{h}
 \newcommand{\ImageTensorElement}{X}
 \newcommand{\ImageWidth}{W}
@@ -3184,7 +3170,6 @@ $$
 \newcommand{\LaterRolloutTurnIndex}{j}
 \newcommand{\LaterStepIndex}{j}
 \newcommand{\LateralClearance}{W_{\text{clear}}}
-\newcommand{\LatestSequentialObservation}{X_m}
 \newcommand{\LayerAllReduceTime}{T_{\text{layer comm}}}
 \newcommand{\LayerBackwardTime}{T_{\text{layer backward}}}
 \newcommand{\LayerCount}{N_L}
@@ -3311,7 +3296,6 @@ $$
 \newcommand{\LoopOrderCount}{N_{\text{order}}}
 \newcommand{\LoopParallelizationChoiceCount}{\mathcal{P}_{\text{parallel}}}
 \newcommand{\LoopTurnCost}{C}
-\newcommand{\Loss}{L}
 \newcommand{\LossAdjointSeed}{\bar{\mathcal{L}}}
 \newcommand{\LossFunction}{\mathcal{L}}
 \newcommand{\LossGradient}{g}
@@ -3358,7 +3342,6 @@ $$
 \newcommand{\MapPoseCovariance}{\boldsymbol{\Sigma}_{\text{map}}}
 \newcommand{\MapReferenceFrame}{\mathcal{F}_{\text{map}}}
 \newcommand{\MappedCommandTap}{a_{\text{cmd}}}
-\newcommand{\MappingSearchSpaceSize}{\mathcal{S}_{\text{mapping}}}
 \newcommand{\MarginalFalseApprovalProbability}{p}
 \newcommand{\MarginalRequestServiceTime}{t_{\text{req}}}
 \newcommand{\MarginalStoppingThreshold}{\epsilon_{\text{stop}}}
@@ -3366,7 +3349,6 @@ $$
 \newcommand{\MarginalizedModelParameters}{\theta'}
 \newcommand{\MarkovDecisionProcess}{\mathcal{M}}
 \newcommand{\MaskTokenIndex}{i}
-\newcommand{\MaskedClientUpdate}{\mathbf{y}}
 \newcommand{\MaskedFinetuningLoss}{\mathcal{L}_{\text{SFT}}}
 \newcommand{\MaskedImitationDataset}{\mathcal{D}_{\text{train}}}
 \newcommand{\MaskedImitationLoss}{\mathcal{L}_{\text{imitation}}}
@@ -3460,12 +3442,10 @@ $$
 \newcommand{\MemoryEntryDeathGeneration}{g_{\text{death}}}
 \newcommand{\MemoryHierarchyLevelCount}{N_{\text{mem}}}
 \newcommand{\MemoryHoldDuringWait}{O_{\text{mem}}}
-\newcommand{\MemoryPlacementCount}{\mathcal{M}_{\text{placement}}}
 \newcommand{\MemorySubsystemEnergy}{E_{\text{memory}}}
 \newcommand{\MergedAttentionOutput}{\mathbf{O}^{\text{new}}}
 \newcommand{\MergedSoftmaxMaximum}{m^{\text{new}}}
 \newcommand{\MergedSoftmaxNormalizer}{z^{\text{new}}}
-\newcommand{\MergedWeightMatrix}{\mathbf{W}_{\text{final}}}
 \newcommand{\MessageInjectionGap}{g}
 \newcommand{\MessageQueueDelay}{T_q}
 \newcommand{\MessageStartupLatency}{\alpha}
@@ -3519,8 +3499,6 @@ $$
 \newcommand{\MlProductivityGoodput}{\text{MPG}}
 \newcommand{\MlpWeightArithmeticIntensity}{I_{\text{MLP}}}
 \newcommand{\MobileBaseBarrierFunction}{h_{\text{base}}}
-\newcommand{\MobilenetWidthMultiplier}{\alpha_{\text{width}}}
-\newcommand{\ModelBandwidthUtilization}{\text{MBU}}
 \newcommand{\ModelCallIndex}{i}
 \newcommand{\ModelCallRequest}{\mathcal{R}}
 \newcommand{\ModelDownloadEnergy}{E_{\text{download}}}
@@ -3593,7 +3571,6 @@ $$
 \newcommand{\NetworkBandwidth}{\text{BW}_{\text{network}}}
 \newcommand{\NetworkDelayStandardDeviation}{\sigma_d}
 \newcommand{\NetworkEnergy}{E_{\text{network}}}
-\newcommand{\NetworkEquipmentPower}{P_{\text{network}}}
 \newcommand{\NetworkFunction}{f_{\text{net}}}
 \newcommand{\NetworkLatency}{L_{\text{lat,network}}}
 \newcommand{\NetworkOutput}{y}
@@ -3604,10 +3581,8 @@ $$
 \newcommand{\NeuronConnectionWeight}{w_{ij}}
 \newcommand{\NeuronIndex}{j}
 \newcommand{\NeuronPreactivation}{z}
-\newcommand{\NewSoftmaxRunningMaximum}{m_{\text{new}}}
 \newcommand{\NextDecisionProcessState}{s'}
 \newcommand{\NextFailureTime}{F}
-\newcommand{\NextLayerActivationMemory}{M_{\text{activations}}^{(\ell+1)}}
 \newcommand{\NextProprioceptiveObservation}{\mathbf{o}_{\text{proprio}, t+1}}
 \newcommand{\NextRobotAction}{\mathbf{a}'}
 \newcommand{\NextTokenDistribution}{p}
@@ -3748,11 +3723,7 @@ $$
 \newcommand{\OffloadTransactionWindow}{W}
 \newcommand{\OhmUnit}{\Omega}
 \newcommand{\OilBulkModulus}{\beta}
-\newcommand{\OldSoftmaxRunningMaximum}{m_{\text{old}}}
 \newcommand{\OnDieDecouplingCapacitance}{C_{\text{die}}}
-\newcommand{\OnlineSoftmaxKeyTile}{\mathbf{K}_{\text{tile}}}
-\newcommand{\OnlineSoftmaxQueryBlock}{\mathbf{Q}_{\text{block}}}
-\newcommand{\OnlineSoftmaxScoreBlock}{\mathbf{A}_{\text{block}}}
 \newcommand{\OpenLoopTransferFunction}{L}
 \newcommand{\OpenLoopTransferMatrix}{\mathbf{L}}
 \newcommand{\OperationChargeBound}{\bar{c}}
@@ -3904,7 +3875,6 @@ $$
 \newcommand{\PathDelayAsymmetry}{\Delta t_{\text{asym}}}
 \newcommand{\PathGridPointCount}{N_{\text{grid}}}
 \newcommand{\PathVelocity}{\dot{s}}
-\newcommand{\PathVelocityField}{v}
 \newcommand{\PathVelocitySquaredTorqueCoefficient}{\mathbf{b}_{\tau}}
 \newcommand{\PayloadGravityTorque}{\tau_{g}}
 \newcommand{\PayloadLeverArm}{r}
@@ -4008,7 +3978,6 @@ $$
 \newcommand{\PixelRowCoordinate}{v}
 \newcommand{\PixelRowStandardDeviation}{\sigma_v}
 \newcommand{\PixelStandardDeviation}{\sigma_u}
-\newcommand{\PlacementChoiceCount}{n}
 \newcommand{\PlaintextInput}{m}
 \newcommand{\PlanAction}{a}
 \newcommand{\PlanarHomographyMatrix}{\mathbf{H}}
@@ -4029,7 +3998,6 @@ $$
 \newcommand{\PlantStateSpace}{\mathcal{X}}
 \newcommand{\PlantTransitionDensity}{p_m}
 \newcommand{\PlantTransitionKernel}{\mathcal{T}}
-\newcommand{\PlatformAnnualOperationsCost}{C_{\text{after}}}
 \newcommand{\PlatformResourceCapacity}{\text{Cap}}
 \newcommand{\PlatformResourceIndex}{i}
 \newcommand{\PlatformTotalCost}{C_{\text{platform}}}
@@ -4202,7 +4170,6 @@ $$
 \newcommand{\ProcessNoiseIntensity}{\mathbf{Q}}
 \newcommand{\ProcessNoiseVector}{\mathbf{w}}
 \newcommand{\ProcessedDataVolume}{D_{\text{vol,processed}}}
-\newcommand{\ProcessedKeyTileIndex}{t}
 \newcommand{\ProcessedSampleCount}{N_{\text{samples}}}
 \newcommand{\ProcessingBufferCount}{N_{\text{processing}}}
 \newcommand{\ProcessingPrice}{R_{\text{process/GB}}}
@@ -4559,7 +4526,6 @@ $$
 \newcommand{\ResidualGate}{g}
 \newcommand{\ResidualPolicyTorque}{\boldsymbol{\tau}_{\text{res},\theta}}
 \newcommand{\ResidualSamplingDistribution}{p_{\text{res}}}
-\newcommand{\ResizedWorkerCount}{N_{\text{new}}}
 \newcommand{\ResolutionScalingRatio}{\gamma}
 \newcommand{\ResourceChangeRate}{r_{\text{chg}}}
 \newcommand{\ResourceCostBudget}{C_{\text{max}}}
@@ -4660,8 +4626,6 @@ $$
 \newcommand{\RolloutTurnIndex}{k}
 \newcommand{\RooflineRidgePoint}{I_{\text{ridge}}}
 \newcommand{\RotaryRotationMatrix}{\mathbf{R}}
-\newcommand{\RotatedActivationMatrix}{\mathbf{X}'}
-\newcommand{\RotatedWeightMatrix}{\mathbf{W}'}
 \newcommand{\RotatingBodyAngularSpeed}{\omega}
 \newcommand{\RotatingBodyInertia}{J}
 \newcommand{\RotationOriginAcceleration}{\mathbf{a}_O}
@@ -4783,7 +4747,6 @@ $$
 \newcommand{\SecondAdjacentCheckIndex}{b}
 \newcommand{\SecondAdjacentCheckPassProbability}{p_{b}}
 \newcommand{\SecondAdjacentCheckSlotTime}{T_{b}}
-\newcommand{\SecondAtomicGradientUpdate}{B}
 \newcommand{\SecondCatalogDefinitionCount}{n_{\text{def},B}}
 \newcommand{\SecondCatalogDefinitionSize}{S_{B}}
 \newcommand{\SecondClassCoverageFloor}{b}
@@ -4842,7 +4805,6 @@ $$
 \newcommand{\SequentialCandidateCount}{M}
 \newcommand{\SequentialCostPerAcceptedTask}{C_{\text{eff,seq}}}
 \newcommand{\SequentialExecutionTime}{T_{\text{sequential}}}
-\newcommand{\SequentialLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialLogLikelihoodRatio}{\Lambda_m}
 \newcommand{\SequentialTestObservation}{X}
 \newcommand{\SequentialTrialCount}{m}
@@ -4928,7 +4890,6 @@ $$
 \newcommand{\SingleJointInertia}{M}
 \newcommand{\SingleJointVelocityLimit}{\dot{q}_{i,\max}}
 \newcommand{\SingleLinkBandwidth}{\text{BW}_{\text{link}}}
-\newcommand{\SinglePrecisionGemvIntensity}{I_{\text{GEMV, 32-bit}}}
 \newcommand{\SingleStepImitationError}{\epsilon}
 \newcommand{\SingularSpectrumMatrix}{\mathbf{\Sigma}}
 \newcommand{\SisaShardCount}{K}
@@ -4956,7 +4917,6 @@ $$
 \newcommand{\SmoothnessConstant}{L_s}
 \newcommand{\SnapshotReadTime}{t_{\text{own}}}
 \newcommand{\SnapshotResetCycleTime}{T_{\text{cycle,snap}}}
-\newcommand{\SnapshotStepIndex}{s}
 \newcommand{\SoftExpectedActionReturn}{Q}
 \newcommand{\SoftExpectedRemainingReturn}{V}
 \newcommand{\SoftenedStudentProbabilityVector}{\mathbf{p}_{\text{student}}^{(T_{\text{distill}})}}
@@ -4967,7 +4927,6 @@ $$
 \newcommand{\SoftmaxNormalizer}{z}
 \newcommand{\SoftmaxOutputProbability}{p}
 \newcommand{\SoftmaxRowMaximum}{m}
-\newcommand{\SoftmaxRowScore}{s}
 \newcommand{\SoftmaxRunningMaximum}{m}
 \newcommand{\SoftmaxVectorLength}{n}
 \newcommand{\SontagStabilizingControl}{\mathbf{u}_{\text{Sontag}}}
@@ -5126,7 +5085,6 @@ $$
 \newcommand{\StorageAccessFactor}{F_{\text{access}}}
 \newcommand{\StorageBandwidth}{\text{BW}_{\text{storage}}}
 \newcommand{\StorageCapacityPrice}{C_{\text{storage/byte-time}}}
-\newcommand{\StorageEquipmentPower}{P_{\text{storage}}}
 \newcommand{\StorageFunction}{V}
 \newcommand{\StorageFunctionDerivative}{\dot{V}}
 \newcommand{\StorageIngestBandwidth}{\text{BW}_{\text{ingest}}}
@@ -5317,7 +5275,6 @@ $$
 \newcommand{\TaskTurnCost}{C_{\text{call}}}
 \newcommand{\TaskWeight}{w}
 \newcommand{\TasksPerComparisonArm}{N_{\text{arm}}}
-\newcommand{\TeacherProbabilityVector}{\mathbf{p}_{\text{teacher}}}
 \newcommand{\TeamQuotaCap}{Q_{\text{team}}}
 \newcommand{\TelemetryFlushTime}{t_{\text{telemetry\_flush}}}
 \newcommand{\TelemetryFreshnessBound}{\Delta t_{\text{fresh}}}
@@ -5368,7 +5325,6 @@ $$
 \newcommand{\ThermalPowerLimit}{P_{\text{thermal}}}
 \newcommand{\ThermalResistance}{R_{\text{th}}}
 \newcommand{\ThermalTimeConstant}{\tau_{\text{th}}}
-\newcommand{\ThirdAtomicGradientUpdate}{C}
 \newcommand{\ThirdFloatingPointAddend}{c}
 \newcommand{\ThirdRingTraceElement}{c}
 \newcommand{\ThresholdExceedanceCount}{N_u}
@@ -5689,7 +5645,6 @@ $$
 \newcommand{\UnprojectionJacobian}{\mathbf{J}_{\text{unproj}}}
 \newcommand{\UnrecoverableDamageCost}{C_{\text{blast}}}
 \newcommand{\UnreservedStopDelay}{\delta}
-\newcommand{\UnscaledAttentionScoreMatrix}{\mathbf{A}}
 \newcommand{\UnshardedLocalExecutionTime}{T_{\text{compute}}}
 \newcommand{\UnsquashedLatentAction}{\mathbf{u}}
 \newcommand{\UntilPrefixTime}{t''}
@@ -5793,7 +5748,6 @@ $$
 \newcommand{\WeightPenaltyStrength}{\lambda_{\text{reg}}}
 \newcommand{\WeightQuantizationScale}{s_W}
 \newcommand{\WeightRangeBound}{W_{\text{max}}}
-\newcommand{\WeightStreamingDecodeTime}{T_{\text{decode}}}
 \newcommand{\WeightVector}{\mathbf{w}}
 \newcommand{\WeightedNormArgument}{\mathbf{z}}
 \newcommand{\WheelAngularSpeed}{\omega}
@@ -5832,9 +5786,7 @@ $$
 \newcommand{\WorkerCompletionDistribution}{F}
 \newcommand{\WorkerCompletionTime}{T}
 \newcommand{\WorkerCount}{N_{\text{workers}}}
-\newcommand{\WorkerDelayProbability}{p}
 \newcommand{\WorkerIndex}{k}
-\newcommand{\WorkerMinibatch}{B}
 \newcommand{\WorkerOverheadSlope}{\gamma}
 \newcommand{\WorkerTransformTime}{T_{\text{transform}}}
 \newcommand{\WorkerWrittenFileCount}{w}
@@ -6081,15 +6033,6 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-takeaways {
-  --color1: #FCF4F8;
-  --color2: #9D3C72;
-  --border-color: #9D3C72;
-  --background-color: rgba(157, 60, 114, 0.04);
-  --title-background-color: rgba(157, 60, 114, 0.04);
-  --dark-background-color: rgba(157, 60, 114, 0.12);
-  --dark-title-background-color: rgba(157, 60, 114, 0.12);
-}
 .callout-caution {
   --color1: #FFFBEB;
   --color2: #D97706;
@@ -6098,6 +6041,33 @@ $$
   --title-background-color: rgba(217, 119, 6, 0.04);
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
 .callout-research-questions {
   --color1: #F0F0F8;
@@ -6108,7 +6078,43 @@ $$
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-resource-slides {
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-warning {
+  --color1: #FEF2F2;
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -6126,50 +6132,14 @@ $$
   --dark-background-color: rgba(63, 96, 119, 0.12);
   --dark-title-background-color: rgba(63, 96, 119, 0.12);
 }
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-case-study {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
 }
 .callout-quiz-question {
   --color1: #F0F0F8;
@@ -6180,23 +6150,23 @@ $$
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
 .callout-chapter-connection {
   --color1: #F1F5F9;
@@ -6216,15 +6186,6 @@ $$
   --dark-background-color: rgba(61, 59, 142, 0.12);
   --dark-title-background-color: rgba(61, 59, 142, 0.12);
 }
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
 .callout-checkpoint {
   --color1: #F7FEE7;
   --color2: #4D7C0F;
@@ -6233,33 +6194,6 @@ $$
   --title-background-color: rgba(77, 124, 15, 0.04);
   --dark-background-color: rgba(77, 124, 15, 0.12);
   --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
 }
 .callout-example {
   --color1: #F0F8F6;
@@ -6270,7 +6204,7 @@ $$
   --dark-background-color: rgba(20, 143, 119, 0.12);
   --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
-.callout-resource-videos {
+.callout-resource-slides {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -6279,32 +6213,36 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-takeaways {
+  --color1: #FCF4F8;
+  --color2: #9D3C72;
+  --border-color: #9D3C72;
+  --background-color: rgba(157, 60, 114, 0.04);
+  --title-background-color: rgba(157, 60, 114, 0.04);
+  --dark-background-color: rgba(157, 60, 114, 0.12);
+  --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
 }
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(157, 60, 114, 0.12);
-    --title-background-color: rgba(157, 60, 114, 0.12);
-    border-color: #9D3C72;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
   details.callout-caution {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -6319,74 +6257,32 @@ $$
   details.callout-caution code {
     color: #e6e6e6 !important;
   }
-  details.callout-research-questions {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-research-questions code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-slides {
+  details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-case-study {
@@ -6403,46 +6299,32 @@ $$
   details.callout-case-study code {
     color: #e6e6e6 !important;
   }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-  details.callout-warning summary,
-  details.callout-warning summary strong,
-  details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
+  details.callout-research-questions {
     --text-color: #e6e6e6;
     --background-color: rgba(91, 75, 138, 0.12);
     --title-background-color: rgba(91, 75, 138, 0.12);
     border-color: #5B4B8A;
   }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-quiz-question code {
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
   details.callout-lighthouse {
@@ -6459,18 +6341,116 @@ $$
   details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-  details.callout-perspective {
+  details.callout-warning {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
   }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
+  details.callout-warning summary,
+  details.callout-warning summary strong,
+  details.callout-warning > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-perspective code {
+  details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
     color: #e6e6e6 !important;
   }
   details.callout-chapter-connection {
@@ -6501,20 +6481,6 @@ $$
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
   details.callout-checkpoint {
     --text-color: #e6e6e6;
     --background-color: rgba(77, 124, 15, 0.12);
@@ -6527,48 +6493,6 @@ $$
     color: #f0f0f0 !important;
   }
   details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
     color: #e6e6e6 !important;
   }
   details.callout-example {
@@ -6585,49 +6509,63 @@ $$
   details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-videos {
+  details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-videos code {
+  details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-war-story {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-}
-body.quarto-dark details.callout-takeaways {
+  details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(157, 60, 114, 0.12);
     --title-background-color: rgba(157, 60, 114, 0.12);
     border-color: #9D3C72;
   }
-body.quarto-dark details.callout-takeaways summary,
-body.quarto-dark details.callout-takeaways summary strong,
-body.quarto-dark details.callout-takeaways > summary {
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-takeaways code {
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+}
 body.quarto-dark details.callout-caution {
     --text-color: #e6e6e6;
     --background-color: rgba(217, 119, 6, 0.12);
@@ -6642,74 +6580,32 @@ body.quarto-dark details.callout-caution > summary {
 body.quarto-dark details.callout-caution code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-research-questions {
+body.quarto-dark details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-research-questions code {
+body.quarto-dark details.callout-definition code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-slides {
+body.quarto-dark details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-theorem code {
+body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-case-study {
@@ -6726,46 +6622,32 @@ body.quarto-dark details.callout-case-study > summary {
 body.quarto-dark details.callout-case-study code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-body.quarto-dark details.callout-warning summary,
-body.quarto-dark details.callout-warning summary strong,
-body.quarto-dark details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-question {
+body.quarto-dark details.callout-research-questions {
     --text-color: #e6e6e6;
     --background-color: rgba(91, 75, 138, 0.12);
     --title-background-color: rgba(91, 75, 138, 0.12);
     border-color: #5B4B8A;
   }
-body.quarto-dark details.callout-quiz-question summary,
-body.quarto-dark details.callout-quiz-question summary strong,
-body.quarto-dark details.callout-quiz-question > summary {
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-quiz-question code {
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-lighthouse {
@@ -6782,18 +6664,116 @@ body.quarto-dark details.callout-lighthouse > summary {
 body.quarto-dark details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-perspective {
+body.quarto-dark details.callout-warning {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
   }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
+body.quarto-dark details.callout-warning summary,
+body.quarto-dark details.callout-warning summary strong,
+body.quarto-dark details.callout-warning > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-perspective code {
+body.quarto-dark details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-chapter-connection {
@@ -6824,20 +6804,6 @@ body.quarto-dark details.callout-principle > summary {
 body.quarto-dark details.callout-principle code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
 body.quarto-dark details.callout-checkpoint {
     --text-color: #e6e6e6;
     --background-color: rgba(77, 124, 15, 0.12);
@@ -6850,48 +6816,6 @@ body.quarto-dark details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
 body.quarto-dark details.callout-checkpoint code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-code code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-example {
@@ -6908,74 +6832,108 @@ body.quarto-dark details.callout-example > summary {
 body.quarto-dark details.callout-example code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-videos {
+body.quarto-dark details.callout-resource-slides {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-videos code {
+body.quarto-dark details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-colab {
+body.quarto-dark details.callout-war-story {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
   }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-colab code {
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+body.quarto-dark details.callout-takeaways summary,
+body.quarto-dark details.callout-takeaways summary strong,
+body.quarto-dark details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
     color: #e6e6e6 !important;
   }
 </style>
 <style>
-details.callout-takeaways > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
-}
 details.callout-caution > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
 }
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
 }
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-case-study > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
 }
-details.callout-warning > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
 }
 details.callout-lighthouse > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+details.callout-warning > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
 details.callout-chapter-connection > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
@@ -6983,29 +6941,23 @@ details.callout-chapter-connection > summary::before {
 details.callout-principle > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
-}
 details.callout-checkpoint > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
 }
 details.callout-example > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
 }
 </style>
     <style type="text/css">
@@ -7084,71 +7036,36 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">Concept Explorer</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
     <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume I: Foundations</span></a>
+ <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume II: Scaling</span></a>
+ <span class="dropdown-text">Volume II: Scaling Machine Learning Systems (preview)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol3/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume III: Agentic (Draft)</span></a>
+ <span class="dropdown-text">Volume III: Agentic Machine Learning Systems (in preparation)</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../vol4/"><i class="bi bi-journal" role="img">
 </i> 
- <span class="dropdown-text">Volume IV: Physical AI (Draft)</span></a>
+ <span class="dropdown-text">Volume IV: Physical AI (in preparation)</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/tinytorch/"><i class="bi bi-fire" role="img">
 </i> 
  <span class="dropdown-text">TinyTorch (Standalone Book)</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume I PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol1/assets/downloads/Machine-Learning-Systems-Vol1.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume I EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume II PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../assets/downloads/Machine-Learning-Systems-Vol2.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume II EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume III PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol3/assets/downloads/Machine-Learning-Systems-Vol3.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume III EPUB</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.pdf" target="_blank"><i class="bi bi-file-pdf" role="img">
-</i> 
- <span class="dropdown-text">Volume IV PDF</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../vol4/assets/downloads/Machine-Learning-Systems-Vol4.epub" target="_blank"><i class="bi bi-book" role="img">
-</i> 
- <span class="dropdown-text">Volume IV EPUB</span></a>
   </li>  
     </ul>
   </li>
@@ -7190,24 +7107,19 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-teach">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/instructors/course-map.html"><i class="bi bi-signpost-split" role="img">
-</i> 
- <span class="dropdown-text">CS249r Course Map</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
-</i> 
- <span class="dropdown-text">Lecture Slides</span></a>
-  </li>  
-        <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/instructors/"><i class="bi bi-person-video3" role="img">
 </i> 
  <span class="dropdown-text">Instructor Hub</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/community/courses.html"><i class="bi bi-mortarboard" role="img">
+    <a class="dropdown-item" href="https://mlsysbook.ai/courses/"><i class="bi bi-mortarboard" role="img">
 </i> 
- <span class="dropdown-text">Courses Using the Book</span></a>
+ <span class="dropdown-text">Courses</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/slides/"><i class="bi bi-easel" role="img">
+</i> 
+ <span class="dropdown-text">Lecture Slides</span></a>
   </li>  
     </ul>
   </li>
@@ -7363,9 +7275,9 @@ window.Quarto = {
         </a>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="2bc758b427909bb9600f57b376922af7" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">aaa7266e</code> • 2026-10-16 16:04 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p>📘 <strong>PREVIEW — Volume II: Scaling.</strong> Distributed training, fleet operations, and responsible deployment.<br> 📗 <strong>First time here?</strong> Start with <a href="../../vol1/">Volume I: Foundations</a> — open access, free forever.<br> 🛠️ <strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)<br> 📬 <strong>Newsletter:</strong> ML Systems insights &amp; updates — <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></p>
+  <div id="quarto-announcement" data-announcement-id="9c145efac03bb5424d6029abc27a61ba" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p><span class="mls-ann-line"><strong>Scaling Machine Learning Systems (Volume II), preview edition.</strong> Distributed training, fleet operations, and responsible deployment.</span> <span class="mls-ann-line"><strong>Companion volume:</strong> <a href="../../vol1/">Introduction to Machine Learning Systems (Volume I)</a>, on machine learning systems on a single machine. Both volumes are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore) · <a href="https://mlsysbook.ai/staffml/">StaffML</a> (practice)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
@@ -7721,13 +7633,17 @@ window.Quarto = {
 <p>In a distributed training cluster, “it is slow” is even less informative than on a single machine. A job can stall because accelerators are underutilized (Compute), gradient synchronization saturates interconnects (Communication), or checkpointing and recovery delay progress (Coordination). This appendix extends single-node diagnostics to fleet-scale infrastructure, providing the C<span class="math inline">\(^3\)</span> scorecard used throughout the book to isolate the binding bottleneck across distributed systems.</p>
 <section id="how-to-use-this-appendix" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="how-to-use-this-appendix">How to Use This Appendix</h2>
-<p>This appendix is designed as a reference. Start with the diagnostic summary table, form a hypothesis about which C<span class="math inline">\(^3\)</span> axis dominates, and then pick the tool that can confirm (or falsify) that hypothesis.</p>
-<p>When training throughput is low, check model FLOPs utilization (MFU), communication fraction, and runtime goodput, then map each to its compute, communication, or coordination axis. When scaling efficiency drops below expectations, use the Fleet Law decomposition to identify which term grew. When cost is exploding, use the C<span class="math inline">\(^3\)</span> scorecard to ensure that effort targets the dominant term, not a nonbottleneck.</p>
-<p>The <strong>C<span class="math inline">\(^3\)</span> taxonomy</strong> is the diagnostic framework for fleet-scale ML systems engineering. Where the single-machine D·A·M framework (<strong><a href="../vol1/backmatter/appendix_dam.html#sec-appdx-dam-taxonomy">The D·A·M Taxonomy</a></strong>) diagnoses bottlenecks within a single node (data starvation, algorithmic overhead, or hardware saturation), the C<span class="math inline">\(^3\)</span> taxonomy diagnoses bottlenecks across the distributed fleet. Most fleet-scale performance problems can be diagnosed by identifying the dominant axis: Compute (are the accelerators doing useful math?), Communication (is the network moving data fast enough?), or Coordination (is the system spending too much time on synchronization, failure recovery, and scheduling?). Many production bottlenecks sit at intersections between these axes.</p>
+<p>This appendix is designed as a symptom-first reference for fleet-scale diagnosis. Start with the observed failure mode, form a hypothesis about which C<span class="math inline">\(^3\)</span> axis dominates, and select the measurement that confirms or falsifies that hypothesis:</p>
+<ul>
+<li><strong>When training throughput is low</strong>: Check model FLOPs utilization (MFU), communication fraction, and runtime goodput in the diagnostic summary (<a href="#sec-appdx-c3-taxonomy-diagnostic-summary" class="quarto-xref">section&nbsp;1.2</a>) and traffic light thresholds (<a href="#sec-appdx-c3-taxonomy-traffic-light" class="quarto-xref">section&nbsp;1.4.7</a>) to isolate the compute, communication, or coordination axis.</li>
+<li><strong>When scaling efficiency drops as GPUs are added</strong>: Use the Fleet Law decomposition (<a href="#sec-appdx-c3-taxonomy-fleet-law" class="quarto-xref">section&nbsp;1.3</a>) and the intersection landscape (<a href="#sec-appdx-c3-taxonomy-intersection-landscape" class="quarto-xref">section&nbsp;1.4</a>) to identify which noncompute term grew.</li>
+<li><strong>When a production job stalls, restarts, or fires hardware alerts</strong>: Match the symptom in the troubleshooting matrix (<a href="#sec-appdx-c3-taxonomy-production-troubleshooting" class="quarto-xref">section&nbsp;1.6</a>), select a profiler from the tooling map (<a href="#sec-appdx-c3-taxonomy-tooling-map" class="quarto-xref">section&nbsp;1.7</a>), or trace silicon counters through the telemetry decision tree (<a href="#sec-appdx-c3-diagnostic-tree" class="quarto-xref">section&nbsp;1.9</a>).</li>
+<li><strong>When translating a scaling-law compute budget into cluster capacity</strong>: Use the C<span class="math inline">\(^3\)</span> scorecard (<a href="#sec-appdx-c3-taxonomy-scorecard" class="quarto-xref">section&nbsp;1.8</a>) and the effective FLOP/s model (<a href="#sec-appdx-c3-taxonomy-scaling-laws" class="quarto-xref">section&nbsp;1.10</a>) so optimization effort targets the dominant loss term rather than a nonbottleneck.</li>
+</ul>
 </section>
 <section id="sec-appdx-c3-taxonomy-from-dam" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-from-dam">From D·A·M to C<span class="math inline">\(^3\)</span></h2>
-<p>The C<span class="math inline">\(^3\)</span> taxonomy does not replace D·A·M; it extends it. When a workload moves from one machine to a fleet, each D·A·M axis acquires new failure modes that the single-machine framework cannot capture, and <a href="#tbl-c3-dam-mapping" class="quarto-xref">table&nbsp;1</a> traces each axis to the C<span class="math inline">\(^3\)</span> dimension that inherits it.</p>
+<p>Where the single-machine D·A·M framework (<strong><a href="../vol1/backmatter/appendix_dam.html#sec-appdx-dam-taxonomy">The D·A·M Taxonomy</a></strong>) diagnoses bottlenecks within one node (data starvation, algorithmic overhead, or hardware saturation), a distributed job can stall even when every individual node is healthy. The <strong>C<span class="math inline">\(^3\)</span> taxonomy</strong> is the diagnostic framework for fleet-scale ML systems engineering. It isolates the dominant cluster-level axis across Compute (whether the accelerators are doing useful math), Communication (whether the network is moving data fast enough), and Coordination (whether the system is spending too much time on synchronization, failure recovery, and scheduling), along with the intersections between them. Rather than replacing D·A·M, C<span class="math inline">\(^3\)</span> extends each single-machine axis to the new failure modes that appear when a workload spans a fleet (<a href="#tbl-c3-dam-mapping" class="quarto-xref">table&nbsp;1</a>).</p>
 <div id="tbl-c3-dam-mapping" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[15,28,22,35]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-dam-mapping-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7777,7 +7693,7 @@ Table&nbsp;1: <strong>Mapping D·A·M to C<span class="math inline">\(^3\)</span
 </section>
 <section id="sec-appdx-c3-taxonomy-diagnostic-summary" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-diagnostic-summary">Diagnostic Summary</h2>
-<p>With the mapping in place, diagnosis becomes a matter of matching symptoms to the axis that constrains the fleet. Each C<span class="math inline">\(^3\)</span> axis maps to a physical constraint, observable symptoms, measurable metrics, and engineering levers, and <a href="#tbl-c3-diagnostic-summary" class="quarto-xref">table&nbsp;2</a> collects these mappings as the main reference for fleet-scale diagnosis.</p>
+<p>When a distributed training job runs below expected throughput, the symptom appears first as idle tensor cores, exposed collective transfers, or frequent barrier and restart stalls. Matching that symptom to the C<span class="math inline">\(^3\)</span> axis that constrains the fleet links each physical bottleneck directly to its headline metric and highest-leverage optimization (<a href="#tbl-c3-diagnostic-summary" class="quarto-xref">table&nbsp;2</a>).</p>
 <div id="tbl-c3-diagnostic-summary" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-diagnostic-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7850,7 +7766,7 @@ Table&nbsp;2: <strong>C<span class="math inline">\(^3\)</span> Diagnostic Summar
 </section>
 <section id="sec-appdx-c3-taxonomy-intersection-landscape" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-intersection-landscape">C<span class="math inline">\(^3\)</span> Intersections</h2>
-<p>In a production cluster, a stalled training step rarely comes from a single isolated resource; a slow collective can idle tensor cores while a synchronous checkpoint write blocks both the GPUs and the network fabric. The Venn diagram in <strong><a href="../01_introduction/01_introduction.html#fig-c3-taxonomy">The C^3 Intersection Landscape</a></strong> maps how distributed execution spans the node substrate (<span class="math inline">\(\FleetComputeTaxonomyAxis\)</span>), the networking backbone (<span class="math inline">\(\FleetCommunicationTaxonomyAxis\)</span>), and the orchestration layer (<span class="math inline">\(\FleetCoordinationTaxonomyAxis\)</span>). Because real bottlenecks arise at the pairwise and central boundaries where two or more of these dimensions compound, diagnosing them requires mapping observed symptoms back to the governing intersection before selecting an engineering fix. <a href="#tbl-c3-intersections" class="quarto-xref">Table&nbsp;3</a> expands the three pure dimensions, the three pairwise boundaries, and the central convergence into concrete engineering techniques and their primary book chapters.</p>
+<p>In a production cluster, a stalled training step rarely comes from a single isolated resource; a slow collective can idle tensor cores while a synchronous checkpoint write blocks both the GPUs and the network fabric. The Venn diagram in <strong><a href="../01_introduction/01_introduction.html#fig-c3-taxonomy">The C^3 Intersection Landscape</a></strong> maps how distributed execution spans the node substrate (<span class="math inline">\(\FleetComputeTaxonomyAxis\)</span>), the networking backbone (<span class="math inline">\(\FleetCommunicationTaxonomyAxis\)</span>), and the orchestration layer (<span class="math inline">\(\FleetCoordinationTaxonomyAxis\)</span>). Because real bottlenecks arise at the pairwise and central boundaries where two or more of these dimensions compound, diagnosing them requires mapping observed symptoms back to the governing intersection and the engineering techniques that address it (<a href="#tbl-c3-intersections" class="quarto-xref">table&nbsp;3</a>).</p>
 <div id="tbl-c3-intersections" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[22,20,36,22]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-intersections-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -7923,7 +7839,7 @@ Table&nbsp;3: <strong>C<span class="math inline">\(^3\)</span> Intersection Refe
 <section id="sec-appdx-c3-taxonomy-comp-comm" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-comp-comm">Compute <span class="math inline">\(\cap\)</span> communication</h3>
 <p>When a GPU finishes its backward pass in 40 ms but waits 60 ms for an AllReduce collective to return gradients over the network, its tensor cores sit idle even though both the compute kernels and the links are working as specified. This intersection governs whether the system can hide communication behind computation. The communication-to-compute ratio (<span class="math inline">\(\CommunicationComputeRatio= \CommunicationTime(\DeviceCount)/(\IronLawComputeTime/\DeviceCount)\)</span>) is the key diagnostic metric (<strong><a href="appendix_fleet.html#sec-appdx-fleet-foundations-comm-compute-ratio">The communication-computation ratio</a></strong>). When <span class="math inline">\(\CommunicationComputeRatio&lt; 1\)</span>, computation takes longer than communication and there is enough arithmetic duration to hide the transfer in principle; dependencies and resource contention determine whether that overlap is achievable. When <span class="math inline">\(\CommunicationComputeRatio&gt; 1\)</span>, GPUs complete their local work before the network delivers the next round of operands, and the system becomes communication-bound.</p>
-<p>In a GPU trace, this bottleneck appears as exposed communication intervals where tensor cores sit idle awaiting collective completion (such as <code>ncclKernel_AllReduce</code> or <code>ncclKernel_AllGather</code>). Engineering at this intersection focuses on overlap and compression: launching AllReduce during the backward pass before all gradients are finalized, pipelining activation transfers in 1F1B schedules, increasing microbatch sizes or gradient accumulation steps to dilute communication frequency, and applying wire quantization to reduce payload bytes, while accounting for metadata, codec time, and numerical error (<strong><a href="../05_collective_communication/05_collective_communication.html#sec-collective-communication">Collective Communication</a></strong>, <strong><a href="../06_distributed_training/06_distributed_training.html#sec-distributed-training-systems">Distributed Training</a></strong>).</p>
+<p>In a GPU trace, this bottleneck appears as exposed communication intervals where tensor cores sit idle awaiting collective completion (such as <code>ncclKernel_AllReduce</code> or <code>ncclKernel_AllGather</code>). Engineering at this intersection focuses on overlap and compression. Engineers launch AllReduce during the backward pass before all gradients are finalized, pipeline activation transfers in 1F1B schedules, and increase microbatch sizes or gradient accumulation steps to dilute communication frequency. They also apply wire quantization to reduce payload bytes, while accounting for metadata, codec time, and numerical error (<strong><a href="../05_collective_communication/05_collective_communication.html#sec-collective-communication">Collective Communication</a></strong>, <strong><a href="../06_distributed_training/06_distributed_training.html#sec-distributed-training-systems">Distributed Training</a></strong>).</p>
 </section>
 <section id="sec-appdx-c3-taxonomy-comp-coord" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-comp-coord">Compute <span class="math inline">\(\cap\)</span> coordination</h3>
@@ -7937,7 +7853,7 @@ Table&nbsp;3: <strong>C<span class="math inline">\(^3\)</span> Intersection Refe
 <section id="sec-appdx-c3-taxonomy-comm-coord" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-comm-coord">Communication <span class="math inline">\(\cap\)</span> coordination</h3>
 <p>When a single GPU or network link drops packets or throttles its clock during an AllReduce collective, every other rank in the group must wait at the dependency boundary before the next step can proceed. This intersection captures the synchronization cost embedded in network communication. A collective operation (AllReduce, AllGather, ReduceScatter) moves data over physical wires (<span class="math inline">\(\FleetCommunicationTaxonomyAxis\)</span>) while creating dependencies among its participating ranks (<span class="math inline">\(\FleetCoordinationTaxonomyAxis\)</span>). It need not impose a separate cluster-wide barrier, but a delayed contribution can prevent dependent outputs from becoming ready.</p>
-<p>The governing failure mode is that one slow participant paces the whole collective. If a single GPU or link experiences packet drops, thermal throttling, or ECC retry delays, every other GPU in the collective waits, transforming a localized degradation into a cluster-wide halt. At fleet scale (<span class="math inline">\(\DeviceCount\ge 10{,}000\)</span>), tail latency dominates the barrier time, because the probability that at least one node straggles approaches unity (<span class="math inline">\(1 - (1 - \NodeStragglerProbability)^\DeviceCount\to 1\)</span>). Engineering at this intersection focuses on decoupling synchronization from raw communication: using hierarchical collectives that isolate high-bandwidth intra-node NVLink domains from inter-node InfiniBand fabrics, adopting bounded-staleness asynchronous training to absorb transient tail latency, and enforcing topology-aware gang scheduling to align collective communication rings with physical spine-leaf switch rails (<strong><a href="../05_collective_communication/05_collective_communication.html#sec-collective-communication">Collective Communication</a></strong>, <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong>).</p>
+<p>The governing failure mode is that one slow participant paces the whole collective. If a single GPU or link experiences packet drops, thermal throttling, or ECC retry delays, every other GPU in the collective waits, transforming a localized degradation into a cluster-wide halt. At fleet scale (<span class="math inline">\(\DeviceCount\ge 10{,}000\)</span>), tail latency dominates the barrier time, because the probability that at least one node straggles approaches unity (<span class="math inline">\(1 - (1 - \NodeStragglerProbability)^\DeviceCount\to 1\)</span>). Engineering at this intersection focuses on decoupling synchronization from raw communication. Hierarchical collectives isolate high-bandwidth intra-node NVLink domains from inter-node InfiniBand fabrics. Bounded-staleness asynchronous training absorbs transient tail latency. Topology-aware gang scheduling aligns collective communication rings with physical spine-leaf switch rails (<strong><a href="../05_collective_communication/05_collective_communication.html#sec-collective-communication">Collective Communication</a></strong>, <strong><a href="../07_fault_tolerance/07_fault_tolerance.html#sec-fault-tolerance-reliability">Fault Tolerance</a></strong>).</p>
 </section>
 <section id="sec-appdx-c3-taxonomy-triple-intersection" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-triple-intersection">Fleet-scale ML systems engineering</h3>
@@ -8071,7 +7987,7 @@ Table&nbsp;5: <strong>C<span class="math inline">\(^3\)</span> Traffic Light</st
 </section>
 <section id="sec-appdx-c3-taxonomy-bottleneck-table" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-bottleneck-table">The bottleneck diagnostic table</h3>
-<p>An optimization pays only when it shortens the term that binds, so the diagnosed axis decides which levers are worth pulling. <a href="#tbl-c3-bottleneck-actions" class="quarto-xref">Table&nbsp;6</a> pairs each axis with the optimizations that help and those that are wasted.</p>
+<p>An optimization pays only when it shortens the term that binds: upgrading to faster GPUs in a communication-bound fleet or adding network bandwidth to a compute-bound fleet leaves step time flat (<a href="#tbl-c3-bottleneck-actions" class="quarto-xref">table&nbsp;6</a>).</p>
 <div id="tbl-c3-bottleneck-actions" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[19,11,35,35]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-bottleneck-actions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8121,7 +8037,7 @@ Table&nbsp;6: <strong>What Works vs.&nbsp;What Is Wasted at Fleet Scale</strong>
 </section>
 <section id="sec-appdx-c3-taxonomy-case-studies" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-case-studies">C<span class="math inline">\(^3\)</span> Case Studies</h2>
-<p>Theoretical constraints manifest as confusing symptoms in production. These scenarios illustrate how to apply the C<span class="math inline">\(^3\)</span> taxonomy to fleet-scale performance problems. Each case isolates one dominant axis before showing which optimization levers follow from that diagnosis.</p>
+<p>In production, two clusters with the same slow step time can require opposite fixes depending on whether the stall comes from low per-GPU kernel utilization, exposed gradient synchronization, or frequent recovery restarts. The three cases below isolate one dominant C<span class="math inline">\(^3\)</span> axis at a time and trace the diagnosis from initial symptom to targeted fix.</p>
 <section id="sec-appdx-c3-taxonomy-case-1" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-case-1">Case 1 on the underutilized compute fleet</h3>
 <section id="symptom" class="level4 unnumbered">
@@ -8172,7 +8088,7 @@ Table&nbsp;6: <strong>What Works vs.&nbsp;What Is Wasted at Fleet Scale</strong>
 </section>
 <section id="diagnosis-2" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="diagnosis-2">Diagnosis</h4>
-<p>The <strong>Coordination</strong> axis dominates. Although per-GPU computation and inter-node communication are both efficient, nonproductive overhead consumes 40 percent of wall time: scheduler preemptions take 17 percent, failure recovery takes 10 percent (because at 10,000 GPUs, GPU failures occur about every 5 hours), pipeline bubbles take 5 percent, checkpoint writes take 3 percent, and maintenance windows take 5 percent. Because faster arithmetic alone cannot recover this lost time, checkpoint bandwidth, recovery mechanisms, and scheduling must be evaluated against the specific overhead each can reduce.</p>
+<p>The <strong>Coordination</strong> axis dominates. Although per-GPU computation and inter-node communication are both efficient, nonproductive overhead consumes 40 percent of wall time. Scheduler preemptions take 17 percent, and failure recovery takes 10 percent (because at 10,000 GPUs, GPU failures occur about every 5 hours). Pipeline bubbles take 5 percent, checkpoint writes take 3 percent, and maintenance windows take 5 percent. Because faster arithmetic alone cannot recover this lost time, checkpoint bandwidth, recovery mechanisms, and scheduling must be evaluated against the specific overhead each can reduce.</p>
 </section>
 <section id="the-fix-2" class="level4 unnumbered">
 <h4 class="unnumbered anchored" data-anchor-id="the-fix-2">The fix</h4>
@@ -8263,7 +8179,7 @@ Table&nbsp;7: <strong>C<span class="math inline">\(^3\)</span> Troubleshooting M
 </section>
 <section id="sec-appdx-c3-taxonomy-tooling-map" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-tooling-map">Tooling Map</h2>
-<p>Engineers must measure abstract C<span class="math inline">\(^3\)</span> axes with concrete profiling tools. <a href="#tbl-c3-tooling" class="quarto-xref">Table&nbsp;8</a> maps each axis to the utilities that confirm or falsify a hypothesis.</p>
+<p>Confirming a candidate C<span class="math inline">\(^3\)</span> bottleneck requires inspecting the layer where that constraint lives: per-GPU kernel profilers for Compute, collective and fabric counters for Communication, and scheduler and goodput logs for Coordination (<a href="#tbl-c3-tooling" class="quarto-xref">table&nbsp;8</a>).</p>
 <div id="tbl-c3-tooling" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-tooling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8312,7 +8228,7 @@ Table&nbsp;8: <strong>C<span class="math inline">\(^3\)</span> Tooling Map</stro
 </section>
 <section id="sec-appdx-c3-taxonomy-scorecard" class="level2">
 <h2 class="anchored" data-anchor-id="sec-appdx-c3-taxonomy-scorecard">C<span class="math inline">\(^3\)</span> Scorecard</h2>
-<p>The C<span class="math inline">\(^3\)</span> scorecard grades fleet efficiency against known thresholds, extending the single-machine scorecard (<strong><a href="appendix_dam.html#sec-appdx-dam-taxonomy-dam-scorecard">D·A·M Scorecard</a></strong>) to the distributed environment. <a href="#tbl-c3-scorecard" class="quarto-xref">Table&nbsp;9</a> defines the three metrics that characterize fleet health.</p>
+<p>Once profiling tools supply the raw counters, three fleet-level efficiency ratios extend the single-machine scorecard (<strong><a href="appendix_dam.html#sec-appdx-dam-taxonomy-dam-scorecard">D·A·M Scorecard</a></strong>) to grade distributed cluster health against production thresholds (<a href="#tbl-c3-scorecard" class="quarto-xref">table&nbsp;9</a>).</p>
 <div id="tbl-c3-scorecard" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[16,21,29,17,17]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-scorecard-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8380,7 +8296,7 @@ Table&nbsp;9: <strong>The C<span class="math inline">\(^3\)</span> Efficiency Ru
 <section id="sec-appdx-c3-diagnostic-tree-details" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-diagnostic-tree-details">Diagnostic decision tree</h3>
 <p>Triage starts from whichever telemetry source shows the anomaly and narrows to the specific signal before naming the binding axis (<a href="#fig-c3-telemetry-decision-tree" class="quarto-xref">figure&nbsp;1</a>). A node-side signal points to the compute axis, while a network-side signal separates fabric congestion, a communication cost, from a single straggler that holds every rank at the barrier, a coordination cost.</p>
-<div id="fig-c3-telemetry-decision-tree" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" alt="Four-level tree. A top box, telemetry anomaly, step time or MFU off baseline, splits into node telemetry (MFU, temperature, PCIe errors) and network telemetry (pause frames, credits, step tails). Node telemetry splits into two red signal boxes, thermal throttle (GPU above 85 degrees C) and PCIe AER retries (link width below x16), each leading to a blue box labeled Compute C1, with clock throttling and host link degraded. Network telemetry splits into two red signal boxes, IB credit stalls (PFC pause frames) leading to an amber box labeled Communication C2, fabric congestion, and high tail latency (one rank always last) leading to a violet box labeled Coordination C3, straggler at barrier." data-fig-pos="htb">
+<div id="fig-c3-telemetry-decision-tree" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four-level tree. A top box, telemetry anomaly, step time or MFU off baseline, splits into node telemetry (MFU, temperature, PCIe errors) and network telemetry (pause frames, credits, step tails). Node telemetry splits into two red signal boxes, thermal throttle (GPU above 85 degrees C) and PCIe AER retries (link width below x16), each leading to a blue box labeled Compute C1, with clock throttling and host link degraded. Network telemetry splits into two red signal boxes, IB credit stalls (PFC pause frames) leading to an amber box labeled Communication C2, fabric congestion, and high tail latency (one rank always last) leading to a violet box labeled Coordination C3, straggler at barrier." data-fig-pos="htb" data-fig-env="figure">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-c3-telemetry-decision-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/c3-telemetry-decision-tree.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Telemetry-First Triage: An anomaly is traced first to the telemetry source that shows it, then to the specific signal, and only then to the C^3 axis that binds. Thermal throttling and PCIe link degradation both lower per-device throughput and so point to compute, credit stalls point to communication, and a single rank that is always last points to coordination. The 85 °C threshold is illustrative."><img src="images/svg/c3-telemetry-decision-tree.svg" class="img-fluid figure-img"></a>
@@ -8393,7 +8309,7 @@ Figure&nbsp;1: <strong>Telemetry-First Triage</strong>: An anomaly is traced fir
 </section>
 <section id="sec-appdx-c3-telemetry-table" class="level3">
 <h3 class="anchored" data-anchor-id="sec-appdx-c3-telemetry-table">Structured diagnostic telemetry table</h3>
-<p><a href="#tbl-c3-telemetry-diagnostic" class="quarto-xref">Table&nbsp;10</a> maps hardware-level telemetry counters to root causes, C<span class="math inline">\(^3\)</span> axes, and concrete operational remediations. Pairing each counter with its physical subsystem lets automated health checks route alerts to the right repair workflow without manual guesswork.</p>
+<p>Once the decision tree isolates the anomalous hardware or OS counter, pairing that counter with its physical subsystem lets automated health checks route the alert directly to the appropriate repair workflow (<a href="#tbl-c3-telemetry-diagnostic" class="quarto-xref">table&nbsp;10</a>).</p>
 <div id="tbl-c3-telemetry-diagnostic" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-c3-telemetry-diagnostic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -8529,7 +8445,7 @@ Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor C
 <div id="psp-appendix-c3-tax-100000-gpu-cluster" class="callout callout-perspective" title="Compound C³ loss on a 100,000-GPU cluster">
 <p></p><details class="callout-perspective fbx-simplebox fbx-default" open=""><summary><strong>Systems Perspective 1.1: Compound C³ loss on a 100,000-GPU cluster</strong></summary><div>Consider a 100,000-GPU H100 cluster with 98,900 PFLOP/s of peak aggregate throughput. After the three disjoint C<span class="math inline">\(^3\)</span> efficiency factors:<p></p>
 <p><span class="math display">\[\text{Effective} = 98,900 PFLOP/s \times 0.50 \times 0.56 \times 0.65 \approx 17999.8 PFLOP/s\]</span></p>
-<p>The fleet delivers 18.2 percent of its peak capacity as useful training work. The <strong>compound C<span class="math inline">\(^3\)</span> loss</strong>, the ratio of peak to effective compute, is 5.5×, so achieving a given effective compute budget requires 5.5× the raw hardware: the compute phase retains a 50 percent efficiency factor, the distributed step retains a 56 percent scaling factor (using the modeled 8,192-GPU tier as an illustrative proxy that includes pipeline losses), and runtime goodput retains a 65 percent factor after checkpoints, failures, scheduler preemptions, and maintenance.</p>
+<p>The fleet delivers 18.2 percent of its peak capacity as useful training work. The <strong>compound C<span class="math inline">\(^3\)</span> loss</strong>, the ratio of peak to effective compute, is 5.5×, so achieving a given effective compute budget requires 5.5× the raw hardware. The compute phase retains a 50 percent efficiency factor, and the distributed step retains a 56 percent scaling factor (using the modeled 8,192-GPU tier as an illustrative proxy that includes pipeline losses). Runtime goodput retains a 65 percent factor after checkpoints, failures, scheduler preemptions, and maintenance.</p>
 <p>These losses reflect the physics of fleet-scale computation rather than a failure of engineering. The C<span class="math inline">\(^3\)</span> taxonomy quantifies where the losses occur so that optimization effort targets the dominant term.</p>
 </div></details>
 </div>
@@ -8937,10 +8853,10 @@ Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor C
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC-BY-NC-SA 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
+<p>© 2024-2026 Harvard University. Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/">CC BY-NC-ND 4.0</a><br> <!-- MLSB_BUILD_STAMP --></p>
 </div>   
     <div class="nav-footer-center">
-<p><a href="../vol1/">← Volume I: Foundations</a> · <a href="../vol3/">Volume III: Agentic (Draft) →</a></p>
+<p><a href="../vol1/">← Volume I: Introduction to Machine Learning Systems</a><span class="mls-unreleased"> · <a href="../vol3/">Volume III: Agentic Machine Learning Systems (in preparation) →</a></span></p>
 </div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">
