@@ -47,9 +47,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="/instructors/site_libs/quarto-html/quarto-syntax-highlighting-1ee4699e7f90467581992734277a506a.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="/instructors/site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="/instructors/site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="/instructors/site_libs/bootstrap/bootstrap-22e459481b79d7f9901a8cf4c0e954f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="/instructors/site_libs/bootstrap/bootstrap-dark-1e29d662dfb80c5437c6d8d9a8e7aded.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="/instructors/site_libs/bootstrap/bootstrap-22e459481b79d7f9901a8cf4c0e954f1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="/instructors/site_libs/bootstrap/bootstrap-c60a83902d5f9a3deb0dfd9a8136bfb2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="/instructors/site_libs/bootstrap/bootstrap-dark-c0904f6ac2b935d7d7f233c35b27fa79.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="/instructors/site_libs/bootstrap/bootstrap-c60a83902d5f9a3deb0dfd9a8136bfb2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -105,10 +105,26 @@ ul.task-list li input[type="checkbox"] {
   html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol4.html"]),
   html.mls-staging .mls-live-only {
     display: none !important;
   }
 </style>
+<script>
+// On the live site, an inline link into an unreleased volume (its book or
+// its slide deck) would 404, so it is unwrapped to plain text in place.
+// Navigation chrome is left alone: the :has() rules above hide it by its link.
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.documentElement.classList.contains('mls-staging')) return;
+  var dead = /^\/(vol3|vol4)(\/|$)|^\/slides\/vol[34]\.html$/;
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    if (a.hostname !== window.location.hostname || !dead.test(a.pathname)) return;
+    if (a.closest('nav, .navbar, .sidebar, .nav-page, .mls-unreleased')) return;
+    a.replaceWith.apply(a, Array.prototype.slice.call(a.childNodes));
+  });
+});
+</script>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -969,7 +985,7 @@ ul.task-list li input[type="checkbox"] {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="d5c0756c41f6cc205833da8ed7e6a62d" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 06:21 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">2e18a0c8</code> • 2026-10-26 05:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><span class="mls-ann-line"><strong>Instructor Hub</strong>: a syllabus for each course, with weekly readings and slides.</span> <span class="mls-ann-line"><strong>The books:</strong> <a href="../vol1/">Introduction to Machine Learning Systems</a> · <a href="../vol2/">Scaling Machine Learning Systems</a> (preview)<span class="mls-unreleased"> · <a href="https://harvard-edge.github.io/cs249r_book_dev/vol3/">Agentic Machine Learning Systems</a> (in preparation) · <a href="https://harvard-edge.github.io/cs249r_book_dev/vol4/">Physical AI</a> (in preparation)</span>. All are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="../slides/">Lecture Slides</a> (teach) · <a href="index.html">Instructor Hub</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="../newsletter/">Newsletter</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
