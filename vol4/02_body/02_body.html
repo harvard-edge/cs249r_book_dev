@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-f478d77796c0518d9224c6d1b01be8d5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-c3cc1f532db27c319315c35727a288d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-f478d77796c0518d9224c6d1b01be8d5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-0a659a6ccd1ea98d86c97686e60e0499.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-c2f01aee7c556c0d6b6f0adcecc47820.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-0a659a6ccd1ea98d86c97686e60e0499.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -133,10 +133,26 @@ div.csl-indent {
   html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol4.html"]),
   html.mls-staging .mls-live-only {
     display: none !important;
   }
 </style>
+<script>
+// On the live site, an inline link into an unreleased volume (its book or
+// its slide deck) would 404, so it is unwrapped to plain text in place.
+// Navigation chrome is left alone: the :has() rules above hide it by its link.
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.documentElement.classList.contains('mls-staging')) return;
+  var dead = /^\/(vol3|vol4)(\/|$)|^\/slides\/vol[34]\.html$/;
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    if (a.hostname !== window.location.hostname || !dead.test(a.pathname)) return;
+    if (a.closest('nav, .navbar, .sidebar, .nav-page, .mls-unreleased')) return;
+    a.replaceWith.apply(a, Array.prototype.slice.call(a.childNodes));
+  });
+});
+</script>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -6015,32 +6031,59 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+.callout-checkpoint {
+  --color1: #F7FEE7;
+  --color2: #4D7C0F;
+  --border-color: #4D7C0F;
+  --background-color: rgba(77, 124, 15, 0.04);
+  --title-background-color: rgba(77, 124, 15, 0.04);
+  --dark-background-color: rgba(77, 124, 15, 0.12);
+  --dark-title-background-color: rgba(77, 124, 15, 0.12);
 }
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
 }
-.callout-colab {
-  --color1: #FFF5E6;
-  --color2: #FF6B35;
-  --border-color: #FF6B35;
-  --background-color: rgba(255, 107, 53, 0.04);
-  --title-background-color: rgba(255, 107, 53, 0.04);
-  --dark-background-color: rgba(255, 107, 53, 0.12);
-  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
 }
 .callout-chapter-connection {
   --color1: #F1F5F9;
@@ -6060,6 +6103,69 @@ $$
   --dark-background-color: rgba(20, 143, 119, 0.12);
   --dark-title-background-color: rgba(20, 143, 119, 0.12);
 }
+.callout-warning {
+  --color1: #FEF2F2;
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
+}
+.callout-principle {
+  --color1: #F3F2FA;
+  --color2: #3D3B8E;
+  --border-color: #3D3B8E;
+  --background-color: rgba(61, 59, 142, 0.04);
+  --title-background-color: rgba(61, 59, 142, 0.04);
+  --dark-background-color: rgba(61, 59, 142, 0.12);
+  --dark-title-background-color: rgba(61, 59, 142, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-colab {
+  --color1: #FFF5E6;
+  --color2: #FF6B35;
+  --border-color: #FF6B35;
+  --background-color: rgba(255, 107, 53, 0.04);
+  --title-background-color: rgba(255, 107, 53, 0.04);
+  --dark-background-color: rgba(255, 107, 53, 0.12);
+  --dark-title-background-color: rgba(255, 107, 53, 0.12);
+}
+.callout-learning-objectives {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
+}
 .callout-quiz-question {
   --color1: #F0F0F8;
   --color2: #5B4B8A;
@@ -6069,7 +6175,34 @@ $$
   --dark-background-color: rgba(91, 75, 138, 0.12);
   --dark-title-background-color: rgba(91, 75, 138, 0.12);
 }
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-notebook {
+  --color1: #F4F7FA;
+  --color2: #3F6077;
+  --border-color: #3F6077;
+  --background-color: rgba(63, 96, 119, 0.04);
+  --title-background-color: rgba(63, 96, 119, 0.04);
+  --dark-background-color: rgba(63, 96, 119, 0.12);
+  --dark-title-background-color: rgba(63, 96, 119, 0.12);
+}
 .callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -6087,15 +6220,6 @@ $$
   --dark-background-color: rgba(217, 119, 6, 0.12);
   --dark-title-background-color: rgba(217, 119, 6, 0.12);
 }
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
 .callout-takeaways {
   --color1: #FCF4F8;
   --color2: #9D3C72;
@@ -6104,96 +6228,6 @@ $$
   --title-background-color: rgba(157, 60, 114, 0.04);
   --dark-background-color: rgba(157, 60, 114, 0.12);
   --dark-title-background-color: rgba(157, 60, 114, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
-}
-.callout-quiz-answer {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-notebook {
-  --color1: #F4F7FA;
-  --color2: #3F6077;
-  --border-color: #3F6077;
-  --background-color: rgba(63, 96, 119, 0.04);
-  --title-background-color: rgba(63, 96, 119, 0.04);
-  --dark-background-color: rgba(63, 96, 119, 0.12);
-  --dark-title-background-color: rgba(63, 96, 119, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
-.callout-principle {
-  --color1: #F3F2FA;
-  --color2: #3D3B8E;
-  --border-color: #3D3B8E;
-  --background-color: rgba(61, 59, 142, 0.04);
-  --title-background-color: rgba(61, 59, 142, 0.04);
-  --dark-background-color: rgba(61, 59, 142, 0.12);
-  --dark-title-background-color: rgba(61, 59, 142, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-checkpoint {
-  --color1: #F7FEE7;
-  --color2: #4D7C0F;
-  --border-color: #4D7C0F;
-  --background-color: rgba(77, 124, 15, 0.04);
-  --title-background-color: rgba(77, 124, 15, 0.04);
-  --dark-background-color: rgba(77, 124, 15, 0.12);
-  --dark-title-background-color: rgba(77, 124, 15, 0.12);
-}
-.callout-case-study {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-resource-slides {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
 .callout-code {
   --color1: #F2F4F8;
@@ -6204,67 +6238,91 @@ $$
   --dark-background-color: rgba(60, 72, 88, 0.12);
   --dark-title-background-color: rgba(60, 72, 88, 0.12);
 }
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
-  details.callout-definition {
+  details.callout-checkpoint {
     --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
   }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
+  details.callout-checkpoint summary,
+  details.callout-checkpoint summary strong,
+  details.callout-checkpoint > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-definition code {
+  details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-  details.callout-learning-objectives {
+  details.callout-case-study {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
   }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-learning-objectives code {
+  details.callout-case-study code {
     color: #e6e6e6 !important;
   }
-  details.callout-colab {
+  details.callout-research-questions {
     --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
   }
-  details.callout-colab summary,
-  details.callout-colab summary strong,
-  details.callout-colab > summary {
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-colab code {
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-chapter-connection {
@@ -6295,90 +6353,6 @@ $$
   details.callout-example code {
     color: #e6e6e6 !important;
   }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(157, 60, 114, 0.12);
-    --title-background-color: rgba(157, 60, 114, 0.12);
-    border-color: #9D3C72;
-  }
-  details.callout-takeaways summary,
-  details.callout-takeaways summary strong,
-  details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
   details.callout-warning {
     --text-color: #e6e6e6;
     --background-color: rgba(220, 38, 38, 0.12);
@@ -6391,48 +6365,6 @@ $$
     color: #f0f0f0 !important;
   }
   details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-  details.callout-notebook summary,
-  details.callout-notebook summary strong,
-  details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
     color: #e6e6e6 !important;
   }
   details.callout-principle {
@@ -6449,60 +6381,172 @@ $$
   details.callout-principle code {
     color: #e6e6e6 !important;
   }
-  details.callout-theorem {
+  details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-theorem code {
+  details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-  details.callout-checkpoint {
+  details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-  details.callout-checkpoint summary,
-  details.callout-checkpoint summary strong,
-  details.callout-checkpoint > summary {
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-checkpoint code {
+  details.callout-definition code {
     color: #e6e6e6 !important;
   }
-  details.callout-case-study {
+  details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+  details.callout-colab summary,
+  details.callout-colab summary strong,
+  details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
     --text-color: #e6e6e6;
     --background-color: rgba(197, 48, 48, 0.12);
     --title-background-color: rgba(197, 48, 48, 0.12);
     border-color: #C53030;
   }
-  details.callout-case-study summary,
-  details.callout-case-study summary strong,
-  details.callout-case-study > summary {
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-case-study code {
+  details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-slides {
+  details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+  details.callout-notebook summary,
+  details.callout-notebook summary strong,
+  details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-slides code {
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+  details.callout-takeaways summary,
+  details.callout-takeaways summary strong,
+  details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
   details.callout-code {
@@ -6519,75 +6563,89 @@ $$
   details.callout-code code {
     color: #e6e6e6 !important;
   }
-  details.callout-research-questions {
+}
+body.quarto-dark details.callout-checkpoint {
+    --text-color: #e6e6e6;
+    --background-color: rgba(77, 124, 15, 0.12);
+    --title-background-color: rgba(77, 124, 15, 0.12);
+    border-color: #4D7C0F;
+  }
+body.quarto-dark details.callout-checkpoint summary,
+body.quarto-dark details.callout-checkpoint summary strong,
+body.quarto-dark details.callout-checkpoint > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-checkpoint code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
     --text-color: #e6e6e6;
     --background-color: rgba(91, 75, 138, 0.12);
     --title-background-color: rgba(91, 75, 138, 0.12);
     border-color: #5B4B8A;
   }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-research-questions code {
+body.quarto-dark details.callout-research-questions code {
     color: #e6e6e6 !important;
   }
-  details.callout-lighthouse {
+body.quarto-dark details.callout-resource-slides {
     --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
   }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-lighthouse code {
+body.quarto-dark details.callout-resource-slides code {
     color: #e6e6e6 !important;
   }
-}
-body.quarto-dark details.callout-definition {
+body.quarto-dark details.callout-theorem {
     --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
   }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-definition code {
+body.quarto-dark details.callout-theorem code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-learning-objectives {
+body.quarto-dark details.callout-perspective {
     --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
   }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-colab {
-    --text-color: #e6e6e6;
-    --background-color: rgba(255, 107, 53, 0.12);
-    --title-background-color: rgba(255, 107, 53, 0.12);
-    border-color: #FF6B35;
-  }
-body.quarto-dark details.callout-colab summary,
-body.quarto-dark details.callout-colab summary strong,
-body.quarto-dark details.callout-colab > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-colab code {
+body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-chapter-connection {
@@ -6618,90 +6676,6 @@ body.quarto-dark details.callout-example > summary {
 body.quarto-dark details.callout-example code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-quiz-question summary,
-body.quarto-dark details.callout-quiz-question summary strong,
-body.quarto-dark details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-takeaways {
-    --text-color: #e6e6e6;
-    --background-color: rgba(157, 60, 114, 0.12);
-    --title-background-color: rgba(157, 60, 114, 0.12);
-    border-color: #9D3C72;
-  }
-body.quarto-dark details.callout-takeaways summary,
-body.quarto-dark details.callout-takeaways summary strong,
-body.quarto-dark details.callout-takeaways > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-takeaways code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
 body.quarto-dark details.callout-warning {
     --text-color: #e6e6e6;
     --background-color: rgba(220, 38, 38, 0.12);
@@ -6714,48 +6688,6 @@ body.quarto-dark details.callout-warning > summary {
     color: #f0f0f0 !important;
   }
 body.quarto-dark details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-answer {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-answer code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-notebook {
-    --text-color: #e6e6e6;
-    --background-color: rgba(63, 96, 119, 0.12);
-    --title-background-color: rgba(63, 96, 119, 0.12);
-    border-color: #3F6077;
-  }
-body.quarto-dark details.callout-notebook summary,
-body.quarto-dark details.callout-notebook summary strong,
-body.quarto-dark details.callout-notebook > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-notebook code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-perspective code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-principle {
@@ -6772,60 +6704,172 @@ body.quarto-dark details.callout-principle > summary {
 body.quarto-dark details.callout-principle code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-theorem {
+body.quarto-dark details.callout-lighthouse {
     --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
   }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-theorem code {
+body.quarto-dark details.callout-lighthouse code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-checkpoint {
+body.quarto-dark details.callout-definition {
     --text-color: #e6e6e6;
-    --background-color: rgba(77, 124, 15, 0.12);
-    --title-background-color: rgba(77, 124, 15, 0.12);
-    border-color: #4D7C0F;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
   }
-body.quarto-dark details.callout-checkpoint summary,
-body.quarto-dark details.callout-checkpoint summary strong,
-body.quarto-dark details.callout-checkpoint > summary {
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-checkpoint code {
+body.quarto-dark details.callout-definition code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-case-study {
+body.quarto-dark details.callout-colab {
+    --text-color: #e6e6e6;
+    --background-color: rgba(255, 107, 53, 0.12);
+    --title-background-color: rgba(255, 107, 53, 0.12);
+    border-color: #FF6B35;
+  }
+body.quarto-dark details.callout-colab summary,
+body.quarto-dark details.callout-colab summary strong,
+body.quarto-dark details.callout-colab > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-colab code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-learning-objectives code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
     --text-color: #e6e6e6;
     --background-color: rgba(197, 48, 48, 0.12);
     --title-background-color: rgba(197, 48, 48, 0.12);
     border-color: #C53030;
   }
-body.quarto-dark details.callout-case-study summary,
-body.quarto-dark details.callout-case-study summary strong,
-body.quarto-dark details.callout-case-study > summary {
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-case-study code {
+body.quarto-dark details.callout-war-story code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-slides {
+body.quarto-dark details.callout-notebook {
+    --text-color: #e6e6e6;
+    --background-color: rgba(63, 96, 119, 0.12);
+    --title-background-color: rgba(63, 96, 119, 0.12);
+    border-color: #3F6077;
+  }
+body.quarto-dark details.callout-notebook summary,
+body.quarto-dark details.callout-notebook summary strong,
+body.quarto-dark details.callout-notebook > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-notebook code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-slides code {
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-exercises code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-takeaways {
+    --text-color: #e6e6e6;
+    --background-color: rgba(157, 60, 114, 0.12);
+    --title-background-color: rgba(157, 60, 114, 0.12);
+    border-color: #9D3C72;
+  }
+body.quarto-dark details.callout-takeaways summary,
+body.quarto-dark details.callout-takeaways summary strong,
+body.quarto-dark details.callout-takeaways > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-takeaways code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-code {
@@ -6842,44 +6886,25 @@ body.quarto-dark details.callout-code > summary {
 body.quarto-dark details.callout-code code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
 </style>
 <style>
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+details.callout-checkpoint > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-colab > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-chapter-connection > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
@@ -6887,59 +6912,50 @@ details.callout-chapter-connection > summary::before {
 details.callout-example > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
 }
-details.callout-quiz-question > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-takeaways > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
 details.callout-warning > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
-}
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
-}
-details.callout-notebook > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
 }
 details.callout-principle > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
 }
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
-details.callout-checkpoint > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
 }
-details.callout-case-study > summary::before {
+details.callout-colab > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-war-story > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
 }
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+details.callout-notebook > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
+}
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-takeaways > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
 }
 details.callout-code > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
 }
 </style>
     <style type="text/css">
@@ -7018,12 +7034,6 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
-</i> 
- <span class="dropdown-text">Concept Explorer</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
     <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
@@ -7056,11 +7066,6 @@ window.Quarto = {
  <span class="menu-text">Build</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/games/"><i class="bi bi-controller" role="img">
-</i> 
- <span class="dropdown-text">Playground Games</span></a>
-  </li>  
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/labs/"><i class="bi bi-sliders" role="img">
 </i> 
@@ -7110,6 +7115,12 @@ window.Quarto = {
  <span class="menu-text">Prepare</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">ML Systems Taxonomy</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
@@ -7258,7 +7269,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0e2cd3509ca22d2d38c96a68a339eb48" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cec5ba0d</code> • 2026-10-26 13:30 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><span class="mls-ann-line"><strong>Physical AI: Machine Learning Systems That Sense and Act (Volume IV), in preparation.</strong> This draft changes as chapters are written. The target release is late 2027 or early 2028.</span> <span class="mls-ann-line"><strong>The other volumes:</strong> <a href="../../vol1/">Introduction to Machine Learning Systems</a> · <a href="../../vol2/">Scaling Machine Learning Systems</a> (preview)<span class="mls-unreleased"> · <a href="../../vol3/">Agentic Machine Learning Systems</a> (in preparation)</span></span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div></div>
 </header>
@@ -7826,7 +7837,7 @@ Brooks, Rodney. 1986. <span>“A Robust Layered Control System for a Mobile Robo
 </div></div><p>Once the selected braking mechanism engages, the system enters the active braking phase. Mechanical work done by the retarding braking force <span class="math inline">\(\BrakingForce\)</span> over the physical braking distance <span class="math inline">\(\BrakingDistance\)</span> must dissipate the machine’s stored kinetic energy, <span class="math inline">\(\MechanicalWork = \FiniteChange \KineticEnergy\)</span>. How that retarding force arises depends on the physical hardware. A powered motor stop requires functioning drive inverters, sufficient bus-voltage headroom, and a circuit capable of absorbing or dissipating returned electrical power. A mechanical brake, by contrast, operates independently of electrical power but carries distinct engagement latencies and thermal dissipation limits. In any safety certification, the credible deceleration must reflect the specific mechanism available during the fault scenario under analysis.</p>
 <p>In an embodied machine, stored kinetic energy includes rotating powertrain components as well as the translating chassis. A component spinning at angular velocity <span class="math inline">\(\RotatingBodyAngularSpeed\)</span> stores rotational energy <span class="math inline">\(\frac{1}{2} \RotatingBodyInertia \RotatingBodyAngularSpeed^2\)</span>, where its moment of inertia <span class="math inline">\(\RotatingBodyInertia\)</span> (in <span class="math inline">\(\text{kg}\cdot\text{m}^2\)</span>) measures resistance to rotational acceleration. It plays the same role that mass plays in translational energy <span class="math inline">\(\frac{1}{2} \Mass \SpeedAtDetection^2\)</span>. A transmission with <strong>gear ratio</strong> <span class="math inline">\(\GearReductionRatio\)</span> turns the motor shaft <span class="math inline">\(\GearReductionRatio\)</span> times for every revolution of the wheel, multiplying motor torque by <span class="math inline">\(\GearReductionRatio\)</span> while dividing speed by <span class="math inline">\(\GearReductionRatio\)</span>. The machine’s total kinetic energy sums the translational energy of the chassis and payload (<span class="math inline">\(\TranslationalKineticEnergy = \frac{1}{2} \Mass \SpeedAtDetection^2\)</span>) and the rotational energy of its wheels, gearboxes, and motor rotors (<span class="math inline">\(\RotationalKineticEnergy = \sum_i \frac{1}{2} {\RotorInertia}_i {\RotorAngularSpeed}_i^2\)</span>). Because a drive with gear ratio <span class="math inline">\({\GearReductionRatio}_i\)</span> spins its rotor at angular speed <span class="math inline">\({\RotorAngularSpeed}_i = {\GearReductionRatio}_i \frac{\SpeedAtDetection}{\WheelRadius}\)</span>, the rotor’s rotational kinetic energy reflects into the translational frame scaled by the square of the gear ratio: <span class="math display">\[\TotalKineticEnergy = \frac{1}{2} \Mass \SpeedAtDetection^2 + \sum_i \frac{1}{2} {\RotorInertia}_i \left({\GearReductionRatio}_i \frac{\SpeedAtDetection}{\WheelRadius}\right)^2 = \frac{1}{2} \left(\Mass + \sum_i \frac{{\GearReductionRatio}_i^2 {\RotorInertia}_i}{\WheelRadius^2}\right) \SpeedAtDetection^2\]</span> This formulation reveals that the effective translational inertia of the machine is <span class="math inline">\(\EffectiveImpactMass = \Mass + \sum_i \frac{{\GearReductionRatio}_i^2 {\RotorInertia}_i}{\WheelRadius^2}\)</span>. For a platform decelerating to rest under sustained retarding force <span class="math inline">\(\BrakingForce = \EffectiveImpactMass \CredibleBrakingDeceleration\)</span>, the work-energy theorem balances mechanical work against total kinetic energy: <span class="math display">\[\EffectiveImpactMass \CredibleBrakingDeceleration \BrakingDistance = \frac{1}{2} \EffectiveImpactMass \SpeedAtDetection^2\]</span> Dividing both sides by effective mass yields the kinematic braking travel: <span class="math display">\[\BrakingDistance = \frac{\SpeedAtDetection^2}{2 \CredibleBrakingDeceleration}\]</span> If an engineer evaluates braking capacity using bare chassis mass alone (<span class="math inline">\(\NominalBrakingDeceleration = \BrakingForce / \Mass\)</span>), they omit the kinetic energy stored in the spinning motor rotors. The result overestimates deceleration by the factor <span class="math inline">\(\EffectiveImpactMass / \Mass\)</span> and underestimates stopping travel by <span class="math inline">\(\frac{\EffectiveImpactMass - \Mass}{\Mass} = \sum_i \frac{{\GearReductionRatio}_i^2 {\RotorInertia}_i}{\Mass \WheelRadius^2}\)</span>. On the running machine, this correction remains modest. Its two driven wheels use direct-drive hub motors (<span class="math inline">\({\GearReductionRatio}_i = 1\)</span>), and because no portion of a hub motor lies outside its tire circumference, each rotor term <span class="math inline">\({\RotorInertia}_i/\WheelRadius^2\)</span> cannot exceed the motor’s 9.5 kg total mass. The rotating parts add at most 5.2 percent to the 368 kg loaded mass. However, because the inertia reflection scales with <span class="math inline">\({\GearReductionRatio}_i^2\)</span>, this rotational overhead becomes substantial on lightweight robot platforms driven through high-ratio planetary or harmonic gearboxes.</p>
 <p>The parameter <span class="math inline">\(\CredibleBrakingDeceleration\)</span> is the credible sustained deceleration the physical plant can reliably exert against the environment, not an idealized rating copied from an actuator datasheet. The retarding force <span class="math inline">\(\BrakingForce = \EffectiveImpactMass \CredibleBrakingDeceleration\)</span> must fit beneath three independent physical ceilings. First, tire-floor traction imposes a strict friction ceiling. Only the braked wheels transmit retarding shear to the ground, and friction there can reach at most <span class="math inline">\(\CoulombFrictionCoefficient\)</span> times the normal force they support, <span class="math inline">\(\DrivenWheelLoadFraction \Mass \Gravity\)</span>. This caps deceleration at <span class="math inline">\(\CredibleBrakingDeceleration \le \CoulombFrictionCoefficient \Gravity \DrivenWheelLoadFraction\)</span>, where <span class="math inline">\(\CoulombFrictionCoefficient\)</span> is the tire-floor friction coefficient and <span class="math inline">\(\DrivenWheelLoadFraction\)</span> is the fraction of total vehicle weight carried by the driven wheels. Second, vehicle pitch stability limits deceleration through dynamic load transfer. While braking force acts at the floor contact patch, inertial force acts forward through the center of gravity at height <span class="math inline">\(\GravityCenterHeight\)</span> above it. Taking moments about the leading ground support, a horizontal distance <span class="math inline">\(\LeadingSupportDistance\)</span> ahead of the center of gravity, the overturning inertial moment <span class="math inline">\(\Mass \CredibleBrakingDeceleration \GravityCenterHeight\)</span> opposes the restoring gravitational moment <span class="math inline">\(\Mass \Gravity \LeadingSupportDistance\)</span>. The platform stays on all wheels only so long as <span class="math inline">\(\CredibleBrakingDeceleration \le \Gravity\,\LeadingSupportDistance/\GravityCenterHeight\)</span>. Raising or extending a robotic arm alters both <span class="math inline">\(\GravityCenterHeight\)</span> and <span class="math inline">\(\LeadingSupportDistance\)</span> in real time, making this pitch-stability boundary state-dependent. Third, the electromechanical actuators limit retarding force through the maximum torque their inverter current limit allows, a ceiling that <a href="#sec-body-electrical-time-constants" class="quarto-xref">section&nbsp;2.4.2</a> derives from the motor torque constant. If an inverter restricts phase current, or if the back-EMF of the spinning rotor leaves the inverter too little headroom to control current, the drive cannot deliver the required braking torque. Deceleration <span class="math inline">\(\CredibleBrakingDeceleration\)</span> degrades silently, expanding braking travel without software notification. The rotor’s rotational inertia is already counted in the effective mass <span class="math inline">\(\EffectiveImpactMass\)</span> and must not be charged a second time. These three ceilings act simultaneously on the loaded chassis (<a href="#fig-02-braking-fbd" class="quarto-xref">figure&nbsp;1</a>), and notebook <a href="#nbk-body-braking-drive-limits">2.3</a> checks them against the running machine’s numbers once the next section derives the drive’s torque ceiling.</p>
-<div id="fig-02-braking-fbd" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-02-braking-fbd" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-braking-fbd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/fig02_braking_fbd.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;1: Three ceilings on the braking base: (a) Only the driven wheels brake against the floor, so friction there caps the retarding force at \CoulombFrictionCoefficient \DrivenWheelLoadFraction \Mass \Gravity; the credible 2 m/s² needs \CoulombFrictionCoefficient \ge 0.204 with all the weight on those wheels and 0.250 at their rated load share. The inertial load \Mass \CredibleBrakingDeceleration acts at the center of gravity, a height \GravityCenterHeight above the floor, and pitches the body about its leading support unless \GravityCenterHeight/\LeadingSupportDistance \le 4.90; neither length has been measured. (b) Each direct-drive hub wheel turns its 60 N·m current-limited torque into a floor force \DriveBrakingTorqueCeiling/\WheelRadius, 902.3 N for the pair, and the spinning parts are already counted in \EffectiveImpactMass. The layout is schematic, not to scale."><img src="images/svg/fig02_braking_fbd.svg" class="img-fluid figure-img" style="width:100.0%" alt="Two panels. Panel a: side view of a mobile base with a tote rack and an arm, a driven wheel between two casters, and a center of gravity marker. Arrows show the weight m g downward and the inertial load m a brake forward at the center of gravity, normal loads phi m g on the driven wheel and on the casters, and a friction force F at most mu phi m g at the driven wheel pointing against travel. Dimension lines mark the unmeasured height h cg and the distance d lead to the front caster. A red curved arrow at the front caster reads tips if h cg over d lead exceeds 4.90. A line below reads mu at least 0.204 at phi equals 1 and at least 0.250 at the rated phi of 0.815. Panel b: one hub wheel with a hub motor of ratio 1, a braking torque tau equals 60 newton meters, radius 133 millimeters, and a floor force of 451 newtons; notes read two wheels 902 newtons, m eff at most 387 kilograms, and a ceiling of at least 2.33 meters per second squared."></a>
@@ -7858,10 +7869,10 @@ Marvel, Jeremy A., and Rick Norcross. 2017. <span>“Implementing Speed and Sepa
 </div></details>
 </div>
 <p>Three cases on the running machine show how the terms trade against one another (<a href="#fig-02-stopping-distance" class="quarto-xref">figure&nbsp;2</a>). With only the terms the body owns, the stop needs 742.5 mm. Charging the full 133.6 ms pre-brake delay of the elementary stopping budget (<strong><a href="../01_boundary/01_boundary.html#sec-boundary-kinematic-roofline">Delay consumes stopping clearance</a></strong>), whose terms later chapters measure one by one, gives that elementary stop plus the 150 mm fixed overhead, or 912.9 mm. That stop still fits the 1.10 m clear distance. Raising speed above the drive limit with that same delay pushes the stop to 1,417.2 mm, past the rack end, because speed enters the blind travel linearly and the braking travel quadratically. Notebook <a href="#nbk-body-stopping-distance-budgeting-high-tail-compute">2.2</a> works the first case term by term.</p>
-<div id="fig-02-stopping-distance" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-02-stopping-distance" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-stopping-distance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="bafc9da3" class="cell" data-message="false" data-execution_count="6">
+<div id="6ab2c177" class="cell" data-message="false" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -7992,7 +8003,7 @@ Shenzhen Zhongling Technology. 2022. <em><span>ZLLG10ASM800</span> Robot Hub Mot
 <p>Mechanical gearboxes introduce backlash and elasticity that decouple the motor from the driven link. Upon direction reversal, the motor shaft traverses mechanical clearance before the gear teeth engage the opposing flank. Concurrently, as illustrated by the disassembled strain wave gear set in <a href="#fig-02-real-strain-wave-gear" class="quarto-xref">figure&nbsp;3</a>, torsional compliance in gear teeth and flexible elements<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a> transforms the rigid link into an elastic system <span class="citation" data-cites="spong1987modeling">(<a href="#ref-spong1987modeling" role="doc-biblioref">Spong 1987</a>)</span>. Its dynamics follow the flexible-joint formulation given in <strong><a href="../backmatter/appendix_control.html#sec-appendix-control-flexible-joints">Flexible joint dynamics and singular perturbations</a></strong>. Step changes in torque excite this structural spring, driving the drivetrain into limit-cycle<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a> chatter. Motor-side encoders conceal this deadband completely. The motor rotates smoothly while the output shaft remains pinned, causing link position <span class="math inline">\(\LinkOutputPosition\)</span> to diverge from <span class="math inline">\(\MotorShaftPosition / \GearReductionRatio\)</span> by a load-dependent deflection <span class="math inline">\(\LostMotionDeflection\)</span>. The motor controller observes flawless setpoint tracking while the end-effector stalls, eventually experiencing an impulsive impact when the gear teeth make contact. Repeated shock cycles culminate in the root fatigue failure shown in <a href="#fig-02-real-broken-gear-tooth" class="quarto-xref">figure&nbsp;4</a>.</p>
 <div class="no-row-height column-margin column-container"><div id="fn11"><p><sup>11</sup>&nbsp;<strong>Strain Wave Gearing</strong>: <span class="citation" data-cites="musser1959strain">Musser (<a href="#ref-musser1959strain" role="doc-biblioref">1959</a>)</span> patented the mechanism, now sold as the Harmonic Drive: an elliptical wave generator flexes a thin toothed cup inside a rigid ring that carries two more teeth, so a single stage yields a high ratio with near-zero backlash. The flexing that makes the ratio possible is also the joint’s torsional compliance, which makes the link elastic.</p><div id="ref-musser1959strain" class="csl-entry" role="listitem">
 Musser, C. Walton. 1959. <em>Strain Wave Gearing</em>. U.S. Patent 2,906,143, filed March 21, 1955, issued September 29, 1959.
-</div></div><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Limit Cycle</strong>: A self-sustained oscillation of fixed amplitude that a nonlinear feedback loop settles into, here excited by the backlash deadband as the motor crosses the gap, the teeth strike, and the controller corrects back across it. Unlike an instability, it does not grow, so it can run unnoticed through a shift while every cycle adds a tooth impact to the fatigue count.</p></div></div><div id="fig-02-real-strain-wave-gear" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+</div></div><div id="fn12"><p><sup>12</sup>&nbsp;<strong>Limit Cycle</strong>: A self-sustained oscillation of fixed amplitude that a nonlinear feedback loop settles into, here excited by the backlash deadband as the motor crosses the gap, the teeth strike, and the controller corrects back across it. Unlike an instability, it does not grow, so it can run unnoticed through a shift while every cycle adds a tooth impact to the fatigue count.</p></div></div><div id="fig-02-real-strain-wave-gear" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-real-strain-wave-gear-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/jpg/fig02_real_strain_wave_gear.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;3: Strain wave gear set: The three parts of a Harmonic Drive strain wave gear, disassembled: the elliptical wave generator with its thin-race ball bearing (top left), the flexspline cup with external teeth on its open rim (top right), and the rigid circular spline ring with internal teeth (bottom). The wave generator bends the flexspline so that its teeth mesh with the circular spline at two opposite zones; because the flexspline carries slightly fewer teeth, each turn of the wave generator advances it by only that difference, which gives a high reduction with little backlash. (Credit: Pieceofmetalwork, Wikimedia Commons, CC BY-SA 4.0.)"><img src="images/jpg/fig02_real_strain_wave_gear.jpg" class="img-fluid figure-img" style="width:70.0%" alt="Photograph of three machined steel parts on a white surface: a round ball bearing assembly at top left, a cylindrical cup with fine teeth around its rim at top right, and a flat ring with fine internal teeth and bolt holes at the bottom."></a>
@@ -8003,7 +8014,7 @@ Figure&nbsp;3: <strong>Strain wave gear set</strong>: The three parts of a Harmo
 </figure>
 </div>
 <p>The strain wave gear of <a href="#fig-02-real-strain-wave-gear" class="quarto-xref">figure&nbsp;3</a> packs a high reduction into a compact joint by deforming its flexspline continuously, and that elasticity has a cost. This intentional compliance decouples rotor position from link position under dynamic loading: while the motor encoder registers smooth rotation, the flexspline winds up like a torsion spring, introducing unmeasured end-effector deflection.</p>
-<div id="fig-02-real-broken-gear-tooth" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-02-real-broken-gear-tooth" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-real-broken-gear-tooth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/jpg/fig02_real_broken_gear_tooth.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;4: Broken gear tooth: A spur gear from gear research at the NASA Lewis (now Glenn) Research Center, photographed in 1974, with one tooth broken away at its root and the fragment lying in the gap. The root is where a tooth’s bending stress concentrates, so repeated or impulsive loading that the transmission passes to the teeth ends here. (Credit: Martin Brown, NASA Glenn Research Center, via the U.S. National Archives, NARA 17417956, public domain.)"><img src="images/jpg/fig02_real_broken_gear_tooth.jpg" class="img-fluid figure-img" style="width:65.0%" alt="Black-and-white close-up of the edge of a spur gear showing several teeth; the middle tooth has broken off at its base, and the broken piece sits in the gap next to a curved fragment of the root."></a>
@@ -8121,7 +8132,7 @@ Franka Emika GmbH. 2018. <em>Panda Datasheet</em>. Product datasheet (reseller-h
 <p>The copper-loss equation ties torque to current and current to heat. Commanded torque scales linearly with current (<span class="math inline">\(\MotorTorque = \MotorTorqueConstant \TorqueProducingCurrent\)</span>), but stator copper loss scales quadratically with torque (<span class="math inline">\(\MotorTorque^2\)</span>). Demanding twice the torque requires four times the thermal dissipation. Because heat has no fast exit, thermal accumulation limits how long an arm can maintain static poses or execute dynamic bursts without mechanical brakes.</p>
 <p>Reducing motor current to shed heat also reduces holding torque. A loaded arm therefore needs a response that preserves support, such as transferring the load to a mechanical brake, rather than assuming that thermal derating leaves the task unchanged. Excess winding temperature can damage electrical insulation, while excess rotor temperature can permanently reduce magnet strength. Those material limits bound the allowable temperature trajectory.</p>
 <p>The winding and housing respond on different timescales. Copper heats rapidly under current, while the larger core and housing absorb and reject heat more slowly. A case temperature measurement can therefore lag the winding hotspot during a torque burst. The stator in <a href="#fig-02-real-burnt-motor-stator" class="quarto-xref">figure&nbsp;5</a> failed from overheating, and its damage sits where this model puts the heat: in the copper windings and the insulation between them.</p>
-<div id="fig-02-real-burnt-motor-stator" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-02-real-burnt-motor-stator" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-real-burnt-motor-stator-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/jpg/fig02_real_burnt_motor_stator.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;5: Motor stator damaged by overheating: The opened stator of an electric motor that failed from overheating, showing the copper phase windings bound with tape at left, the insulating slot liners where the windings leave the laminated iron core, and the end bell with its bearing seat at right. The windings are where resistive heat (\WindingLossPower = \TorqueProducingCurrent^2 \EffectiveLossResistance) is generated, and the insulation between them is what accumulated heat ages. (Credit: K. Kudelina, Wikimedia Commons, CC BY 4.0.)"><img src="images/jpg/fig02_real_burnt_motor_stator.jpg" class="img-fluid figure-img" style="width:85.0%" alt="Color photograph looking into an opened electric motor stator: dark copper wire windings bound with fabric tape on the left, pale insulation paper protruding from slots in a laminated steel core that recedes toward the right, and a round end bell with a bearing seat at the far right."></a>
@@ -8172,7 +8183,7 @@ Harmonic Drive AG. 2014. <em>Engineering Data <span>CSG-2UH</span> Units</em>. P
 <section id="sec-body-torque-speed-envelopes" class="level3 page-columns page-full" data-number="2.5.3">
 <h3 data-number="2.5.3" class="anchored" data-anchor-id="sec-body-torque-speed-envelopes"><span class="header-section-number">2.5.3</span> Torque-speed operating envelopes and back-EMF roll-off</h3>
 <p>The burst calculation limits duration, while the back-EMF relation in <a href="#sec-body-electrical-time-constants" class="quarto-xref">section&nbsp;2.4.2</a> limits torque at speed. A feasible maneuver must satisfy both. At low speed, the drive can supply the current needed for a burst, but the winding temperature limits how long it may do so. At higher speed, back-EMF consumes voltage headroom and can prevent that current from appearing at all. On the arm’s stand-in joint motor, voltage headroom and thermal history bound the usable torque-speed region simultaneously (<a href="#fig-02-motor-torque-speed-envelope" class="quarto-xref">figure&nbsp;6</a>). Because steady-state operation at full supply voltage splits the bus voltage between the resistive drop <span class="math inline">\(\TorqueProducingCurrent \PhaseResistance\)</span> and the back-EMF <span class="math inline">\(\MotorBackEmfConstant \RotorAngularSpeed\)</span>, rising torque demands more current, consumes a larger resistive voltage drop, and pulls the motor’s voltage-limited speed linearly down from 2,110 rpm at no load to 1,570 rpm at peak torque, while the burst that a cold winding sustains for 78.4 s reaches the insulation class in only 43.1 s from continuous-duty equilibrium.</p>
-<div id="fig-02-motor-torque-speed-envelope" class="quarto-float quarto-figure quarto-figure-center anchored" data-explore-key="vol4:fig-02-motor-torque-speed-envelope" data-fig-env="figure" data-mlsys-movement-ms="1800" data-mlsys-explore-key="vol4:fig-02-motor-torque-speed-envelope" data-mlsys-art-kind="png" data-mlsys-explore="original-v4-02-motor-torque-speed-envelope" data-mlsys-art-sha1="1108fb6ee9ebdbd22b96886dbf9cb3687f3cc5f1" data-mlsys-reading-pause-ms="5000" data-fig-pos="t" data-explore="original-v4-02-motor-torque-speed-envelope">
+<div id="fig-02-motor-torque-speed-envelope" class="quarto-float quarto-figure quarto-figure-center anchored" data-mlsys-explore="original-v4-02-motor-torque-speed-envelope" data-mlsys-art-kind="png" data-mlsys-art-sha1="1108fb6ee9ebdbd22b96886dbf9cb3687f3cc5f1" data-mlsys-explore-key="vol4:fig-02-motor-torque-speed-envelope" data-fig-env="figure" data-explore="original-v4-02-motor-torque-speed-envelope" data-mlsys-movement-ms="1800" data-mlsys-reading-pause-ms="5000" data-fig-pos="t" data-explore-key="vol4:fig-02-motor-torque-speed-envelope">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-motor-torque-speed-envelope-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div id="cell-plot-02-motor-torque-speed-envelope" class="cell" data-message="false" data-execution_count="15">
@@ -8316,7 +8327,7 @@ Mobile Industrial Robots. 2025. <em><span>MiR250</span> Specifications</em>. Pro
 <li><p><strong>Enclosed thermal resistance (<span class="math inline">\(\ThermalResistance\)</span>) and continuous torque ceilings</strong>: A heating trial under the installed cooling conditions measures the winding temperature rise and loss power, establishing <span class="math inline">\(\ThermalResistance = \JouleanTemperatureRise / \WindingLossPower\)</span>. The continuous torque ceiling from <a href="#sec-body-thermal-capacity" class="quarto-xref">section&nbsp;2.5.1</a> is then: <span class="math display">\[\ContinuousTorque = \MotorTorqueConstant \sqrt{\frac{\WindingTemperatureLimit - \AmbientTemperature}{\ElectricalResistance(\WindingTemperatureLimit) \ThermalResistance}}\]</span> The test must reproduce the enclosure and neighboring heat loads under which that ceiling will be used. An open-bench rating overstates continuous capacity whenever the installed shroud restricts airflow or adjacent actuators warm the mounting frame.</p></li>
 <li><p><strong>Backdrive friction and impact dynamics</strong>: By driving the actuator output shaft with the dynamometer load motor, the testbed measures the torque needed to backdrive the joint across speed, load, and temperature: <span class="math display">\[\ExternalJointTorque = \GearReductionRatio^2 \RotorInertia \JointAcceleration + \JointFrictionTorque\]</span> The measured response establishes whether the transmission can yield under the intended external load and maps the friction term that <a href="#sec-body-actuation-regimes" class="quarto-xref">section&nbsp;2.4.5</a> shows is not a constant. Contact qualification must additionally exercise the relevant compliance and impact conditions. The backdrive model alone does not predict tooth failure.</p></li>
 </ul>
-<div id="fig-02-real-motor-dyno-bench" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-02-real-motor-dyno-bench" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-02-real-motor-dyno-bench-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/jpg/fig02_real_motor_dyno_bench.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure&nbsp;7: An instrumented propulsion test stand: An electric motor with its propeller, speed controller, and wiring secured at the top of the Airvolt test stand at the NASA Armstrong Flight Research Center in 2016, instrumented to collect data on the propulsion system under load. A stand like this measures what a data sheet only asserts, on the assembled drive under stated conditions. (Credit: Lauren Hughes, NASA Armstrong Flight Research Center, AFRC2016-0100-05, public domain.)"><img src="images/jpg/fig02_real_motor_dyno_bench.jpg" class="img-fluid figure-img" style="width:85.0%" alt="Photograph against a blue sky of a white angled pylon carrying a mounting plate at its top, with a two-blade propeller, an electric motor, a finned electronics box, and bundled orange and red wiring."></a>

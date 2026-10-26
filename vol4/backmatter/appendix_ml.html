@@ -65,9 +65,9 @@ div.csl-indent {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-da245a98686d0485553d61919e8b3534.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-f478d77796c0518d9224c6d1b01be8d5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-c3cc1f532db27c319315c35727a288d4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-f478d77796c0518d9224c6d1b01be8d5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-0a659a6ccd1ea98d86c97686e60e0499.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-c2f01aee7c556c0d6b6f0adcecc47820.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-0a659a6ccd1ea98d86c97686e60e0499.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../site_libs/quarto-contrib/foldbox/foldbox.css" rel="stylesheet">
 <script src="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.js"></script>
 <link href="../site_libs/quarto-contrib/pseudocode-2.4.1/pseudocode.min.css" rel="stylesheet">
@@ -126,10 +126,26 @@ div.csl-indent {
   html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol4.html"]),
   html.mls-staging .mls-live-only {
     display: none !important;
   }
 </style>
+<script>
+// On the live site, an inline link into an unreleased volume (its book or
+// its slide deck) would 404, so it is unwrapped to plain text in place.
+// Navigation chrome is left alone: the :has() rules above hide it by its link.
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.documentElement.classList.contains('mls-staging')) return;
+  var dead = /^\/(vol3|vol4)(\/|$)|^\/slides\/vol[34]\.html$/;
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    if (a.hostname !== window.location.hostname || !dead.test(a.pathname)) return;
+    if (a.closest('nav, .navbar, .sidebar, .nav-page, .mls-unreleased')) return;
+    a.replaceWith.apply(a, Array.prototype.slice.call(a.childNodes));
+  });
+});
+</script>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -6010,6 +6026,105 @@ $$
 <script src="../shared/assets/scripts/version-link.js" defer=""></script>
 <script src="../shared/assets/scripts/subscribe-modal.js" defer=""></script>
 <style>
+.callout-case-study {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-research-questions {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-resource-videos {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-definition {
+  --color1: #F2F7FA;
+  --color2: #4F7396;
+  --border-color: #4F7396;
+  --background-color: rgba(79, 115, 150, 0.04);
+  --title-background-color: rgba(79, 115, 150, 0.04);
+  --dark-background-color: rgba(79, 115, 150, 0.12);
+  --dark-title-background-color: rgba(79, 115, 150, 0.12);
+}
+.callout-quiz-question {
+  --color1: #F0F0F8;
+  --color2: #5B4B8A;
+  --border-color: #5B4B8A;
+  --background-color: rgba(91, 75, 138, 0.04);
+  --title-background-color: rgba(91, 75, 138, 0.04);
+  --dark-background-color: rgba(91, 75, 138, 0.12);
+  --dark-title-background-color: rgba(91, 75, 138, 0.12);
+}
+.callout-theorem {
+  --color1: #F5F0FA;
+  --color2: #6B46C1;
+  --border-color: #6B46C1;
+  --background-color: rgba(107, 70, 193, 0.04);
+  --title-background-color: rgba(107, 70, 193, 0.04);
+  --dark-background-color: rgba(107, 70, 193, 0.12);
+  --dark-title-background-color: rgba(107, 70, 193, 0.12);
+}
+.callout-resource-slides {
+  --color1: #E0F2F1;
+  --color2: #20B2AA;
+  --border-color: #20B2AA;
+  --background-color: rgba(32, 178, 170, 0.04);
+  --title-background-color: rgba(32, 178, 170, 0.04);
+  --dark-background-color: rgba(32, 178, 170, 0.12);
+  --dark-title-background-color: rgba(32, 178, 170, 0.12);
+}
+.callout-lighthouse {
+  --color1: #FDF8E6;
+  --color2: #B8860B;
+  --border-color: #B8860B;
+  --background-color: rgba(184, 134, 11, 0.04);
+  --title-background-color: rgba(184, 134, 11, 0.04);
+  --dark-background-color: rgba(184, 134, 11, 0.12);
+  --dark-title-background-color: rgba(184, 134, 11, 0.12);
+}
+.callout-perspective {
+  --color1: #F7F8FA;
+  --color2: #4A5568;
+  --border-color: #4A5568;
+  --background-color: rgba(74, 85, 104, 0.04);
+  --title-background-color: rgba(74, 85, 104, 0.04);
+  --dark-background-color: rgba(74, 85, 104, 0.12);
+  --dark-title-background-color: rgba(74, 85, 104, 0.12);
+}
+.callout-example {
+  --color1: #F0F8F6;
+  --color2: #148F77;
+  --border-color: #148F77;
+  --background-color: rgba(20, 143, 119, 0.04);
+  --title-background-color: rgba(20, 143, 119, 0.04);
+  --dark-background-color: rgba(20, 143, 119, 0.12);
+  --dark-title-background-color: rgba(20, 143, 119, 0.12);
+}
+.callout-chapter-connection {
+  --color1: #F1F5F9;
+  --color2: #64748B;
+  --border-color: #64748B;
+  --background-color: rgba(100, 116, 139, 0.04);
+  --title-background-color: rgba(100, 116, 139, 0.04);
+  --dark-background-color: rgba(100, 116, 139, 0.12);
+  --dark-title-background-color: rgba(100, 116, 139, 0.12);
+}
 .callout-takeaways {
   --color1: #FCF4F8;
   --color2: #9D3C72;
@@ -6018,6 +6133,15 @@ $$
   --title-background-color: rgba(157, 60, 114, 0.04);
   --dark-background-color: rgba(157, 60, 114, 0.12);
   --dark-title-background-color: rgba(157, 60, 114, 0.12);
+}
+.callout-quiz-answer {
+  --color1: #E8F2EA;
+  --color2: #4A7C59;
+  --border-color: #4A7C59;
+  --background-color: rgba(74, 124, 89, 0.04);
+  --title-background-color: rgba(74, 124, 89, 0.04);
+  --dark-background-color: rgba(74, 124, 89, 0.12);
+  --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
 .callout-principle {
   --color1: #F3F2FA;
@@ -6037,141 +6161,6 @@ $$
   --dark-background-color: rgba(77, 124, 15, 0.12);
   --dark-title-background-color: rgba(77, 124, 15, 0.12);
 }
-.callout-chapter-connection {
-  --color1: #F1F5F9;
-  --color2: #64748B;
-  --border-color: #64748B;
-  --background-color: rgba(100, 116, 139, 0.04);
-  --title-background-color: rgba(100, 116, 139, 0.04);
-  --dark-background-color: rgba(100, 116, 139, 0.12);
-  --dark-title-background-color: rgba(100, 116, 139, 0.12);
-}
-.callout-definition {
-  --color1: #F2F7FA;
-  --color2: #4F7396;
-  --border-color: #4F7396;
-  --background-color: rgba(79, 115, 150, 0.04);
-  --title-background-color: rgba(79, 115, 150, 0.04);
-  --dark-background-color: rgba(79, 115, 150, 0.12);
-  --dark-title-background-color: rgba(79, 115, 150, 0.12);
-}
-.callout-warning {
-  --color1: #FEF2F2;
-  --color2: #DC2626;
-  --border-color: #DC2626;
-  --background-color: rgba(220, 38, 38, 0.04);
-  --title-background-color: rgba(220, 38, 38, 0.04);
-  --dark-background-color: rgba(220, 38, 38, 0.12);
-  --dark-title-background-color: rgba(220, 38, 38, 0.12);
-}
-.callout-learning-objectives {
-  --color1: #E8F2EA;
-  --color2: #4A7C59;
-  --border-color: #4A7C59;
-  --background-color: rgba(74, 124, 89, 0.04);
-  --title-background-color: rgba(74, 124, 89, 0.04);
-  --dark-background-color: rgba(74, 124, 89, 0.12);
-  --dark-title-background-color: rgba(74, 124, 89, 0.12);
-}
-.callout-quiz-question {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-war-story {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-case-study {
-  --color1: #FEF2F2;
-  --color2: #C53030;
-  --border-color: #C53030;
-  --background-color: rgba(197, 48, 48, 0.04);
-  --title-background-color: rgba(197, 48, 48, 0.04);
-  --dark-background-color: rgba(197, 48, 48, 0.12);
-  --dark-title-background-color: rgba(197, 48, 48, 0.12);
-}
-.callout-resource-videos {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-resource-exercises {
-  --color1: #E0F2F1;
-  --color2: #20B2AA;
-  --border-color: #20B2AA;
-  --background-color: rgba(32, 178, 170, 0.04);
-  --title-background-color: rgba(32, 178, 170, 0.04);
-  --dark-background-color: rgba(32, 178, 170, 0.12);
-  --dark-title-background-color: rgba(32, 178, 170, 0.12);
-}
-.callout-caution {
-  --color1: #FFFBEB;
-  --color2: #D97706;
-  --border-color: #D97706;
-  --background-color: rgba(217, 119, 6, 0.04);
-  --title-background-color: rgba(217, 119, 6, 0.04);
-  --dark-background-color: rgba(217, 119, 6, 0.12);
-  --dark-title-background-color: rgba(217, 119, 6, 0.12);
-}
-.callout-research-questions {
-  --color1: #F0F0F8;
-  --color2: #5B4B8A;
-  --border-color: #5B4B8A;
-  --background-color: rgba(91, 75, 138, 0.04);
-  --title-background-color: rgba(91, 75, 138, 0.04);
-  --dark-background-color: rgba(91, 75, 138, 0.12);
-  --dark-title-background-color: rgba(91, 75, 138, 0.12);
-}
-.callout-lighthouse {
-  --color1: #FDF8E6;
-  --color2: #B8860B;
-  --border-color: #B8860B;
-  --background-color: rgba(184, 134, 11, 0.04);
-  --title-background-color: rgba(184, 134, 11, 0.04);
-  --dark-background-color: rgba(184, 134, 11, 0.12);
-  --dark-title-background-color: rgba(184, 134, 11, 0.12);
-}
-.callout-code {
-  --color1: #F2F4F8;
-  --color2: #3C4858;
-  --border-color: #3C4858;
-  --background-color: rgba(60, 72, 88, 0.04);
-  --title-background-color: rgba(60, 72, 88, 0.04);
-  --dark-background-color: rgba(60, 72, 88, 0.12);
-  --dark-title-background-color: rgba(60, 72, 88, 0.12);
-}
-.callout-theorem {
-  --color1: #F5F0FA;
-  --color2: #6B46C1;
-  --border-color: #6B46C1;
-  --background-color: rgba(107, 70, 193, 0.04);
-  --title-background-color: rgba(107, 70, 193, 0.04);
-  --dark-background-color: rgba(107, 70, 193, 0.12);
-  --dark-title-background-color: rgba(107, 70, 193, 0.12);
-}
-.callout-perspective {
-  --color1: #F7F8FA;
-  --color2: #4A5568;
-  --border-color: #4A5568;
-  --background-color: rgba(74, 85, 104, 0.04);
-  --title-background-color: rgba(74, 85, 104, 0.04);
-  --dark-background-color: rgba(74, 85, 104, 0.12);
-  --dark-title-background-color: rgba(74, 85, 104, 0.12);
-}
 .callout-notebook {
   --color1: #F4F7FA;
   --color2: #3F6077;
@@ -6190,7 +6179,34 @@ $$
   --dark-background-color: rgba(255, 107, 53, 0.12);
   --dark-title-background-color: rgba(255, 107, 53, 0.12);
 }
-.callout-quiz-answer {
+.callout-code {
+  --color1: #F2F4F8;
+  --color2: #3C4858;
+  --border-color: #3C4858;
+  --background-color: rgba(60, 72, 88, 0.04);
+  --title-background-color: rgba(60, 72, 88, 0.04);
+  --dark-background-color: rgba(60, 72, 88, 0.12);
+  --dark-title-background-color: rgba(60, 72, 88, 0.12);
+}
+.callout-warning {
+  --color1: #FEF2F2;
+  --color2: #DC2626;
+  --border-color: #DC2626;
+  --background-color: rgba(220, 38, 38, 0.04);
+  --title-background-color: rgba(220, 38, 38, 0.04);
+  --dark-background-color: rgba(220, 38, 38, 0.12);
+  --dark-title-background-color: rgba(220, 38, 38, 0.12);
+}
+.callout-war-story {
+  --color1: #FEF2F2;
+  --color2: #C53030;
+  --border-color: #C53030;
+  --background-color: rgba(197, 48, 48, 0.04);
+  --title-background-color: rgba(197, 48, 48, 0.04);
+  --dark-background-color: rgba(197, 48, 48, 0.12);
+  --dark-title-background-color: rgba(197, 48, 48, 0.12);
+}
+.callout-learning-objectives {
   --color1: #E8F2EA;
   --color2: #4A7C59;
   --border-color: #4A7C59;
@@ -6199,7 +6215,16 @@ $$
   --dark-background-color: rgba(74, 124, 89, 0.12);
   --dark-title-background-color: rgba(74, 124, 89, 0.12);
 }
-.callout-resource-slides {
+.callout-caution {
+  --color1: #FFFBEB;
+  --color2: #D97706;
+  --border-color: #D97706;
+  --background-color: rgba(217, 119, 6, 0.04);
+  --title-background-color: rgba(217, 119, 6, 0.04);
+  --dark-background-color: rgba(217, 119, 6, 0.12);
+  --dark-title-background-color: rgba(217, 119, 6, 0.12);
+}
+.callout-resource-exercises {
   --color1: #E0F2F1;
   --color2: #20B2AA;
   --border-color: #20B2AA;
@@ -6208,18 +6233,163 @@ $$
   --dark-background-color: rgba(32, 178, 170, 0.12);
   --dark-title-background-color: rgba(32, 178, 170, 0.12);
 }
-.callout-example {
-  --color1: #F0F8F6;
-  --color2: #148F77;
-  --border-color: #148F77;
-  --background-color: rgba(20, 143, 119, 0.04);
-  --title-background-color: rgba(20, 143, 119, 0.04);
-  --dark-background-color: rgba(20, 143, 119, 0.12);
-  --dark-title-background-color: rgba(20, 143, 119, 0.12);
-}
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
+  details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-case-study summary,
+  details.callout-case-study summary strong,
+  details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-research-questions summary,
+  details.callout-research-questions summary strong,
+  details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-videos summary,
+  details.callout-resource-videos summary strong,
+  details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+  details.callout-definition summary,
+  details.callout-definition summary strong,
+  details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+  details.callout-quiz-question summary,
+  details.callout-quiz-question summary strong,
+  details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+  details.callout-theorem summary,
+  details.callout-theorem summary strong,
+  details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+  details.callout-resource-slides summary,
+  details.callout-resource-slides summary strong,
+  details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+  details.callout-lighthouse summary,
+  details.callout-lighthouse summary strong,
+  details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+  details.callout-perspective summary,
+  details.callout-perspective summary strong,
+  details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-example {
+    --text-color: #e6e6e6;
+    --background-color: rgba(20, 143, 119, 0.12);
+    --title-background-color: rgba(20, 143, 119, 0.12);
+    border-color: #148F77;
+  }
+  details.callout-example summary,
+  details.callout-example summary strong,
+  details.callout-example > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-example code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+  details.callout-chapter-connection summary,
+  details.callout-chapter-connection summary strong,
+  details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
   details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(157, 60, 114, 0.12);
@@ -6232,6 +6402,20 @@ $$
     color: #f0f0f0 !important;
   }
   details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+  details.callout-quiz-answer summary,
+  details.callout-quiz-answer summary strong,
+  details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
   details.callout-principle {
@@ -6262,216 +6446,6 @@ $$
   details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-  details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-  details.callout-chapter-connection summary,
-  details.callout-chapter-connection summary strong,
-  details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-  details.callout-definition summary,
-  details.callout-definition summary strong,
-  details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-  details.callout-warning summary,
-  details.callout-warning summary strong,
-  details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-  details.callout-learning-objectives summary,
-  details.callout-learning-objectives summary strong,
-  details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-quiz-question summary,
-  details.callout-quiz-question summary strong,
-  details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-war-story summary,
-  details.callout-war-story summary strong,
-  details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-case-study {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-  details.callout-case-study summary,
-  details.callout-case-study summary strong,
-  details.callout-case-study > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-videos summary,
-  details.callout-resource-videos summary strong,
-  details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-  details.callout-resource-exercises summary,
-  details.callout-resource-exercises summary strong,
-  details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-  details.callout-caution summary,
-  details.callout-caution summary strong,
-  details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-  details.callout-research-questions summary,
-  details.callout-research-questions summary strong,
-  details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-  details.callout-lighthouse summary,
-  details.callout-lighthouse summary strong,
-  details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-  details.callout-code summary,
-  details.callout-code summary strong,
-  details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-  details.callout-theorem summary,
-  details.callout-theorem summary strong,
-  details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-  details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-  details.callout-perspective summary,
-  details.callout-perspective summary strong,
-  details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-  details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
   details.callout-notebook {
     --text-color: #e6e6e6;
     --background-color: rgba(63, 96, 119, 0.12);
@@ -6500,49 +6474,245 @@ $$
   details.callout-colab code {
     color: #e6e6e6 !important;
   }
-  details.callout-quiz-answer {
+  details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+  details.callout-code summary,
+  details.callout-code summary strong,
+  details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+  details.callout-warning summary,
+  details.callout-warning summary strong,
+  details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+  details.callout-war-story summary,
+  details.callout-war-story summary strong,
+  details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-learning-objectives {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
     --title-background-color: rgba(74, 124, 89, 0.12);
     border-color: #4A7C59;
   }
-  details.callout-quiz-answer summary,
-  details.callout-quiz-answer summary strong,
-  details.callout-quiz-answer > summary {
+  details.callout-learning-objectives summary,
+  details.callout-learning-objectives summary strong,
+  details.callout-learning-objectives > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-quiz-answer code {
+  details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-  details.callout-resource-slides {
+  details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+  details.callout-caution summary,
+  details.callout-caution summary strong,
+  details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+  details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+  details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-  details.callout-resource-slides summary,
-  details.callout-resource-slides summary strong,
-  details.callout-resource-slides > summary {
+  details.callout-resource-exercises summary,
+  details.callout-resource-exercises summary strong,
+  details.callout-resource-exercises > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-resource-slides code {
+  details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
-  details.callout-example {
+}
+body.quarto-dark details.callout-case-study {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-case-study summary,
+body.quarto-dark details.callout-case-study summary strong,
+body.quarto-dark details.callout-case-study > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-case-study code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-research-questions {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-research-questions summary,
+body.quarto-dark details.callout-research-questions summary strong,
+body.quarto-dark details.callout-research-questions > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-research-questions code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-videos {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-videos summary,
+body.quarto-dark details.callout-resource-videos summary strong,
+body.quarto-dark details.callout-resource-videos > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-videos code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-definition {
+    --text-color: #e6e6e6;
+    --background-color: rgba(79, 115, 150, 0.12);
+    --title-background-color: rgba(79, 115, 150, 0.12);
+    border-color: #4F7396;
+  }
+body.quarto-dark details.callout-definition summary,
+body.quarto-dark details.callout-definition summary strong,
+body.quarto-dark details.callout-definition > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-definition code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-question {
+    --text-color: #e6e6e6;
+    --background-color: rgba(91, 75, 138, 0.12);
+    --title-background-color: rgba(91, 75, 138, 0.12);
+    border-color: #5B4B8A;
+  }
+body.quarto-dark details.callout-quiz-question summary,
+body.quarto-dark details.callout-quiz-question summary strong,
+body.quarto-dark details.callout-quiz-question > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-question code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-theorem {
+    --text-color: #e6e6e6;
+    --background-color: rgba(107, 70, 193, 0.12);
+    --title-background-color: rgba(107, 70, 193, 0.12);
+    border-color: #6B46C1;
+  }
+body.quarto-dark details.callout-theorem summary,
+body.quarto-dark details.callout-theorem summary strong,
+body.quarto-dark details.callout-theorem > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-theorem code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-slides {
+    --text-color: #e6e6e6;
+    --background-color: rgba(32, 178, 170, 0.12);
+    --title-background-color: rgba(32, 178, 170, 0.12);
+    border-color: #20B2AA;
+  }
+body.quarto-dark details.callout-resource-slides summary,
+body.quarto-dark details.callout-resource-slides summary strong,
+body.quarto-dark details.callout-resource-slides > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-resource-slides code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-lighthouse {
+    --text-color: #e6e6e6;
+    --background-color: rgba(184, 134, 11, 0.12);
+    --title-background-color: rgba(184, 134, 11, 0.12);
+    border-color: #B8860B;
+  }
+body.quarto-dark details.callout-lighthouse summary,
+body.quarto-dark details.callout-lighthouse summary strong,
+body.quarto-dark details.callout-lighthouse > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-lighthouse code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-perspective {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 85, 104, 0.12);
+    --title-background-color: rgba(74, 85, 104, 0.12);
+    border-color: #4A5568;
+  }
+body.quarto-dark details.callout-perspective summary,
+body.quarto-dark details.callout-perspective summary strong,
+body.quarto-dark details.callout-perspective > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-perspective code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-example {
     --text-color: #e6e6e6;
     --background-color: rgba(20, 143, 119, 0.12);
     --title-background-color: rgba(20, 143, 119, 0.12);
     border-color: #148F77;
   }
-  details.callout-example summary,
-  details.callout-example summary strong,
-  details.callout-example > summary {
+body.quarto-dark details.callout-example summary,
+body.quarto-dark details.callout-example summary strong,
+body.quarto-dark details.callout-example > summary {
     color: #f0f0f0 !important;
   }
-  details.callout-example code {
+body.quarto-dark details.callout-example code {
     color: #e6e6e6 !important;
   }
-}
+body.quarto-dark details.callout-chapter-connection {
+    --text-color: #e6e6e6;
+    --background-color: rgba(100, 116, 139, 0.12);
+    --title-background-color: rgba(100, 116, 139, 0.12);
+    border-color: #64748B;
+  }
+body.quarto-dark details.callout-chapter-connection summary,
+body.quarto-dark details.callout-chapter-connection summary strong,
+body.quarto-dark details.callout-chapter-connection > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-chapter-connection code {
+    color: #e6e6e6 !important;
+  }
 body.quarto-dark details.callout-takeaways {
     --text-color: #e6e6e6;
     --background-color: rgba(157, 60, 114, 0.12);
@@ -6555,6 +6725,20 @@ body.quarto-dark details.callout-takeaways > summary {
     color: #f0f0f0 !important;
   }
 body.quarto-dark details.callout-takeaways code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-quiz-answer {
+    --text-color: #e6e6e6;
+    --background-color: rgba(74, 124, 89, 0.12);
+    --title-background-color: rgba(74, 124, 89, 0.12);
+    border-color: #4A7C59;
+  }
+body.quarto-dark details.callout-quiz-answer summary,
+body.quarto-dark details.callout-quiz-answer summary strong,
+body.quarto-dark details.callout-quiz-answer > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-quiz-answer code {
     color: #e6e6e6 !important;
   }
 body.quarto-dark details.callout-principle {
@@ -6585,216 +6769,6 @@ body.quarto-dark details.callout-checkpoint > summary {
 body.quarto-dark details.callout-checkpoint code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-chapter-connection {
-    --text-color: #e6e6e6;
-    --background-color: rgba(100, 116, 139, 0.12);
-    --title-background-color: rgba(100, 116, 139, 0.12);
-    border-color: #64748B;
-  }
-body.quarto-dark details.callout-chapter-connection summary,
-body.quarto-dark details.callout-chapter-connection summary strong,
-body.quarto-dark details.callout-chapter-connection > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-chapter-connection code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-definition {
-    --text-color: #e6e6e6;
-    --background-color: rgba(79, 115, 150, 0.12);
-    --title-background-color: rgba(79, 115, 150, 0.12);
-    border-color: #4F7396;
-  }
-body.quarto-dark details.callout-definition summary,
-body.quarto-dark details.callout-definition summary strong,
-body.quarto-dark details.callout-definition > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-definition code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-warning {
-    --text-color: #e6e6e6;
-    --background-color: rgba(220, 38, 38, 0.12);
-    --title-background-color: rgba(220, 38, 38, 0.12);
-    border-color: #DC2626;
-  }
-body.quarto-dark details.callout-warning summary,
-body.quarto-dark details.callout-warning summary strong,
-body.quarto-dark details.callout-warning > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-warning code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-learning-objectives {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 124, 89, 0.12);
-    --title-background-color: rgba(74, 124, 89, 0.12);
-    border-color: #4A7C59;
-  }
-body.quarto-dark details.callout-learning-objectives summary,
-body.quarto-dark details.callout-learning-objectives summary strong,
-body.quarto-dark details.callout-learning-objectives > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-learning-objectives code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-quiz-question {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-quiz-question summary,
-body.quarto-dark details.callout-quiz-question summary strong,
-body.quarto-dark details.callout-quiz-question > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-quiz-question code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-war-story {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-war-story summary,
-body.quarto-dark details.callout-war-story summary strong,
-body.quarto-dark details.callout-war-story > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-war-story code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-case-study {
-    --text-color: #e6e6e6;
-    --background-color: rgba(197, 48, 48, 0.12);
-    --title-background-color: rgba(197, 48, 48, 0.12);
-    border-color: #C53030;
-  }
-body.quarto-dark details.callout-case-study summary,
-body.quarto-dark details.callout-case-study summary strong,
-body.quarto-dark details.callout-case-study > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-case-study code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-videos {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-videos summary,
-body.quarto-dark details.callout-resource-videos summary strong,
-body.quarto-dark details.callout-resource-videos > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-videos code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-resource-exercises {
-    --text-color: #e6e6e6;
-    --background-color: rgba(32, 178, 170, 0.12);
-    --title-background-color: rgba(32, 178, 170, 0.12);
-    border-color: #20B2AA;
-  }
-body.quarto-dark details.callout-resource-exercises summary,
-body.quarto-dark details.callout-resource-exercises summary strong,
-body.quarto-dark details.callout-resource-exercises > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-resource-exercises code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-caution {
-    --text-color: #e6e6e6;
-    --background-color: rgba(217, 119, 6, 0.12);
-    --title-background-color: rgba(217, 119, 6, 0.12);
-    border-color: #D97706;
-  }
-body.quarto-dark details.callout-caution summary,
-body.quarto-dark details.callout-caution summary strong,
-body.quarto-dark details.callout-caution > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-caution code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-research-questions {
-    --text-color: #e6e6e6;
-    --background-color: rgba(91, 75, 138, 0.12);
-    --title-background-color: rgba(91, 75, 138, 0.12);
-    border-color: #5B4B8A;
-  }
-body.quarto-dark details.callout-research-questions summary,
-body.quarto-dark details.callout-research-questions summary strong,
-body.quarto-dark details.callout-research-questions > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-research-questions code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-lighthouse {
-    --text-color: #e6e6e6;
-    --background-color: rgba(184, 134, 11, 0.12);
-    --title-background-color: rgba(184, 134, 11, 0.12);
-    border-color: #B8860B;
-  }
-body.quarto-dark details.callout-lighthouse summary,
-body.quarto-dark details.callout-lighthouse summary strong,
-body.quarto-dark details.callout-lighthouse > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-lighthouse code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-code {
-    --text-color: #e6e6e6;
-    --background-color: rgba(60, 72, 88, 0.12);
-    --title-background-color: rgba(60, 72, 88, 0.12);
-    border-color: #3C4858;
-  }
-body.quarto-dark details.callout-code summary,
-body.quarto-dark details.callout-code summary strong,
-body.quarto-dark details.callout-code > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-code code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-theorem {
-    --text-color: #e6e6e6;
-    --background-color: rgba(107, 70, 193, 0.12);
-    --title-background-color: rgba(107, 70, 193, 0.12);
-    border-color: #6B46C1;
-  }
-body.quarto-dark details.callout-theorem summary,
-body.quarto-dark details.callout-theorem summary strong,
-body.quarto-dark details.callout-theorem > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-theorem code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-perspective {
-    --text-color: #e6e6e6;
-    --background-color: rgba(74, 85, 104, 0.12);
-    --title-background-color: rgba(74, 85, 104, 0.12);
-    border-color: #4A5568;
-  }
-body.quarto-dark details.callout-perspective summary,
-body.quarto-dark details.callout-perspective summary strong,
-body.quarto-dark details.callout-perspective > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-perspective code {
-    color: #e6e6e6 !important;
-  }
 body.quarto-dark details.callout-notebook {
     --text-color: #e6e6e6;
     --background-color: rgba(63, 96, 119, 0.12);
@@ -6823,52 +6797,130 @@ body.quarto-dark details.callout-colab > summary {
 body.quarto-dark details.callout-colab code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-quiz-answer {
+body.quarto-dark details.callout-code {
+    --text-color: #e6e6e6;
+    --background-color: rgba(60, 72, 88, 0.12);
+    --title-background-color: rgba(60, 72, 88, 0.12);
+    border-color: #3C4858;
+  }
+body.quarto-dark details.callout-code summary,
+body.quarto-dark details.callout-code summary strong,
+body.quarto-dark details.callout-code > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-code code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-warning {
+    --text-color: #e6e6e6;
+    --background-color: rgba(220, 38, 38, 0.12);
+    --title-background-color: rgba(220, 38, 38, 0.12);
+    border-color: #DC2626;
+  }
+body.quarto-dark details.callout-warning summary,
+body.quarto-dark details.callout-warning summary strong,
+body.quarto-dark details.callout-warning > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-warning code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-war-story {
+    --text-color: #e6e6e6;
+    --background-color: rgba(197, 48, 48, 0.12);
+    --title-background-color: rgba(197, 48, 48, 0.12);
+    border-color: #C53030;
+  }
+body.quarto-dark details.callout-war-story summary,
+body.quarto-dark details.callout-war-story summary strong,
+body.quarto-dark details.callout-war-story > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-war-story code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-learning-objectives {
     --text-color: #e6e6e6;
     --background-color: rgba(74, 124, 89, 0.12);
     --title-background-color: rgba(74, 124, 89, 0.12);
     border-color: #4A7C59;
   }
-body.quarto-dark details.callout-quiz-answer summary,
-body.quarto-dark details.callout-quiz-answer summary strong,
-body.quarto-dark details.callout-quiz-answer > summary {
+body.quarto-dark details.callout-learning-objectives summary,
+body.quarto-dark details.callout-learning-objectives summary strong,
+body.quarto-dark details.callout-learning-objectives > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-quiz-answer code {
+body.quarto-dark details.callout-learning-objectives code {
     color: #e6e6e6 !important;
   }
-body.quarto-dark details.callout-resource-slides {
+body.quarto-dark details.callout-caution {
+    --text-color: #e6e6e6;
+    --background-color: rgba(217, 119, 6, 0.12);
+    --title-background-color: rgba(217, 119, 6, 0.12);
+    border-color: #D97706;
+  }
+body.quarto-dark details.callout-caution summary,
+body.quarto-dark details.callout-caution summary strong,
+body.quarto-dark details.callout-caution > summary {
+    color: #f0f0f0 !important;
+  }
+body.quarto-dark details.callout-caution code {
+    color: #e6e6e6 !important;
+  }
+body.quarto-dark details.callout-resource-exercises {
     --text-color: #e6e6e6;
     --background-color: rgba(32, 178, 170, 0.12);
     --title-background-color: rgba(32, 178, 170, 0.12);
     border-color: #20B2AA;
   }
-body.quarto-dark details.callout-resource-slides summary,
-body.quarto-dark details.callout-resource-slides summary strong,
-body.quarto-dark details.callout-resource-slides > summary {
+body.quarto-dark details.callout-resource-exercises summary,
+body.quarto-dark details.callout-resource-exercises summary strong,
+body.quarto-dark details.callout-resource-exercises > summary {
     color: #f0f0f0 !important;
   }
-body.quarto-dark details.callout-resource-slides code {
-    color: #e6e6e6 !important;
-  }
-body.quarto-dark details.callout-example {
-    --text-color: #e6e6e6;
-    --background-color: rgba(20, 143, 119, 0.12);
-    --title-background-color: rgba(20, 143, 119, 0.12);
-    border-color: #148F77;
-  }
-body.quarto-dark details.callout-example summary,
-body.quarto-dark details.callout-example summary strong,
-body.quarto-dark details.callout-example > summary {
-    color: #f0f0f0 !important;
-  }
-body.quarto-dark details.callout-example code {
+body.quarto-dark details.callout-resource-exercises code {
     color: #e6e6e6 !important;
   }
 </style>
 <style>
+details.callout-case-study > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-research-questions > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
+}
+details.callout-resource-videos > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
+}
+details.callout-definition > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
+}
+details.callout-quiz-question > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
+}
+details.callout-theorem > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
+}
+details.callout-resource-slides > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+}
+details.callout-lighthouse > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
+}
+details.callout-perspective > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
+}
+details.callout-example > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+}
+details.callout-chapter-connection > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
+}
 details.callout-takeaways > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_takeaways.png");
+}
+details.callout-quiz-answer > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
 }
 details.callout-principle > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_principle.png");
@@ -6876,65 +6928,29 @@ details.callout-principle > summary::before {
 details.callout-checkpoint > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_checkpoint.png");
 }
-details.callout-chapter-connection > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_chapter_connection.png");
-}
-details.callout-definition > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_definition.png");
-}
-details.callout-warning > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
-}
-details.callout-learning-objectives > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
-}
-details.callout-quiz-question > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_question.png");
-}
-details.callout-war-story > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-case-study > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
-}
-details.callout-resource-videos > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_videos.png");
-}
-details.callout-resource-exercises > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
-}
-details.callout-caution > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
-}
-details.callout-research-questions > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_research_questions.png");
-}
-details.callout-lighthouse > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_lighthouse.png");
-}
-details.callout-code > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
-}
-details.callout-theorem > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_theorem.png");
-}
-details.callout-perspective > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_perspective.png");
-}
 details.callout-notebook > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_notebook.png");
 }
 details.callout-colab > summary::before {
   background-image: url("../shared/assets/images/icons/callouts/icon_callout_colab.png");
 }
-details.callout-quiz-answer > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_quiz_answer.png");
+details.callout-code > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_code.png");
 }
-details.callout-resource-slides > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_slides.png");
+details.callout-warning > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_warning.png");
 }
-details.callout-example > summary::before {
-  background-image: url("../shared/assets/images/icons/callouts/icon_callout_example.png");
+details.callout-war-story > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_case_study.png");
+}
+details.callout-learning-objectives > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_learning_objectives.png");
+}
+details.callout-caution > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_caution.png");
+}
+details.callout-resource-exercises > summary::before {
+  background-image: url("../shared/assets/images/icons/callouts/icon_callout_resource_exercises.png");
 }
 </style>
     <style type="text/css">
@@ -7013,12 +7029,6 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
-</i> 
- <span class="dropdown-text">Concept Explorer</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
     <a class="dropdown-item" href="../../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
@@ -7051,11 +7061,6 @@ window.Quarto = {
  <span class="menu-text">Build</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
-        <li>
-    <a class="dropdown-item" href="https://mlsysbook.ai/games/"><i class="bi bi-controller" role="img">
-</i> 
- <span class="dropdown-text">Playground Games</span></a>
-  </li>  
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/labs/"><i class="bi bi-sliders" role="img">
 </i> 
@@ -7105,6 +7110,12 @@ window.Quarto = {
  <span class="menu-text">Prepare</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="https://mlsysbook.ai/explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">ML Systems Taxonomy</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="https://mlsysbook.ai/staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
@@ -7253,7 +7264,7 @@ window.Quarto = {
     </div>
   </nav>
   <div id="quarto-announcement" data-announcement-id="0e2cd3509ca22d2d38c96a68a339eb48" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 10:13 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cec5ba0d</code> • 2026-10-26 13:30 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
 <p><span class="mls-ann-line"><strong>Physical AI: Machine Learning Systems That Sense and Act (Volume IV), in preparation.</strong> This draft changes as chapters are written. The target release is late 2027 or early 2028.</span> <span class="mls-ann-line"><strong>The other volumes:</strong> <a href="../../vol1/">Introduction to Machine Learning Systems</a> · <a href="../../vol2/">Scaling Machine Learning Systems</a> (preview)<span class="mls-unreleased"> · <a href="../../vol3/">Agentic Machine Learning Systems</a> (in preparation)</span></span> <span class="mls-ann-line mls-ann-siblings"><strong>Alongside the book:</strong> <a href="https://mlsysbook.ai/tinytorch/">TinyTorch</a> (build) · <a href="https://mlsysbook.ai/kits/">Hardware Kits</a> (deploy) · <a href="https://mlsysbook.ai/mlsysim/">MLSys·im</a> (model) · <a href="https://mlsysbook.ai/labs/">Labs</a> (explore)</span> <span class="mls-ann-line"><strong>Newsletter:</strong> news about the books and their companion tools. <a href="https://mlsysbook.ai/newsletter/">Subscribe →</a></span></p>
 </div></div>
 </header>
@@ -7856,7 +7867,7 @@ window.Quarto = {
 <span class="nocase">Oquab, Maxime, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, et al.</span> 2023. <span>“Dinov2: Learning Robust Visual Features Without Supervision.”</span> <em>arXiv Preprint arXiv:2304.07193</em>.
 </div><div id="ref-liu2023bevfusion" class="csl-entry" role="listitem">
 Liu, Zhijian, Haotian Tang, Alexander Amini, Xinyu Yang, Huizi Mao, Daniela Rus, and Song Han. 2023. <span>“<span>BEVFusion</span>: Multi-Task Multi-Sensor Fusion with Unified Bird’s-Eye View Representation.”</span> <em>IEEE International Conference on Robotics and Automation (ICRA)</em>, 2774–81.
-</div></div><div id="fig-08-ray-frustum-voxel-lifting" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="t" data-fig-env="figure">
+</div></div><div id="fig-08-ray-frustum-voxel-lifting" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-08-ray-frustum-voxel-lifting-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="../08_perception/images/svg/fig08_ray_frustum_voxel_lifting.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Camera ray frustum lifting and BEV splatting: LSS [@philion2020lift] places learned depth hypotheses from each camera in a shared metric BEV frame; that coordinate transform does not resolve monocular depth ambiguity. The final clearance inset requires separately validated metric residuals, bias, and a chosen tail quantile or deterministic error bound before permission. (Architecture adapted from @philion2020lift.)"><img src="../08_perception/images/svg/fig08_ray_frustum_voxel_lifting.svg" class="img-fluid figure-img" style="width:100.0%" alt="Four stages show image features, a ray with several learned depth hypotheses, a shared bird's-eye-view grid, and a clearance decision. The last panel labels depth as estimated and the inset as checked; learned depth-bin weights alone do not establish a metric error bound."></a>
@@ -7891,7 +7902,7 @@ Philion, Jonah, and Sanja Fidler. 2020. <span>“Lift, Splat, Shoot: Encoding Im
 <h4 class="anchored" data-anchor-id="differentiable-alpha-blending-and-clearance-limits">Differentiable alpha-blending and clearance limits</h4>
 <p>To render pixel color <span class="math inline">\(\RenderedPixelColor(\PixelColumnCoordinate, \PixelRowCoordinate)\)</span>, tile-based rasterization bins Gaussians into <span class="math inline">\(16 \times 16\)</span> pixel screen tiles, sorts overlapping Gaussians along the camera optical axis by depth <span class="math inline">\(\CartesianZCoordinate\)</span>, and computes front-to-back alpha-blended volume rendering: <span class="math display">\[ \RenderedPixelColor = \sum_{i \in \OverlappingGaussianSet} \GaussianViewDependentColor_i \PixelOpacityContribution_i \CumulativeTransmittance_i, \quad \text{where } \CumulativeTransmittance_i = \prod_{j=1}^{\GaussianPrimitiveIndex-1} (1 - \PixelOpacityContribution_j) \]</span> Here <span class="math inline">\(\CumulativeTransmittance_i\)</span> represents cumulative optical transmittance along the viewing ray, initialized to <span class="math inline">\(\CumulativeTransmittance_1=1\)</span>. In this rendering equation, <span class="math inline">\(\PixelOpacityContribution_i\)</span> is the pixel-dependent opacity contribution, including the projected Gaussian footprint, rather than the stored opacity <span class="math inline">\(\GaussianPrimitiveOpacity_i\)</span>. An implementation may terminate when the remaining transmittance is sufficiently small; the error tolerance, scene density, and hardware determine the resulting speed.</p>
 <p>However, a physical AI systems engineer must recognize the boundary between visual rendering and physical clearance. The 3D Gaussian parameters are optimized strictly against 2D photometric rendering loss (such as <span class="math inline">\(\ell_1\)</span> color difference and SSIM). Gaussians frequently fit unobserved scene regions with semi-transparent “floaters,” hollow shells, or blurred volumetric density. Neither the stored opacity <span class="math inline">\(\GaussianPrimitiveOpacity_i\)</span> nor the spatial gradient <span class="math inline">\(\nabla_{\CartesianPosition} \GaussianPrimitiveDensity_i(\CartesianPosition)\)</span> of its density constitutes a conservative collision surface. <a href="#fig-3dgs-slam-splatam" class="quarto-xref">Figure&nbsp;2</a> partitions this architectural handoff across three functional panels. Panel (a) tracks camera poses from an incoming RGB-D stream. Panel (b) maintains the 3D Gaussian memory primitives (mean, covariance ellipsoid, opacity, and spherical-harmonic color) under adaptive splitting, cloning, and pruning. Panel (c) decouples photometric rasterization from physical safety, routing Gaussian primitives through an unvalidated candidate occupancy or signed distance field before an explicit error-bounding step admits the clearance envelope.</p>
-<div id="fig-3dgs-slam-splatam" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-3dgs-slam-splatam" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-3dgs-slam-splatam-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="../09_memory/images/svg/fig09_canonical_3dgs_memory.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: Gaussian memory and clearance handoff: Camera observations update a Gaussian scene for novel-view rendering. Its visual output does not directly supply conservative collision distance; a separately validated geometry or occupancy conversion and permission check are required [@kerbl20233d; @matsuki2024gaussian]."><img src="../09_memory/images/svg/fig09_canonical_3dgs_memory.svg" class="img-fluid figure-img" style="width:100.0%" alt="Three-panel schematic. Panel a: an RGB-D stream feeds pose tracking, which outputs the camera pose. Panel b: a Gaussian scene memory holding 3D Gaussians with mean, covariance, opacity, and spherical-harmonic color, drawn as three oriented ellipses, above an adaptive density control step that splits, clones, and prunes. Panel c: a rasterize arrow leads to novel-view rendering, a visual output; a convert arrow leads to a dashed candidate occupancy or distance field marked not yet validated, which connects to an error-bound-then-clearance step."></a>
@@ -7906,10 +7917,10 @@ Matsuki, Hidenobu, Ryo Murai, Paul H. J. Kelly, and Andrew J. Davison. 2024. <sp
 </div></div></figure>
 </div>
 <p>Storage per primitive depends on its packing and spherical-harmonic degree, so a map’s footprint is its primitive count times that packing. A dense cubic grid instead stores <span class="math inline">\(\mathcal{O}(\GridSideCellCount^3)\)</span> cells, and a sparse occupancy map stores only allocated structure, whose size depends on the observed geometry and the accuracy target. <a href="#fig-09-volumetric-memory-scaling" class="quarto-xref">Figure&nbsp;3</a> plots these three storage scaling regimes on logarithmic axes as grid resolution spans from 10 to <span class="math inline">\(10^4\)</span> cells per dimension. The cubic grid grows steeply as <span class="math inline">\(\mathcal{O}(\GridSideCellCount^3)\)</span> and passes gigabytes at modest resolutions. The surface-allocated octree scales along an <span class="math inline">\(\mathcal{O}(\GridSideCellCount^2)\)</span> trajectory. The stylized Gaussian scene maintains a flat baseline under an assumed fixed primitive count of 500,000 elements.</p>
-<div id="fig-09-volumetric-memory-scaling" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-pos="htb" data-fig-env="figure">
+<div id="fig-09-volumetric-memory-scaling" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-env="figure" data-fig-pos="htb">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-09-volumetric-memory-scaling-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div id="ec4baddf" class="cell" data-message="false" data-execution_count="3">
+<div id="8bf8917f" class="cell" data-message="false" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -7940,7 +7951,7 @@ Elfes, Alberto. 1989. <span>“Using Occupancy Grids for Mobile Robot Perception
 Amanatides, John, and Andrew Woo. 1987. <span>“A Fast Voxel Traversal Algorithm for Ray Tracing.”</span> <em>Eurographics ’87</em>, 3–10.
 </div><div id="ref-museth2013vdb" class="csl-entry" role="listitem">
 Museth, Ken. 2013. <span>“<span>VDB</span>: High-Resolution Sparse Volumes with Dynamic Topology.”</span> <em>ACM Transactions on Graphics</em> 32 (3): 1–22. https://doi.org/10.1145/2487228.2487235.
-</div></div><div id="fig-09-octomap-volumetric-mapping" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="t" data-fig-env="figure">
+</div></div><div id="fig-09-octomap-volumetric-mapping" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-09-octomap-volumetric-mapping-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="../09_memory/images/png/fig09_real_octomap_volumetric_mapping.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Probabilistic octree volumetric mapping: A corridor traversal reconstructed from raw point cloud into a probabilistic octree and then into explicit free, occupied, and unknown space [@hornung2013octomap]. The third panel is what distinguishes spatial memory from an accumulated point cloud, because raycasting records evidence of emptiness along sightlines, letting the map actively retire a phantom obstacle track instead of waiting for a timeout to expire it. (Credit: Autonomous Intelligent Systems Lab, University of Freiburg [@hornung2013octomap].)"><img src="../09_memory/images/png/fig09_real_octomap_volumetric_mapping.png" class="img-fluid figure-img" style="width:95.0%" alt="Probabilistic 3D Volumetric Mapping and Hierarchical Octree Space Subdivision. Empirical 3D spatial memory representation reconstructed from a physical mobile robot traversing an indoor corridor with a tilting lidar scanner. (a) Raw 3D point cloud acquired during robot motion, subject to sensor noise and finite field-of-view occlusions. (b) Volumetric OctoMap voxel representation modeling 3D space as an 8-ary hierarchical tree, where occupied volumes are probabilistically updated and stored across variable resolutions. (c) Explicit free-space raycasting and lossless octree pruning, differentiating observed free cells (white voxels) from occupied obstacles (dark voxels) and unobserved unknown regions; free evidence alone does not certify traversability for a particular robot. By maintaining explicit free-space evidence along sensor sightlines, spatial memory actively invalidates phantom obstacle tracks without waiting for arbitrary software timeouts."></a>
@@ -7965,7 +7976,7 @@ Oleynikova, Helen, Zachary Taylor, Marius Fehr, Roland Siegwart, and Juan Nieto.
 <section id="one-frames-update-and-its-memory-traffic" class="level4">
 <h4 class="anchored" data-anchor-id="one-frames-update-and-its-memory-traffic">One frame’s update and its memory traffic</h4>
 <p>Each incoming depth frame must pass a freshness gate before updating occupancy along its rays and fusing TSDF samples inside the truncation band (<a href="#algo-volumetric-tsdf-raycast" class="quarto-xref">algorithm 1</a>), and the notebook after the pseudocode prices the resulting update traffic that <strong><a href="../09_memory/09_memory.html#sec-memory-scene-attention-buffers">Certified Spatial Assertions in Scene Memory</a></strong> charges against the memory bus. The update procedure rejects the frame before touching the map when its capture epoch is too old or older than the last evidence of any cell it would update. It then clears and marks occupancy along each ray and fuses TSDF samples only inside the truncation band. Every updated cell takes the capture epoch, not the update time, so a later consumer can judge each cell’s freshness.</p>
-<div id="algo-volumetric-tsdf-raycast" class="pseudocode-container quarto-float" data-no-end="false" data-caption-prefix="Algorithm" data-pseudocode-number="1" data-line-number-punc=":" data-indent-lines="false" data-comment-delimiter="▷" data-indent-size="1.2em" data-line-number="true">
+<div id="algo-volumetric-tsdf-raycast" class="pseudocode-container quarto-float" data-line-number-punc=":" data-indent-lines="false" data-caption-prefix="Algorithm" data-indent-size="1.2em" data-comment-delimiter="▷" data-line-number="true" data-no-end="false" data-pseudocode-number="1">
 <textarea class="pseudocode" hidden="" aria-hidden="true">\begin{algorithm}
 \caption{Occupancy Raycast and Metric TSDF Fusion}
 \begin{algorithmic}
@@ -8096,7 +8107,7 @@ Zhao, Tony Z., Vikash Kumar, Sergey Levine, and Chelsea Finn. 2023. <span>“Lea
 <li><strong>1D temporal convolutional U-Net:</strong> Convolutions across the action horizon reuse filters at many positions. Feature-wise linear modulation (FiLM) supplies observation and diffusion-step conditioning. Layer widths, intermediate tensors, and accelerator tiling determine whether activations stay on chip.</li>
 <li><strong>Diffusion transformer (DiT):</strong> Attention connects action tokens and visual conditioning. The action horizon and conditioning length determine attention work, while kernel fusion determines how much intermediate storage reaches DRAM. Neither backbone implies a fixed parameter count or per-step latency; the worked budget below declares one illustrative configuration.</li>
 </ul>
-<div id="fig-diffusion-policy-architecture" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-diffusion-policy-architecture" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-diffusion-policy-architecture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="../06_training/images/svg/fig06_canonical_diffusion_policy.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Diffusion policy architecture: A continuous trajectory diffusion policy for visuomotor control, denoising a candidate action chunk from Gaussian noise across \DecoderEvaluationCount iterations and dispatching only a prefix of it before re-planning. Asynchronous buffering and an independent high-rate permission path can separate slower chunk generation from actuation. Conditional denoising can represent alternative demonstrated paths without taking their direct-regression mean. (Adapted from @chi2024diffusionpolicy)."><img src="../06_training/images/svg/fig06_canonical_diffusion_policy.svg" class="img-fluid figure-img" style="width:100.0%" alt="Three-column block diagram. Observation: camera images and robot state pass through an encoder to a conditioning history. Denoising: Gaussian noise enters a noise network run for a number of sequential steps, producing a dashed candidate action chunk. Dispatch: a bracket marks the prediction horizon; the first segment is sent and the rest discarded. The sent prefix crosses a dashed proposal boundary into a 1 kHz permission path, which passes an admitted command to the drives."></a>
@@ -8139,7 +8150,7 @@ Lipman, Yaron, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nicklas, and Matt Le. 20
 <li><strong>Dual-rate asynchronous decoupling:</strong> The application processor runs the generative denoising loop asynchronously at a relaxed rate (<span class="math inline">\(10\text{--}20\text{ Hz}\)</span>), sending each action chunk across the proposal boundary over a black-channel link that carries a checksum and sequence number. A discrete safety microcontroller, which shares no memory with the application processor, receives the chunk into its own double buffer and executes synchronously at <span class="math inline">\(1\text{ kHz}\)</span>. It interpolates spline knots, enforces slew-rate limits, and gates commands through deterministic control barrier functions (<strong><a href="../01_boundary/01_boundary.html#sec-boundary-machine-model">The Machine in Five Levels</a></strong>).</li>
 </ol>
 <p>The numerical execution of this dual-rate pipeline spans both processors (<a href="#algo-diffusion-policy-trajectory" class="quarto-xref">algorithm 2</a>), and its geometry, denoising trajectory, and hardware split appear across the three panels of <a href="#fig-diffusion-denoising-process" class="quarto-xref">figure&nbsp;6</a>. Panel (a) demonstrates multimodal action selection. It contrasts direct MSE regression, which averages divergent paths into an obstacle collision, against conditional diffusion, which samples distinct valid trajectory modes. Panel (b) traces the reverse-diffusion denoising sequence from isotropic Gaussian noise <span class="math inline">\(\ActionChunk^{\DecoderEvaluationCount}\)</span> to a coherent action chunk <span class="math inline">\(\ActionChunk^0\)</span>. Panel (c) shows the asynchronous dual-rate hardware split, where the application processor streams candidate chunks over a black-channel serial link to a discrete <span class="math inline">\(1\text{ kHz}\)</span> safety microcontroller running double-buffering, freshness checks, and spline interpolation. <strong><a href="../06_training/06_training.html#sec-training-synthesis-regimes">Policy Training Regimes</a></strong> uses the timing budget below to evaluate which sampler fits the control deadline. The pseudocode assumes the microcontroller’s receive path has already validated the proposal’s capture epoch, clock conversion, configuration, validity interval, and handoff continuity. An absent, expired, or rejected chunk selects the defined fallback; spline interpolation and slew clamping alone do not implement that permission decision. The transmitted action must also pass the actuator interface that converts its declared units to drive commands.</p>
-<div id="algo-diffusion-policy-trajectory" class="pseudocode-container quarto-float" data-no-end="false" data-caption-prefix="Algorithm" data-pseudocode-number="2" data-line-number-punc=":" data-indent-lines="false" data-comment-delimiter="▷" data-indent-size="1.2em" data-line-number="true">
+<div id="algo-diffusion-policy-trajectory" class="pseudocode-container quarto-float" data-line-number-punc=":" data-indent-lines="false" data-caption-prefix="Algorithm" data-indent-size="1.2em" data-comment-delimiter="▷" data-line-number="true" data-no-end="false" data-pseudocode-number="2">
 <textarea class="pseudocode" hidden="" aria-hidden="true">\begin{algorithm}
 \caption{Diffusion Policy Trajectory Chunk Denoising and Dual-Rate Actuation}
 \begin{algorithmic}
@@ -8173,7 +8184,7 @@ Lipman, Yaron, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nicklas, and Matt Le. 20
 \end{algorithm}</textarea>
 <span class="hidden" aria-hidden="true"><span class="math inline">\(\mathbf{O}_t = (\MultimodalObservation_{t-\ObservationHistoryLength}, \dots, \MultimodalObservation_{t})\)</span></span>
 </div>
-<div id="fig-diffusion-denoising-process" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-pos="t" data-fig-env="figure">
+<div id="fig-diffusion-denoising-process" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" data-fig-env="figure" data-fig-pos="t">
 <figure class="quarto-float quarto-float-fig figure page-columns page-full">
 <div aria-describedby="fig-diffusion-denoising-process-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <a href="images/svg/appx_ml_diffusion_dual_rate.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;6: Diffusion policy action chunk denoising and receding-horizon decoupling: (a) Multimodal resolution: direct regression with mean squared error averages divergent demonstrations into an invalid obstacle collision, whereas conditional diffusion can sample alternative demonstrated modes; generated paths still require clearance checks. (b) Iterative trajectory denoising: starting from Gaussian noise \ActionChunk^{\DecoderEvaluationCount} \sim \GaussianDistribution(\ZeroVector, \IdentityMatrix), reverse diffusion progressively resolves a coarse trajectory into a smooth action chunk \ActionChunk^0. (c) Dual-rate decoupling: an asynchronous sampler on the application processor sends each chunk over a black-channel link to a discrete 1\,\text{kHz} safety microcontroller, which holds it in its own double buffer and runs the freshness check, spline interpolation, and slew clamping. The two processors share no memory. (Adapted from @chi2024diffusionpolicy)."><img src="images/svg/appx_ml_diffusion_dual_rate.svg" class="img-fluid figure-img" style="width:100.0%" alt="Three-panel schematic. Panel a: direct regression averages two demonstrated paths around an obstacle into a mean path that runs into it, while conditional diffusion samples from noise toward one of two mode regions. Panel b: three stacked boxes go from a noisy zigzag to a coarse dashed curve to a smooth candidate action chunk. Panel c: an application processor sampler at 15 Hz sends a chunk through a dashed black-channel link with CRC and sequence number to a safety microcontroller with its own memory, holding an active and a filling buffer and running a freshness check, spline, and slew clamp at a 1 kHz tick; it passes an admitted command to the drives."></a>
