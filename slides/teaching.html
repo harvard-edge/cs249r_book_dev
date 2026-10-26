@@ -83,9 +83,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-1ee4699e7f90467581992734277a506a.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-577971f114cad63614d16eeccff2a139.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-853a52d38ffcebd7bca4a70703db369b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-577971f114cad63614d16eeccff2a139.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-be6f03006b18231f6e9a49b82c895df5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-aee6990316234d94ea245df09e512712.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-be6f03006b18231f6e9a49b82c895df5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -141,10 +141,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   html:not(.mls-staging) .navbar li:has(> a[href$="vol4.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol3.html"]),
   html:not(.mls-staging) li.sidebar-item:has(> .sidebar-item-container > a[href$="vol4.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol3.html"]),
+  html:not(.mls-staging) .nav-page:has(> a[href$="vol4.html"]),
   html.mls-staging .mls-live-only {
     display: none !important;
   }
 </style>
+<script>
+// On the live site, an inline link into an unreleased volume (its book or
+// its slide deck) would 404, so it is unwrapped to plain text in place.
+// Navigation chrome is left alone: the :has() rules above hide it by its link.
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.documentElement.classList.contains('mls-staging')) return;
+  var dead = /^\/(vol3|vol4)(\/|$)|^\/slides\/vol[34]\.html$/;
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    if (a.hostname !== window.location.hostname || !dead.test(a.pathname)) return;
+    if (a.closest('nav, .navbar, .sidebar, .nav-page, .mls-unreleased')) return;
+    a.replaceWith.apply(a, Array.prototype.slice.call(a.childNodes));
+  });
+});
+</script>
 
 <!--
   theme-persist (inline, sync) — applies stored color-scheme before first paint.
@@ -770,12 +786,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-read">    
         <li>
-    <a class="dropdown-item" href="../explore/"><i class="bi bi-diagram-3" role="img">
-</i> 
- <span class="dropdown-text">Concept Explorer</span></a>
-  </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li>
     <a class="dropdown-item" href="../vol1/"><i class="bi bi-journal" role="img">
 </i> 
  <span class="dropdown-text">Volume I: Introduction to Machine Learning Systems</span></a>
@@ -808,11 +818,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Build</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-build">    
-        <li>
-    <a class="dropdown-item" href="../games/"><i class="bi bi-controller" role="img">
-</i> 
- <span class="dropdown-text">Playground Games</span></a>
-  </li>  
         <li>
     <a class="dropdown-item" href="../labs/"><i class="bi bi-sliders" role="img">
 </i> 
@@ -862,6 +867,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Prepare</span>
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-prepare">    
+        <li>
+    <a class="dropdown-item" href="../explore/"><i class="bi bi-diagram-3" role="img">
+</i> 
+ <span class="dropdown-text">ML Systems Taxonomy</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="../staffml/"><i class="bi bi-mortarboard" role="img">
 </i> 
@@ -1012,9 +1023,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </button>
     </div>
   </nav>
-  <div id="quarto-announcement" data-announcement-id="64818575b1eeecd968693cd71b6aa453" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">1757ce4f</code> • 2026-10-24 06:24 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
-<p><span class="mls-ann-line"><strong>Lecture Slides:</strong> lecture decks for the Machine Learning Systems textbook.</span> <span class="mls-ann-line"><strong>The books:</strong> <a href="../vol1/">Introduction to Machine Learning Systems</a> · <a href="../vol2/">Scaling Machine Learning Systems</a> (preview)<span class="mls-unreleased"> · <a href="../vol3/">Agentic Machine Learning Systems</a> (in preparation) · <a href="../vol4/">Physical AI</a> (in preparation)</span>. All are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="./">Lecture Slides</a> (teach) · <a href="../instructors/">Instructor Hub</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="../newsletter/">Newsletter</a></span></p>
+  <div id="quarto-announcement" data-announcement-id="10bb34cdc0dccc06be3af8c6fb47deaf" class="alert alert-primary hidden"><i class="bi bi-megaphone quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p style="margin: 0 0 12px 0; padding: 8px 12px; background: rgba(255,193,7,0.2); border: 1px solid #ffc107; border-radius: 4px; font-weight: 600;"><i class="bi bi-exclamation-triangle-fill" style="margin-right: 6px; color: #856404;"></i><strong>🚧 DEVELOPMENT PREVIEW</strong> - Built from dev@<code style="background: rgba(0,0,0,0.1); padding: 2px 4px; border-radius: 3px; font-size: 0.9em;">cec5ba0d</code> • 2026-10-26 13:00 EDT • <a href="https://mlsysbook.ai" style="color: #856404; text-decoration: underline;"><em>Stable version →</em></a></p>
+<p><span class="mls-ann-line"><strong>Lecture Slides</strong>: lecture decks for the Machine Learning Systems textbook.</span> <span class="mls-ann-line"><strong>The books:</strong> <a href="../vol1/">Introduction to Machine Learning Systems</a> · <a href="../vol2/">Scaling Machine Learning Systems</a> (preview)<span class="mls-unreleased"> · <a href="../vol3/">Agentic Machine Learning Systems</a> (in preparation) · <a href="../vol4/">Physical AI</a> (in preparation)</span>. All are open access.</span> <span class="mls-ann-line mls-ann-siblings"><strong>Companion resources:</strong> <a href="../tinytorch/">TinyTorch</a> (build) · <a href="../kits/">Hardware Kits</a> (deploy) · <a href="../mlsysim/">MLSys·im</a> (model) · <a href="../labs/">Labs</a> (explore) · <a href="./">Lecture Slides</a> (teach) · <a href="../instructors/">Instructor Hub</a> (teach) · <a href="../staffml/">StaffML</a> (practice) · <a href="../newsletter/">Newsletter</a></span></p>
 </div><i class="bi bi-x-lg quarto-announcement-action" style="display: none;"></i></div>
 </header>
 <!-- content -->
