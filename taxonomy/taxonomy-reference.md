@@ -551,6 +551,8 @@ How are requests admitted, executed, and completed?
 - Bandwidth-delay product (`mlsys.bandwidth-delay-product`)
 - Expert offloading (`mlsys.expert-offloading`)
 - Intra-device overlap of bottlenecks (`mlsys.intra-device-overlap`)
+- Model swapping and residency (`mlsys.model-swapping`)
+- KV-cache memory allocation (`mlsys.kv-memory-allocation`)
 
 ### Evaluation and uncertainty
 
@@ -5749,3 +5751,15 @@ Coordinating the retrieval and generation work of retrieval-augmented requests a
 Identity: `mlsys.cross-stack-profiling`
 
 Profiling that correlates timestamped events and calling contexts from model code, frameworks, native libraries, and accelerator kernels, so that device time and stalls can be attributed to the operations that launched them.
+
+### Model swapping and residency
+
+Identity: `mlsys.model-swapping`
+
+Keeping some models' weights resident in accelerator memory and loading others from host memory or storage on demand, so a shared accelerator serves more models than fit at once, at the cost of transfer latency.
+
+### KV-cache memory allocation
+
+Identity: `mlsys.kv-memory-allocation`
+
+Laying out and allocating accelerator memory for cached attention state, which trades fragmentation and sharing against kernel compatibility and allocation cost.

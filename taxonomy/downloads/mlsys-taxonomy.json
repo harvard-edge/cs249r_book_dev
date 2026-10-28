@@ -2674,7 +2674,8 @@
                 "mlsys.streaming-asr",
                 "mlsys.voice-pipeline",
                 "mlsys.streaming-inference",
-                "mlsys.inference-api"
+                "mlsys.inference-api",
+                "mlsys.model-swapping"
               ],
               "related_concepts": [
                 "mlsys.retrieval",
@@ -2874,7 +2875,8 @@
                 "mlsys.diffusion-feature-caching",
                 "mlsys.masked-diffusion-decoding",
                 "mlsys.expert-offloading",
-                "mlsys.intra-device-overlap"
+                "mlsys.intra-device-overlap",
+                "mlsys.kv-memory-allocation"
               ],
               "related_concepts": [
                 "mlsys.continuous-batching",
@@ -15747,6 +15749,32 @@
           "url": "https://mlsysbook.ai/vol1/13_model_serving/13_model_serving.html#sec-model-serving-serving-tax-bill-dc6c"
         }
       ]
+    },
+    {
+      "id": "mlsys.model-swapping",
+      "label": "Model swapping and residency",
+      "aliases": [
+        "weight swapping",
+        "model residency management"
+      ],
+      "definition": "Keeping some models' weights resident in accelerator memory and loading others from host memory or storage on demand, so a shared accelerator serves more models than fit at once, at the cost of transfer latency.",
+      "background": false,
+      "home": "P4.1",
+      "home_id": "serving-architecture",
+      "book_passages": []
+    },
+    {
+      "id": "mlsys.kv-memory-allocation",
+      "label": "KV-cache memory allocation",
+      "aliases": [
+        "KV allocator",
+        "KV-cache memory layout"
+      ],
+      "definition": "Laying out and allocating accelerator memory for cached attention state, which trades fragmentation and sharing against kernel compatibility and allocation cost.",
+      "background": false,
+      "home": "P4.5",
+      "home_id": "llm-inference",
+      "book_passages": []
     }
   ],
   "gaps": [
@@ -27884,6 +27912,48 @@
       "target": "mlsys.tpot",
       "statement": "gives the per-gap distribution whose request average is",
       "conditions": "When streamed outputs are timestamped individually rather than only at request end."
+    },
+    {
+      "source": "mlsys.model-swapping",
+      "relation": "part-of",
+      "target": "mlsys.multi-model-serving",
+      "statement": "is the weight-movement mechanism of",
+      "conditions": "When more models are offered than fit in accelerator memory at once."
+    },
+    {
+      "source": "mlsys.host-device-interconnect",
+      "relation": "limits",
+      "target": "mlsys.model-swapping",
+      "statement": "bounds how fast models can be loaded in",
+      "conditions": "When a model's weights must move from host memory or storage before it can serve."
+    },
+    {
+      "source": "mlsys.model-swapping",
+      "relation": "increases",
+      "target": "mlsys.utilization",
+      "statement": "lets otherwise idle accelerators serve other models, raising",
+      "conditions": "When demand across models is uneven over time and the transfer latency fits the service objective."
+    },
+    {
+      "source": "mlsys.paged-kv",
+      "relation": "specializes",
+      "target": "mlsys.kv-memory-allocation",
+      "statement": "is the block-based form of",
+      "conditions": "When attention state is stored in fixed-size blocks mapped by a block table."
+    },
+    {
+      "source": "mlsys.kv-memory-allocation",
+      "relation": "determines",
+      "target": "mlsys.memory-fragmentation",
+      "statement": "sets how much KV memory is lost to",
+      "conditions": "When sequences of varying and growing length share one accelerator memory pool."
+    },
+    {
+      "source": "mlsys.kv-memory-allocation",
+      "relation": "implements",
+      "target": "mlsys.kv-cache",
+      "statement": "provides the storage that holds",
+      "conditions": "When a serving engine manages the cache's memory rather than the model framework."
     }
   ],
   "retired": [

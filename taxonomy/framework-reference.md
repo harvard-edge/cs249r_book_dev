@@ -2193,6 +2193,7 @@ Candidate home concepts:
 - **Voice interaction pipeline** (`mlsys.voice-pipeline`): Serving a spoken interaction as one latency-budgeted pipeline of streaming speech recognition, a language model, and speech synthesis, with turn detection and interruption handling between stages.
 - **Streaming inference** (`mlsys.streaming-inference`): Serving a model over an open stream of input, producing outputs incrementally from partial input while carrying state between chunks, rather than answering one complete request at a time.
 - **Inference API and payload serialization** (`mlsys.inference-api`): The request and response protocol of a model server, including the transport (HTTP, gRPC, streaming connections), the tensor and payload encoding, and the cost of serializing inputs and outputs.
+- **Model swapping and residency** (`mlsys.model-swapping`): Keeping some models' weights resident in accelerator memory and loading others from host memory or storage on demand, so a shared accelerator serves more models than fit at once, at the cost of transfer latency.
 
 Secondary concept connections (not additional homes):
 
@@ -2370,6 +2371,7 @@ Candidate home concepts:
 - **Masked diffusion decoding** (`mlsys.masked-diffusion-decoding`): Generating text by repeatedly predicting and committing masked positions in parallel, trading refinement passes for token parallelism while weakening the attention-state reuse that autoregressive decoding relies on.
 - **Expert offloading** (`mlsys.expert-offloading`): Keeping some mixture-of-experts weights in host memory or storage and fetching the experts a batch needs into accelerator memory, often prefetching predicted ones, which lets a model larger than accelerator memory run at the cost of transfers.
 - **Intra-device overlap of bottlenecks** (`mlsys.intra-device-overlap`): Scheduling generative-inference operations with complementary compute, memory, or communication demands concurrently on one accelerator, using small batches or fused kernels so several hardware resources stay busy together.
+- **KV-cache memory allocation** (`mlsys.kv-memory-allocation`): Laying out and allocating accelerator memory for cached attention state, which trades fragmentation and sharing against kernel compatibility and allocation cost.
 
 Secondary concept connections (not additional homes):
 

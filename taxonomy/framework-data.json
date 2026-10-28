@@ -15833,6 +15833,42 @@
       ],
       "scope": "core",
       "status": "draft"
+    },
+    {
+      "aliases": [
+        "weight swapping",
+        "model residency management"
+      ],
+      "definition": "Keeping some models' weights resident in accelerator memory and loading others from host memory or storage on demand, so a shared accelerator serves more models than fit at once, at the cost of transfer latency.",
+      "family": "serving",
+      "id": "mlsys.model-swapping",
+      "label": "Model swapping and residency",
+      "reading_scope": "family",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "scope": "core",
+      "status": "draft"
+    },
+    {
+      "aliases": [
+        "KV allocator",
+        "KV-cache memory layout"
+      ],
+      "definition": "Laying out and allocating accelerator memory for cached attention state, which trades fragmentation and sharing against kernel compatibility and allocation cost.",
+      "family": "serving",
+      "id": "mlsys.kv-memory-allocation",
+      "label": "KV-cache memory allocation",
+      "reading_scope": "family",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "scope": "core",
+      "status": "draft"
     }
   ],
   "framework": {
@@ -23183,7 +23219,7 @@
               "vol3"
             ],
             "code": "P4.1",
-            "concept_count": 13,
+            "concept_count": 14,
             "concepts": [
               "mlsys.online-inference",
               "mlsys.batch-inference",
@@ -23197,7 +23233,8 @@
               "mlsys.streaming-asr",
               "mlsys.voice-pipeline",
               "mlsys.streaming-inference",
-              "mlsys.inference-api"
+              "mlsys.inference-api",
+              "mlsys.model-swapping"
             ],
             "concerns": [
               "performance",
@@ -23218,7 +23255,7 @@
               "Routing and composing calls across models ([[compound-ai]])",
               "Second-stage reranking inside retrieval ([[retrieval-rag]])"
             ],
-            "home_concept_count": 13,
+            "home_concept_count": 14,
             "id": "serving-architecture",
             "includes": [
               "Batch vs online prediction, inference servers and APIs."
@@ -23972,7 +24009,7 @@
               "vol3"
             ],
             "code": "P4.5",
-            "concept_count": 19,
+            "concept_count": 20,
             "concepts": [
               "mlsys.kv-cache",
               "mlsys.prefill-decode",
@@ -23992,7 +24029,8 @@
               "mlsys.diffusion-feature-caching",
               "mlsys.masked-diffusion-decoding",
               "mlsys.expert-offloading",
-              "mlsys.intra-device-overlap"
+              "mlsys.intra-device-overlap",
+              "mlsys.kv-memory-allocation"
             ],
             "concerns": [
               "performance",
@@ -24010,7 +24048,7 @@
               "Weight quantization ([[model-compression]])",
               "Context selection and compaction ([[context-memory]])"
             ],
-            "home_concept_count": 19,
+            "home_concept_count": 20,
             "id": "llm-inference",
             "includes": [
               "KV cache management, prefix reuse, speculative decoding.",
@@ -32818,7 +32856,7 @@
     "summary": {
       "areas": 20,
       "book_links": 221,
-      "concepts": 805,
+      "concepts": 807,
       "gaps": 3,
       "groups": 5,
       "learning_paths": 5,
@@ -59345,6 +59383,107 @@
       "source": "mlsys.inter-token-latency",
       "status": "draft",
       "target": "mlsys.tpot"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When more models are offered than fit in accelerator memory at once.",
+      "id": "rel.model-swapping.multi-model-serving",
+      "kind": "composition",
+      "predicate": "is the weight-movement mechanism of",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "relation": "part-of",
+      "source": "mlsys.model-swapping",
+      "status": "draft",
+      "target": "mlsys.multi-model-serving"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When a model's weights must move from host memory or storage before it can serve.",
+      "id": "rel.host-device-interconnect.model-swapping",
+      "kind": "constraint",
+      "predicate": "bounds how fast models can be loaded in",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "roofline",
+        "cmu"
+      ],
+      "relation": "limits",
+      "source": "mlsys.host-device-interconnect",
+      "status": "draft",
+      "target": "mlsys.model-swapping"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When demand across models is uneven over time and the transfer latency fits the service objective.",
+      "id": "rel.model-swapping.utilization",
+      "kind": "mechanism",
+      "predicate": "lets otherwise idle accelerators serve other models, raising",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "relation": "increases",
+      "source": "mlsys.model-swapping",
+      "status": "draft",
+      "target": "mlsys.utilization"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When attention state is stored in fixed-size blocks mapped by a block table.",
+      "id": "rel.paged-kv.kv-memory-allocation",
+      "kind": "composition",
+      "predicate": "is the block-based form of",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "relation": "specializes",
+      "source": "mlsys.paged-kv",
+      "status": "draft",
+      "target": "mlsys.kv-memory-allocation"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When sequences of varying and growing length share one accelerator memory pool.",
+      "id": "rel.kv-memory-allocation.memory-fragmentation",
+      "kind": "mechanism",
+      "predicate": "sets how much KV memory is lost to",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "relation": "determines",
+      "source": "mlsys.kv-memory-allocation",
+      "status": "draft",
+      "target": "mlsys.memory-fragmentation"
+    },
+    {
+      "basis": "editorial-synthesis",
+      "conditions": "When a serving engine manages the cache's memory rather than the model framework.",
+      "id": "rel.kv-memory-allocation.kv-cache",
+      "kind": "mechanism",
+      "predicate": "provides the storage that holds",
+      "reference_role": "reading-basis-not-entailment-proof",
+      "references": [
+        "cs329s",
+        "paged",
+        "sre"
+      ],
+      "relation": "implements",
+      "source": "mlsys.kv-memory-allocation",
+      "status": "draft",
+      "target": "mlsys.kv-cache"
     }
   ],
   "retired": [
